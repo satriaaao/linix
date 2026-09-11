@@ -17,6 +17,16 @@
   .hero h1{font-size:34px!important;line-height:.97!important;max-width:610px!important;margin:9px 0 10px!important;letter-spacing:-.045em!important}
   .hero p{font-size:12px!important;line-height:1.45!important;max-width:590px!important;margin:0!important;color:rgba(255,255,255,.86)!important}
   .section{padding-top:42px}
+
+  /* Explore our Rentals: Cinemachine-style circular categories */
+  html body .section .cats{display:flex!important;flex-wrap:nowrap!important;gap:20px!important;overflow-x:auto!important;overflow-y:hidden!important;padding:6px 2px 14px!important;-webkit-overflow-scrolling:touch!important;scroll-snap-type:x proximity!important}
+  html body .section .cats::-webkit-scrollbar{display:none!important}
+  html body .section .cats .cat{flex:0 0 128px!important;min-width:128px!important;width:128px!important;height:auto!important;min-height:0!important;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;scroll-snap-align:start!important}
+  html body .section .cats .cat::after{content:none!important;display:none!important;background:none!important}
+  html body .section .cats .cat img{position:static!important;width:124px!important;height:124px!important;min-width:124px!important;min-height:124px!important;max-width:124px!important;max-height:124px!important;aspect-ratio:1/1!important;object-fit:cover!important;object-position:center!important;border-radius:50%!important;box-shadow:none!important;filter:none!important;transform:none!important}
+  html body .section .cats .cat>div{position:static!important;inset:auto!important;width:100%!important;padding:0!important;margin:0!important;background:none!important;color:#111!important;text-align:center!important;transform:none!important;box-shadow:none!important}
+  html body .section .cats .cat b{display:block!important;color:#111!important;font-size:15px!important;line-height:1.2!important;font-weight:750!important;white-space:normal!important}
+  html body .section .cats .cat small{display:none!important}
 }
 @media(max-width:390px){
   .brand{font-size:22px}.rentcam-logo{width:36px;height:36px;flex-basis:36px}.icon{width:42px;height:42px}.hero{height:340px!important}.hero h1{font-size:31px!important}
