@@ -2,8 +2,12 @@
 (function(){
   const sections=[
     {key:'camera',title:'Kamera',subtitle:'Cinema camera untuk film, commercial, series dan content production.',categories:['camera','kamera']},
+    {key:'lens',title:'Lensa Cinema',subtitle:'Prime dan anamorphic lens untuk karakter visual sinema.',categories:['lens','lensa']},
     {key:'lighting',title:'Lighting',subtitle:'Lighting profesional untuk produksi sinema.',categories:['lighting']},
     {key:'audio',title:'Audio',subtitle:'Production sound profesional.',categories:['audio']},
+    {key:'wireless',title:'Monitor & Wireless',subtitle:'Monitoring gambar dan transmisi video untuk kru produksi.',categories:['wireless','monitor']},
+    {key:'grip',title:'Grip & Support',subtitle:'Tripod head dan camera support untuk pergerakan yang stabil.',categories:['grip']},
+    {key:'accessories',title:'Accessories & Camera Control',subtitle:'Matte box, kontrol fokus dan aksesori untuk melengkapi rig kamera.',categories:['accessories','electronic control','electronic-control','matte box','matte-box','camera support','camera-support','follow focus','follow-focus','filters']},
     {key:'package',title:'Paket',subtitle:'Paket equipment siap produksi.',categories:['package','paket']}
   ];
   const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
