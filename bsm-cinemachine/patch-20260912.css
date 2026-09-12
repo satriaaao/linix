@@ -68,6 +68,11 @@ html body #app .product-detail-simple .back-link{
   align-items:center!important;
   justify-content:center!important;
   position:relative!important;
+  z-index:80!important;
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+  -webkit-tap-highlight-color:transparent!important;
+  user-select:none!important;
   font-size:0!important;
   line-height:0!important;
   text-decoration:none!important;
@@ -84,6 +89,7 @@ html body #app .product-detail-simple .back-link::before{
   border-bottom:2px solid currentColor!important;
   transform:translateX(2px) rotate(45deg)!important;
   box-sizing:border-box!important;
+  pointer-events:none!important;
 }
 html body #app .product-detail-simple .back-link::after{
   content:""!important;
@@ -94,6 +100,7 @@ html body #app .product-detail-simple .back-link::after{
   border-radius:2px!important;
   left:15px!important;
   top:21px!important;
+  pointer-events:none!important;
 }
 @media (hover:hover) and (pointer:fine){
   html body #app .product-detail-simple .back-link:hover{
