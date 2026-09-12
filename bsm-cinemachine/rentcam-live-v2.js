@@ -1,5 +1,30 @@
 (function(){
   const labels={Camera:'Cameras',Lens:'Lenses',Lighting:'Lighting',Wireless:'Wireless',Grip:'Grip',Audio:'Audio'};
+  const compactDetailStyle=document.createElement('style');
+  compactDetailStyle.id='rentcam-product-detail-compact';
+  compactDetailStyle.textContent=`
+    .product-detail-simple .detail-info .rentcam-detail-badge{display:none!important}
+    .product-detail-simple .detail-info h1::before,.product-detail-simple .detail-info h1::after{display:none!important;content:none!important}
+    .product-detail-simple .detail-price{font-size:36px!important;margin-bottom:28px!important}
+    .product-detail-simple .detail-price small{font-size:14px!important;margin-left:7px!important}
+    .product-detail-simple .qty-wrap{padding-top:20px!important}
+    .product-detail-simple .qty-label{font-size:16px!important;margin-bottom:11px!important}
+    .product-detail-simple .qty-box{width:170px!important;height:52px!important;margin-bottom:14px!important}
+    .product-detail-simple .qty-box button{font-size:22px!important}
+    .product-detail-simple .qty-box span{font-size:18px!important}
+    .product-detail-simple .add-rental-full{height:56px!important;font-size:18px!important;margin-bottom:22px!important}
+    @media(max-width:620px){
+      .product-detail-simple .detail-price{font-size:28px!important;margin-bottom:22px!important}
+      .product-detail-simple .detail-price small{font-size:12px!important;margin-left:5px!important}
+      .product-detail-simple .qty-wrap{padding-top:16px!important}
+      .product-detail-simple .qty-label{font-size:15px!important;margin-bottom:9px!important}
+      .product-detail-simple .qty-box{width:148px!important;height:46px!important;margin-bottom:12px!important}
+      .product-detail-simple .qty-box button{font-size:20px!important}
+      .product-detail-simple .qty-box span{font-size:17px!important}
+      .product-detail-simple .add-rental-full{height:50px!important;font-size:16px!important;margin-bottom:18px!important}
+    }
+  `;
+  document.head.appendChild(compactDetailStyle);
   const getSort=()=>localStorage.getItem('rentcam_product_sort')||'featured';
   const getView=()=>localStorage.getItem('rentcam_product_view')||'grid';
   window.productSetSort=v=>{localStorage.setItem('rentcam_product_sort',v);render()};
@@ -20,7 +45,7 @@
   window.detail=function(id){
     const p=P.find(x=>x.id===id); if(!p)return products();
     const desc=`${p.name} disiapkan untuk workflow film, commercial, series dan production profesional.`;
-    return `<section class="page"><div class="container product-detail-simple"><a class="back-link" onclick="go('/produk')">← Kembali ke Rentals</a><div class="detail-top"><div class="detail-media"><img src="${p.img}" alt="${p.name}"></div><div class="detail-info"><div class="detail-brand">${p.brand}</div><h1>${p.name}</h1><div class="detail-price">${rp(p.price)} <small>/ full day</small></div><div class="qty-wrap"><div class="qty-label">Quantity</div><div class="qty-box"><button onclick="qty=Math.max(1,qty-1);render()">−</button><span>${qty}</span><button onclick="qty++;render()">+</button></div><button class="add-rental-full" onclick="add('${p.id}',qty)">Add to Rental Cart</button></div><div class="detail-sections"><section class="detail-section"><h2>Description</h2><p>${desc}</p></section><section class="detail-section"><h2>Included as Standard</h2><ul class="included-list">${p.inc.map(x=>`<li>${x}</li>`).join('')}</ul></section><section class="detail-section"><h2>Specifications</h2><div class="spec-list">${p.spec.map(x=>`<div class="spec-row"><span>${x[0]}</span><b>${x[1]}</b></div>`).join('')}</div></section></div></div></div></div></section>`;
+    return `<section class="page"><div class="container product-detail-simple"><a class="back-link" onclick="go('/produk')">← Kembali ke Rentals</a><div class="detail-top"><div class="detail-media"><img src="${p.img}" alt="${p.name}"></div><div class="detail-info"><div class="detail-brand">${p.brand}</div><h1>${p.name}</h1><div class="detail-price">${rp(p.price)} <small>/ day</small></div><div class="qty-wrap"><div class="qty-label">Quantity</div><div class="qty-box"><button onclick="qty=Math.max(1,qty-1);render()">−</button><span>${qty}</span><button onclick="qty++;render()">+</button></div><button class="add-rental-full" onclick="add('${p.id}',qty)">Add to Rental Cart</button></div><div class="detail-sections"><section class="detail-section"><h2>Description</h2><p>${desc}</p></section><section class="detail-section"><h2>Included as Standard</h2><ul class="included-list">${p.inc.map(x=>`<li>${x}</li>`).join('')}</ul></section><section class="detail-section"><h2>Specifications</h2><div class="spec-list">${p.spec.map(x=>`<div class="spec-row"><span>${x[0]}</span><b>${x[1]}</b></div>`).join('')}</div></section></div></div></div></div></section>`;
   };
   const baseRender=window.render;
   if(typeof baseRender==='function'){
