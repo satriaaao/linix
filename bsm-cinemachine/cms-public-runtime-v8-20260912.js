@@ -1,25 +1,50 @@
-/* Rentcam public CMS runtime v8 — lightweight, no global DOM observer */
+/* Rentcam public CMS runtime v9 — live CMS sync, lightweight, no global DOM observer */
 (function(){
   if(location.pathname.startsWith('/cms')) return;
   const SB='https://xleceiffuopioeguniwj.supabase.co';
   const KEY='sb_publishable_POksYryhG_mkFbs7N0fjKQ_4dUim7Ex';
+  const VERSION_KEY='rentcam_cms_version';
   const sid=sessionStorage.getItem('rentcam_sid')||(()=>{const v=(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random());sessionStorage.setItem('rentcam_sid',v);return v})();
-  let cfg=null, appliedRoute='';
+  let cfg=null,loading=false,lastConfigSig='';
   const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  const api=(path,opt={})=>fetch(SB+path,{...opt,headers:{apikey:KEY,'Content-Type':'application/json',...(opt.headers||{})}});
+  const api=(path,opt={})=>fetch(SB+path,{cache:'no-store',...opt,headers:{apikey:KEY,'Content-Type':'application/json','Cache-Control':'no-cache',...(opt.headers||{})}});
+
   async function loadConfig(){
-    try{const r=await api('/rest/v1/rentcam_cms_config?id=eq.1&select=config');if(!r.ok)throw new Error('config '+r.status);const d=await r.json();cfg=d?.[0]?.config||{};window.RENTCAM_CMS_CONFIG=cfg;syncBanners();applyAll();document.dispatchEvent(new CustomEvent('rentcam-cms-updated',{detail:cfg}));setTimeout(applyAll,120);setTimeout(applyAll,600)}catch(e){console.warn('Rentcam CMS public config',e)}
+    if(loading)return;
+    loading=true;
+    try{
+      const r=await api('/rest/v1/rentcam_cms_config?id=eq.1&select=config');
+      if(!r.ok)throw new Error('config '+r.status);
+      const d=await r.json();
+      const next=d?.[0]?.config||{};
+      const sig=JSON.stringify(next);
+      if(sig===lastConfigSig&&cfg){applyAll();return}
+      lastConfigSig=sig;
+      cfg=next;
+      window.RENTCAM_CMS_CONFIG=cfg;
+      syncBanners();
+      applyAll();
+      document.dispatchEvent(new CustomEvent('rentcam-cms-updated',{detail:cfg}));
+      setTimeout(applyAll,120);
+      setTimeout(applyAll,600);
+    }catch(e){console.warn('Rentcam CMS public config',e)}finally{loading=false}
   }
-  function syncBanners(){try{if(Array.isArray(SL)&&Array.isArray(cfg?.banners)&&cfg.banners.length){const next=cfg.banners.filter(x=>x.active!==false&&x.deleted!==true).map(b=>({ey:b.ey||b.kicker||b.promoLabel||'RENTCAM',t:b.title||'',p:b.text||b.subtitle||'',img:b.image||''}));if(next.length)SL.splice(0,SL.length,...next)}}catch(e){}}
+
+  function syncBanners(){try{if(Array.isArray(SL)&&Array.isArray(cfg?.banners)){const next=cfg.banners.filter(x=>x.active!==false&&x.deleted!==true).map(b=>({ey:b.ey||b.kicker||b.promoLabel||'RENTCAM',t:b.title||'',p:b.text||b.subtitle||'',img:b.image||''}));if(next.length)SL.splice(0,SL.length,...next)}}catch(e){}}
   function applySEO(){const g=cfg?.general||{};if(g.seoTitle&&document.title!==g.seoTitle)document.title=g.seoTitle;let m=document.querySelector('meta[name="description"]');if(!m){m=document.createElement('meta');m.name='description';document.head.appendChild(m)}if(g.seoDescription&&m.content!==g.seoDescription)m.content=g.seoDescription}
   function applyTheme(){const t=cfg?.theme||{};if(t.accent)document.documentElement.style.setProperty('--orange',t.accent);let s=document.getElementById('rentcam-cms-lite-theme');if(!s){s=document.createElement('style');s.id='rentcam-cms-lite-theme';document.head.appendChild(s)}const css=`body{${t.background?`background:${t.background}!important;`:''}${t.text?`color:${t.text};`:''}}${t.cardRadius?`#app .pcard,#app .home-category-card,#app .ed-card{border-radius:${Number(t.cardRadius)}px!important}`:''}${t.buttonRadius?`#app button{border-radius:${Number(t.buttonRadius)}px!important}`:''}`;if(s.textContent!==css)s.textContent=css}
   function applyHeader(){const g=cfg?.general||{},nav=cfg?.navigation||[];document.querySelectorAll('.header .brand span,.drawer .brand').forEach(x=>{if(g.siteName&&x.textContent!==g.siteName)x.textContent=g.siteName});const brand=document.querySelector('.header .brand');if(brand&&g.logoUrl){let img=brand.querySelector('.cms-logo-img');if(!img){img=document.createElement('img');img.className='cms-logo-img';img.style.cssText='width:42px;height:42px;object-fit:contain;border-radius:10px';brand.prepend(img)}if(img.src!==g.logoUrl)img.src=g.logoUrl;const svg=brand.querySelector('svg');if(svg)svg.style.display='none'}nav.forEach(n=>{document.querySelectorAll(`[data-go="${CSS.escape(n.path||'/')}"]`).forEach(a=>{if(n.label&&a.textContent!==n.label)a.textContent=n.label;a.style.display=n.enabled===false?'none':''})})}
   function applyFooter(){const f=cfg?.footer||{},g=cfg?.general||{},foot=document.querySelector('.footer .footgrid');if(!foot)return;const sig=JSON.stringify([g.siteName,f.description,f.copyright,f.columns,g.whatsapp]);if(foot.dataset.cmsSig===sig)return;foot.dataset.cmsSig=sig;const links=(f.columns||[]).map(c=>`<div><h4>${esc(c.title)}</h4>${(c.links||[]).filter(l=>l.active!==false&&l.deleted!==true).map(l=>{if(l.path==='#whatsapp'){const wa=String(g.whatsapp||'').replace(/\D/g,'');return `<a ${wa?`href="https://wa.me/${wa}" target="_blank"`:''}>${esc(l.label)}</a>`}if(/^https?:/i.test(l.path||''))return `<a href="${esc(l.path)}" target="_blank">${esc(l.label)}</a>`;return `<a onclick="go('${esc(l.path||'/')}')">${esc(l.label)}</a>`}).join('')}</div>`).join('');foot.innerHTML=`<div><div class="brand" style="color:white">${esc(g.siteName||'Rentcam')}</div><p>${esc(f.description||'Motion picture equipment rentals untuk film, commercial, series, documentary, TV dan content production.')}</p></div>${links}<div class="cms-footer-copy" style="grid-column:1/-1;border-top:1px solid rgba(255,255,255,.12);padding-top:18px;margin-top:8px;font-size:11px;color:#888">${esc(f.copyright||'')}</div>`}
-  function applyHomepage(){if(location.pathname!=='/')return;const h=cfg?.homepage||{};const hero=document.querySelector('#app .hero');if(hero)hero.style.display=h.heroEnabled===false?'none':'';const map={camera:['cameraTitle','cameraSubtitle','productsCamera'],lighting:['lightingTitle','lightingSubtitle','productsLighting'],audio:['audioTitle','audioSubtitle','productsAudio'],package:['packageTitle','packageSubtitle','productsPackage']};Object.entries(map).forEach(([k,[tk,sk,nk]])=>{const sec=document.querySelector(`#app .home-${k}`);if(!sec)return;const hh=sec.querySelector('.home-product-head h2'),pp=sec.querySelector('.home-product-head p');if(hh&&h[tk]&&hh.textContent!==h[tk])hh.textContent=h[tk];if(pp&&h[sk]&&pp.textContent!==h[sk])pp.textContent=h[sk];const n=Number(h[nk]||8);sec.querySelectorAll('.home-category-card').forEach((c,i)=>c.style.display=i<n?'':'none')});const wrap=document.getElementById('rentcam-home-product-sections');if(wrap)wrap.style.display=h.productsEnabled===false?'none':'';const services=document.querySelector('#app .services');if(services&&Array.isArray(cfg?.services)){services.style.display=h.servicesEnabled===false?'none':'';const active=cfg.services.filter(x=>x.active!==false&&x.deleted!==true);const sig=JSON.stringify(active);if(active.length&&services.dataset.cmsSig!==sig){services.dataset.cmsSig=sig;services.innerHTML=active.map(x=>`<div class="service"><b>${esc(x.title)}</b><small>${esc(x.text)}</small></div>`).join('')}}}
-  function applyAll(){if(!cfg)return;applySEO();applyTheme();applyHeader();applyFooter();applyHomepage();appliedRoute=location.pathname}
+  function applyHomepage(){if(location.pathname!=='/')return;const h=cfg?.homepage||{};const hero=document.querySelector('#app .hero');if(hero)hero.style.display=h.heroEnabled===false?'none':'';const map={camera:['cameraTitle','cameraSubtitle','productsCamera'],lighting:['lightingTitle','lightingSubtitle','productsLighting'],audio:['audioTitle','audioSubtitle','productsAudio'],package:['packageTitle','packageSubtitle','productsPackage']};Object.entries(map).forEach(([k,[tk,sk,nk]])=>{const sec=document.querySelector(`#app .home-${k}`);if(!sec)return;const hh=sec.querySelector('.home-product-head h2'),pp=sec.querySelector('.home-product-head p');if(hh&&h[tk]&&hh.textContent!==h[tk])hh.textContent=h[tk];if(pp&&h[sk]&&pp.textContent!==h[sk])pp.textContent=h[sk];const n=Number(h[nk]||8);sec.querySelectorAll('.home-category-card').forEach((c,i)=>c.style.display=i<n?'':'none')});const wrap=document.getElementById('rentcam-home-product-sections');if(wrap)wrap.style.display=h.productsEnabled===false?'none':'';const services=document.querySelector('#app .services');if(services&&Array.isArray(cfg?.services)){services.style.display=h.servicesEnabled===false?'none':'';const active=cfg.services.filter(x=>x.active!==false&&x.deleted!==true);const sig=JSON.stringify(active);if(services.dataset.cmsSig!==sig){services.dataset.cmsSig=sig;services.innerHTML=active.map(x=>`<div class="service"><b>${esc(x.title)}</b><small>${esc(x.text)}</small></div>`).join('')}}}
+  function applyAll(){if(!cfg)return;applySEO();applyTheme();applyHeader();applyFooter();applyHomepage()}
   async function track(type,path=location.pathname,productId=null){try{await api('/rest/v1/rentcam_events',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({event_type:type,path,product_id:productId,session_id:sid,meta:{ua:navigator.userAgent.slice(0,160)}})})}catch(e){}}
   async function ping(){try{await api('/rest/v1/rentcam_presence?on_conflict=session_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({session_id:sid,path:location.pathname,last_seen:new Date().toISOString()})})}catch(e){}}
   function routeChanged(){const p=location.pathname;track('page_view',p);const m=p.match(/^\/produk\/([^/?#]+)/);if(m)track('product_click',p,decodeURIComponent(m[1]));setTimeout(()=>{applyAll();document.dispatchEvent(new CustomEvent('rentcam-route-change',{detail:{path:p}}))},40);setTimeout(applyAll,250)}
   const nativePush=history.pushState.bind(history);history.pushState=function(a,b,u){const r=nativePush(a,b,u);routeChanged();return r};addEventListener('popstate',routeChanged);
-  track('page_view');ping();setInterval(ping,60000);loadConfig();
+
+  addEventListener('storage',e=>{if(e.key===VERSION_KEY)loadConfig()});
+  try{const bc=new BroadcastChannel('rentcam-cms');bc.onmessage=e=>{if(e.data?.type==='config-updated')loadConfig()}}catch(e){}
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadConfig()});
+
+  track('page_view');ping();setInterval(ping,60000);setInterval(loadConfig,30000);loadConfig();
 })();
