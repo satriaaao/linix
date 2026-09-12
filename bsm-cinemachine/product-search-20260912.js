@@ -140,12 +140,15 @@
     const st=document.createElement('style');
     st.id='rentcam-product-search-style';
     st.textContent=`
-      html body #app .catalog-category-grid{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:10px!important;overflow:visible!important;white-space:normal!important;width:100%!important;max-width:100%!important;margin:20px 0 28px!important;padding:0!important}
-      html body #app .catalog-category-grid .arri-cat{min-width:0!important;width:100%!important;white-space:normal!important;border-radius:12px!important;padding:12px 8px!important;line-height:1.3!important;color:#333!important;background:#fff!important;border:1px solid #ddd!important;font-size:13px!important}
-      html body #app .catalog-category-grid .arri-cat.on{color:#fff!important;background:#111!important;border-color:#111!important}
-      .catalog-category-grid small{display:block;font-size:10px;opacity:.65;margin-top:4px;font-weight:500}
+      html body #app .catalog-filter-row{display:flex!important;align-items:center!important;gap:16px!important;margin:16px 0 26px!important;width:100%!important}
+      html body #app .catalog-filter-field{position:relative!important;display:block!important;width:320px!important;max-width:100%!important;margin:0!important}
+      html body #app .catalog-filter-field>span{display:block!important;font-size:11px!important;font-weight:650!important;color:#777!important;margin:0 0 7px!important}
+      html body #app .catalog-filter-field select{appearance:none!important;-webkit-appearance:none!important;display:block!important;width:100%!important;height:48px!important;padding:0 44px 0 15px!important;border:1px solid #dedede!important;border-radius:12px!important;background:#fff!important;color:#111!important;font:inherit!important;font-size:14px!important;font-weight:650!important;cursor:pointer!important;box-sizing:border-box!important}
+      html body #app .catalog-filter-field select:focus-visible{outline:2px solid #111!important;outline-offset:3px!important}
+      html body #app .catalog-filter-field svg{position:absolute!important;right:15px!important;bottom:15px!important;width:18px!important;height:18px!important;fill:none!important;stroke:#555!important;stroke-width:1.8!important;pointer-events:none!important}
+      html body #app .catalog-filter-count{font-size:12px!important;color:#777!important;white-space:nowrap!important;padding-top:21px!important}
       .catalog-group{margin:26px 0 36px}.catalog-group header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.catalog-group h2{font-size:24px;margin:0;letter-spacing:-.03em}.catalog-group header span{color:#777;font-size:12px}
-      @media(max-width:620px){html body #app .catalog-category-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important}html body #app .catalog-category-grid .arri-cat{font-size:11px!important;padding:11px 5px!important}.catalog-group h2{font-size:21px}}
+      @media(max-width:620px){html body #app .catalog-filter-field{flex:1!important;width:auto!important;min-width:0!important}html body #app .catalog-filter-row{gap:12px!important;margin:14px 0 24px!important}html body #app .catalog-filter-field select{font-size:16px!important}.catalog-group h2{font-size:21px}}
       .promo-slider{position:relative;overflow:hidden;margin:20px 0 18px;border-radius:22px;background:#111;box-shadow:0 18px 45px rgba(0,0,0,.10)}
       .promo-track{display:flex;width:100%;transition:transform .7s cubic-bezier(.22,.7,.22,1);will-change:transform}
       .promo-slide{position:relative;flex:0 0 100%;height:230px;overflow:hidden;display:grid;grid-template-columns:1.12fr .88fr;align-items:center;padding:28px 68px 28px 42px;color:#fff}
@@ -212,6 +215,11 @@
     };
 
 
+    window.rentcamSelectCategory=function(category){
+      const params=new URLSearchParams(location.search);
+      if(category)params.set('cat',category);else params.delete('cat');
+      go('/produk'+(params.size?'?'+params.toString():''));
+    };
     window.products=function(){
       window.rentcamSyncProductsFromCMS?.();
       const u=new URLSearchParams(location.search),raw=u.get('cat')||'',q=(u.get('q')||'').trim(),qLower=q.toLowerCase();
@@ -220,7 +228,7 @@
       const a=active.filter(p=>(!selected||rentcamCatalogGroup(p)===selected)&&(!qLower||`${p.name} ${p.brand||''} ${p.cat||''} ${p.sku||''}`.toLowerCase().includes(qLower)));
       const groups=catalogGroups.filter(g=>active.some(p=>rentcamCatalogGroup(p)===g.key));
       const link=k=>{const s=new URLSearchParams();if(k)s.set('cat',k);if(q)s.set('q',q);return '/produk'+(s.size?'?'+s:'')};
-      return `<section class="page"><div class="container"><div class="product-meta"><h1>${selected?esc(catalogGroups.find(g=>g.key===selected).title):'Semua Produk'}</h1><p>${a.length} produk · Pilih kategori sesuai kebutuhan Anda</p></div>${promoMarkup()}<div class="product-search-wrap"><div class="product-search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg><input id="productSearchInput" value="${esc(q)}" placeholder="Cari produk..." onkeydown="if(event.key==='Enter')rentcamSearch()"></div><button class="product-search-btn" onclick="rentcamSearch()">Cari</button></div><nav class="arri-cats catalog-category-grid" aria-label="Kategori produk"><button class="arri-cat ${!selected?'on':''}" aria-pressed="${!selected}" onclick="go('${link('')}')">Semua</button>${groups.map(g=>`<button class="arri-cat ${selected===g.key?'on':''}" aria-pressed="${selected===g.key}" onclick="go('${link(g.key)}')">${esc(g.title)}<small>${active.filter(p=>rentcamCatalogGroup(p)===g.key).length} produk</small></button>`).join('')}</nav>${a.length?catalogGroups.filter(g=>!selected||g.key===selected).map(g=>{const items=a.filter(p=>rentcamCatalogGroup(p)===g.key).sort((x,y)=>String(x.name).localeCompare(String(y.name)));return items.length?`<section class="catalog-group"><header><h2>${esc(g.title)}</h2><span>${items.length} produk</span></header><div class="products-grid">${items.map(pc).join('')}</div></section>`:''}).join(''):'<div class="product-empty">Produk tidak ditemukan. Coba kata kunci lain.</div>'}</div></section>`;
+      return `<section class="page"><div class="container"><div class="product-meta"><h1>${selected?esc(catalogGroups.find(g=>g.key===selected).title):'Semua Produk'}</h1><p>${a.length} produk · Pilih kategori sesuai kebutuhan Anda</p></div>${promoMarkup()}<div class="product-search-wrap"><div class="product-search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg><input id="productSearchInput" value="${esc(q)}" placeholder="Cari produk..." onkeydown="if(event.key==='Enter')rentcamSearch()"></div><button class="product-search-btn" onclick="rentcamSearch()">Cari</button></div><div class="catalog-filter-row"><label class="catalog-filter-field" for="catalogCategory"><span>Kategori produk</span><select id="catalogCategory" onchange="rentcamSelectCategory(this.value)"><option value="" ${!selected?'selected':''}>Semua kategori</option>${groups.map(g=>`<option value="${esc(g.key)}" ${selected===g.key?'selected':''}>${esc(g.title)}</option>`).join('')}</select><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></label><span class="catalog-filter-count">${a.length} produk</span></div>${a.length?catalogGroups.filter(g=>!selected||g.key===selected).map(g=>{const items=a.filter(p=>rentcamCatalogGroup(p)===g.key).sort((x,y)=>String(x.name).localeCompare(String(y.name)));return items.length?`<section class="catalog-group"><header><h2>${esc(g.title)}</h2><span>${items.length} produk</span></header><div class="products-grid">${items.map(pc).join('')}</div></section>`:''}).join(''):'<div class="product-empty">Produk tidak ditemukan. Coba kata kunci lain.</div>'}</div></section>`;
     };
 
     const app=document.getElementById('app');
