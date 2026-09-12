@@ -1,0 +1,2 @@
+/* Temporarily scope legacy document observers to #app */
+(function(){const Native=window.MutationObserver;if(!Native||window.__rentcamNativeMO)return;window.__rentcamNativeMO=Native;window.MutationObserver=function(cb){const ob=new Native(cb);const nativeObserve=ob.observe.bind(ob);ob.observe=function(target,opt){if(target===document.documentElement||target===document.body)target=document.getElementById('app')||target;return nativeObserve(target,opt)};return ob};window.MutationObserver.prototype=Native.prototype})();
