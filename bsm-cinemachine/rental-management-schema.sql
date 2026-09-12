@@ -42,19 +42,19 @@ grant execute on function public.rentcam_checkout_upload_token() to anon,authent
 create policy rental_receipt_upload on storage.objects for insert to anon,authenticated with check(bucket_id='rental-receipts' and rentcam_private.valid_checkout_token((storage.foldername(name))[1]));
 create policy rental_receipt_admin_read on storage.objects for select to anon,authenticated using(bucket_id='rental-receipts' and public.rentcam_is_admin());
 create function rentcam_private.submit_proof(p_order uuid,p_customer uuid,p_path text,p_bank text,p_amount numeric) returns uuid language plpgsql security definer set search_path=public as $$
-declare o public.rentcam_orders; bank jsonb; token text; proof uuid;
+declare o public.rentcam_orders; bank jsonb; v_token text; proof uuid;
 begin
 select * into o from public.rentcam_orders where id=p_order and customer_token=p_customer for update;
 if not found then raise exception 'Pesanan tidak ditemukan';end if;
 if o.rental_status='cancelled' then raise exception 'Pesanan dibatalkan';end if;
-select value into bank from public.rentcam_cms_config,jsonb_array_elements(coalesce(config->'payment'->'bankAccounts','[]')) where id=1 and value->>'id'=p_bank and value->>'active'<>'false';
+select value into bank from public.rentcam_cms_config,jsonb_array_elements(coalesce(config->'payment'->'bankAccounts','[]')) where id=1 and value->>'id'=p_bank and coalesce(value->>'active','true')<>'false';
 if bank is null then raise exception 'Pilih rekening yang tersedia';end if;
 if p_amount is null or p_amount<=0 then raise exception 'Nominal transfer tidak valid';end if;
 if exists(select 1 from public.rentcam_payment_proofs where receipt_path=p_path and order_id=p_order) then select id into proof from public.rentcam_payment_proofs where receipt_path=p_path and order_id=p_order;return proof;end if;
-token=split_part(p_path,'/',1);
-if not rentcam_private.valid_checkout_token(token) or not exists(select 1 from storage.objects where bucket_id='rental-receipts' and name=p_path) then raise exception 'Bukti transfer belum di-upload atau sudah kedaluwarsa';end if;
+v_token=split_part(p_path,'/',1);
+if not rentcam_private.valid_checkout_token(v_token) or not exists(select 1 from storage.objects where bucket_id='rental-receipts' and name=p_path) then raise exception 'Bukti transfer belum di-upload atau sudah kedaluwarsa';end if;
 insert into public.rentcam_payment_proofs(order_id,receipt_path,bank_account,declared_amount) values(p_order,p_path,bank,p_amount) returning id into proof;
-update rentcam_private.checkout_tokens set consumed=true where checkout_tokens.token::text=token;
+update rentcam_private.checkout_tokens set consumed=true where checkout_tokens.token::text=v_token;
 update public.rentcam_orders set bank_account=bank,payment_status=case when paid_amount>=total then 'paid' else 'pending' end where id=p_order;
 insert into public.rentcam_order_events(order_id,action) values(p_order,'proof_uploaded');return proof;
 end;$$;
@@ -92,7 +92,7 @@ grant execute on function rentcam_private.checkout(uuid,text,text,text,date,date
 
 
 create or replace function rentcam_private.checkout(p_id uuid,p_name text,p_phone text,p_email text,p_start date,p_end date,p_notes text,p_items jsonb,p_details jsonb) returns jsonb language plpgsql security definer set search_path=public as $$
-declare result jsonb; o public.rentcam_orders; delivery jsonb; mode text; collect text;
+declare result jsonb; o public.rentcam_orders; v_delivery jsonb; mode text; collect text;
 begin
 perform pg_advisory_xact_lock(hashtext(p_id::text));
 if exists(select 1 from public.rentcam_orders where id=p_id) then
@@ -100,16 +100,16 @@ if exists(select 1 from public.rentcam_orders where id=p_id) then
  if o.customer_token::text is distinct from p_details->>'customer_token' then raise exception 'Pesanan tidak dapat diakses';end if;
  return jsonb_build_object('order_number',o.order_number,'total',o.total,'customer_token',o.customer_token,'id',o.id);
 end if;
-delivery=coalesce(p_details->'delivery','{}');mode=coalesce(delivery->>'mode','self_pickup');collect=coalesce(delivery->>'return_mode','self_return');
+v_delivery=coalesce(p_details->'delivery','{}');mode=coalesce(v_delivery->>'mode','self_pickup');collect=coalesce(v_delivery->>'return_mode','self_return');
 if mode not in ('delivery','self_pickup') or collect not in ('collect','self_return') then raise exception 'Pilihan antar jemput tidak valid';end if;
 if mode='delivery' or collect='collect' then
- if length(coalesce(delivery->>'address','')) not between 5 and 500 then raise exception 'Isi alamat antar jemput';end if;
+ if length(coalesce(v_delivery->>'address','')) not between 5 and 500 then raise exception 'Isi alamat antar jemput';end if;
 end if;
-if mode='delivery' and (coalesce(delivery->>'deliver_at','')='' or ((delivery->>'deliver_at')::timestamptz at time zone 'Asia/Jakarta')::date not between p_start-1 and p_start) then raise exception 'Jadwal antar harus pada hari mulai sewa atau sehari sebelumnya';end if;
-if collect='collect' and (coalesce(delivery->>'collect_at','')='' or ((delivery->>'collect_at')::timestamptz at time zone 'Asia/Jakarta')::date not between p_end and p_end+7) then raise exception 'Jadwal jemput harus pada hari selesai sewa atau setelahnya';end if;
-if length(coalesce(delivery->>'address',''))>500 then raise exception 'Alamat terlalu panjang';end if;
+if mode='delivery' and (coalesce(v_delivery->>'deliver_at','')='' or ((v_delivery->>'deliver_at')::timestamptz at time zone 'Asia/Jakarta')::date not between p_start-1 and p_start) then raise exception 'Jadwal antar harus pada hari mulai sewa atau sehari sebelumnya';end if;
+if collect='collect' and (coalesce(v_delivery->>'collect_at','')='' or ((v_delivery->>'collect_at')::timestamptz at time zone 'Asia/Jakarta')::date not between p_end and p_end+7) then raise exception 'Jadwal jemput harus pada hari selesai sewa atau setelahnya';end if;
+if length(coalesce(v_delivery->>'address',''))>500 then raise exception 'Alamat terlalu panjang';end if;
 result=rentcam_private.rentcam_submit_order(p_id,p_name,p_phone,p_email,p_start,p_end,p_notes,p_items);
-update public.rentcam_orders set customer_token=coalesce((p_details->>'customer_token')::uuid,customer_token),delivery=delivery||jsonb_build_object('deliver_status','pending','collect_status','pending') where id=p_id returning * into o;
+update public.rentcam_orders set customer_token=coalesce((p_details->>'customer_token')::uuid,customer_token),delivery=v_delivery||jsonb_build_object('deliver_status','pending','collect_status','pending') where id=p_id returning * into o;
 if coalesce(p_details->>'receipt_path','')<>'' then perform rentcam_private.submit_proof(p_id,o.customer_token,p_details->>'receipt_path',p_details->>'bank_id',(p_details->>'transfer_amount')::numeric);
 elsif coalesce(p_details->>'bank_id','')<>'' then
  update public.rentcam_orders set bank_account=coalesce((select value from public.rentcam_cms_config,jsonb_array_elements(coalesce(config->'payment'->'bankAccounts','[]')) where id=1 and value->>'id'=p_details->>'bank_id' and coalesce(value->>'active','true')<>'false' limit 1),'{}') where id=p_id;
@@ -152,18 +152,18 @@ if p_action in ('verify_proof','reject_proof') then
  if p_action='verify_proof' then
   amount=(p_data->>'amount')::numeric;if amount is null or amount<=0 then raise exception 'Nominal terverifikasi harus lebih dari nol';end if;
   update public.rentcam_payment_proofs set status='approved',verified_amount=amount,review_note=left(coalesce(p_data->>'note',''),1000),reviewed_at=now() where id=proof.id;
-  insert into public.rentcam_finance_entries(order_id,proof_id,direction,amount,category,description) values(p_order,proof.id,'income',amount,'rental_payment','Transfer '+o.order_number) on conflict(proof_id) do nothing;
+  insert into public.rentcam_finance_entries(order_id,proof_id,direction,amount,category,description) values(p_order,proof.id,'income',amount,'rental_payment','Transfer '||o.order_number) on conflict(proof_id) do nothing;
  else
   update public.rentcam_payment_proofs set status='rejected',review_note=left(coalesce(p_data->>'note','Bukti belum sesuai'),1000),reviewed_at=now() where id=proof.id;
  end if;
- select coalesce(sum(amount),0) into amount from public.rentcam_finance_entries where order_id=p_order and category='rental_payment' and direction='income';
+ select coalesce(sum(f.amount),0) into amount from public.rentcam_finance_entries f where order_id=p_order and category='rental_payment' and direction='income';
  update public.rentcam_orders set paid_amount=amount,payment_status=case when amount>=total then 'paid' when amount>0 then 'partial' when exists(select 1 from public.rentcam_payment_proofs where order_id=p_order and status='pending') then 'pending' when p_action='reject_proof' then 'rejected' else 'unpaid' end where id=p_order;
 elsif p_action='record_payment' then
  if o.rental_status='cancelled' then raise exception 'Pesanan dibatalkan';end if;
  amount=(p_data->>'amount')::numeric;
  if amount is null or amount<=0 then raise exception 'Nominal pembayaran tidak valid';end if;
  insert into public.rentcam_finance_entries(order_id,direction,amount,category,description) values(p_order,'income',amount,'rental_payment','Pembayaran manual '||o.order_number||' · '||left(coalesce(p_data->>'note',''),500));
- select coalesce(sum(amount),0) into amount from public.rentcam_finance_entries where order_id=p_order and category='rental_payment' and direction='income';
+ select coalesce(sum(f.amount),0) into amount from public.rentcam_finance_entries f where order_id=p_order and category='rental_payment' and direction='income';
  update public.rentcam_orders set paid_amount=amount,payment_status=case when amount>=total then 'paid' else 'partial' end where id=p_order;
 elsif p_action='approve' then
  if o.rental_status='approved' then return jsonb_build_object('ok',true);end if;
