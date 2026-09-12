@@ -23,9 +23,7 @@
 
 /* Mobile Explore our Rentals refinement */
 @media (max-width:620px){
-  html body .section .head{
-    margin-bottom:18px!important;
-  }
+  html body .section .head{margin-bottom:18px!important}
   html body .cats{
     display:flex!important;
     align-items:flex-start!important;
@@ -51,10 +49,7 @@
     text-align:center!important;
     scroll-snap-align:start!important;
   }
-  html body .cats .cat:after{
-    display:none!important;
-    content:none!important;
-  }
+  html body .cats .cat:after{display:none!important;content:none!important}
   html body .cats .cat img{
     width:104px!important;
     height:104px!important;
@@ -85,7 +80,96 @@
     text-align:center!important;
     white-space:normal!important;
   }
+  html body .cats .cat small{display:none!important}
+}
+
+/* Desktop Explore our Rentals premium layout */
+@media (min-width:951px){
+  html body .section:has(.cats){padding:70px 0 76px!important}
+  html body .section:has(.cats) .head{
+    align-items:flex-end!important;
+    margin-bottom:28px!important;
+  }
+  html body .section:has(.cats) .head h2{
+    font-size:40px!important;
+    line-height:1!important;
+    letter-spacing:-.045em!important;
+  }
+  html body .section:has(.cats) .head p{
+    max-width:620px!important;
+    font-size:14px!important;
+    line-height:1.6!important;
+    margin-top:10px!important;
+  }
+  html body .section:has(.cats) .view{
+    border:1px solid #dedede!important;
+    border-radius:999px!important;
+    padding:11px 17px!important;
+    background:#fff!important;
+    font-size:11px!important;
+    transition:.2s ease!important;
+  }
+  html body .section:has(.cats) .view:hover{
+    background:#111!important;
+    color:#fff!important;
+    border-color:#111!important;
+  }
+  html body .cats{
+    display:grid!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    gap:16px!important;
+  }
+  html body .cats .cat{
+    height:310px!important;
+    border-radius:20px!important;
+    overflow:hidden!important;
+    background:#111!important;
+    box-shadow:0 10px 30px rgba(0,0,0,.08)!important;
+    transition:transform .25s ease,box-shadow .25s ease!important;
+  }
+  html body .cats .cat:hover{
+    transform:translateY(-5px)!important;
+    box-shadow:0 18px 42px rgba(0,0,0,.15)!important;
+  }
+  html body .cats .cat img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:cover!important;
+    transform:scale(1.001)!important;
+    transition:transform .35s ease!important;
+  }
+  html body .cats .cat:hover img{transform:scale(1.055)!important}
+  html body .cats .cat:after{
+    content:''!important;
+    display:block!important;
+    position:absolute!important;
+    inset:0!important;
+    background:linear-gradient(180deg,rgba(0,0,0,0) 38%,rgba(0,0,0,.18) 58%,rgba(0,0,0,.88) 100%)!important;
+  }
+  html body .cats .cat div{
+    position:absolute!important;
+    z-index:2!important;
+    left:20px!important;
+    right:20px!important;
+    bottom:18px!important;
+    color:#fff!important;
+  }
+  html body .cats .cat b{
+    display:block!important;
+    color:#fff!important;
+    font-size:18px!important;
+    line-height:1.15!important;
+    letter-spacing:-.025em!important;
+    margin:0 0 6px!important;
+  }
   html body .cats .cat small{
-    display:none!important;
+    display:inline-flex!important;
+    color:rgba(255,255,255,.82)!important;
+    font-size:10px!important;
+    line-height:1!important;
+    padding:7px 9px!important;
+    border-radius:999px!important;
+    background:rgba(255,255,255,.12)!important;
+    backdrop-filter:blur(8px)!important;
   }
 }
