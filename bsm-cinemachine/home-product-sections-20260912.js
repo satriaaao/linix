@@ -39,11 +39,27 @@
     const st=document.createElement('style');
     st.id='rentcam-home-sections-style';
     st.textContent=`
-      #app .home-product-sections{background:#f7f7f5!important;padding:8px 0 54px!important}
-      #app .home-product-section{padding:44px 0 12px!important}
+
+      #app .home-cat-strip{display:none!important}
+      #app .home-product-controls{display:flex!important;align-items:center!important;gap:12px!important;margin:0 0 18px!important}
+      #app .home-product-controls label{font-size:12px!important;color:#777!important}
+      #app .home-product-controls select{appearance:auto!important;min-width:0!important;flex:1!important;max-width:300px!important;height:44px!important;border:1px solid #ddd!important;border-radius:10px!important;background:#fff!important;color:#111!important;padding:0 12px!important;font:inherit!important;font-size:14px!important;font-weight:650!important}
+      #app .home-product-head{margin-bottom:16px!important}
+      #app .home-product-view{font-size:12px!important;flex:0 0 auto!important}
+      @media(max-width:620px){
+        #app .home-product-controls{gap:9px!important}
+        #app .home-product-controls label{display:none!important}
+        #app .home-product-controls select{font-size:16px!important}
+        #app .hero{height:230px!important;min-height:0!important;padding:24px 20px!important;box-sizing:border-box!important;display:flex!important;align-items:center!important}
+        #app .hero h1{font-size:30px!important;line-height:1.08!important;margin:10px 0!important}
+        #app .hero p{font-size:12px!important;line-height:1.5!important;margin:0!important}
+        #app .hero small{font-size:9px!important}
+      }
+      #app .home-product-sections{background:#f7f7f5!important;padding:0 0 28px!important}
+      #app .home-product-section{padding:26px 0 0!important}
       #app .home-product-section+.home-product-section{border-top:1px solid #e6e6e3!important}
       #app .home-product-head{display:flex!important;align-items:flex-end!important;justify-content:space-between!important;gap:16px!important;margin-bottom:22px!important}
-      #app .home-product-head h2{margin:0!important;font-size:34px!important;line-height:1!important;letter-spacing:-.04em!important;color:#111!important}
+      #app .home-product-head h2{margin:0!important;font-size:28px!important;line-height:1!important;letter-spacing:-.04em!important;color:#111!important}
       #app .home-product-head p{margin:8px 0 0!important;font-size:13px!important;line-height:1.5!important;color:#777!important}
       #app .home-product-view{border:0!important;background:transparent!important;color:#111!important;font-size:12px!important;font-weight:800!important;text-decoration:underline!important;text-underline-offset:4px!important;cursor:pointer!important;padding:8px 0!important;white-space:nowrap!important}
       #app .home-product-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:20px!important}
@@ -66,14 +82,14 @@
       @media(max-width:900px){#app .home-product-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
       @media(max-width:620px){
         #app .home-product-sections{padding-bottom:34px!important}
-        #app .home-product-section{padding:30px 0 8px!important}
+        #app .home-product-section{padding:22px 0 0!important}
         #app .home-product-head{align-items:flex-end!important;margin-bottom:14px!important;gap:10px!important}
         #app .home-product-head h2{font-size:25px!important}
         #app .home-product-head p{font-size:11px!important;margin-top:5px!important;max-width:250px!important}
         #app .home-product-view{font-size:10px!important}
         #app .home-product-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
         #app .home-category-card{border-radius:13px!important}
-        #app .home-category-image{aspect-ratio:1/1!important}
+        #app .home-category-image{aspect-ratio:1.2/1!important}
         #app .home-category-badge{left:8px!important;top:8px!important;padding:6px 8px!important;font-size:7px!important}
         #app .home-category-body{padding:10px 10px 10px!important}
         #app .home-category-brand{font-size:8px!important;margin-bottom:5px!important}
@@ -93,8 +109,17 @@
     return `<article class="home-category-card" data-product-id="${esc(x.id)}" role="link" tabindex="0" aria-label="Buka detail ${esc(x.name)}" onclick="go('/produk/${esc(x.id)}')" onkeydown="if(event.key==='Enter'){go('/produk/${esc(x.id)}')}"><div class="home-category-image"><span class="home-category-badge">${esc(x.brand)}</span><img src="${x.img}" alt="${esc(x.name)}" loading="lazy"></div><div class="home-category-body"><div class="home-category-brand">${esc(x.brand)} · ${key==='package'?'Package':key}</div><div class="home-category-name">${esc(x.name)}</div><div class="home-category-actions"><button type="button" class="home-add-cart" onclick="event.stopPropagation();add('${esc(x.id)}',1)">${cartIcon}<span>Tambah</span></button><button type="button" class="home-open-cart" aria-label="Buka keranjang" onclick="event.stopPropagation();go('/cart')">${cartIcon}</button></div></div></article>`;
   }
 
+
+  let selectedHomeCategory='cinema';
+  window.rentcamHomeCategory=function(key){
+    selectedHomeCategory=key;
+    mount();
+  };
   function markup(){
-    return `<section class="home-product-sections"><div class="container">${productSections().map(s=>`<section class="home-product-section home-${s.key}"><div class="home-product-head"><div><h2>${esc(s.title)}</h2><p>${esc(s.subtitle)}</p></div><button class="home-product-view" onclick="go('/produk')">View all</button></div><div class="home-product-grid">${s.items.map(x=>card(x,s.key)).join('')}</div></section>`).join('')}</div></section>`;
+    const available=productSections();
+    const selected=available.find(s=>s.key===selectedHomeCategory)||available[0];
+    if(!selected)return '';
+    return `<section class="home-product-sections"><div class="container"><section class="home-product-section home-featured"><div class="home-product-head"><div><h2>Equipment Pilihan</h2><p>Pilih kategori untuk melihat equipment yang Anda butuhkan.</p></div></div><div class="home-product-controls"><label for="homeProductCategory">Kategori</label><select id="homeProductCategory" onchange="rentcamHomeCategory(this.value)">${available.map(s=>`<option value="${esc(s.key)}" ${s.key===selected.key?'selected':''}>${esc(s.title)}</option>`).join('')}</select><button class="home-product-view" onclick="go('/produk?cat=${esc(selected.key)}')">Lihat semua →</button></div><div class="home-product-grid">${selected.items.slice(0,4).map(x=>card(x,selected.key)).join('')}</div></section></div></section>`;
   }
 
   function mount(){
@@ -102,6 +127,7 @@
     installStyle();
     const app=document.getElementById('app');
     if(!app)return;
+    app.querySelector('.home-cat-strip')?.remove();
     const next=markup();
     const existing=document.getElementById('rentcam-home-product-sections');
     if(existing){if(existing.dataset.productMarkup!==next){existing.dataset.productMarkup=next;existing.innerHTML=next}return;}
