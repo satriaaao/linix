@@ -67,7 +67,10 @@
     const brandLine=(info.querySelector('.detail-brand')?.textContent||'');
     const category=(brandLine.split('·')[1]||'').trim();
     if(category==='Paket'||category==='Package')return;
-    const cfg=byCat[category]||byCat['Accessories'];
+    const cfg=byCat[category];
+    if(!cfg)return;
+    const id=decodeURIComponent(location.pathname.split('/').pop());
+    if((window.RENTCAM_CMS_CONFIG?.customProducts||[]).some(p=>p.id===id))return;
     const sections=info.querySelector('.detail-sections');
     if(!sections) return;
 
