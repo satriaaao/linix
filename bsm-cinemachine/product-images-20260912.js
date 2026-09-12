@@ -95,3 +95,147 @@
     </div></div></section>`;
   };
 })();
+
+/* Camera type + brand dropdown for the home category bar */
+(function(){
+  const css=document.createElement('style');
+  css.id='rentcam-camera-dropdown-style';
+  css.textContent=`
+    .camera-cat-dropdown{cursor:pointer!important}
+    .cam-chevron{display:inline-block;margin-left:7px;font-size:12px;line-height:1;transform:translateY(-1px);transition:transform .18s ease}
+    .camera-cat-dropdown.menu-open .cam-chevron{transform:translateY(-1px) rotate(180deg)}
+    .camera-mega-menu{position:fixed;z-index:10000;width:560px;background:#fff;border:1px solid #dcdcdc;box-shadow:0 18px 45px rgba(0,0,0,.14);display:none;color:#111}
+    .camera-mega-menu.open{display:block}
+    .camera-mega-inner{display:grid;grid-template-columns:1fr 1fr}
+    .camera-mega-col{padding:20px 22px 18px}
+    .camera-mega-col+.camera-mega-col{border-left:1px solid #e7e7e7}
+    .camera-mega-title{font-size:10px;font-weight:900;letter-spacing:.11em;text-transform:uppercase;color:#8a8a8a;margin:0 0 10px}
+    .camera-mega-item{width:100%;min-height:44px;border:0;border-top:1px solid #efefef;background:#fff;color:#111;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;padding:10px 2px;font:inherit;cursor:pointer}
+    .camera-mega-item:first-of-type{border-top:0}
+    .camera-mega-item:hover{color:#f26a21}
+    .camera-mega-item b{font-size:13px;font-weight:750;line-height:1.2}
+    .camera-mega-item small{flex:0 0 auto;font-size:9px;color:#8b8b8b;background:#f2f2f2;padding:5px 7px;border-radius:999px}
+    .camera-mega-item.is-empty{color:#a3a3a3}
+    .camera-mega-item.is-empty:hover{color:#777}
+    .camera-mega-footer{height:46px;border-top:1px solid #e5e5e5;display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:#fafafa}
+    .camera-mega-footer span{font-size:10px;color:#858585}
+    .camera-mega-footer button{border:0;background:none;padding:0;font-size:11px;font-weight:800;color:#111;cursor:pointer}
+    .camera-mega-footer button:hover{color:#f26a21}
+    @media(max-width:700px){
+      .camera-mega-menu{left:12px!important;right:12px!important;width:auto!important;max-height:62vh;overflow:auto;box-shadow:0 16px 38px rgba(0,0,0,.18)}
+      .camera-mega-inner{grid-template-columns:1fr}
+      .camera-mega-col{padding:16px 17px 12px}
+      .camera-mega-col+.camera-mega-col{border-left:0;border-top:1px solid #e7e7e7}
+      .camera-mega-item{min-height:42px}
+      .camera-mega-footer{padding:0 17px}
+    }
+  `;
+  document.head.appendChild(css);
+
+  let panel=null,activeCat=null,hideTimer=null;
+  const cameraProducts=()=>typeof P==='undefined'?[]:P.filter(p=>p.cat==='Camera');
+  const countBrand=(brand)=>cameraProducts().filter(p=>p.brand===brand).length;
+  const esc=(s)=>String(s).replace(/'/g,"\\'");
+
+  function closeCameraMenu(){
+    clearTimeout(hideTimer);
+    if(panel) panel.classList.remove('open');
+    if(activeCat) activeCat.classList.remove('menu-open');
+  }
+  function scheduleClose(){ clearTimeout(hideTimer); hideTimer=setTimeout(closeCameraMenu,140); }
+
+  function ensurePanel(){
+    if(panel) return panel;
+    panel=document.createElement('div');
+    panel.className='camera-mega-menu';
+    panel.addEventListener('mouseenter',()=>clearTimeout(hideTimer));
+    panel.addEventListener('mouseleave',scheduleClose);
+    document.body.appendChild(panel);
+    return panel;
+  }
+
+  function buildPanel(){
+    const el=ensurePanel();
+    const cameras=cameraProducts();
+    const brands=[...new Set(cameras.map(p=>p.brand))];
+    const cinemaCount=cameras.length;
+    el.innerHTML=`<div class="camera-mega-inner">
+      <div class="camera-mega-col">
+        <div class="camera-mega-title">Jenis Kamera</div>
+        <button class="camera-mega-item" data-action="cinema"><b>Cinema Camera</b><small>${cinemaCount} items</small></button>
+        <button class="camera-mega-item is-empty" data-action="photo"><b>Photo Camera</b><small>Belum ada</small></button>
+        <button class="camera-mega-item is-empty" data-action="video"><b>Video Camera</b><small>Belum ada</small></button>
+      </div>
+      <div class="camera-mega-col">
+        <div class="camera-mega-title">Brand Kamera</div>
+        ${brands.map(b=>`<button class="camera-mega-item" data-brand="${b}"><b>${b}</b><small>${countBrand(b)} items</small></button>`).join('')}
+      </div>
+    </div><div class="camera-mega-footer"><span>Katalog kamera profesional</span><button data-action="all">Lihat Semua Kamera →</button></div>`;
+    el.querySelectorAll('[data-action]').forEach(btn=>btn.addEventListener('click',(e)=>{
+      e.stopPropagation();
+      const a=btn.dataset.action;
+      closeCameraMenu();
+      if(a==='cinema'||a==='all') go('/produk?cat=Camera');
+      else if(a==='photo') toast('Photo Camera belum tersedia di katalog saat ini');
+      else if(a==='video') toast('Video Camera belum tersedia di katalog saat ini');
+    }));
+    el.querySelectorAll('[data-brand]').forEach(btn=>btn.addEventListener('click',(e)=>{
+      e.stopPropagation();
+      const b=btn.dataset.brand;
+      closeCameraMenu();
+      go('/produk?cat=Camera&brand='+encodeURIComponent(b));
+    }));
+  }
+
+  function positionPanel(cat){
+    if(!panel) return;
+    const r=cat.getBoundingClientRect();
+    const mobile=window.innerWidth<=700;
+    panel.style.top=(r.bottom+4)+'px';
+    if(mobile){
+      panel.style.left='12px'; panel.style.right='12px'; panel.style.width='auto';
+    }else{
+      const w=560, left=Math.max(12,Math.min(r.left,window.innerWidth-w-12));
+      panel.style.left=left+'px'; panel.style.right='auto'; panel.style.width=w+'px';
+    }
+  }
+
+  function openCameraMenu(cat){
+    buildPanel();
+    activeCat=cat;
+    positionPanel(cat);
+    panel.classList.add('open');
+    cat.classList.add('menu-open');
+  }
+
+  function initCameraDropdown(){
+    if(location.pathname!=='/') { closeCameraMenu(); return; }
+    const cats=[...document.querySelectorAll('#app .cats .cat')];
+    const cat=cats.find(x=>x.querySelector('b')?.textContent.trim().startsWith('Cameras'));
+    if(!cat || cat.dataset.cameraDropdown==='1') return;
+    cat.dataset.cameraDropdown='1';
+    cat.classList.add('camera-cat-dropdown');
+    cat.removeAttribute('onclick');
+    cat.setAttribute('role','button');
+    cat.setAttribute('aria-haspopup','true');
+    cat.setAttribute('tabindex','0');
+    const label=cat.querySelector('b');
+    if(label && !label.querySelector('.cam-chevron')) label.insertAdjacentHTML('beforeend','<span class="cam-chevron">⌄</span>');
+    cat.addEventListener('click',(e)=>{
+      e.stopPropagation();
+      if(panel?.classList.contains('open')&&activeCat===cat) closeCameraMenu(); else openCameraMenu(cat);
+    });
+    cat.addEventListener('keydown',(e)=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();cat.click();} });
+    cat.addEventListener('mouseenter',()=>{ if(window.innerWidth>700) openCameraMenu(cat); });
+    cat.addEventListener('mouseleave',()=>{ if(window.innerWidth>700) scheduleClose(); });
+  }
+
+  const app=document.getElementById('app');
+  if(app){
+    new MutationObserver(()=>requestAnimationFrame(initCameraDropdown)).observe(app,{childList:true,subtree:true});
+    requestAnimationFrame(initCameraDropdown);
+  }
+  document.addEventListener('click',(e)=>{ if(panel?.classList.contains('open')&&!panel.contains(e.target)&&!activeCat?.contains(e.target)) closeCameraMenu(); });
+  window.addEventListener('resize',()=>{ if(panel?.classList.contains('open')&&activeCat) positionPanel(activeCat); });
+  window.addEventListener('scroll',closeCameraMenu,{passive:true});
+})();
