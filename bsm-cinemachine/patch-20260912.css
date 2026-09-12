@@ -52,3 +52,69 @@
   html body #app .products-grid .pcard .price{padding-left:9px!important;padding-right:9px!important;font-size:12.5px!important}
   html body #app .products-grid .pcard .product-card-cart-btn{width:calc(100% - 18px)!important;height:34px!important;min-height:34px!important;margin:9px 9px 0!important;border-radius:10px!important;font-size:10px!important}
 }
+
+/* Detail page — icon-only back button */
+html body #app .product-detail-simple .back-link{
+  width:46px!important;
+  height:46px!important;
+  min-width:46px!important;
+  padding:0!important;
+  margin:0 0 28px!important;
+  border:1px solid #e2e2e2!important;
+  border-radius:50%!important;
+  background:#fff!important;
+  color:#111!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  position:relative!important;
+  font-size:0!important;
+  line-height:0!important;
+  text-decoration:none!important;
+  box-shadow:0 6px 18px rgba(0,0,0,.055)!important;
+  cursor:pointer!important;
+  transition:background .16s ease,color .16s ease,border-color .16s ease,transform .16s ease,box-shadow .16s ease!important;
+  box-sizing:border-box!important;
+}
+html body #app .product-detail-simple .back-link::before{
+  content:""!important;
+  width:10px!important;
+  height:10px!important;
+  border-left:2px solid currentColor!important;
+  border-bottom:2px solid currentColor!important;
+  transform:translateX(2px) rotate(45deg)!important;
+  box-sizing:border-box!important;
+}
+html body #app .product-detail-simple .back-link::after{
+  content:""!important;
+  position:absolute!important;
+  width:14px!important;
+  height:2px!important;
+  background:currentColor!important;
+  border-radius:2px!important;
+  left:15px!important;
+  top:21px!important;
+}
+@media (hover:hover) and (pointer:fine){
+  html body #app .product-detail-simple .back-link:hover{
+    background:#111!important;
+    color:#fff!important;
+    border-color:#111!important;
+    transform:translateX(-2px)!important;
+    box-shadow:0 8px 22px rgba(0,0,0,.12)!important;
+  }
+}
+html body #app .product-detail-simple .back-link:active{transform:scale(.96)!important}
+
+@media (max-width:620px){
+  html body #app .product-detail-simple .back-link{
+    width:40px!important;
+    height:40px!important;
+    min-width:40px!important;
+    margin:2px 0 18px!important;
+    border-radius:13px!important;
+    box-shadow:0 4px 14px rgba(0,0,0,.055)!important;
+  }
+  html body #app .product-detail-simple .back-link::before{width:9px!important;height:9px!important}
+  html body #app .product-detail-simple .back-link::after{width:12px!important;left:13px!important;top:18px!important}
+}
