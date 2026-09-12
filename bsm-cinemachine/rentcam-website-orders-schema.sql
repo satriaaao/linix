@@ -51,3 +51,20 @@ begin
 end;$$;
 revoke execute on function public.rentcam_submit_order(uuid,text,text,text,date,date,text,jsonb) from public;
 grant execute on function public.rentcam_submit_order(uuid,text,text,text,date,date,text,jsonb) to anon,authenticated;
+
+-- Only the validated request endpoint may insert orders.
+create schema if not exists rentcam_private;
+alter function public.rentcam_submit_order(uuid,text,text,text,date,date,text,jsonb) set schema rentcam_private;
+alter function rentcam_private.rentcam_submit_order(uuid,text,text,text,date,date,text,jsonb) security definer;
+revoke all on schema rentcam_private from public;
+grant usage on schema rentcam_private to anon,authenticated;
+revoke all on function rentcam_private.rentcam_submit_order(uuid,text,text,text,date,date,text,jsonb) from public;
+grant execute on function rentcam_private.rentcam_submit_order(uuid,text,text,text,date,date,text,jsonb) to anon,authenticated;
+revoke insert on public.rentcam_orders from anon,authenticated;
+drop policy order_public_request on public.rentcam_orders;
+create function public.rentcam_submit_order(p_id uuid,p_name text,p_phone text,p_email text,p_start date,p_end date,p_notes text,p_items jsonb) returns jsonb language sql security invoker set search_path=public as $$
+select rentcam_private.rentcam_submit_order(p_id,p_name,p_phone,p_email,p_start,p_end,p_notes,p_items);
+$$;
+revoke execute on function public.rentcam_submit_order(uuid,text,text,text,date,date,text,jsonb) from public;
+grant execute on function public.rentcam_submit_order(uuid,text,text,text,date,date,text,jsonb) to anon,authenticated;
+-- Seed rentcam_order_catalog with existing base products when initializing a fresh instance.
