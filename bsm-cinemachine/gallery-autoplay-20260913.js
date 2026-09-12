@@ -8,7 +8,7 @@ document.addEventListener('click',e=>{if(e.isTrusted&&e.target.closest('[data-cm
 document.addEventListener('pointerdown',e=>{if(e.target.closest('.cms-gallery'))pauseUntil=Date.now()+8000},true);
 document.addEventListener('pointerover',e=>{if(e.pointerType==='mouse'&&e.target.closest('.cms-gallery'))hovering=true},true);
 document.addEventListener('pointerout',e=>{if(e.pointerType==='mouse'&&e.target.closest('.cms-gallery')&&!e.relatedTarget?.closest?.('.cms-gallery'))hovering=false},true);
-document.addEventListener('load',e=>{if(e.target instanceof HTMLImageElement&&e.target.matches('#app [data-cms-main]')&&!reduced())e.target.animate([{opacity:.35},{opacity:1}],{duration:360,easing:'ease-out'})},true);
+document.addEventListener('load',e=>{if(e.target instanceof HTMLImageElement&&e.target.matches('#app [data-cms-main]')&&!reduced())e.target.animate([{opacity:.35},{opacity:1}],{duration:220,easing:'ease-out'})},true);
 function next(){
 if(document.hidden||hovering||busy||Date.now()<pauseUntil||reduced())return;
 const g=gallery(),main=g?.querySelector('[data-cms-main]'),buttons=g?Array.from(g.querySelectorAll('[data-cms-thumb]')):[];
@@ -22,6 +22,6 @@ preload.onload=()=>{clearTimeout(timeout);busy=false;if(!g.isConnected||document
 preload.onerror=()=>{clearTimeout(timeout);busy=false};
 preload.src=url;
 }
-document.addEventListener('rentcam-route-change',()=>{hovering=false;pauseUntil=Date.now()+4000});
-setInterval(next,4000);
+document.addEventListener('rentcam-route-change',()=>{hovering=false;pauseUntil=Date.now()+2000});
+setInterval(next,2000);
 })();
