@@ -17,73 +17,14 @@
 
   const C=[
     src('arri-hi5-basic','ARRI Hi-5 Hand Unit Basic Set','Electronic Control',19085,IMG.control,'KK.0041791'),
-    src('arri-hi5-body','ARRI Hi-5 Hand Unit Body Naked','Electronic Control',16016,IMG.control,'K2.0037280'),
-    src('arri-sxu1','ARRI Single Axis Unit SXU-1','Electronic Control',3850,IMG.control,'K2.0000071'),
-    src('arri-ocu1-basic','ARRI Operator Control Unit OCU-1 Basic Set','Electronic Control',2981,IMG.control,'K2.0020002'),
-    src('arri-ocu1-extended','ARRI Operator Control Unit OCU-1 Extended Set 2','Electronic Control',4147,IMG.control,'KK.0040346'),
-    src('arri-cforce-mini-rf-basic','ARRI cforce mini RF Basic Set 2','Electronic Control',10615,IMG.control,'KK.0040345'),
-    src('arri-cforce-plus-basic','ARRI cforce plus Basic Set','Electronic Control',6985,IMG.control),
-    src('arri-clm4-basic','ARRI Controlled Lens Motor CLM-4 Basic Set','Electronic Control',6127,IMG.control,'KK.0005855'),
-    src('arri-lcube-cub2','ARRI LCUBE CUB-2 Basic Set','Electronic Control',2585,IMG.control),
-    src('arri-rf2400','ARRI RF-2400 Radio Module 2400 MHz FHSS','Electronic Control',2310,IMG.control),
-    src('arri-rf-emip','ARRI RF-EMIP Radio Module 2400 MHz DSSS','Electronic Control',2310,IMG.control),
-    src('arri-smart-focus-feet','ARRI Smart Focus Ring Set Feet (10x)','Electronic Control',1012,IMG.control,'KK.0047820'),
-    src('arri-smart-iris','ARRI Smart Iris Ring Set (5x)','Electronic Control',484,IMG.control,'KK.0047207'),
 
-    src('arri-lmb66-pro-19','ARRI LMB 6x6 Pro 19mm Studio Set','Matte Box',13200,IMG.matte),
-    src('arri-lmb66-pro-15','ARRI LMB 6x6 Pro 15mm Studio Set','Matte Box',12705,IMG.matte),
     src('arri-lmb45-pro','ARRI LMB 4x5 Pro Set','Matte Box',9636,IMG.matte,'KK.0015177'),
-    src('arri-lmb66-15-3stage','ARRI LMB 6x6 15mm Studio 3-Stage Set','Matte Box',6380,IMG.matte),
-    src('arri-lmb66-19-3stage','ARRI LMB 6x6 19mm Studio 3-Stage Set','Matte Box',6116,IMG.matte),
-    src('arri-lmb66-clamp-3stage','ARRI LMB 6x6 Clamp-On 3-Stage Set','Matte Box',5280,IMG.matte),
-    src('arri-lmb45-lws-3stage','ARRI LMB 4x5 15mm LWS Set 3-Stage','Matte Box',4609,IMG.matte),
-    src('arri-lmb45-clamp-adapter-pro','ARRI LMB 4x5 Clamp Adapter Set Pro','Matte Box',4015,IMG.matte),
-    src('arri-lmb45-clamp-3stage','ARRI LMB 4x5 Clamp-On Set 3-Stage','Matte Box',3982,IMG.matte),
-    src('arri-lmb66-clamp-adapter','ARRI LMB 6x6 Clamp Adapter Set','Matte Box',3894,IMG.matte),
-    src('arri-mmb2-basic-lws','ARRI Mini Matte Box MMB-2 Basic LWS Set','Matte Box',2310,IMG.matte),
-    src('arri-lmb45-basic','ARRI LMB 4x5 Basic Module','Matte Box',2090,IMG.matte),
 
-    src('arri-basic-fs7-fx9','ARRI Basic Set for Sony FS7II/FX9','Camera Support',3146,IMG.support),
-    src('arri-pro-fs7-fx9','ARRI Pro Set for Sony FS7II/FX9','Camera Support',6050,IMG.support),
-    src('arri-bpa5','ARRI Bridge Plate Adapter BPA-5','Camera Support',330,IMG.support),
-    src('arri-bp9','ARRI Bridge Plate BP-9','Camera Support',1540,IMG.support),
-    src('arri-bp8','ARRI Bridge Plate BP-8','Camera Support',1485,IMG.support),
-    src('arri-bps2','ARRI Bridge Plate Sled BPS-2','Camera Support',770,IMG.support),
-    src('arri-bps2-set','ARRI Bridge Plate Sled BPS-2 Set','Camera Support',1815,IMG.support),
     src('arri-dovetail-300','ARRI Bottom Dovetail Plate 300mm/12in','Camera Support',1012,IMG.support,'K2.0015896'),
-    src('arri-dovetail-450','ARRI Bottom Dovetail Plate 450mm/18in','Camera Support',1320,IMG.support),
-    src('arri-dovetail-600','ARRI Bottom Dovetail Plate 600mm/24in','Camera Support',1628,IMG.support),
-    src('arri-dovetail-150','ARRI Bottom Dovetail Plate 150mm/6in','Camera Support',671,IMG.support),
-    src('arri-qrp1','ARRI QRP-1 Baseplate','Camera Support',1540,IMG.support),
-    src('arri-qrhd','ARRI QR-HD Cine Base Plate, Basic Unit','Camera Support',3300,IMG.support),
-    src('arri-lls1','ARRI Lightweight Lens Support LLS-1','Camera Support',561,IMG.support),
 
-    src('arri-fsnd-pro','ARRI FSND Filter Pro Set 6.6inx6.6in','Filters',6325,IMG.filter,'KK.0019787'),
-    src('arri-fsnd-basic','ARRI FSND Filter Basic Set 6.6inx6.6in','Filters',2486,IMG.filter),
-    src('arri-rota-pola-66','ARRI Rota Pola Filter Frame 6.6x6.6','Filters',1705,IMG.filter),
-    src('arri-rota-pola-4565','ARRI Rota Pola Filter Frame 4x5.65','Filters',1210,IMG.filter),
-    src('arri-fsnd-21','ARRI FSND 2.1 Filter 6.6in x 6.6in','Filters',880,IMG.filter),
-    src('arri-fsnd-18','ARRI FSND 1.8 Filter 6.6in x 6.6in','Filters',880,IMG.filter),
-    src('arri-fsnd-15','ARRI FSND 1.5 Filter 6.6in x 6.6in','Filters',880,IMG.filter),
-    src('arri-fsnd-12','ARRI FSND 1.2 Filter 6.6in x 6.6in','Filters',880,IMG.filter),
-    src('arri-fsnd-09','ARRI FSND 0.9 Filter 6.6in x 6.6in','Filters',880,IMG.filter),
-    src('arri-fsnd-06','ARRI FSND 0.6 Filter 6.6in x 6.6in','Filters',880,IMG.filter),
-    src('arri-fsnd-03','ARRI FSND 0.3 Filter 6.6in x 6.6in','Filters',880,IMG.filter),
-    src('arri-fsnd-24','ARRI FSND 2.4 Filter 6.6in x 6.6in','Filters',836,IMG.filter),
 
-    src('arri-ff5-basic','ARRI Follow Focus FF-5 Cine Set Basic','Follow Focus',6798,IMG.follow,'KK.0005757'),
-    src('arri-ff4-basic','ARRI Follow Focus FF-4 Basic Unit, black','Follow Focus',5995,IMG.follow),
-    src('arri-ff4-15','ARRI Follow Focus FF-4 Set 15mm, black','Follow Focus',8635,IMG.follow),
 
-    src('arri-arrihead2','ARRI ARRIHEAD 2','Accessories',87230,IMG.accessory),
-    src('arri-pouch-large','ARRI Assistant Pouch Large','Accessories',99,IMG.accessory),
-    src('arri-pouch-small','ARRI Assistant Pouch Small','Accessories',93.5,IMG.accessory,'K2.0013017'),
-    src('arri-backplate2-venice','ARRI Back Plate 2 for Venice Ext. Unit','Accessories',198,IMG.accessory),
-    src('arri-backplate-venice','ARRI Back Plate for Venice Ext. Unit','Accessories',220,IMG.accessory),
-    src('arri-baseplate-venice','ARRI Base Plate for Venice Ext. Unit','Accessories',858,IMG.accessory),
-    src('arri-broadcast-c400','ARRI Basic Broadcast Set for Canon EOS C400','Accessories',3564,IMG.accessory),
-    src('arri-broadcast-burano','ARRI Basic Broadcast Set for Sony BURANO','Accessories',3762,IMG.accessory),
-    src('arri-bluetooth','ARRI Bluetooth Dongle','Accessories',38.5,IMG.accessory,'K2.0039838')
+    src('arri-arrihead2','ARRI ARRIHEAD 9','Accessories',87230,'https://xleceiffuopioeguniwj.supabase.co/storage/v1/object/public/cms-media/ca0097ef-e460-46c8-8393-6c0f5eb1542a/product/1789225488538-img_6565.jpeg'),
   ];
 
   const aud=n=>new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD',minimumFractionDigits:n%1?2:0,maximumFractionDigits:2}).format(n);
@@ -91,7 +32,7 @@
 
   function install(){
     if(typeof P==='undefined'||typeof go!=='function') return false;
-    P.splice(0,P.length,...C);
+    const combined=[...P,...C]; P.splice(0,P.length,...combined.filter((p,i)=>combined.findIndex(x=>x.id===p.id)===i));
 
     const st=document.createElement('style');
     st.id='cinemachine-arri-catalog-style';
@@ -136,5 +77,5 @@
     return true;
   }
 
-  let tries=0; const t=setInterval(()=>{tries++; if(install()||tries>40)clearInterval(t)},100);
+  if(!install()){let tries=0; const t=setInterval(()=>{tries++; if(install()||tries>40)clearInterval(t)},100);}
 })();
