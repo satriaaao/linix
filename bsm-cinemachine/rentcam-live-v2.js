@@ -2,17 +2,46 @@
   const labels={Camera:'Cameras',Lens:'Lenses',Lighting:'Lighting',Wireless:'Wireless',Grip:'Grip',Audio:'Audio'};
 
   const compactDetailStyle=document.createElement('style');
-  compactDetailStyle.id='rentcam-product-detail-compact-v3';
+  compactDetailStyle.id='rentcam-product-detail-compact-v4';
   compactDetailStyle.textContent=`
     body.alexa35-detail .detail-info [class*="badge"],
     body.alexa35-detail .detail-info [class*="status"],
     body.alexa35-detail .detail-ref-info [class*="badge"],
     body.alexa35-detail .detail-ref-info [class*="status"]{display:none!important}
-    body.alexa35-detail .detail-info h1::before,
-    body.alexa35-detail .detail-info h1::after,
-    body.alexa35-detail .detail-ref-title::before,
-    body.alexa35-detail .detail-ref-title::after{display:none!important;content:none!important}
-    .rentcam-photo-new-badge{position:absolute!important;left:14px!important;top:14px!important;z-index:90!important;height:30px!important;padding:0 12px!important;border-radius:999px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;background:#111!important;color:#fff!important;font-size:9px!important;font-weight:900!important;letter-spacing:.06em!important;box-shadow:0 4px 12px rgba(0,0,0,.16)!important;white-space:nowrap!important}
+
+    body.alexa35-detail .detail-info::before,
+    body.alexa35-detail .detail-info::after,
+    body.alexa35-detail .detail-info *::before,
+    body.alexa35-detail .detail-info *::after,
+    body.alexa35-detail .detail-ref-info::before,
+    body.alexa35-detail .detail-ref-info::after,
+    body.alexa35-detail .detail-ref-info *::before,
+    body.alexa35-detail .detail-ref-info *::after{
+      display:none!important;
+      content:none!important;
+    }
+
+    .rentcam-photo-new-badge{
+      position:absolute!important;
+      left:14px!important;
+      top:14px!important;
+      z-index:90!important;
+      height:30px!important;
+      padding:0 12px!important;
+      border-radius:999px!important;
+      display:inline-flex!important;
+      align-items:center!important;
+      justify-content:center!important;
+      background:#111!important;
+      color:#fff!important;
+      font-size:9px!important;
+      font-weight:900!important;
+      letter-spacing:.06em!important;
+      box-shadow:0 4px 12px rgba(0,0,0,.16)!important;
+      white-space:nowrap!important;
+      visibility:visible!important;
+      opacity:1!important;
+    }
 
     .product-detail-simple .detail-price{font-size:34px!important;line-height:1!important;margin:0 0 24px!important}
     .product-detail-simple .detail-price small{font-size:13px!important;margin-left:6px!important}
@@ -42,16 +71,20 @@
     document.body.classList.toggle('alexa35-detail',isAlexa35);
     if(!isAlexa35)return;
 
-    document.querySelectorAll('#app .detail-info *,#app .detail-ref-info *').forEach(el=>{
+    const media=document.querySelector('#app .detail-media,#app .detail-ref-media,#app .mainPhoto');
+
+    document.querySelectorAll('#app *').forEach(el=>{
+      if(media && (el===media || media.contains(el))) return;
       if(el.children.length===0 && (el.textContent||'').trim().toUpperCase()==='NEW') el.remove();
     });
-    document.querySelectorAll('#app .detail-info .rentcam-detail-badge.new,#app .detail-ref-info .rentcam-detail-badge.new').forEach(el=>el.remove());
 
-    const media=document.querySelector('#app .detail-media,#app .detail-ref-media,#app .mainPhoto');
+    document.querySelectorAll('#app .detail-info [class*="badge"],#app .detail-info [class*="status"],#app .detail-ref-info [class*="badge"],#app .detail-ref-info [class*="status"]').forEach(el=>el.remove());
+
     if(media){
       media.style.position='relative';
-      if(!media.querySelector('.rentcam-photo-new-badge')){
-        const badge=document.createElement('span');
+      let badge=media.querySelector('.rentcam-photo-new-badge');
+      if(!badge){
+        badge=document.createElement('span');
         badge.className='rentcam-photo-new-badge';
         badge.textContent='NEW';
         media.appendChild(badge);
