@@ -15,7 +15,7 @@
 #app img[alt="ARRI Smart Focus Ring Set Feet (10x)"]{content:url('https://store.fa-bt.com/storage/products/BwK6qGL7LNujc5x0aBMGZzNaLj7OzDr55OQT6MhU.jpg')!important}
 #app img[alt="ARRI Smart Iris Ring Set (5x)"]{content:url('https://www.bhphotovideo.com/images/fb/arri_kk_0047207_smart_iris_ring_set_1790923.jpg')!important}
 
-/* Matte-box items also get distinct packshots instead of one repeated image */
+/* Matte box */
 #app img[alt="ARRI LMB 6x6 Pro 19mm Studio Set"]{content:url('https://en.vocas.nl/media/catalog/product/a/r/arri_kk.0020233-mb-lmb-6x6-pro-set-19mm-studio.jpg')!important}
 #app img[alt="ARRI LMB 6x6 Pro 15mm Studio Set"]{content:url('https://www.lemac.com.au/Site/DefaultSite/filesystem/images/arri/lmb6x6.png')!important}
 #app img[alt="ARRI LMB 4x5 Pro Set"]{content:url('https://www.cinemachine.com.au/cdn/shop/files/KK.0015177-MB-LMB-4x5-PRO-SET_800x.jpg?v=1753753648')!important}
@@ -28,5 +28,49 @@
 #app img[alt="ARRI LMB 6x6 Clamp Adapter Set"]{content:url('https://www.lemac.com.au/Site/DefaultSite/filesystem/images/arri/lmb6x6.png')!important}
 #app img[alt="ARRI Mini Matte Box MMB-2 Basic LWS Set"]{content:url('https://www.bhphotovideo.com/images/images500x500/arri_kk_0005750_mmb_2_mini_matte_box_1488195941_1288781.jpg')!important}
 #app img[alt="ARRI LMB 4x5 Basic Module"]{content:url('https://cdn.prod.website-files.com/60c9dc6787615a5a1cf75212/67e228ca69e8a9a71c594ffe_arri_lmb_4_x_5_matte_box_basic.png')!important}
+
+/* Camera support */
+#app img[alt="ARRI Basic Set for Sony FS7II/FX9"]{content:url('https://www.lemac.com.au/site/DefaultSite/filesystem/images/arri/kk-0035874-1-.jpg')!important}
+#app img[alt="ARRI Pro Set for Sony FS7II/FX9"]{content:url('https://www.bhphotovideo.com/images/images2500x2500/arri_kk_0035875_pro_set_for_sony_1541307.jpg')!important}
+#app img[alt="ARRI Bridge Plate Adapter BPA-5"]{content:url('https://www.abelcine.com/uploads/9/a/0/0/1/c/9a001c7b0bc4ea0374c43b2ee5e84146/arri-bpa-5-bridge-plate-adapter_v1.large.jpg')!important}
+#app img[alt="ARRI Bridge Plate BP-9"]{content:url('https://www.bhphotovideo.com/images/images500x500/arri_k2_0031435_bp_9_bridge_plate_1584019418_1536508.jpg')!important}
+#app img[alt="ARRI Bridge Plate BP-8"]{content:url('https://www.bhphotovideo.com/images/images1000x1000/arri_k2_0031436_bridge_plate_bp_8_1509520.jpg')!important}
+#app img[alt="ARRI Bridge Plate Sled BPS-2"]{content:url('https://store.fa-bt.com/storage/products/KjS3UwnwDyxYP5QjO2RmnhxEr9vtF0IUcsWXD8zY.jpg')!important}
+#app img[alt="ARRI Bridge Plate Sled BPS-2 Set"]{content:url('https://store.fa-bt.com/storage/products-images/DQQ9fUo4d5pvNa8CW0VE59KWulceebpFco2ZO1aI.jpg')!important}
+#app img[alt="ARRI Bottom Dovetail Plate 300mm/12in"]{content:url('https://uploads.rigdesigner.com/product-arri-K20015896-1-1600.jpg?v=1731658473101')!important}
+#app img[alt="ARRI Bottom Dovetail Plate 450mm/18in"]{content:url('https://www.visualsfrance.com/1453-large_default/bottom-dovetail-plate-18in.jpg')!important}
+#app img[alt="ARRI Bottom Dovetail Plate 600mm/24in"]{content:url('https://www.cinemachine.com.au/cdn/shop/files/K2.0015952-2-SU-Bottom-Plate-600mm_24inch_1600x.jpg?v=1715312893')!important}
+#app img[alt="ARRI Bottom Dovetail Plate 150mm/6in"]{content:url('https://store.fa-bt.com/storage/products-images/thUjWbEcqTUHXub4ztG0v2jCxLzR1yueAqHMst8Z.jpg')!important}
+#app img[alt="ARRI QRP-1 Baseplate"]{content:url('https://store.mediatailor.fi/tuotekuvat/1200x1200/K2.0000399-SU-QRP-1-BASEPLATE_Update_2018.jpg')!important}
+#app img[alt="ARRI QR-HD Cine Base Plate, Basic Unit"]{content:url('https://photocinerent.com/storage/1618/conversions/ARRI-Quick-Release-B-8GXQ-slide.jpg')!important}
+#app img[alt="ARRI Lightweight Lens Support LLS-1"]{content:url('https://hotrodcameras.com/cdn/shop/products/lightweight_2__90787_500x500.jpg?v=1684594971')!important}
+
+/* Filters */
+#app img[alt="ARRI FSND Filter Pro Set 6.6inx6.6in"]{content:url('https://www.abelcine.com/uploads/4/9/8/8/0/a/49880a8fb13d48d4137219a395d24dec/arri-fsnd-0-9-filter-6x6_v1large_v1.large.jpg')!important}
+#app img[alt="ARRI FSND Filter Basic Set 6.6inx6.6in"]{content:url('https://www.cinemachine.com.au/cdn/shop/files/K2.0013898ARRIFSND1.2Filter6.6x6.6_79462efc-fc7a-43af-a490-21c698981133_800x.jpg?v=1753754026')!important}
+#app img[alt="ARRI Rota Pola Filter Frame 6.6x6.6"]{content:url('https://www.cinemachine.com.au/cdn/shop/files/K2.0017086MBRotaPolaFilterFrame6-6x6-6.jpg?v=1715221206')!important}
+#app img[alt="ARRI Rota Pola Filter Frame 4x5.65"]{content:url('https://www.cinemachine.com.au/cdn/shop/files/K2.0009434-MB-Rota-Pola-Frame_307a5e71-eee2-442c-9b4f-6b1e9405dd5e.jpg?v=1715743834')!important}
+#app img[alt^="ARRI FSND 0.3 Filter"]{content:url('https://www.abelcine.com/uploads/4/9/8/8/0/a/49880a8fb13d48d4137219a395d24dec/arri-fsnd-0-9-filter-6x6_v1large_v1.large.jpg')!important;filter:brightness(1.18)!important}
+#app img[alt^="ARRI FSND 0.6 Filter"]{content:url('https://www.cinemachine.com.au/cdn/shop/files/K2.0013898ARRIFSND1.2Filter6.6x6.6_79462efc-fc7a-43af-a490-21c698981133_800x.jpg?v=1753754026')!important;filter:brightness(1.1)!important}
+#app img[alt^="ARRI FSND 0.9 Filter"]{content:url('https://www.abelcine.com/uploads/4/9/8/8/0/a/49880a8fb13d48d4137219a395d24dec/arri-fsnd-0-9-filter-6x6_v1large_v1.large.jpg')!important;filter:brightness(.98)!important}
+#app img[alt^="ARRI FSND 1.2 Filter"]{content:url('https://www.cinemachine.com.au/cdn/shop/files/K2.0013898ARRIFSND1.2Filter6.6x6.6_79462efc-fc7a-43af-a490-21c698981133_800x.jpg?v=1753754026')!important;filter:brightness(.9)!important}
+#app img[alt^="ARRI FSND 1.5 Filter"]{content:url('https://www.cinemachine.com.au/cdn/shop/files/K2.0013898ARRIFSND1.2Filter6.6x6.6_79462efc-fc7a-43af-a490-21c698981133_800x.jpg?v=1753754026')!important;filter:brightness(.82)!important}
+#app img[alt^="ARRI FSND 1.8 Filter"]{content:url('https://www.abelcine.com/uploads/4/9/8/8/0/a/49880a8fb13d48d4137219a395d24dec/arri-fsnd-0-9-filter-6x6_v1large_v1.large.jpg')!important;filter:brightness(.74)!important}
+#app img[alt^="ARRI FSND 2.1 Filter"]{content:url('https://www.cinemachine.com.au/cdn/shop/files/K2.0013898ARRIFSND1.2Filter6.6x6.6_79462efc-fc7a-43af-a490-21c698981133_800x.jpg?v=1753754026')!important;filter:brightness(.66)!important}
+#app img[alt^="ARRI FSND 2.4 Filter"]{content:url('https://www.abelcine.com/uploads/4/9/8/8/0/a/49880a8fb13d48d4137219a395d24dec/arri-fsnd-0-9-filter-6x6_v1large_v1.large.jpg')!important;filter:brightness(.58)!important}
+
+/* Follow focus */
+#app img[alt="ARRI Follow Focus FF-5 Cine Set Basic"]{content:url('https://www.bhphotovideo.com/images/images750x750/arri_kk_0005757_follow_focus_ff_5_cine_1288926.jpg')!important}
+#app img[alt="ARRI Follow Focus FF-4 Basic Unit, black"]{content:url('https://www.bhphotovideo.com/images/fb/arri_k2_65221_0_follow_focus_ff_4_basic_1288924.jpg')!important}
+#app img[alt="ARRI Follow Focus FF-4 Set 15mm, black"]{content:url('https://www.videolinea.com/909-large_default/arri-follow-focus-ff-4-basic-unit-black.jpg')!important}
+
+/* Accessories */
+#app img[alt="ARRI ARRIHEAD 2"]{content:url('https://pbblogassets.s3.amazonaws.com/uploads/2019/12/03140055/geared-head-cover.jpg')!important}
+#app img[alt="ARRI Assistant Pouch Large"]{content:url('https://www.cinemachine.com.au/cdn/shop/files/K2.0013016AssistantPouchLarge.jpg?v=1715157470')!important}
+#app img[alt="ARRI Assistant Pouch Small"]{content:url('https://www.cinemachine.com.au/cdn/shop/files/K2.0013017-Assistant-Pouch-Small.jpg?v=1715157956')!important}
+#app img[alt="ARRI Base Plate for Venice Ext. Unit"]{content:url('https://www.bhphotovideo.com/images/fb/arri_k2_0024564_base_plate_for_venice_1480598.jpg')!important}
+#app img[alt="ARRI Basic Broadcast Set for Canon EOS C400"]{content:url('https://d1mv2b9v99cq0i.cloudfront.net/eyJidWNrZXQiOiJ3ZWItbmluamEtaW1hZ2VzIiwia2V5Ijoia2F5ZWxsYXVzdHJhbGlhXC9pbWFnZXNcL3Byb2RpbWdcLzE3ODc1XzEuanBnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjoxMDAwLCJoZWlnaHQiOjEwMDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX19LCJ2ZXJzaW9uIjoiMTU4NThkNTU0MGRhZjc4MjgzOGUzZGQxODY2MDkyZWEzYTNkNzcyNCJ9')!important}
+#app img[alt="ARRI Basic Broadcast Set for Sony BURANO"]{content:url('https://www.bhphotovideo.com/images/images2500x2500/arri_kk_0050116_pro_broadcast_set_for_1801311.jpg')!important}
+#app img[alt="ARRI Bluetooth Dongle"]{content:url('https://proav.co.uk/media/catalog/product/cache/d94aef598307b969002e9a97f2f3e616/k/2/k2.0039838.jpg')!important}
 
 #app .pcard .pimg img,#app .detail-media img{object-fit:contain!important;background:#fff!important}
