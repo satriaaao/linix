@@ -13,16 +13,17 @@
       #app .related-products-head h2{margin:0!important;font-size:28px!important;line-height:1.05!important;letter-spacing:-.03em!important;color:#111!important}
       #app .related-products-head p{margin:6px 0 0!important;color:#777!important;font-size:13px!important}
       #app .related-products-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px!important}
-      #app .related-card{display:flex!important;flex-direction:column!important;min-width:0!important;border:1px solid #e7e7e7!important;border-radius:16px!important;overflow:hidden!important;background:#fff!important;cursor:pointer!important;transition:transform .16s ease,box-shadow .16s ease!important}
+      #app .related-card{display:flex!important;flex-direction:column!important;min-width:0!important;border:1px solid #e7e7e7!important;border-radius:16px!important;overflow:hidden!important;background:#fff!important;cursor:pointer!important;position:relative!important;z-index:1!important;pointer-events:auto!important;transition:transform .16s ease,box-shadow .16s ease!important;touch-action:manipulation!important;-webkit-tap-highlight-color:transparent!important}
       #app .related-card:hover{transform:translateY(-2px)!important;box-shadow:0 10px 28px rgba(0,0,0,.07)!important}
+      #app .related-card:active{transform:scale(.99)!important}
       #app .related-card-image{position:relative!important;aspect-ratio:1/1!important;background:#f8f8f8!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important}
-      #app .related-card-image img{width:100%!important;height:100%!important;object-fit:contain!important;background:#fff!important}
-      #app .related-card-badge{position:absolute!important;left:10px!important;top:10px!important;background:#111!important;color:#fff!important;border-radius:999px!important;padding:7px 9px!important;font-size:8px!important;font-weight:900!important;letter-spacing:.06em!important}
+      #app .related-card-image img{width:100%!important;height:100%!important;object-fit:contain!important;background:#fff!important;pointer-events:none!important}
+      #app .related-card-badge{position:absolute!important;left:10px!important;top:10px!important;background:#111!important;color:#fff!important;border-radius:999px!important;padding:7px 9px!important;font-size:8px!important;font-weight:900!important;letter-spacing:.06em!important;pointer-events:none!important}
       #app .related-card-body{display:flex!important;flex-direction:column!important;flex:1!important;padding:14px!important}
       #app .related-card-cat{font-size:9px!important;letter-spacing:.07em!important;text-transform:uppercase!important;color:#8b8b8b!important;margin-bottom:6px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
       #app .related-card-name{font-size:14px!important;line-height:1.25!important;font-weight:800!important;color:#111!important;display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;overflow:hidden!important;min-height:35px!important}
       #app .related-card-price{margin-top:12px!important;font-size:14px!important;font-weight:850!important;color:#111!important}
-      #app .related-card-cart{margin-top:12px!important;width:100%!important;height:38px!important;border:1px solid #111!important;border-radius:9px!important;background:#111!important;color:#fff!important;font-size:11px!important;font-weight:800!important;cursor:pointer!important}
+      #app .related-card-cart{margin-top:12px!important;width:100%!important;height:38px!important;border:1px solid #111!important;border-radius:9px!important;background:#111!important;color:#fff!important;font-size:11px!important;font-weight:800!important;cursor:pointer!important;position:relative!important;z-index:3!important;pointer-events:auto!important;touch-action:manipulation!important}
       #app .related-card-cart:hover{background:#222!important}
       @media(max-width:900px){#app .related-products-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
       @media(max-width:620px){
@@ -56,17 +57,52 @@
     if(!current) return;
     const host=document.querySelector('#app .product-detail-simple .container, #app .product-detail-simple, #app .page>.container');
     if(!host) return;
-    const old=document.getElementById('rentcam-related-products');
-    if(old) old.remove();
+
+    const existing=document.getElementById('rentcam-related-products');
+    if(existing && existing.dataset.currentId===id) return;
+    if(existing) existing.remove();
+
     const related=products.filter(x=>x.id!==current.id && x.cat===current.cat).slice(0,4);
     if(!related.length) return;
     installStyle();
+
     const section=document.createElement('section');
     section.id='rentcam-related-products';
     section.className='related-products-section';
-    section.innerHTML=`<div class="related-products-head"><div><h2>Produk Sejenis</h2><p>Produk lain dalam kategori ${esc(current.cat)}</p></div></div><div class="related-products-grid">${related.map(p=>`<article class="related-card" onclick="go('/produk/${esc(p.id)}')"><div class="related-card-image"><span class="related-card-badge">ARRI</span><img src="${p.img}" alt="${esc(p.name)}"></div><div class="related-card-body"><div class="related-card-cat">ARRI · ${esc(p.cat)}</div><div class="related-card-name">${esc(p.name)}</div><div class="related-card-price">${aud(p.priceAud??p.price)}</div><button type="button" class="related-card-cart" onclick="event.stopPropagation();add('${String(p.id).replace(/'/g,"\\'")}',1)">Tambah ke Keranjang</button></div></article>`).join('')}</div>`;
+    section.dataset.currentId=id;
+    section.innerHTML=`<div class="related-products-head"><div><h2>Produk Sejenis</h2><p>Produk lain dalam kategori ${esc(current.cat)}</p></div></div><div class="related-products-grid">${related.map(p=>`<article class="related-card" data-product-id="${esc(p.id)}" role="link" tabindex="0" aria-label="Buka detail ${esc(p.name)}"><div class="related-card-image"><span class="related-card-badge">ARRI</span><img src="${p.img}" alt="${esc(p.name)}"></div><div class="related-card-body"><div class="related-card-cat">ARRI · ${esc(p.cat)}</div><div class="related-card-name">${esc(p.name)}</div><div class="related-card-price">${aud(p.priceAud??p.price)}</div><button type="button" class="related-card-cart" data-cart-id="${esc(p.id)}">Tambah ke Keranjang</button></div></article>`).join('')}</div>`;
     host.appendChild(section);
   }
+
+  function openCard(card){
+    const id=card && card.dataset ? card.dataset.productId : '';
+    if(!id) return;
+    location.assign('/produk/'+encodeURIComponent(id));
+  }
+
+  document.addEventListener('click',e=>{
+    const cartBtn=e.target && e.target.closest ? e.target.closest('.related-card-cart') : null;
+    if(cartBtn){
+      e.preventDefault();
+      e.stopPropagation();
+      const id=cartBtn.dataset.cartId;
+      if(id && typeof add==='function') add(id,1);
+      return;
+    }
+    const card=e.target && e.target.closest ? e.target.closest('.related-card') : null;
+    if(!card) return;
+    e.preventDefault();
+    e.stopPropagation();
+    openCard(card);
+  },true);
+
+  document.addEventListener('keydown',e=>{
+    if(e.key!=='Enter' && e.key!==' ') return;
+    const card=e.target && e.target.closest ? e.target.closest('.related-card') : null;
+    if(!card) return;
+    e.preventDefault();
+    openCard(card);
+  },true);
 
   let scheduled=false;
   function schedule(){
