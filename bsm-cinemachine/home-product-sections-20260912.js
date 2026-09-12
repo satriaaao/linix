@@ -1,8 +1,9 @@
 /* Rentcam — homepage category product sections */
 (function(){
   const sections=[
-    {key:'camera',title:'Kamera',subtitle:'Cinema camera untuk film, commercial, series dan content production.',categories:['camera','kamera']},
-    {key:'lens',title:'Lensa Cinema',subtitle:'Prime dan anamorphic lens untuk karakter visual sinema.',categories:['lens','lensa']},
+    {key:'cinema',title:'Kamera Cinema',subtitle:'Cinema camera untuk film, commercial, series dan content production.',categories:['cinema']},
+    {key:'camera',title:'Kamera',subtitle:'Kamera untuk kebutuhan foto dan video.',categories:['camera','kamera']},
+    {key:'lens',title:'Lensa',subtitle:'Prime dan anamorphic lens untuk karakter visual sinema.',categories:['lens','lensa']},
     {key:'lighting',title:'Lighting',subtitle:'Lighting profesional untuk produksi sinema.',categories:['lighting']},
     {key:'audio',title:'Audio',subtitle:'Production sound profesional.',categories:['audio']},
     {key:'wireless',title:'Monitor & Wireless',subtitle:'Monitoring gambar dan transmisi video untuk kru produksi.',categories:['wireless','monitor']},
@@ -18,7 +19,9 @@
       const items=products.filter(p=>{
         if(p.active===false||p.deleted===true||p._cmsActive===false)return false;
         const category=String(p.mainCategory||p.cat||p.category||'').toLowerCase();
-        return p.placement==='home-'+s.key||s.categories.includes(category);
+        if(window.rentcamCatalogGroup)return window.rentcamCatalogGroup(p)===s.key;
+        if(s.key==='cinema')return ['camera','kamera','cinema'].includes(category)&&/alexa|venice|raptor|komodo|burano/i.test(p.name||'');
+        return s.categories.includes(category);
       }).reduce((out,p)=>{
         const override=config.productOverrides?.[p.id]||{},v={...p,...override};
         if(v.active===false||v.deleted===true)return out;
