@@ -16,3 +16,7 @@ jobs:
           curl -fsS "https://purge.jsdelivr.net/gh/satriaaao/linix@main/bsm-cinemachine/product-images-20260912.js" || true
           curl -fsS "https://purge.jsdelivr.net/gh/satriaaao/linix@main/bsm-cinemachine/patch-20260912.js" || true
           curl -fsS "https://purge.jsdelivr.net/gh/satriaaao/linix@main/bsm-cinemachine/patch-20260912.css" || true
+      - name: Verify camera dropdown reached CDN
+        run: |
+          set -e
+          curl -fsS "https://cdn.jsdelivr.net/gh/satriaaao/linix@main/bsm-cinemachine/product-images-20260912.js?v=58d88a8" | grep -q "camera-mega-menu"
