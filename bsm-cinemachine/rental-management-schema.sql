@@ -175,7 +175,7 @@ elsif p_action='approve' then
   bank=coalesce((select value from jsonb_array_elements(coalesce(c->'customProducts','[]')) where value->>'id'=pid limit 1),bank)||coalesce(c->'productOverrides'->pid,'{}');
   capacity=coalesce((bank->>'stock')::integer,1);
   if bank is null or bank->>'active'='false' or bank->>'deleted'='true' then raise exception 'Produk tidak tersedia';end if;
-  select coalesce(sum((line->>'quantity')::integer),0) into reserved from public.rentcam_orders r,jsonb_array_elements(r.items) line where r.id<>p_order and r.rental_status in ('approved','rented') and r.start_date<=o.end_date and r.end_date>=o.start_date and line->>'id'=pid;
+  select coalesce(sum((line->>'quantity')::integer),0) into reserved from public.rentcam_orders r,jsonb_array_elements(r.items) line where r.id<>p_order and r.rental_status in ('approved','rented') and r.start_date<=o.end_date and (case when r.rental_status='rented' then greatest(r.end_date,current_date) else r.end_date end)>=o.start_date and line->>'id'=pid;
   if reserved+qty>capacity then raise exception 'Stok % tidak cukup untuk tanggal tersebut',v->>'name';end if;
  end loop;
  update public.rentcam_orders set rental_status='approved',status='confirmed' where id=p_order;
