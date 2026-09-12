@@ -1,44 +1,31 @@
 /* Rentcam — homepage category product sections */
 (function(){
-  const IMG={
-    camera:'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1000&q=88',
-    camera2:'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=1000&q=88',
-    lighting:'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1000&q=88',
-    audio:'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=1000&q=88',
-    package:'https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1000&q=88'
-  };
-
-  const item=(id,name,brand,img)=>({id:'home-'+id,name,brand,img});
   const sections=[
-    {key:'camera',title:'Kamera',subtitle:'Cinema camera untuk film, commercial, series dan content production.',items:[
-      item('arri-alexa-35','ARRI ALEXA 35','ARRI',IMG.camera),item('arri-alexa-mini-lf','ARRI ALEXA Mini LF','ARRI',IMG.camera2),item('sony-venice-2','Sony VENICE 2','SONY',IMG.camera2),item('sony-burano','Sony BURANO','SONY',IMG.camera),item('canon-c400','Canon EOS C400','CANON',IMG.camera2),item('red-v-raptor-x','RED V-RAPTOR [X]','RED',IMG.camera),item('blackmagic-ursa-cine','Blackmagic URSA Cine 12K','BLACKMAGIC',IMG.camera2),item('sony-fx6','Sony FX6','SONY',IMG.camera)
-    ]},
-    {key:'lighting',title:'Lighting',subtitle:'Lighting profesional untuk studio, interior, exterior dan produksi sinema.',items:[
-      item('arri-skypanel-x21','ARRI SkyPanel X21','ARRI',IMG.lighting),item('arri-orbiter','ARRI Orbiter','ARRI',IMG.lighting),item('aputure-1200d','Aputure LS 1200d Pro','APUTURE',IMG.lighting),item('aputure-xt26','Aputure Electro Storm XT26','APUTURE',IMG.lighting),item('nanlux-evoke-2400b','Nanlux Evoke 2400B','NANLUX',IMG.lighting),item('astera-titan-tube','Astera Titan Tube','ASTERA',IMG.lighting),item('creamsource-vortex8','Creamsource Vortex8','CREAMSOURCE',IMG.lighting),item('kino-flo-mimik-120','Kino Flo Mimik 120','KINO FLO',IMG.lighting)
-    ]},
-    {key:'audio',title:'Audio',subtitle:'Recorder, microphone dan wireless audio untuk production sound profesional.',items:[
-      item('sound-devices-888','Sound Devices 888','SOUND DEVICES',IMG.audio),item('mixpre-10','Sound Devices MixPre-10 II','SOUND DEVICES',IMG.audio),item('sennheiser-mkh416','Sennheiser MKH 416','SENNHEISER',IMG.audio),item('schoeps-cmit5u','Schoeps CMIT 5U','SCHOEPS',IMG.audio),item('dpa-4017b','DPA 4017B','DPA',IMG.audio),item('wisycom-mcr54','Wisycom MCR54','WISYCOM',IMG.audio),item('lectrosonics-dsr4','Lectrosonics DSR4','LECTROSONICS',IMG.audio),item('tentacle-sync-e','Tentacle Sync E','TENTACLE',IMG.audio)
-    ]},
-    {key:'package',title:'Paket',subtitle:'Paket equipment siap produksi dengan kombinasi kamera, lens, support dan monitoring.',items:[
-      item('alexa35-package','ARRI ALEXA 35 Production Package','PAKET',IMG.package),item('minilf-package','ARRI Mini LF Production Package','PAKET',IMG.package),item('venice2-package','Sony VENICE 2 Production Package','PAKET',IMG.package),item('burano-package','Sony BURANO Documentary Package','PAKET',IMG.package),item('vraptor-package','RED V-RAPTOR Cinema Package','PAKET',IMG.package),item('fx6-package','FX6 Run & Gun Package','PAKET',IMG.package),item('interview-package','Cinema Interview Package','PAKET',IMG.package),item('commercial-package','Commercial Production Package','PAKET',IMG.package)
-    ]}
+    {key:'camera',title:'Kamera',subtitle:'Cinema camera untuk film, commercial, series dan content production.',categories:['camera','kamera']},
+    {key:'lighting',title:'Lighting',subtitle:'Lighting profesional untuk produksi sinema.',categories:['lighting']},
+    {key:'audio',title:'Audio',subtitle:'Production sound profesional.',categories:['audio']},
+    {key:'package',title:'Paket',subtitle:'Paket equipment siap produksi.',categories:['package','paket']}
   ];
-
-  const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  const allItems=sections.flatMap(s=>s.items.map(x=>({...x,key:s.key,title:s.title})));
-
-  function ensureProducts(){
-    try{
-      if(!Array.isArray(P)) return;
-      allItems.forEach(x=>{
-        if(P.some(p=>String(p.id)===x.id)) return;
-        P.push({
-          id:x.id,name:x.name,brand:x.brand,cat:x.title,price:0,stock:99,img:x.img,
-          spec:[['Brand',x.brand],['Category',x.title],['Availability','Hubungi tim Rentcam']],
-          inc:['Konfigurasi paket mengikuti kebutuhan produksi','Detail included dikonfirmasi saat booking']
-        });
-      });
-    }catch(e){}
+  const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  function productSections(){
+    let products=[];try{if(Array.isArray(P))products=P}catch(e){}
+    const config=window.RENTCAM_CMS_CONFIG||{},usedIds=new Set(),usedNames=new Set(),usedImages=new Set();
+    return sections.map(s=>{
+      const limit=Number(config.homepage?.['products'+s.key[0].toUpperCase()+s.key.slice(1)]||8);
+      const items=products.filter(p=>{
+        if(p.active===false||p.deleted===true||p._cmsActive===false)return false;
+        const category=String(p.mainCategory||p.cat||p.category||'').toLowerCase();
+        return p.placement==='home-'+s.key||s.categories.includes(category);
+      }).reduce((out,p)=>{
+        const override=config.productOverrides?.[p.id]||{},v={...p,...override};
+        if(v.active===false||v.deleted===true)return out;
+        const img=v.images?.[0]||v.image||v.img||'',name=String(v.name||'').trim().toLowerCase();
+        if(!img||!name||out.length>=limit||usedIds.has(String(v.id))||usedNames.has(name)||usedImages.has(img))return out;
+        usedIds.add(String(v.id));usedNames.add(name);usedImages.add(img);
+        out.push({...v,img});return out;
+      },[]);
+      return {...s,items};
+    }).filter(s=>s.items.length);
   }
 
   function installStyle(){
@@ -57,7 +44,7 @@
       #app .home-category-card{min-width:0!important;background:#fff!important;border:1px solid #e9e9e6!important;border-radius:15px!important;overflow:hidden!important;cursor:pointer!important;display:flex!important;flex-direction:column!important;transition:transform .16s ease,box-shadow .16s ease!important;position:relative!important}
       #app .home-category-card:hover{transform:translateY(-3px)!important;box-shadow:0 12px 30px rgba(0,0,0,.07)!important}
       #app .home-category-image{position:relative!important;width:100%!important;aspect-ratio:1.12/1!important;background:#fff!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important}
-      #app .home-category-image img{width:100%!important;height:100%!important;object-fit:cover!important;display:block!important}
+      #app .home-category-image img{width:100%!important;height:100%!important;object-fit:contain!important;display:block!important}
       #app .home-category-badge{position:absolute!important;left:11px!important;top:11px!important;background:#111!important;color:#fff!important;border-radius:999px!important;padding:7px 9px!important;font-size:8px!important;font-weight:900!important;letter-spacing:.05em!important}
       #app .home-category-body{padding:13px 14px 14px!important;display:flex!important;flex-direction:column!important;flex:1!important}
       #app .home-category-brand{font-size:9px!important;color:#8a8a8a!important;letter-spacing:.07em!important;text-transform:uppercase!important;margin-bottom:6px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
@@ -106,14 +93,16 @@
 
   function mount(){
     if(location.pathname!=='/') return;
-    ensureProducts();
     installStyle();
     const app=document.getElementById('app');
-    if(!app || document.getElementById('rentcam-home-product-sections')) return;
+    if(!app)return;
+    const next=markup();
+    const existing=document.getElementById('rentcam-home-product-sections');
+    if(existing){if(existing.innerHTML!==next)existing.innerHTML=next;return;}
     const legacy=[...app.querySelectorAll('.section')].find(s=>/Latest in Rentals|ARRI Products/i.test(s.textContent||''));
     const wrap=document.createElement('div');
     wrap.id='rentcam-home-product-sections';
-    wrap.innerHTML=markup();
+    wrap.innerHTML=next;
     if(legacy){legacy.insertAdjacentElement('beforebegin',wrap);legacy.remove();}else app.appendChild(wrap);
   }
 
@@ -122,4 +111,6 @@
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',schedule); else schedule();
   const app=document.getElementById('app'); if(app) new MutationObserver(schedule).observe(app,{childList:true,subtree:true});
   addEventListener('popstate',schedule);
+  document.addEventListener('rentcam-cms-updated',schedule);
+  document.addEventListener('rentcam-route-change',schedule);
 })();
