@@ -1,10 +1,83 @@
+/* Rentcam product PNG patch — all cinema equipment images are delivered as PNG */
+(function(){
+  const weserv='https://images.weserv.nl/?url=';
+  const fallback='https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1200&q=90';
+  const png=url=>{
+    url=String(url||fallback);
+    if(url.startsWith(weserv)) return /[?&]output=png(?:&|$)/i.test(url)?url:url+(url.includes('?')?'&':'?')+'output=png';
+    return weserv+encodeURIComponent(url.replace(/^https?:\/\//,''))+'&output=png&w=1100&h=1100&fit=contain&bg=ffffff';
+  };
 
-const BLOGX=[{id:'alexa35-now',title:'ARRI ALEXA 35 Kini Tersedia untuk Rental di BSM',cat:'ARRI',date:'12 Sep 2026',author:'BSM Rental Team',img:I.cam,excerpt:'ALEXA 35 hadir untuk production package kelas cinema dengan dynamic range tinggi, workflow ARRIRAW, dan build yang fleksibel.',tags:['ARRI','Camera','New Product'],body:[['p','Kami menambahkan ARRI ALEXA 35 ke lineup rental untuk produksi film, commercial, series, dan project yang membutuhkan workflow cinema profesional. Kamera ini cocok dipasangkan dengan prime lens modern maupun karakter vintage, wireless video, follow focus, matte box, dan production monitoring.'],['h','Kenapa ALEXA 35 menarik untuk production package?'],['p','ALEXA 35 menggabungkan sensor Super 35 generasi baru dengan latitude yang luas, highlight roll-off yang halus, dan fleksibilitas exposure untuk kondisi set yang berubah cepat.'],['img',I.cam2],['p','Package rental dapat dikonfigurasi untuk studio build, handheld, dolly, gimbal, atau vehicle rig. B-Mount battery, media, viewfinder, bridge plate, wireless video, dan monitoring dapat disesuaikan dengan kebutuhan crew.'],['h','Lens pairing dan monitoring'],['p','ALEXA 35 dapat dipadukan dengan Cooke S8/i, ARRI Signature Prime, Atlas anamorphic, atau pilihan cinema lens lain. Wireless video dan monitor dapat ditambahkan untuk director, focus puller, DIT, dan client viewing.'],['img',I.lens],['note','Jika kamu sudah punya shot list atau camera brief, kirim ke tim BSM Rental. Kami bisa bantu menyusun camera package sebelum hari shooting.']]},{id:'lens-guide',title:'Cara Memilih Cinema Lens untuk Film & Commercial',cat:'Lens',date:'8 Sep 2026',author:'BSM Rental Team',img:I.lens,excerpt:'Cooke, ARRI Signature, anamorphic, atau zoom cinema? Pilih berdasarkan karakter, format sensor, dan workflow.',tags:['Lens','Cooke','ARRI'],body:[['p','Pemilihan cinema lens bukan hanya soal focal length. Coverage sensor, aperture, breathing, flare, close focus, size, dan karakter warna ikut menentukan hasil akhir sekaligus cara kerja camera department.'],['h','Mulai dari format sensor'],['p','Pastikan image circle lens sesuai dengan kamera yang digunakan. Untuk full-frame atau large-format, gunakan lens set yang memang dirancang untuk coverage tersebut.'],['img',I.lens],['h','Karakter gambar vs konsistensi'],['p','Cooke sering dipilih untuk rendering yang hangat dan organik, sementara ARRI Signature Prime menawarkan look modern dengan konsistensi tinggi.'],['note','Sebelum booking, tentukan target aspect ratio, jenis sensor, dan gaya visual agar lens package lebih tepat.']]},{id:'lighting-guide',title:'Setup Cinema Lighting untuk Set Besar',cat:'Lighting',date:'5 Sep 2026',author:'BSM Rental Team',img:I.light,excerpt:'SkyPanel, Orbiter, Electro Storm dan control system untuk interior, exterior, dan studio.',tags:['Lighting','ARRI','Aputure'],body:[['p','Lighting package yang baik dimulai dari kebutuhan exposure, ukuran area, rigging, power, dan control. Untuk set besar, pilih fixture yang mudah dikontrol dan punya output cukup untuk modifier yang digunakan.'],['h','Soft source dan point source'],['p','SkyPanel cocok sebagai soft source yang fleksibel, sedangkan Orbiter dan Electro Storm berguna ketika dibutuhkan output lebih terarah.'],['img',I.light],['p','Jangan lupa memasukkan power distribution, stand, rigging, diffusion, flags, dan wireless control ke dalam package sejak awal.'],['note','Tim BSM Rental bisa bantu breakdown lighting list berdasarkan floor plan atau lighting diagram.']]}];
-const PORTX=[{id:'drama',title:'Drama Series — Night Exterior',cat:'TV Series',year:'2026',client:'Streaming Original',camera:'ARRI ALEXA 35',lenses:'Cooke S8/i',lighting:'ARRI SkyPanel X21',img:'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1500&q=88',img2:I.light,img3:I.cam2,desc:'Paket kamera dan lighting dirancang untuk exterior malam dengan workflow wireless monitoring dan build yang tetap ringan untuk pergantian setup cepat.'},{id:'auto',title:'Automotive Commercial',cat:'Commercial',year:'2026',client:'Creative Agency',camera:'Sony VENICE 2',lenses:'ARRI Signature Prime',lighting:'Aputure Electro Storm XT26',img:'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1500&q=88',img2:I.cam2,img3:I.light,desc:'Large-format camera package untuk commercial otomotif dengan highlight control, wireless video, dan high-output lighting.'},{id:'music',title:'Music Video — Stage Production',cat:'Music Video',year:'2026',client:'Record Label',camera:'RED V-RAPTOR [X]',lenses:'Atlas Mercury',lighting:'ARRI Orbiter',img:'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1500&q=88',img2:I.lens,img3:I.light,desc:'Anamorphic look dipadukan dengan pergerakan kamera agresif, wireless video, dan lighting berwarna untuk stage performance.'},{id:'doc',title:'Documentary Field Unit',cat:'Documentary',year:'2026',client:'Documentary Unit',camera:'Sony BURANO',lenses:'Cinema Zoom',lighting:'Compact LED Kit',img:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1500&q=88',img2:I.cam,img3:I.audio,desc:'Setup dokumenter yang cepat dipindah, battery-efficient, dan siap untuk handheld, interview, serta observational shooting.'},{id:'fashion',title:'Fashion Film — Studio',cat:'Fashion Film',year:'2026',client:'Fashion Brand',camera:'ARRI ALEXA Mini LF',lenses:'ARRI Signature Prime',lighting:'SkyPanel + Orbiter',img:'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1500&q=88',img2:I.light,img3:I.lens,desc:'Large format image dengan soft-light package untuk skin tone, product detail, dan slow movement di studio.'},{id:'corporate',title:'Corporate Campaign — Interview',cat:'Corporate',year:'2026',client:'Enterprise Brand',camera:'ARRI ALEXA 35',lenses:'Cooke S8/i',lighting:'ARRI Orbiter',img:'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1500&q=88',img2:I.audio,img3:I.cam,desc:'Interview package dengan clean monitoring, high-quality audio, dan lighting yang cepat diadaptasi untuk beberapa lokasi.'}];
-function blogCard(x){return `<article class="blog-card" onclick="go('/artikel/${x.id}')"><img src="${x.img}" alt="${x.title}"><small>${x.cat} · ${x.author} · ${x.date}</small><h2>${x.title}</h2><p>${x.excerpt}</p><span class="read">Baca Artikel →</span></article>`}
-window.blogPage=function(){let u=new URLSearchParams(location.search),cat=u.get('cat')||'',cats=['ARRI','Camera','Lens','Lighting','New Product'];let list=BLOGX.filter(x=>!cat||x.cat===cat||x.tags.includes(cat));return `<section class="blog-hero"><div class="container"><span class="ey">NEWS & INSIGHTS</span><h1>Blog BSM Rental</h1><p>Artikel tentang cinema camera, lenses, lighting, workflow, dan equipment baru—ditulis untuk membantu production team menyusun package yang lebih tepat.</p></div></section><div class="container blog-layout"><aside class="blog-cats"><button class="${!cat?'on':''}" onclick="go('/artikel')">All</button>${cats.map(c=>`<button class="${cat===c?'on':''}" onclick="go('/artikel?cat=${encodeURIComponent(c)}')">${c}</button>`).join('')}</aside><div class="blog-grid">${list.map(blogCard).join('')}</div></div>`};
-window.articleDetail=function(id){let x=BLOGX.find(a=>a.id===id);if(!x)return blogPage();let body=x.body.map(b=>b[0]==='p'?`<p>${b[1]}</p>`:b[0]==='h'?`<h2>${b[1]}</h2>`:b[0]==='img'?`<img src="${b[1]}" alt="${x.title}">`:`<div class="article-note">${b[1]}</div>`).join('');let rel=BLOGX.filter(a=>a.id!==x.id).slice(0,3);return `<article class="article-page"><div class="container article-shell"><div class="article-meta">${x.cat} · ${x.author} · ${x.date}</div><h1>${x.title}</h1><img class="article-hero-img" src="${x.img}" alt="${x.title}"><div class="article-copy">${body}<div class="article-tags">${x.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div><div class="article-cta"><div><h3>Butuh package untuk produksi berikutnya?</h3><p>Tim BSM Rental dapat membantu menyusun camera, lens, lighting, monitoring, dan support package.</p></div><button class="btn light" onclick="go('/produk')">Lihat Equipment</button></div></div><div class="related-posts"><div class="head"><h2>Artikel Lainnya</h2></div><div class="related-grid">${rel.map(r=>`<article class="related-post" onclick="go('/artikel/${r.id}')"><img src="${r.img}"><small>${r.cat} · ${r.date}</small><h4>${r.title}</h4></article>`).join('')}</div></div></div></article>`};
-function portCard2(x){return `<article class="port-card" onclick="go('/portfolio/${x.id}')"><img src="${x.img}" alt="${x.title}"><div class="meta"><small>${x.cat} · ${x.year}</small><h2>${x.title}</h2><p>${x.camera} · ${x.lenses}</p></div></article>`}
-window.portfolioPage=function(){let u=new URLSearchParams(location.search),cat=u.get('cat')||'',cats=[...new Set(PORTX.map(x=>x.cat))],list=PORTX.filter(x=>!cat||x.cat===cat);return `<section class="portfolio-hero"><div class="container"><small>SELECTED WORK</small><h1>Portfolio & Production Credits</h1><p>Contoh production package untuk film, TV series, commercial, music video, documentary, fashion, dan corporate production.</p></div></section><section class="page"><div class="container"><div class="portfolio-filter"><button class="pill ${!cat?'on':''}" onclick="go('/portfolio')">All</button>${cats.map(c=>`<button class="pill ${cat===c?'on':''}" onclick="go('/portfolio?cat=${encodeURIComponent(c)}')">${c}</button>`).join('')}</div><div class="portfolio-grid">${list.map(portCard2).join('')}</div></div></section>`};
-window.portfolioDetail=function(id){let x=PORTX.find(p=>p.id===id);if(!x)return portfolioPage();return `<section class="portfolio-detail"><div class="container"><div class="port-detail-hero"><img src="${x.img}" alt="${x.title}"><div class="port-detail-title"><small>${x.cat} · ${x.year}</small><h1>${x.title}</h1></div></div><div class="port-detail-grid"><div class="port-story"><h2>Project Overview</h2><p>${x.desc}</p><p>Package disusun agar camera department dapat bergerak cepat di set sambil menjaga monitoring, power, support, dan backup tetap terorganisir.</p><button class="btn" onclick="go('/produk')">Build Similar Package</button></div><aside class="port-facts"><div class="fact"><span>Client</span><b>${x.client}</b></div><div class="fact"><span>Camera</span><b>${x.camera}</b></div><div class="fact"><span>Lenses</span><b>${x.lenses}</b></div><div class="fact"><span>Lighting</span><b>${x.lighting}</b></div><div class="fact"><span>Year</span><b>${x.year}</b></div></aside></div><div class="port-gallery"><img src="${x.img2}" alt="Behind the scenes"><img src="${x.img3}" alt="Equipment setup"><img src="${x.img}" alt="Production still"></div></div></section>`};
-const _render=render;window.render=function(){clearInterval(timer);save();let p=location.pathname;document.getElementById('app').innerHTML=p==='/'?home():p==='/produk'?products():p.startsWith('/produk/')?detail(p.split('/')[2]):p==='/cart'?cartPage():p==='/portfolio'?portfolioPage():p.startsWith('/portfolio/')?portfolioDetail(p.split('/')[2]):p==='/artikel'?blogPage():p.startsWith('/artikel/')?articleDetail(p.split('/')[2]):home();scrollTo(0,0);if(p==='/'){showSlide?.();timer=setInterval(()=>{hi=(hi+1)%SL.length;document.querySelector('#app .hero')?.replaceWith((()=>{let t=document.createElement('template');t.innerHTML=hero().trim();return t.content.firstChild})())},5000)}};render();
+  const droneImgs=[
+    'https://images.unsplash.com/photo-1473968512647-3e447244af8f?auto=format&fit=crop&w=1200&q=90',
+    'https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&w=1200&q=90',
+    'https://images.unsplash.com/photo-1527977966376-1c8408f9f108?auto=format&fit=crop&w=1200&q=90',
+    'https://images.unsplash.com/photo-1508444845599-5c89863b1c44?auto=format&fit=crop&w=1200&q=90'
+  ];
+  const drones=[
+    ['dji-inspire-3','DJI Inspire 3',3500000,'NEW'],
+    ['dji-inspire-2-x7','DJI Inspire 2 + Zenmuse X7',2200000,'PAKET'],
+    ['dji-mavic-3-cine','DJI Mavic 3 Cine',1200000,'NEW'],
+    ['dji-mavic-3-pro-cine','DJI Mavic 3 Pro Cine',1500000,'PAKET'],
+    ['dji-matrice-350-rtk','DJI Matrice 350 RTK',1800000,'PAKET'],
+    ['dji-avata-2','DJI Avata 2',700000,'NEW'],
+    ['dji-mini-4-pro','DJI Mini 4 Pro',500000,'DISKON 20%'],
+    ['dji-air-3s','DJI Air 3S',750000,'NEW']
+  ];
+
+  function ensureData(){
+    if(typeof P==='undefined') return false;
+    drones.forEach((d,i)=>{
+      const [id,name,price,badge]=d;
+      if(!P.some(x=>x.id===id)) P.push({
+        id,name,brand:'DJI',cat:'Drone',price,img:png(droneImgs[i%droneImgs.length]),stock:2,badge,dummy:true,
+        spec:[['Type','Cinema Drone'],['Brand','DJI'],['Workflow','Aerial Cinema Production'],['Image Format','PNG']],
+        inc:['Aircraft','Remote Controller','Battery Set','Propeller Set','Production Case']
+      });
+    });
+    P.forEach(p=>{p.img=png(p.img||fallback)});
+    return true;
+  }
+
+  function sync(){
+    if(typeof P==='undefined') return;
+    document.querySelectorAll('#app .pcard').forEach(card=>{
+      const m=(card.getAttribute('onclick')||'').match(/\/produk\/([^'"\)]+)/);
+      if(!m) return;
+      const p=P.find(x=>x.id===m[1]);
+      if(!p) return;
+      const img=card.querySelector('.pimg img,img');
+      if(img&&img.src!==p.img) img.src=p.img;
+      if(p.badge&&!card.querySelector('.rentcam-card-status')){
+        const b=document.createElement('span');b.className='rentcam-card-status';b.textContent=p.badge;(card.querySelector('.pimg')||card).appendChild(b);
+      }
+    });
+    const m=location.pathname.match(/^\/produk\/([^/]+)/);
+    if(m){
+      const p=P.find(x=>x.id===m[1]);
+      const img=document.querySelector('#app .detail-media img,#app .detail-ref-media img');
+      if(p&&img&&img.src!==p.img) img.src=p.img;
+    }
+  }
+
+  const css=document.createElement('style');
+  css.textContent=`
+    #app .pimg,#app .rimg,#app .detail-media,#app .detail-ref-media{background:#fff!important;overflow:hidden!important}
+    #app .pimg img,#app .rimg img,#app .detail-media img,#app .detail-ref-media img{width:100%!important;height:100%!important;object-fit:contain!important;background:transparent!important}
+    #app .product-detail-simple .detail-info h1::before,#app .product-detail-simple .detail-info h1::after,#app .detail-ref-info h1::before,#app .detail-ref-info h1::after{display:none!important;content:none!important;visibility:hidden!important;opacity:0!important}
+  `;
+  document.head.appendChild(css);
+
+  let n=0;
+  const timerPng=setInterval(()=>{
+    n++;
+    if(ensureData()){
+      if(n>3&&typeof render==='function') render();
+      requestAnimationFrame(sync);
+      if(n>8) clearInterval(timerPng);
+    }
+    if(n>40) clearInterval(timerPng);
+  },180);
+  const app=document.getElementById('app');
+  if(app)new MutationObserver(()=>requestAnimationFrame(sync)).observe(app,{childList:true,subtree:true});
+})();
