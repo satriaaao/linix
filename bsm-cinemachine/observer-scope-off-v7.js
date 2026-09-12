@@ -1,0 +1,2 @@
+/* Restore native MutationObserver after legacy runtime initialization */
+(function(){if(window.__rentcamNativeMO){window.MutationObserver=window.__rentcamNativeMO;delete window.__rentcamNativeMO}})();
