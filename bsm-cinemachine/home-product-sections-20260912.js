@@ -88,7 +88,7 @@
   }
 
   function markup(){
-    return `<section class="home-product-sections"><div class="container">${sections.map(s=>`<section class="home-product-section home-${s.key}"><div class="home-product-head"><div><h2>${esc(s.title)}</h2><p>${esc(s.subtitle)}</p></div><button class="home-product-view" onclick="go('/produk')">View all</button></div><div class="home-product-grid">${s.items.slice(0,8).map(x=>card(x,s.key)).join('')}</div></section>`).join('')}</div></section>`;
+    return `<section class="home-product-sections"><div class="container">${productSections().map(s=>`<section class="home-product-section home-${s.key}"><div class="home-product-head"><div><h2>${esc(s.title)}</h2><p>${esc(s.subtitle)}</p></div><button class="home-product-view" onclick="go('/produk')">View all</button></div><div class="home-product-grid">${s.items.slice(0,8).map(x=>card(x,s.key)).join('')}</div></section>`).join('')}</div></section>`;
   }
 
   function mount(){
@@ -98,10 +98,11 @@
     if(!app)return;
     const next=markup();
     const existing=document.getElementById('rentcam-home-product-sections');
-    if(existing){if(existing.innerHTML!==next)existing.innerHTML=next;return;}
+    if(existing){if(existing.dataset.productMarkup!==next){existing.dataset.productMarkup=next;existing.innerHTML=next}return;}
     const legacy=[...app.querySelectorAll('.section')].find(s=>/Latest in Rentals|ARRI Products/i.test(s.textContent||''));
     const wrap=document.createElement('div');
     wrap.id='rentcam-home-product-sections';
+    wrap.dataset.productMarkup=next;
     wrap.innerHTML=next;
     if(legacy){legacy.insertAdjacentElement('beforebegin',wrap);legacy.remove();}else app.appendChild(wrap);
   }
