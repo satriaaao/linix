@@ -27,24 +27,24 @@
   html body #app .arri-cats .arri-cat{flex:0 0 auto!important;min-width:auto!important;height:34px!important;min-height:34px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;padding:0 12px!important;border:1px solid #e2e2e2!important;border-radius:999px!important;background:#fff!important;color:#247fc1!important;font-size:10.5px!important;line-height:1!important;font-weight:750!important;white-space:nowrap!important;scroll-snap-align:start!important}
   html body #app .arri-cats .arri-cat.on{border-color:#111!important;background:#111!important;color:#fff!important}
 
-  /* Mobile product grid refinement */
-  html body #app .products-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;align-items:stretch!important;width:100%!important}
-  html body #app .products-grid .pcard{display:flex!important;flex-direction:column!important;min-width:0!important;height:100%!important;padding:0 0 10px!important;border:1px solid #e9e9e9!important;border-radius:14px!important;overflow:hidden!important;background:#fff!important;box-shadow:0 3px 12px rgba(0,0,0,.04)!important}
-  html body #app .products-grid .pcard .pimg{position:relative!important;width:100%!important;height:auto!important;aspect-ratio:1/1!important;min-height:0!important;margin:0!important;padding:10px!important;background:#fafafa!important;border-radius:0!important;box-sizing:border-box!important}
+  /* Mobile product list: no multi-column grid */
+  html body #app .products-grid{display:flex!important;flex-direction:column!important;gap:12px!important;width:100%!important}
+  html body #app .products-grid .pcard{display:grid!important;grid-template-columns:132px minmax(0,1fr)!important;grid-template-rows:auto auto auto 1fr!important;column-gap:12px!important;min-width:0!important;width:100%!important;height:auto!important;padding:0!important;border:1px solid #e9e9e9!important;border-radius:14px!important;overflow:hidden!important;background:#fff!important;box-shadow:0 3px 12px rgba(0,0,0,.04)!important}
+  html body #app .products-grid .pcard .pimg{grid-column:1!important;grid-row:1/6!important;position:relative!important;width:132px!important;height:100%!important;min-height:150px!important;aspect-ratio:auto!important;margin:0!important;padding:10px!important;background:#fafafa!important;border-radius:0!important;box-sizing:border-box!important}
   html body #app .products-grid .pcard .pimg img{width:100%!important;height:100%!important;object-fit:contain!important;display:block!important;background:transparent!important}
   html body #app .products-grid .pcard .arri-source-badge{left:8px!important;top:8px!important;height:22px!important;padding:0 8px!important;font-size:7px!important;line-height:22px!important}
-  html body #app .products-grid .pcard .pbrand{margin:0!important;padding:9px 10px 0!important;font-size:8px!important;line-height:1.2!important;color:#8b8b8b!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
-  html body #app .products-grid .pcard .pname{margin:0!important;padding:5px 10px 0!important;font-size:13px!important;line-height:1.23!important;font-weight:800!important;letter-spacing:-.02em!important;min-height:37px!important;display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important}
-  html body #app .products-grid .pcard .price{margin-top:auto!important;padding:8px 10px 0!important;font-size:13px!important;line-height:1.1!important;font-weight:850!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  html body #app .products-grid .pcard .pbrand{grid-column:2!important;margin:0!important;padding:13px 12px 0 0!important;font-size:8px!important;line-height:1.2!important;color:#8b8b8b!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  html body #app .products-grid .pcard .pname{grid-column:2!important;margin:0!important;padding:6px 12px 0 0!important;font-size:14px!important;line-height:1.25!important;font-weight:800!important;letter-spacing:-.02em!important;min-height:0!important;display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important}
+  html body #app .products-grid .pcard .price{grid-column:2!important;margin:0!important;padding:9px 12px 0 0!important;font-size:13px!important;line-height:1.1!important;font-weight:850!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
   html body #app .products-grid .pcard .price small,html body #app .products-grid .pcard .source-note{display:none!important}
   html body #app .products-grid .pcard .hoverBtns{display:none!important}
+  html body #app .products-grid .pcard .product-card-cart-btn{grid-column:2!important;align-self:end!important;width:auto!important;min-width:0!important;height:34px!important;min-height:34px!important;margin:10px 12px 12px 0!important;padding:0 12px!important;border-radius:9px!important;font-size:10px!important}
 }
 
 @media (max-width:390px){
-  html body #app .products-grid{gap:8px!important}
-  html body #app .products-grid .pcard{border-radius:12px!important}
-  html body #app .products-grid .pcard .pimg{padding:8px!important}
-  html body #app .products-grid .pcard .pname{font-size:12px!important;min-height:35px!important;padding-left:8px!important;padding-right:8px!important}
-  html body #app .products-grid .pcard .pbrand,html body #app .products-grid .pcard .price{padding-left:8px!important;padding-right:8px!important}
+  html body #app .products-grid{gap:10px!important}
+  html body #app .products-grid .pcard{grid-template-columns:112px minmax(0,1fr)!important;border-radius:12px!important}
+  html body #app .products-grid .pcard .pimg{width:112px!important;min-height:140px!important;padding:8px!important}
+  html body #app .products-grid .pcard .pname{font-size:13px!important}
   html body #app .products-grid .pcard .price{font-size:12px!important}
 }
