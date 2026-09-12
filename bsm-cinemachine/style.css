@@ -1,90 +1,179 @@
 @import url('https://cdn.jsdelivr.net/gh/satriaaao/linix@8a27d6a1fb8cda957cfb1bcc304733abd49bcdd5/bsm-cinemachine/style.css');
 
-/* Desktop Explore our Rentals — buttons only */
+/* Explore our Rentals — unified segmented navigation */
+html body main#app .section:has(.cats){
+  padding-top:58px!important;
+  padding-bottom:62px!important;
+  background:#fff!important;
+}
+html body main#app .section:has(.cats) .head{
+  align-items:flex-end!important;
+  margin-bottom:18px!important;
+}
+html body main#app .section:has(.cats) .head h2{
+  letter-spacing:-.045em!important;
+}
+html body main#app .section:has(.cats) .head p{
+  color:#747474!important;
+  line-height:1.55!important;
+}
+html body main#app .section:has(.cats) .view{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  height:40px!important;
+  padding:0 16px!important;
+  border:1px solid #d9d9d9!important;
+  border-radius:999px!important;
+  background:#fff!important;
+  color:#111!important;
+  font-size:11px!important;
+  font-weight:800!important;
+  text-decoration:none!important;
+  transition:.2s ease!important;
+}
+html body main#app .section:has(.cats) .view:hover{
+  background:#111!important;
+  color:#fff!important;
+  border-color:#111!important;
+}
+
+html body main#app .section .container .cats{
+  display:flex!important;
+  align-items:stretch!important;
+  width:100%!important;
+  padding:5px!important;
+  margin:0!important;
+  gap:0!important;
+  overflow:hidden!important;
+  border:1px solid #dedede!important;
+  border-radius:18px!important;
+  background:#f6f6f6!important;
+  box-shadow:0 8px 26px rgba(0,0,0,.045)!important;
+}
+html body main#app .section .container .cats:before,
+html body main#app .section .container .cats:after{display:none!important;content:none!important}
+
+html body main#app .section .container .cats .cat{
+  position:relative!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-width:0!important;
+  height:56px!important;
+  min-height:56px!important;
+  padding:0 18px!important;
+  margin:0!important;
+  border:0!important;
+  border-right:1px solid #e1e1e1!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+  opacity:1!important;
+  transform:none!important;
+  transition:background .18s ease,color .18s ease!important;
+}
+html body main#app .section .container .cats .cat:last-child{border-right:0!important}
+html body main#app .section .container .cats .cat img{display:none!important}
+html body main#app .section .container .cats .cat:after{display:none!important;content:none!important}
+html body main#app .section .container .cats .cat div{
+  position:static!important;
+  inset:auto!important;
+  width:auto!important;
+  min-width:0!important;
+  padding:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:8px!important;
+  color:#111!important;
+  text-align:center!important;
+}
+html body main#app .section .container .cats .cat b{
+  display:block!important;
+  margin:0!important;
+  color:#111!important;
+  font-size:14px!important;
+  line-height:1!important;
+  font-weight:760!important;
+  letter-spacing:-.018em!important;
+  white-space:nowrap!important;
+}
+html body main#app .section .container .cats .cat small{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  height:22px!important;
+  min-width:22px!important;
+  padding:0 7px!important;
+  margin:0!important;
+  border-radius:999px!important;
+  background:#e9e9e9!important;
+  color:#7d7d7d!important;
+  font-size:9px!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+}
+html body main#app .section .container .cats .cat:hover{
+  background:#111!important;
+}
+html body main#app .section .container .cats .cat:hover b{color:#fff!important}
+html body main#app .section .container .cats .cat:hover small{
+  background:rgba(255,255,255,.15)!important;
+  color:#fff!important;
+}
+
 @media (min-width:951px){
-  html body main#app .section:has(.cats){padding:66px 0 72px!important}
-  html body main#app .section:has(.cats) .head{align-items:flex-end!important;margin-bottom:24px!important}
-  html body main#app .section:has(.cats) .head h2{font-size:38px!important;line-height:1!important;letter-spacing:-.045em!important}
-  html body main#app .section:has(.cats) .head p{max-width:620px!important;font-size:14px!important;line-height:1.6!important;margin-top:9px!important}
-  html body main#app .section:has(.cats) .view{display:inline-flex!important;align-items:center!important;justify-content:center!important;height:42px!important;padding:0 18px!important;border:1px solid #111!important;border-radius:999px!important;background:#111!important;color:#fff!important;font-size:11px!important;font-weight:800!important}
+  html body main#app .section:has(.cats) .head h2{font-size:38px!important;line-height:1!important}
+  html body main#app .section:has(.cats) .head p{font-size:14px!important;max-width:620px!important;margin-top:9px!important}
+  html body main#app .section .container .cats .cat{flex:1 1 0!important}
+}
 
+@media (max-width:950px){
+  html body main#app .section:has(.cats){padding:34px 0 38px!important}
+  html body main#app .section:has(.cats) .head{margin-bottom:14px!important;align-items:center!important}
+  html body main#app .section:has(.cats) .head h2{font-size:28px!important;line-height:1.04!important}
+  html body main#app .section:has(.cats) .head p{font-size:13px!important;margin-top:7px!important;max-width:80%!important}
+  html body main#app .section:has(.cats) .view{height:36px!important;padding:0 13px!important;font-size:10px!important}
   html body main#app .section .container .cats{
-    display:flex!important;
-    flex-wrap:wrap!important;
-    align-items:center!important;
-    gap:12px!important;
-    width:100%!important;
-    padding:0!important;
-    max-height:none!important;
-    overflow:visible!important;
-    border:0!important;
-    border-radius:0!important;
-    background:transparent!important;
-    box-shadow:none!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    -webkit-overflow-scrolling:touch!important;
+    scrollbar-width:none!important;
+    border-radius:16px!important;
+    padding:4px!important;
+    scroll-snap-type:x proximity!important;
   }
-  html body main#app .section .container .cats:before,
-  html body main#app .section .container .cats:after{display:none!important;content:none!important}
-
+  html body main#app .section .container .cats::-webkit-scrollbar{display:none!important}
   html body main#app .section .container .cats .cat{
+    flex:0 0 auto!important;
     width:auto!important;
-    min-width:0!important;
-    height:58px!important;
-    min-height:58px!important;
-    position:relative!important;
-    display:flex!important;
-    align-items:center!important;
-    justify-content:center!important;
-    gap:10px!important;
-    padding:0 20px!important;
-    overflow:hidden!important;
-    border:1px solid #dedede!important;
-    border-radius:999px!important;
-    background:#fff!important;
-    box-shadow:none!important;
-    opacity:1!important;
-    transform:none!important;
-    transition:background .2s ease,color .2s ease,border-color .2s ease,transform .2s ease!important;
+    min-width:132px!important;
+    height:50px!important;
+    min-height:50px!important;
+    padding:0 14px!important;
+    scroll-snap-align:start!important;
   }
-  html body main#app .section .container .cats .cat:hover{
-    background:#111!important;
-    border-color:#111!important;
-    transform:translateY(-2px)!important;
+  html body main#app .section .container .cats .cat b{font-size:13px!important}
+  html body main#app .section .container .cats .cat small{height:20px!important;min-width:20px!important;padding:0 6px!important;font-size:8px!important}
+}
+
+@media (max-width:620px){
+  html body main#app .section:has(.cats){padding:28px 0 32px!important}
+  html body main#app .section:has(.cats) .head h2{font-size:24px!important}
+  html body main#app .section:has(.cats) .head p{font-size:12px!important;max-width:76%!important;line-height:1.45!important}
+  html body main#app .section:has(.cats) .view{height:34px!important;padding:0 12px!important}
+  html body main#app .section .container .cats{
+    margin-left:0!important;
+    margin-right:0!important;
+    border-radius:14px!important;
   }
-  html body main#app .section .container .cats .cat:after{display:none!important;content:none!important}
-  html body main#app .section .container .cats .cat img{display:none!important}
-  html body main#app .section .container .cats .cat div{
-    position:static!important;
-    inset:auto!important;
-    padding:0!important;
-    color:#111!important;
-    min-width:0!important;
-    display:flex!important;
-    align-items:center!important;
-    gap:9px!important;
+  html body main#app .section .container .cats .cat{
+    min-width:122px!important;
+    height:46px!important;
+    min-height:46px!important;
+    padding:0 12px!important;
   }
-  html body main#app .section .container .cats .cat b{
-    display:block!important;
-    color:#111!important;
-    font-size:14px!important;
-    line-height:1!important;
-    letter-spacing:-.015em!important;
-    margin:0!important;
-    white-space:nowrap!important;
-  }
-  html body main#app .section .container .cats .cat small{
-    display:inline-flex!important;
-    align-items:center!important;
-    justify-content:center!important;
-    min-width:24px!important;
-    height:24px!important;
-    padding:0 8px!important;
-    border-radius:999px!important;
-    background:#f2f2f2!important;
-    color:#777!important;
-    font-size:9px!important;
-    line-height:1!important;
-    backdrop-filter:none!important;
-  }
-  html body main#app .section .container .cats .cat:hover b{color:#fff!important}
-  html body main#app .section .container .cats .cat:hover small{background:rgba(255,255,255,.16)!important;color:#fff!important}
+  html body main#app .section .container .cats .cat b{font-size:12px!important}
 }
