@@ -2,13 +2,17 @@
   const labels={Camera:'Cameras',Lens:'Lenses',Lighting:'Lighting',Wireless:'Wireless',Grip:'Grip',Audio:'Audio'};
 
   const compactDetailStyle=document.createElement('style');
-  compactDetailStyle.id='rentcam-product-detail-compact-v2';
+  compactDetailStyle.id='rentcam-product-detail-compact-v3';
   compactDetailStyle.textContent=`
-    body.alexa35-detail .rentcam-detail-badge.new{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
     body.alexa35-detail .detail-info [class*="badge"],
-    body.alexa35-detail .detail-info [class*="status"]{display:none!important}
+    body.alexa35-detail .detail-info [class*="status"],
+    body.alexa35-detail .detail-ref-info [class*="badge"],
+    body.alexa35-detail .detail-ref-info [class*="status"]{display:none!important}
     body.alexa35-detail .detail-info h1::before,
-    body.alexa35-detail .detail-info h1::after{display:none!important;content:none!important}
+    body.alexa35-detail .detail-info h1::after,
+    body.alexa35-detail .detail-ref-title::before,
+    body.alexa35-detail .detail-ref-title::after{display:none!important;content:none!important}
+    .rentcam-photo-new-badge{position:absolute!important;left:14px!important;top:14px!important;z-index:90!important;height:30px!important;padding:0 12px!important;border-radius:999px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;background:#111!important;color:#fff!important;font-size:9px!important;font-weight:900!important;letter-spacing:.06em!important;box-shadow:0 4px 12px rgba(0,0,0,.16)!important;white-space:nowrap!important}
 
     .product-detail-simple .detail-price{font-size:34px!important;line-height:1!important;margin:0 0 24px!important}
     .product-detail-simple .detail-price small{font-size:13px!important;margin-left:6px!important}
@@ -20,6 +24,7 @@
     .product-detail-simple .add-rental-full{width:min(82%,420px)!important;height:50px!important;font-size:16px!important;margin:0 0 20px!important;padding:0 18px!important}
 
     @media(max-width:620px){
+      .rentcam-photo-new-badge{left:10px!important;top:10px!important;height:27px!important;padding:0 10px!important;font-size:8px!important}
       .product-detail-simple .detail-price{font-size:27px!important;margin:0 0 20px!important}
       .product-detail-simple .detail-price small{font-size:11px!important;margin-left:4px!important}
       .product-detail-simple .qty-wrap{padding-top:14px!important}
@@ -37,16 +42,21 @@
     document.body.classList.toggle('alexa35-detail',isAlexa35);
     if(!isAlexa35)return;
 
-    document.querySelectorAll('#app .rentcam-detail-badge.new').forEach(el=>{
-      el.style.setProperty('display','none','important');
-      el.style.setProperty('visibility','hidden','important');
+    document.querySelectorAll('#app .detail-info *,#app .detail-ref-info *').forEach(el=>{
+      if(el.children.length===0 && (el.textContent||'').trim().toUpperCase()==='NEW') el.remove();
     });
+    document.querySelectorAll('#app .detail-info .rentcam-detail-badge.new,#app .detail-ref-info .rentcam-detail-badge.new').forEach(el=>el.remove());
 
-    document.querySelectorAll('#app .detail-info *').forEach(el=>{
-      if(el.children.length===0 && (el.textContent||'').trim().toUpperCase()==='NEW'){
-        el.style.setProperty('display','none','important');
+    const media=document.querySelector('#app .detail-media,#app .detail-ref-media,#app .mainPhoto');
+    if(media){
+      media.style.position='relative';
+      if(!media.querySelector('.rentcam-photo-new-badge')){
+        const badge=document.createElement('span');
+        badge.className='rentcam-photo-new-badge';
+        badge.textContent='NEW';
+        media.appendChild(badge);
       }
-    });
+    }
   }
 
   const getSort=()=>localStorage.getItem('rentcam_product_sort')||'featured';
@@ -72,7 +82,8 @@
   window.detail=function(id){
     const p=P.find(x=>x.id===id); if(!p)return products();
     const desc=`${p.name} disiapkan untuk workflow film, commercial, series dan production profesional.`;
-    return `<section class="page"><div class="container product-detail-simple"><a class="back-link" onclick="go('/produk')">← Kembali ke Rentals</a><div class="detail-top"><div class="detail-media"><img src="${p.img}" alt="${p.name}"></div><div class="detail-info"><div class="detail-brand">${p.brand}</div><h1>${p.name}</h1><div class="detail-price">${rp(p.price)} <small>/ day</small></div><div class="qty-wrap"><div class="qty-label">Quantity</div><div class="qty-box"><button onclick="qty=Math.max(1,qty-1);render()">−</button><span>${qty}</span><button onclick="qty++;render()">+</button></div><button class="add-rental-full" onclick="add('${p.id}',qty)">Add to Rental Cart</button></div><div class="detail-sections"><section class="detail-section"><h2>Description</h2><p>${desc}</p></section><section class="detail-section"><h2>Included as Standard</h2><ul class="included-list">${p.inc.map(x=>`<li>${x}</li>`).join('')}</ul></section><section class="detail-section"><h2>Specifications</h2><div class="spec-list">${p.spec.map(x=>`<div class="spec-row"><span>${x[0]}</span><b>${x[1]}</b></div>`).join('')}</div></section></div></div></div></div></section>`;
+    const photoBadge=id==='arri-alexa-35'?'<span class="rentcam-photo-new-badge">NEW</span>':'';
+    return `<section class="page"><div class="container product-detail-simple"><a class="back-link" onclick="go('/produk')">← Kembali ke Rentals</a><div class="detail-top"><div class="detail-media" style="position:relative"><img src="${p.img}" alt="${p.name}">${photoBadge}</div><div class="detail-info"><div class="detail-brand">${p.brand}</div><h1>${p.name}</h1><div class="detail-price">${rp(p.price)} <small>/ day</small></div><div class="qty-wrap"><div class="qty-label">Quantity</div><div class="qty-box"><button onclick="qty=Math.max(1,qty-1);render()">−</button><span>${qty}</span><button onclick="qty++;render()">+</button></div><button class="add-rental-full" onclick="add('${p.id}',qty)">Add to Rental Cart</button></div><div class="detail-sections"><section class="detail-section"><h2>Description</h2><p>${desc}</p></section><section class="detail-section"><h2>Included as Standard</h2><ul class="included-list">${p.inc.map(x=>`<li>${x}</li>`).join('')}</ul></section><section class="detail-section"><h2>Specifications</h2><div class="spec-list">${p.spec.map(x=>`<div class="spec-row"><span>${x[0]}</span><b>${x[1]}</b></div>`).join('')}</div></section></div></div></div></div></section>`;
   };
 
   const baseRender=window.render;
