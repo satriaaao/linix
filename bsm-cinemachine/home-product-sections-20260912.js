@@ -40,6 +40,14 @@
     st.id='rentcam-home-sections-style';
     st.textContent=`
 
+      #app .home-journal-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:16px!important}
+      #app .home-journal-card{display:block!important;border:1px solid #e6e6e6!important;border-radius:13px!important;overflow:hidden!important;background:#fff!important;color:#111!important;text-decoration:none!important}
+      #app .home-journal-card img{width:100%!important;aspect-ratio:16/9!important;object-fit:cover!important;display:block!important}
+      #app .home-journal-card>div{padding:14px!important}
+      #app .home-journal-card small{font-size:10px!important;color:#777!important}
+      #app .home-journal-card h3{font-size:16px!important;line-height:1.4!important;margin:6px 0 0!important}
+      #app .home-product-section+.home-product-section{margin-top:24px!important;padding-top:24px!important}
+      @media(max-width:620px){#app .home-journal-grid{grid-template-columns:1fr!important;gap:10px!important}#app .home-journal-card{display:grid!important;grid-template-columns:110px minmax(0,1fr)!important;align-items:center!important}#app .home-journal-card img{height:100%!important;min-height:90px!important;aspect-ratio:auto!important}#app .home-journal-card h3{font-size:13px!important}#app .home-journal-card>div{padding:12px!important}}
       #app .home-cat-strip{display:none!important}
       #app .home-product-controls{display:flex!important;align-items:center!important;gap:12px!important;margin:0 0 18px!important}
       #app .home-product-controls label{font-size:12px!important;color:#777!important}
@@ -110,16 +118,25 @@
   }
 
 
-  let selectedHomeCategory='cinema';
-  window.rentcamHomeCategory=function(key){
-    selectedHomeCategory=key;
-    mount();
-  };
+
   function markup(){
     const available=productSections();
-    const selected=available.find(s=>s.key===selectedHomeCategory)||available[0];
-    if(!selected)return '';
-    return `<section class="home-product-sections"><div class="container"><section class="home-product-section home-featured"><div class="home-product-head"><div><h2>Equipment Pilihan</h2><p>Pilih kategori untuk melihat equipment yang Anda butuhkan.</p></div></div><div class="home-product-controls"><label for="homeProductCategory">Kategori</label><select id="homeProductCategory" onchange="rentcamHomeCategory(this.value)">${available.map(s=>`<option value="${esc(s.key)}" ${s.key===selected.key?'selected':''}>${esc(s.title)}</option>`).join('')}</select><button class="home-product-view" onclick="go('/produk?cat=${esc(selected.key)}')">Lihat semua →</button></div><div class="home-product-grid">${selected.items.slice(0,4).map(x=>card(x,selected.key)).join('')}</div></section></div></section>`;
+    const groups=[
+      {key:'cinema',title:'Kamera',catalog:'cinema'},
+      {key:'lens',title:'Lensa',catalog:'lens'},
+      {key:'lighting',title:'Lighting',catalog:'lighting'},
+      {key:'audio',title:'Audio',catalog:'audio'}
+    ];
+    const products=groups.map(g=>{
+      const items=(available.find(s=>s.key===g.key)?.items||[]).slice(0,4);
+      if(!items.length)return '';
+      return `<section class="home-product-section home-featured"><div class="home-product-head"><h2>${g.title}</h2><button class="home-product-view" onclick="go('/produk?cat=${g.catalog}')">Lihat semua →</button></div><div class="home-product-grid">${items.map(x=>card(x,g.key)).join('')}</div></section>`;
+    }).join('');
+    const configured=window.RENTCAM_CMS_CONFIG?.articles;
+    let articles=Array.isArray(configured)&&configured.length?configured:[];
+    if(!articles.length){try{if(typeof ART!=='undefined')articles=ART}catch(e){}}
+    const articleMarkup=articles.slice(0,3).map(x=>`<a class="home-journal-card" href="/artikel/${encodeURIComponent(x.id)}" onclick="event.preventDefault();go(this.getAttribute('href'))"><img src="${esc(x.img||x.image||'')}" alt="${esc(x.title)}" loading="lazy"><div><small>${esc(x.cat||x.category||'Artikel')}</small><h3>${esc(x.title)}</h3></div></a>`).join('');
+    return `<section class="home-product-sections"><div class="container">${products}${articleMarkup?`<section class="home-product-section home-journal"><div class="home-product-head"><h2>Artikel</h2><button class="home-product-view" onclick="go('/artikel')">Lihat semua →</button></div><div class="home-journal-grid">${articleMarkup}</div></section>`:''}</div></section>`;
   }
 
   function mount(){
