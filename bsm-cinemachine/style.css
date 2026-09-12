@@ -177,3 +177,103 @@ html body main#app .section .container .cats .cat:hover small{
   }
   html body main#app .section .container .cats .cat b{font-size:12px!important}
 }
+
+/* Product status labels */
+html body .pcard{position:relative!important}
+html body .pcard::before{
+  position:absolute!important;
+  top:12px!important;
+  left:12px!important;
+  z-index:8!important;
+  display:none!important;
+  align-items:center!important;
+  justify-content:center!important;
+  height:26px!important;
+  padding:0 10px!important;
+  border-radius:999px!important;
+  font-size:9px!important;
+  line-height:1!important;
+  font-weight:900!important;
+  letter-spacing:.06em!important;
+  box-shadow:0 4px 12px rgba(0,0,0,.12)!important;
+}
+html body .pcard:has(.pimg img[alt*="ARRI ALEXA 35"])::before{
+  content:'NEW'!important;
+  display:inline-flex!important;
+  background:#111!important;
+  color:#fff!important;
+}
+html body .pcard:has(.pimg img[alt*="ARRI ALEXA Mini LF"])::before{
+  content:'DISCONTINUED'!important;
+  display:inline-flex!important;
+  background:#6b7280!important;
+  color:#fff!important;
+}
+html body .pcard:has(.pimg img[alt*="RED V-RAPTOR"])::before{
+  content:'DISKON 20%'!important;
+  display:inline-flex!important;
+  background:#ef4444!important;
+  color:#fff!important;
+}
+html body .pcard:has(.pimg img[alt*="Set"])::before{
+  content:'PAKET'!important;
+  display:inline-flex!important;
+  background:#f26a21!important;
+  color:#fff!important;
+}
+
+/* Same labels on product detail */
+html body .detail-info h1::before{
+  display:none!important;
+  width:max-content!important;
+  margin:0 0 12px!important;
+  height:28px!important;
+  padding:0 11px!important;
+  border-radius:999px!important;
+  align-items:center!important;
+  justify-content:center!important;
+  font-size:10px!important;
+  line-height:1!important;
+  font-weight:900!important;
+  letter-spacing:.06em!important;
+}
+html body:has(.detail-gallery img[alt*="ARRI ALEXA 35"], .detail-media img[alt*="ARRI ALEXA 35"]) .detail-info h1::before{
+  content:'NEW'!important;
+  display:inline-flex!important;
+  background:#111!important;
+  color:#fff!important;
+}
+html body:has(.detail-gallery img[alt*="ARRI ALEXA Mini LF"], .detail-media img[alt*="ARRI ALEXA Mini LF"]) .detail-info h1::before{
+  content:'DISCONTINUED'!important;
+  display:inline-flex!important;
+  background:#6b7280!important;
+  color:#fff!important;
+}
+html body:has(.detail-gallery img[alt*="RED V-RAPTOR"], .detail-media img[alt*="RED V-RAPTOR"]) .detail-info h1::before{
+  content:'DISKON 20%'!important;
+  display:inline-flex!important;
+  background:#ef4444!important;
+  color:#fff!important;
+}
+html body:has(.detail-gallery img[alt*="Set"], .detail-media img[alt*="Set"]) .detail-info h1::before{
+  content:'PAKET'!important;
+  display:inline-flex!important;
+  background:#f26a21!important;
+  color:#fff!important;
+}
+
+@media(max-width:620px){
+  html body .pcard::before{
+    top:8px!important;
+    left:8px!important;
+    height:22px!important;
+    padding:0 8px!important;
+    font-size:8px!important;
+  }
+  html body .detail-info h1::before{
+    height:24px!important;
+    padding:0 9px!important;
+    margin-bottom:9px!important;
+    font-size:8px!important;
+  }
+}
