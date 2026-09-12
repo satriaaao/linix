@@ -7,7 +7,7 @@ CREATE OR REPLACE FUNCTION rentcam_private.pro_action(p_action text, p_data json
 AS $function$declare o rentcam_orders;r jsonb;oid uuid;doc rentcam_documents;j uuid;allocated numeric;existed boolean;mode text;free_days integer;percent numeric;xs jsonb;it jsonb;requested jsonb;begin
 if not rentcam_is_admin() then raise exception 'Akses admin diperlukan';end if;
 if p_action in('direct_order','quotation') then
- oid=(p_data->>'id')::uuid;existed=exists(select 1 from rentcam_orders where id=oid);
+ oid=(p_data->>'id')::uuid;perform pg_advisory_xact_lock(hashtext(oid::text));existed=exists(select 1 from rentcam_orders where id=oid);
  r=rentcam_private.checkout(oid,p_data->>'name',p_data->>'phone',coalesce(p_data->>'email',''),(p_data->>'start')::date,(p_data->>'end')::date,coalesce(p_data->>'notes',''),p_data->'items',jsonb_build_object('customer_token',p_data->>'token','delivery',coalesce(p_data->'delivery','{}')));
 
  if not existed then
