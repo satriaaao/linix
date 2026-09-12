@@ -5,6 +5,7 @@
   const KEY='sb_publishable_POksYryhG_mkFbs7N0fjKQ_4dUim7Ex';
   const PASS_KEY='rentcam_cms_admin_password';
   const AUTH_KEY='rentcam_cms_auth';
+  const VERSION_KEY='rentcam_cms_version';
   const nativeFetch=window.fetch.bind(window);
 
   try{
@@ -17,6 +18,12 @@
     if(this===localStorage&&k===AUTH_KEY) sessionStorage.removeItem(PASS_KEY);
     return nativeRemove.call(this,k);
   };
+
+  function broadcastCmsUpdate(){
+    const v=String(Date.now());
+    try{localStorage.setItem(VERSION_KEY,v)}catch(e){}
+    try{const bc=new BroadcastChannel('rentcam-cms');bc.postMessage({type:'config-updated',version:v});bc.close()}catch(e){}
+  }
 
   window.fetch=async function(input,init={}){
     const url=typeof input==='string'?input:input?.url||'';
@@ -57,6 +64,11 @@
     }
 
     const response=await nativeFetch(input,init);
+
+    if(response.ok&&method==='PATCH'&&url.includes('/rest/v1/rentcam_cms_config')){
+      broadcastCmsUpdate();
+    }
+
     if(url.startsWith(SB+'/storage/v1/')&&!response.ok){
       try{
         const copy=response.clone();
