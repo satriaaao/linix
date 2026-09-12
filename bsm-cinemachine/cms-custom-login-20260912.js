@@ -46,7 +46,8 @@
       }
     }
 
-    if(url.startsWith(SB+'/rest/v1/')){
+    const needsAdminHeader=url.startsWith(SB+'/rest/v1/')||url.startsWith(SB+'/storage/v1/');
+    if(needsAdminHeader){
       const p=sessionStorage.getItem(PASS_KEY);
       if(p){
         const h=new Headers(init.headers||{});
@@ -54,6 +55,15 @@
         init={...init,headers:h};
       }
     }
-    return nativeFetch(input,init);
+
+    const response=await nativeFetch(input,init);
+    if(url.startsWith(SB+'/storage/v1/')&&!response.ok){
+      try{
+        const copy=response.clone();
+        const text=await copy.text();
+        console.error('Rentcam CMS storage upload failed',response.status,text);
+      }catch(e){}
+    }
+    return response;
   };
 })();
