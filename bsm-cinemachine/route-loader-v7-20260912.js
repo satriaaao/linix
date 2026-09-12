@@ -20,5 +20,6 @@
   function load(k){if(loaded.has(k)||document.querySelector(`script[data-route-file="${k}"]`))return;loaded.add(k);const s=document.createElement('script');s.src=url(k);s.async=false;s.dataset.routeFile=k;document.head.appendChild(s)}
   function loadFor(path){if(path==='/'){['images','homeClean','promoTop','homeSections','advanced','promo'].forEach(load);return}if(path==='/produk'){['images','search','cardCart','advanced','promo'].forEach(load);return}if(path.startsWith('/produk/')){['images','related','detailPolish','advanced','promo'].forEach(load);return}if(path==='/cart'){['images','advanced'].forEach(load);return}if(path.startsWith('/portfolio')||path.startsWith('/artikel')){['editorial','cmsContent'].forEach(load)}}
   loadFor(location.pathname);
+  const prevPush=history.pushState.bind(history);history.pushState=function(a,b,u){const r=prevPush(a,b,u);setTimeout(()=>loadFor(location.pathname),0);return r};
   document.addEventListener('rentcam-route-change',()=>loadFor(location.pathname));addEventListener('popstate',()=>loadFor(location.pathname));
 })();
