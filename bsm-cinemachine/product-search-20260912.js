@@ -1,6 +1,25 @@
 /* Rentcam product search + promotional auto slider */
 (function(){
   const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  const catalogGroups=[
+    {key:'cinema',title:'Kamera Cinema',aliases:['cinema']},
+    {key:'camera',title:'Kamera',aliases:['camera','kamera']},
+    {key:'lens',title:'Lensa',aliases:['lens','lensa']},
+    {key:'lighting',title:'Lighting',aliases:['lighting']},
+    {key:'audio',title:'Audio',aliases:['audio']},
+    {key:'package',title:'Paket',aliases:['package','paket']},
+    {key:'wireless',title:'Monitor & Wireless',aliases:['wireless','monitor']},
+    {key:'grip',title:'Grip & Support',aliases:['grip','camera support','camera-support']},
+    {key:'accessories',title:'Aksesori',aliases:['accessories','aksesori','electronic control','electronic-control','matte box','matte-box','follow focus','follow-focus','filters']}
+  ];
+  window.rentcamCatalogGroup=function(p){
+    const c=String(p.mainCategory||p.cat||p.category||'').toLowerCase();
+    if(c==='package'||c==='paket'||/\bpaket\b/i.test(p.name||''))return 'package';
+    if(['cinema','camera','kamera'].includes(c)&&/alexa|venice|raptor|komodo|burano|cinema camera|pxw-fs/i.test(p.name||''))return 'cinema';
+    return catalogGroups.find(g=>g.aliases.includes(c))?.key||'accessories';
+  };
+
   let promoIndex=0;
   let promoTimer=null;
 
@@ -121,6 +140,12 @@
     const st=document.createElement('style');
     st.id='rentcam-product-search-style';
     st.textContent=`
+      html body #app .catalog-category-grid{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:10px!important;overflow:visible!important;white-space:normal!important;width:100%!important;max-width:100%!important;margin:20px 0 28px!important;padding:0!important}
+      html body #app .catalog-category-grid .arri-cat{min-width:0!important;width:100%!important;white-space:normal!important;border-radius:12px!important;padding:12px 8px!important;line-height:1.3!important;color:#333!important;background:#fff!important;border:1px solid #ddd!important;font-size:13px!important}
+      html body #app .catalog-category-grid .arri-cat.on{color:#fff!important;background:#111!important;border-color:#111!important}
+      .catalog-category-grid small{display:block;font-size:10px;opacity:.65;margin-top:4px;font-weight:500}
+      .catalog-group{margin:26px 0 36px}.catalog-group header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.catalog-group h2{font-size:24px;margin:0;letter-spacing:-.03em}.catalog-group header span{color:#777;font-size:12px}
+      @media(max-width:620px){html body #app .catalog-category-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important}html body #app .catalog-category-grid .arri-cat{font-size:11px!important;padding:11px 5px!important}.catalog-group h2{font-size:21px}}
       .promo-slider{position:relative;overflow:hidden;margin:20px 0 18px;border-radius:22px;background:#111;box-shadow:0 18px 45px rgba(0,0,0,.10)}
       .promo-track{display:flex;width:100%;transition:transform .7s cubic-bezier(.22,.7,.22,1);will-change:transform}
       .promo-slide{position:relative;flex:0 0 100%;height:230px;overflow:hidden;display:grid;grid-template-columns:1.12fr .88fr;align-items:center;padding:28px 68px 28px 42px;color:#fff}
@@ -186,14 +211,16 @@
       go(cat?'/produk?cat='+encodeURIComponent(cat):'/produk');
     };
 
+
     window.products=function(){
-      const u=new URLSearchParams(location.search);
-      const cat=u.get('cat')||'';
-      const q=(u.get('q')||'').trim();
-      const qLower=q.toLowerCase();
-      const a=P.filter(x=>(!cat||x.cat===cat)&&(!qLower||`${x.name} ${x.cat} ${x.sku||''}`.toLowerCase().includes(qLower)));
-      const allCats=[...new Set(P.map(x=>x.cat))];
-      return `<section class="page"><div class="container"><div class="product-meta"><h1>${cat?esc(cat):'ARRI Products'}</h1><p>${a.length} products</p></div>${promoMarkup()}<div class="product-search-wrap"><div class="product-search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg><input id="productSearchInput" value="${esc(q)}" placeholder="Cari nama produk atau SKU..." onkeydown="if(event.key==='Enter')rentcamSearch()"></div><button class="product-search-btn" onclick="rentcamSearch()">Cari</button>${q?'<button class="product-search-clear" onclick="rentcamClearSearch()">Hapus</button>':''}</div><div class="arri-cats"><button class="arri-cat ${!cat?'on':''}" onclick="go('/produk${q?`?q=${encodeURIComponent(q)}`:''}')">All</button>${allCats.map(c=>{const s=new URLSearchParams();s.set('cat',c);if(q)s.set('q',q);return `<button class="arri-cat ${cat===c?'on':''}" onclick="go('/produk?${s.toString()}')">${esc(c)}</button>`}).join('')}</div>${a.length?`<div class="products-grid">${a.map(pc).join('')}</div>`:`<div class="product-empty">Produk tidak ditemukan. Coba kata kunci lain.</div>`}</div></section>`;
+      window.rentcamSyncProductsFromCMS?.();
+      const u=new URLSearchParams(location.search),raw=u.get('cat')||'',q=(u.get('q')||'').trim(),qLower=q.toLowerCase();
+      const selected=catalogGroups.find(g=>g.key===raw.toLowerCase()||g.title===raw||g.aliases.includes(raw.toLowerCase()))?.key||'';
+      const active=P.filter(p=>p.active!==false&&p.deleted!==true&&p._cmsActive!==false);
+      const a=active.filter(p=>(!selected||rentcamCatalogGroup(p)===selected)&&(!qLower||`${p.name} ${p.brand||''} ${p.cat||''} ${p.sku||''}`.toLowerCase().includes(qLower)));
+      const groups=catalogGroups.filter(g=>active.some(p=>rentcamCatalogGroup(p)===g.key));
+      const link=k=>{const s=new URLSearchParams();if(k)s.set('cat',k);if(q)s.set('q',q);return '/produk'+(s.size?'?'+s:'')};
+      return `<section class="page"><div class="container"><div class="product-meta"><h1>${selected?esc(catalogGroups.find(g=>g.key===selected).title):'Semua Produk'}</h1><p>${a.length} produk · Pilih kategori sesuai kebutuhan Anda</p></div>${promoMarkup()}<div class="product-search-wrap"><div class="product-search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg><input id="productSearchInput" value="${esc(q)}" placeholder="Cari produk..." onkeydown="if(event.key==='Enter')rentcamSearch()"></div><button class="product-search-btn" onclick="rentcamSearch()">Cari</button></div><nav class="arri-cats catalog-category-grid" aria-label="Kategori produk"><button class="arri-cat ${!selected?'on':''}" aria-pressed="${!selected}" onclick="go('${link('')}')">Semua</button>${groups.map(g=>`<button class="arri-cat ${selected===g.key?'on':''}" aria-pressed="${selected===g.key}" onclick="go('${link(g.key)}')">${esc(g.title)}<small>${active.filter(p=>rentcamCatalogGroup(p)===g.key).length} produk</small></button>`).join('')}</nav>${a.length?catalogGroups.filter(g=>!selected||g.key===selected).map(g=>{const items=a.filter(p=>rentcamCatalogGroup(p)===g.key).sort((x,y)=>String(x.name).localeCompare(String(y.name)));return items.length?`<section class="catalog-group"><header><h2>${esc(g.title)}</h2><span>${items.length} produk</span></header><div class="products-grid">${items.map(pc).join('')}</div></section>`:''}).join(''):'<div class="product-empty">Produk tidak ditemukan. Coba kata kunci lain.</div>'}</div></section>`;
     };
 
     const app=document.getElementById('app');
