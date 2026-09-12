@@ -8,22 +8,38 @@
     package:'https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1000&q=88'
   };
 
+  const item=(id,name,brand,img)=>({id:'home-'+id,name,brand,img});
   const sections=[
     {key:'camera',title:'Kamera',subtitle:'Cinema camera untuk film, commercial, series dan content production.',items:[
-      ['ARRI ALEXA 35','ARRI',IMG.camera],['ARRI ALEXA Mini LF','ARRI',IMG.camera2],['Sony VENICE 2','SONY',IMG.camera2],['Sony BURANO','SONY',IMG.camera],['Canon EOS C400','CANON',IMG.camera2],['RED V-RAPTOR [X]','RED',IMG.camera],['Blackmagic URSA Cine 12K','BLACKMAGIC',IMG.camera2],['Sony FX6','SONY',IMG.camera]
+      item('arri-alexa-35','ARRI ALEXA 35','ARRI',IMG.camera),item('arri-alexa-mini-lf','ARRI ALEXA Mini LF','ARRI',IMG.camera2),item('sony-venice-2','Sony VENICE 2','SONY',IMG.camera2),item('sony-burano','Sony BURANO','SONY',IMG.camera),item('canon-c400','Canon EOS C400','CANON',IMG.camera2),item('red-v-raptor-x','RED V-RAPTOR [X]','RED',IMG.camera),item('blackmagic-ursa-cine','Blackmagic URSA Cine 12K','BLACKMAGIC',IMG.camera2),item('sony-fx6','Sony FX6','SONY',IMG.camera)
     ]},
     {key:'lighting',title:'Lighting',subtitle:'Lighting profesional untuk studio, interior, exterior dan produksi sinema.',items:[
-      ['ARRI SkyPanel X21','ARRI',IMG.lighting],['ARRI Orbiter','ARRI',IMG.lighting],['Aputure LS 1200d Pro','APUTURE',IMG.lighting],['Aputure Electro Storm XT26','APUTURE',IMG.lighting],['Nanlux Evoke 2400B','NANLUX',IMG.lighting],['Astera Titan Tube','ASTERA',IMG.lighting],['Creamsource Vortex8','CREAMSOURCE',IMG.lighting],['Kino Flo Mimik 120','KINO FLO',IMG.lighting]
+      item('arri-skypanel-x21','ARRI SkyPanel X21','ARRI',IMG.lighting),item('arri-orbiter','ARRI Orbiter','ARRI',IMG.lighting),item('aputure-1200d','Aputure LS 1200d Pro','APUTURE',IMG.lighting),item('aputure-xt26','Aputure Electro Storm XT26','APUTURE',IMG.lighting),item('nanlux-evoke-2400b','Nanlux Evoke 2400B','NANLUX',IMG.lighting),item('astera-titan-tube','Astera Titan Tube','ASTERA',IMG.lighting),item('creamsource-vortex8','Creamsource Vortex8','CREAMSOURCE',IMG.lighting),item('kino-flo-mimik-120','Kino Flo Mimik 120','KINO FLO',IMG.lighting)
     ]},
     {key:'audio',title:'Audio',subtitle:'Recorder, microphone dan wireless audio untuk production sound profesional.',items:[
-      ['Sound Devices 888','SOUND DEVICES',IMG.audio],['Sound Devices MixPre-10 II','SOUND DEVICES',IMG.audio],['Sennheiser MKH 416','SENNHEISER',IMG.audio],['Schoeps CMIT 5U','SCHOEPS',IMG.audio],['DPA 4017B','DPA',IMG.audio],['Wisycom MCR54','WISYCOM',IMG.audio],['Lectrosonics DSR4','LECTROSONICS',IMG.audio],['Tentacle Sync E','TENTACLE',IMG.audio]
+      item('sound-devices-888','Sound Devices 888','SOUND DEVICES',IMG.audio),item('mixpre-10','Sound Devices MixPre-10 II','SOUND DEVICES',IMG.audio),item('sennheiser-mkh416','Sennheiser MKH 416','SENNHEISER',IMG.audio),item('schoeps-cmit5u','Schoeps CMIT 5U','SCHOEPS',IMG.audio),item('dpa-4017b','DPA 4017B','DPA',IMG.audio),item('wisycom-mcr54','Wisycom MCR54','WISYCOM',IMG.audio),item('lectrosonics-dsr4','Lectrosonics DSR4','LECTROSONICS',IMG.audio),item('tentacle-sync-e','Tentacle Sync E','TENTACLE',IMG.audio)
     ]},
     {key:'package',title:'Paket',subtitle:'Paket equipment siap produksi dengan kombinasi kamera, lens, support dan monitoring.',items:[
-      ['ARRI ALEXA 35 Production Package','PAKET',IMG.package],['ARRI Mini LF Production Package','PAKET',IMG.package],['Sony VENICE 2 Production Package','PAKET',IMG.package],['Sony BURANO Documentary Package','PAKET',IMG.package],['RED V-RAPTOR Cinema Package','PAKET',IMG.package],['FX6 Run & Gun Package','PAKET',IMG.package],['Cinema Interview Package','PAKET',IMG.package],['Commercial Production Package','PAKET',IMG.package]
+      item('alexa35-package','ARRI ALEXA 35 Production Package','PAKET',IMG.package),item('minilf-package','ARRI Mini LF Production Package','PAKET',IMG.package),item('venice2-package','Sony VENICE 2 Production Package','PAKET',IMG.package),item('burano-package','Sony BURANO Documentary Package','PAKET',IMG.package),item('vraptor-package','RED V-RAPTOR Cinema Package','PAKET',IMG.package),item('fx6-package','FX6 Run & Gun Package','PAKET',IMG.package),item('interview-package','Cinema Interview Package','PAKET',IMG.package),item('commercial-package','Commercial Production Package','PAKET',IMG.package)
     ]}
   ];
 
   const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const allItems=sections.flatMap(s=>s.items.map(x=>({...x,key:s.key,title:s.title})));
+
+  function ensureProducts(){
+    try{
+      if(!Array.isArray(P)) return;
+      allItems.forEach(x=>{
+        if(P.some(p=>String(p.id)===x.id)) return;
+        P.push({
+          id:x.id,name:x.name,brand:x.brand,cat:x.title,price:0,stock:99,img:x.img,
+          spec:[['Brand',x.brand],['Category',x.title],['Availability','Hubungi tim Rentcam']],
+          inc:['Konfigurasi paket mengikuti kebutuhan produksi','Detail included dikonfirmasi saat booking']
+        });
+      });
+    }catch(e){}
+  }
 
   function installStyle(){
     if(document.getElementById('rentcam-home-sections-style')) return;
@@ -38,15 +54,22 @@
       #app .home-product-head p{margin:8px 0 0!important;font-size:13px!important;line-height:1.5!important;color:#777!important}
       #app .home-product-view{border:0!important;background:transparent!important;color:#111!important;font-size:12px!important;font-weight:800!important;text-decoration:underline!important;text-underline-offset:4px!important;cursor:pointer!important;padding:8px 0!important;white-space:nowrap!important}
       #app .home-product-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:20px!important}
-      #app .home-category-card{min-width:0!important;background:#fff!important;border:1px solid #e9e9e6!important;border-radius:15px!important;overflow:hidden!important;cursor:pointer!important;display:flex!important;flex-direction:column!important;transition:transform .16s ease,box-shadow .16s ease!important}
+      #app .home-category-card{min-width:0!important;background:#fff!important;border:1px solid #e9e9e6!important;border-radius:15px!important;overflow:hidden!important;cursor:pointer!important;display:flex!important;flex-direction:column!important;transition:transform .16s ease,box-shadow .16s ease!important;position:relative!important}
       #app .home-category-card:hover{transform:translateY(-3px)!important;box-shadow:0 12px 30px rgba(0,0,0,.07)!important}
       #app .home-category-image{position:relative!important;width:100%!important;aspect-ratio:1.12/1!important;background:#fff!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important}
       #app .home-category-image img{width:100%!important;height:100%!important;object-fit:cover!important;display:block!important}
       #app .home-category-badge{position:absolute!important;left:11px!important;top:11px!important;background:#111!important;color:#fff!important;border-radius:999px!important;padding:7px 9px!important;font-size:8px!important;font-weight:900!important;letter-spacing:.05em!important}
-      #app .home-category-body{padding:13px 14px 15px!important;display:flex!important;flex-direction:column!important;flex:1!important}
+      #app .home-category-body{padding:13px 14px 14px!important;display:flex!important;flex-direction:column!important;flex:1!important}
       #app .home-category-brand{font-size:9px!important;color:#8a8a8a!important;letter-spacing:.07em!important;text-transform:uppercase!important;margin-bottom:6px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
       #app .home-category-name{font-size:15px!important;line-height:1.28!important;font-weight:800!important;color:#111!important;min-height:39px!important;display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important}
-      #app .home-category-cta{margin-top:13px!important;font-size:10px!important;font-weight:800!important;color:#555!important}
+      #app .home-category-actions{display:grid!important;grid-template-columns:minmax(0,1fr) 42px!important;gap:8px!important;margin-top:auto!important;padding-top:14px!important}
+      #app .home-add-cart,#app .home-open-cart{height:40px!important;border:0!important;border-radius:10px!important;display:flex!important;align-items:center!important;justify-content:center!important;cursor:pointer!important;transition:transform .14s ease,background .14s ease!important}
+      #app .home-add-cart{background:#111!important;color:#fff!important;font-size:11px!important;font-weight:850!important;gap:7px!important;padding:0 12px!important}
+      #app .home-open-cart{background:#f1f1ef!important;color:#111!important;border:1px solid #e2e2df!important;padding:0!important}
+      #app .home-add-cart svg,#app .home-open-cart svg{width:17px!important;height:17px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.8!important;stroke-linecap:round!important;stroke-linejoin:round!important}
+      #app .home-add-cart:hover{background:#222!important}
+      #app .home-open-cart:hover{background:#e8e8e5!important}
+      #app .home-add-cart:active,#app .home-open-cart:active{transform:scale(.97)!important}
       @media(max-width:900px){#app .home-product-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
       @media(max-width:620px){
         #app .home-product-sections{padding-bottom:34px!important}
@@ -59,18 +82,22 @@
         #app .home-category-card{border-radius:13px!important}
         #app .home-category-image{aspect-ratio:1/1!important}
         #app .home-category-badge{left:8px!important;top:8px!important;padding:6px 8px!important;font-size:7px!important}
-        #app .home-category-body{padding:10px 10px 12px!important}
+        #app .home-category-body{padding:10px 10px 10px!important}
         #app .home-category-brand{font-size:8px!important;margin-bottom:5px!important}
         #app .home-category-name{font-size:12.5px!important;min-height:32px!important}
-        #app .home-category-cta{font-size:9px!important;margin-top:9px!important}
+        #app .home-category-actions{grid-template-columns:minmax(0,1fr) 36px!important;gap:6px!important;padding-top:10px!important}
+        #app .home-add-cart,#app .home-open-cart{height:36px!important;border-radius:9px!important}
+        #app .home-add-cart{font-size:10px!important;padding:0 8px!important;gap:5px!important}
+        #app .home-add-cart svg,#app .home-open-cart svg{width:15px!important;height:15px!important}
       }
     `;
     document.head.appendChild(st);
   }
 
-  function card(item,key){
-    const [name,brand,img]=item;
-    return `<article class="home-category-card" data-home-cat="${key}" onclick="go('/produk')"><div class="home-category-image"><span class="home-category-badge">${esc(brand)}</span><img src="${img}" alt="${esc(name)}" loading="lazy"></div><div class="home-category-body"><div class="home-category-brand">${esc(brand)} · ${key==='package'?'Package':key}</div><div class="home-category-name">${esc(name)}</div><div class="home-category-cta">Lihat produk →</div></div></article>`;
+  const cartIcon=`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 4h2l1.8 10.2a2 2 0 0 0 2 1.7h7.8a2 2 0 0 0 1.9-1.4L21 8H7"/><circle cx="10" cy="20" r="1.2"/><circle cx="18" cy="20" r="1.2"/></svg>`;
+
+  function card(x,key){
+    return `<article class="home-category-card" data-product-id="${esc(x.id)}" role="link" tabindex="0" aria-label="Buka detail ${esc(x.name)}" onclick="go('/produk/${esc(x.id)}')" onkeydown="if(event.key==='Enter'){go('/produk/${esc(x.id)}')}"><div class="home-category-image"><span class="home-category-badge">${esc(x.brand)}</span><img src="${x.img}" alt="${esc(x.name)}" loading="lazy"></div><div class="home-category-body"><div class="home-category-brand">${esc(x.brand)} · ${key==='package'?'Package':key}</div><div class="home-category-name">${esc(x.name)}</div><div class="home-category-actions"><button type="button" class="home-add-cart" onclick="event.stopPropagation();add('${esc(x.id)}',1)">${cartIcon}<span>Tambah</span></button><button type="button" class="home-open-cart" aria-label="Buka keranjang" onclick="event.stopPropagation();go('/cart')">${cartIcon}</button></div></div></article>`;
   }
 
   function markup(){
@@ -79,30 +106,20 @@
 
   function mount(){
     if(location.pathname!=='/') return;
+    ensureProducts();
     installStyle();
     const app=document.getElementById('app');
     if(!app || document.getElementById('rentcam-home-product-sections')) return;
-
     const legacy=[...app.querySelectorAll('.section')].find(s=>/Latest in Rentals|ARRI Products/i.test(s.textContent||''));
     const wrap=document.createElement('div');
     wrap.id='rentcam-home-product-sections';
     wrap.innerHTML=markup();
-    if(legacy){
-      legacy.insertAdjacentElement('beforebegin',wrap);
-      legacy.remove();
-    }else{
-      app.appendChild(wrap);
-    }
+    if(legacy){legacy.insertAdjacentElement('beforebegin',wrap);legacy.remove();}else app.appendChild(wrap);
   }
 
   let queued=false;
-  function schedule(){
-    if(queued) return;
-    queued=true;
-    requestAnimationFrame(()=>{queued=false;mount();});
-  }
+  function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;mount();});}
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',schedule); else schedule();
-  const app=document.getElementById('app');
-  if(app) new MutationObserver(schedule).observe(app,{childList:true,subtree:true});
+  const app=document.getElementById('app'); if(app) new MutationObserver(schedule).observe(app,{childList:true,subtree:true});
   addEventListener('popstate',schedule);
 })();
