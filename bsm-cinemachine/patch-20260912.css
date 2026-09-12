@@ -20,3 +20,72 @@
     display:block!important;
   }
 }
+
+/* Mobile Explore our Rentals refinement */
+@media (max-width:620px){
+  html body .section .head{
+    margin-bottom:18px!important;
+  }
+  html body .cats{
+    display:flex!important;
+    align-items:flex-start!important;
+    gap:8px!important;
+    overflow-x:auto!important;
+    padding:0 2px 4px!important;
+    scroll-snap-type:x proximity!important;
+    -webkit-overflow-scrolling:touch!important;
+    scrollbar-width:none!important;
+  }
+  html body .cats::-webkit-scrollbar{display:none!important}
+  html body .cats .cat{
+    flex:0 0 112px!important;
+    min-width:112px!important;
+    width:112px!important;
+    height:auto!important;
+    background:transparent!important;
+    overflow:visible!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    text-align:center!important;
+    scroll-snap-align:start!important;
+  }
+  html body .cats .cat:after{
+    display:none!important;
+    content:none!important;
+  }
+  html body .cats .cat img{
+    width:104px!important;
+    height:104px!important;
+    min-width:104px!important;
+    min-height:104px!important;
+    border-radius:50%!important;
+    object-fit:cover!important;
+    display:block!important;
+    margin:0 auto 8px!important;
+    transform:none!important;
+  }
+  html body .cats .cat div{
+    position:static!important;
+    inset:auto!important;
+    width:100%!important;
+    padding:0 2px!important;
+    color:#111!important;
+    text-align:center!important;
+  }
+  html body .cats .cat b{
+    display:block!important;
+    margin:0!important;
+    color:#111!important;
+    font-size:14px!important;
+    line-height:1.15!important;
+    font-weight:700!important;
+    letter-spacing:-.02em!important;
+    text-align:center!important;
+    white-space:normal!important;
+  }
+  html body .cats .cat small{
+    display:none!important;
+  }
+}
