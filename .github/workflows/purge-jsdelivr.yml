@@ -1,0 +1,18 @@
+name: Purge jsDelivr Cache
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Purge Rentcam assets
+        run: |
+          set -e
+          curl -fsS "https://purge.jsdelivr.net/gh/satriaaao/linix@main/bsm-cinemachine/style.css" || true
+          curl -fsS "https://purge.jsdelivr.net/gh/satriaaao/linix@main/bsm-cinemachine/app.js" || true
+          curl -fsS "https://purge.jsdelivr.net/gh/satriaaao/linix@main/bsm-cinemachine/product-images-20260912.js" || true
+          curl -fsS "https://purge.jsdelivr.net/gh/satriaaao/linix@main/bsm-cinemachine/patch-20260912.js" || true
+          curl -fsS "https://purge.jsdelivr.net/gh/satriaaao/linix@main/bsm-cinemachine/patch-20260912.css" || true
