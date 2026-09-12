@@ -2,202 +2,49 @@
 
 /* Product search + category filters — desktop/tablet */
 @media (min-width:621px){
-  html body #app .product-search-wrap{
-    width:100%!important;
-    max-width:1040px!important;
-    display:grid!important;
-    grid-template-columns:minmax(0,1fr) 92px!important;
-    align-items:center!important;
-    gap:10px!important;
-    margin:22px 0 18px!important;
-  }
-
-  html body #app .product-search-box{
-    width:100%!important;
-    min-width:0!important;
-    height:52px!important;
-    display:flex!important;
-    align-items:center!important;
-    gap:10px!important;
-    padding:0 16px!important;
-    border:1px solid #dedede!important;
-    border-radius:14px!important;
-    background:#fff!important;
-    box-shadow:none!important;
-    box-sizing:border-box!important;
-  }
-
-  html body #app .product-search-box input{
-    width:100%!important;
-    min-width:0!important;
-    border:0!important;
-    outline:0!important;
-    background:transparent!important;
-    font-size:15px!important;
-    line-height:1!important;
-  }
-
-  html body #app .product-search-box svg{
-    flex:0 0 auto!important;
-    width:18px!important;
-    height:18px!important;
-  }
-
-  html body #app .product-search-btn{
-    width:92px!important;
-    min-width:92px!important;
-    height:52px!important;
-    padding:0!important;
-    border:0!important;
-    border-radius:14px!important;
-    background:#111!important;
-    color:#fff!important;
-    font-size:14px!important;
-    font-weight:800!important;
-    cursor:pointer!important;
-  }
-
-  html body #app .product-search-clear{
-    height:52px!important;
-    border-radius:14px!important;
-  }
-
-  html body #app .arri-cats{
-    width:100%!important;
-    display:flex!important;
-    align-items:center!important;
-    flex-wrap:wrap!important;
-    gap:9px!important;
-    margin:0 0 28px!important;
-    padding:0!important;
-    overflow:visible!important;
-  }
-
-  html body #app .arri-cats .arri-cat{
-    height:42px!important;
-    min-height:42px!important;
-    display:inline-flex!important;
-    align-items:center!important;
-    justify-content:center!important;
-    flex:0 0 auto!important;
-    padding:0 17px!important;
-    border:1px solid #e1e1e1!important;
-    border-radius:999px!important;
-    background:#fff!important;
-    color:#2282c8!important;
-    font-size:13px!important;
-    line-height:1!important;
-    font-weight:750!important;
-    white-space:nowrap!important;
-    box-shadow:0 1px 2px rgba(0,0,0,.02)!important;
-    transition:background .18s ease,border-color .18s ease,color .18s ease!important;
-  }
-
-  html body #app .arri-cats .arri-cat:hover{
-    border-color:#cfcfcf!important;
-    background:#f8f8f8!important;
-  }
-
-  html body #app .arri-cats .arri-cat.on{
-    border-color:#111!important;
-    background:#111!important;
-    color:#fff!important;
-  }
+  html body #app .product-search-wrap{width:100%!important;max-width:1040px!important;display:grid!important;grid-template-columns:minmax(0,1fr) 92px!important;align-items:center!important;gap:10px!important;margin:22px 0 18px!important}
+  html body #app .product-search-box{width:100%!important;min-width:0!important;height:52px!important;display:flex!important;align-items:center!important;gap:10px!important;padding:0 16px!important;border:1px solid #dedede!important;border-radius:14px!important;background:#fff!important;box-shadow:none!important;box-sizing:border-box!important}
+  html body #app .product-search-box input{width:100%!important;min-width:0!important;border:0!important;outline:0!important;background:transparent!important;font-size:15px!important;line-height:1!important}
+  html body #app .product-search-box svg{flex:0 0 auto!important;width:18px!important;height:18px!important}
+  html body #app .product-search-btn{width:92px!important;min-width:92px!important;height:52px!important;padding:0!important;border:0!important;border-radius:14px!important;background:#111!important;color:#fff!important;font-size:14px!important;font-weight:800!important;cursor:pointer!important}
+  html body #app .product-search-clear{height:52px!important;border-radius:14px!important}
+  html body #app .arri-cats{width:100%!important;display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:9px!important;margin:0 0 28px!important;padding:0!important;overflow:visible!important}
+  html body #app .arri-cats .arri-cat{height:42px!important;min-height:42px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;padding:0 17px!important;border:1px solid #e1e1e1!important;border-radius:999px!important;background:#fff!important;color:#2282c8!important;font-size:13px!important;line-height:1!important;font-weight:750!important;white-space:nowrap!important;box-shadow:0 1px 2px rgba(0,0,0,.02)!important}
+  html body #app .arri-cats .arri-cat:hover{border-color:#cfcfcf!important;background:#f8f8f8!important}
+  html body #app .arri-cats .arri-cat.on{border-color:#111!important;background:#111!important;color:#fff!important}
 }
 
 /* Product search + category filters — mobile */
 @media (max-width:620px){
-  html body #app .product-search-wrap{
-    width:100%!important;
-    max-width:none!important;
-    display:grid!important;
-    grid-template-columns:minmax(0,1fr) 58px!important;
-    gap:8px!important;
-    align-items:center!important;
-    margin:0 0 12px!important;
-    padding:0!important;
-  }
-
-  html body #app .product-search-box{
-    width:100%!important;
-    min-width:0!important;
-    height:44px!important;
-    display:flex!important;
-    align-items:center!important;
-    gap:8px!important;
-    padding:0 12px!important;
-    border:1px solid #e1e1e1!important;
-    border-radius:12px!important;
-    background:#fff!important;
-    box-shadow:none!important;
-    box-sizing:border-box!important;
-  }
-
-  html body #app .product-search-box input{
-    width:100%!important;
-    min-width:0!important;
-    font-size:13px!important;
-    line-height:1!important;
-  }
-
-  html body #app .product-search-box svg{
-    width:17px!important;
-    height:17px!important;
-    flex:0 0 auto!important;
-  }
-
-  html body #app .product-search-btn{
-    width:58px!important;
-    min-width:58px!important;
-    height:44px!important;
-    padding:0!important;
-    border-radius:12px!important;
-    font-size:12px!important;
-    font-weight:800!important;
-  }
-
+  html body #app .product-search-wrap{width:100%!important;max-width:none!important;display:grid!important;grid-template-columns:minmax(0,1fr) 58px!important;gap:8px!important;align-items:center!important;margin:0 0 12px!important;padding:0!important}
+  html body #app .product-search-box{width:100%!important;min-width:0!important;height:44px!important;display:flex!important;align-items:center!important;gap:8px!important;padding:0 12px!important;border:1px solid #e1e1e1!important;border-radius:12px!important;background:#fff!important;box-shadow:none!important;box-sizing:border-box!important}
+  html body #app .product-search-box input{width:100%!important;min-width:0!important;font-size:13px!important;line-height:1!important}
+  html body #app .product-search-box svg{width:17px!important;height:17px!important;flex:0 0 auto!important}
+  html body #app .product-search-btn{width:58px!important;min-width:58px!important;height:44px!important;padding:0!important;border-radius:12px!important;font-size:12px!important;font-weight:800!important}
   html body #app .product-search-clear{display:none!important}
-
-  html body #app .arri-cats{
-    width:calc(100% + 12px)!important;
-    display:flex!important;
-    flex-wrap:nowrap!important;
-    align-items:center!important;
-    gap:7px!important;
-    margin:0 -12px 15px 0!important;
-    padding:0 12px 5px 0!important;
-    overflow-x:auto!important;
-    overflow-y:hidden!important;
-    scroll-snap-type:x proximity!important;
-    -webkit-overflow-scrolling:touch!important;
-    scrollbar-width:none!important;
-  }
-
+  html body #app .arri-cats{width:calc(100% + 12px)!important;display:flex!important;flex-wrap:nowrap!important;align-items:center!important;gap:7px!important;margin:0 -12px 15px 0!important;padding:0 12px 5px 0!important;overflow-x:auto!important;overflow-y:hidden!important;scroll-snap-type:x proximity!important;-webkit-overflow-scrolling:touch!important;scrollbar-width:none!important}
   html body #app .arri-cats::-webkit-scrollbar{display:none!important}
+  html body #app .arri-cats .arri-cat{flex:0 0 auto!important;min-width:auto!important;height:34px!important;min-height:34px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;padding:0 12px!important;border:1px solid #e2e2e2!important;border-radius:999px!important;background:#fff!important;color:#247fc1!important;font-size:10.5px!important;line-height:1!important;font-weight:750!important;white-space:nowrap!important;scroll-snap-align:start!important}
+  html body #app .arri-cats .arri-cat.on{border-color:#111!important;background:#111!important;color:#fff!important}
 
-  html body #app .arri-cats .arri-cat{
-    flex:0 0 auto!important;
-    min-width:auto!important;
-    height:34px!important;
-    min-height:34px!important;
-    display:inline-flex!important;
-    align-items:center!important;
-    justify-content:center!important;
-    padding:0 12px!important;
-    border:1px solid #e2e2e2!important;
-    border-radius:999px!important;
-    background:#fff!important;
-    color:#247fc1!important;
-    font-size:10.5px!important;
-    line-height:1!important;
-    font-weight:750!important;
-    white-space:nowrap!important;
-    scroll-snap-align:start!important;
-  }
+  /* Mobile product grid refinement */
+  html body #app .products-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;align-items:stretch!important;width:100%!important}
+  html body #app .products-grid .pcard{display:flex!important;flex-direction:column!important;min-width:0!important;height:100%!important;padding:0 0 10px!important;border:1px solid #e9e9e9!important;border-radius:14px!important;overflow:hidden!important;background:#fff!important;box-shadow:0 3px 12px rgba(0,0,0,.04)!important}
+  html body #app .products-grid .pcard .pimg{position:relative!important;width:100%!important;height:auto!important;aspect-ratio:1/1!important;min-height:0!important;margin:0!important;padding:10px!important;background:#fafafa!important;border-radius:0!important;box-sizing:border-box!important}
+  html body #app .products-grid .pcard .pimg img{width:100%!important;height:100%!important;object-fit:contain!important;display:block!important;background:transparent!important}
+  html body #app .products-grid .pcard .arri-source-badge{left:8px!important;top:8px!important;height:22px!important;padding:0 8px!important;font-size:7px!important;line-height:22px!important}
+  html body #app .products-grid .pcard .pbrand{margin:0!important;padding:9px 10px 0!important;font-size:8px!important;line-height:1.2!important;color:#8b8b8b!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  html body #app .products-grid .pcard .pname{margin:0!important;padding:5px 10px 0!important;font-size:13px!important;line-height:1.23!important;font-weight:800!important;letter-spacing:-.02em!important;min-height:37px!important;display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important}
+  html body #app .products-grid .pcard .price{margin-top:auto!important;padding:8px 10px 0!important;font-size:13px!important;line-height:1.1!important;font-weight:850!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  html body #app .products-grid .pcard .price small,html body #app .products-grid .pcard .source-note{display:none!important}
+  html body #app .products-grid .pcard .hoverBtns{display:none!important}
+}
 
-  html body #app .arri-cats .arri-cat.on{
-    border-color:#111!important;
-    background:#111!important;
-    color:#fff!important;
-  }
+@media (max-width:390px){
+  html body #app .products-grid{gap:8px!important}
+  html body #app .products-grid .pcard{border-radius:12px!important}
+  html body #app .products-grid .pcard .pimg{padding:8px!important}
+  html body #app .products-grid .pcard .pname{font-size:12px!important;min-height:35px!important;padding-left:8px!important;padding-right:8px!important}
+  html body #app .products-grid .pcard .pbrand,html body #app .products-grid .pcard .price{padding-left:8px!important;padding-right:8px!important}
+  html body #app .products-grid .pcard .price{font-size:12px!important}
 }
