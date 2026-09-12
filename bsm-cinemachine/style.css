@@ -1,2 +1,142 @@
-@import url('https://cdn.jsdelivr.net/gh/satriaaao/linix@f3bdc6cb9a31f0fb57a7ef1c48bd0b5b685a2eec/bsm-cinemachine/style.css');
-@import url('https://cdn.jsdelivr.net/gh/satriaaao/linix@b1fd4ba6c5a606accdb4eab809c445b7b63a6c73/bsm-cinemachine/explore-dock-20260912.css');
+@import url('https://cdn.jsdelivr.net/gh/satriaaao/linix@0865c7c70818ef019c1fbce01aaac04728084189/bsm-cinemachine/style.css');
+
+/* Final category strip: flush under hero, square corners */
+html body main#app section.section:has(.cats){
+  position:static!important;
+  z-index:auto!important;
+  transform:none!important;
+  margin:0!important;
+  padding:0!important;
+  background:#fff!important;
+}
+html body main#app section.section:has(.cats)>.container{
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0!important;
+}
+html body main#app section.section:has(.cats) .head{
+  display:none!important;
+}
+html body main#app section.section:has(.cats) .cats{
+  display:flex!important;
+  align-items:stretch!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0!important;
+  gap:0!important;
+  border:0!important;
+  border-top:1px solid #e6e6e6!important;
+  border-bottom:1px solid #e6e6e6!important;
+  border-radius:0!important;
+  background:#fff!important;
+  box-shadow:none!important;
+  overflow:hidden!important;
+}
+html body main#app section.section:has(.cats) .cats .cat{
+  flex:1 1 0!important;
+  width:auto!important;
+  min-width:0!important;
+  height:64px!important;
+  min-height:64px!important;
+  margin:0!important;
+  padding:0 18px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border:0!important;
+  border-right:1px solid #e6e6e6!important;
+  border-radius:0!important;
+  background:#fff!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+  transform:none!important;
+}
+html body main#app section.section:has(.cats) .cats .cat:last-child{
+  border-right:0!important;
+}
+html body main#app section.section:has(.cats) .cats .cat img{
+  display:none!important;
+}
+html body main#app section.section:has(.cats) .cats .cat>div{
+  position:static!important;
+  inset:auto!important;
+  width:auto!important;
+  height:auto!important;
+  padding:0!important;
+  margin:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:7px!important;
+  background:transparent!important;
+  color:#111!important;
+  text-align:center!important;
+}
+html body main#app section.section:has(.cats) .cats .cat b{
+  margin:0!important;
+  padding:0!important;
+  color:#111!important;
+  font-size:13px!important;
+  line-height:1.1!important;
+  font-weight:760!important;
+  white-space:nowrap!important;
+}
+html body main#app section.section:has(.cats) .cats .cat small{
+  display:inline!important;
+  height:auto!important;
+  min-width:0!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#9a9a9a!important;
+  font-size:9px!important;
+  line-height:1.1!important;
+  white-space:nowrap!important;
+}
+html body main#app section.section:has(.cats) .cats .cat:hover{
+  background:#111!important;
+}
+html body main#app section.section:has(.cats) .cats .cat:hover b,
+html body main#app section.section:has(.cats) .cats .cat:hover small{
+  color:#fff!important;
+}
+html body main#app section.section:has(.cats)+section.section.soft{
+  margin-top:0!important;
+  padding-top:38px!important;
+  border-top:0!important;
+}
+
+@media(max-width:950px){
+  html body main#app section.section:has(.cats) .cats{
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    -webkit-overflow-scrolling:touch!important;
+    scrollbar-width:none!important;
+  }
+  html body main#app section.section:has(.cats) .cats::-webkit-scrollbar{display:none!important}
+  html body main#app section.section:has(.cats) .cats .cat{
+    flex:0 0 auto!important;
+    min-width:150px!important;
+    height:56px!important;
+    min-height:56px!important;
+    padding:0 14px!important;
+  }
+  html body main#app section.section:has(.cats) .cats .cat b{font-size:12px!important}
+  html body main#app section.section:has(.cats) .cats .cat small{font-size:8px!important}
+  html body main#app section.section:has(.cats)+section.section.soft{padding-top:28px!important}
+}
+
+@media(max-width:620px){
+  html body main#app section.section:has(.cats) .cats .cat{
+    min-width:132px!important;
+    height:50px!important;
+    min-height:50px!important;
+    padding:0 12px!important;
+  }
+  html body main#app section.section:has(.cats) .cats .cat b{font-size:11px!important}
+  html body main#app section.section:has(.cats) .cats .cat small{font-size:8px!important}
+}
