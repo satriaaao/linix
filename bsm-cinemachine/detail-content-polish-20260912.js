@@ -66,6 +66,7 @@
     const name=(info.querySelector('h1')?.textContent||'Produk ARRI').trim();
     const brandLine=(info.querySelector('.detail-brand')?.textContent||'');
     const category=(brandLine.split('·')[1]||'').trim();
+    if(category==='Paket'||category==='Package')return;
     const cfg=byCat[category]||byCat['Accessories'];
     const sections=info.querySelector('.detail-sections');
     if(!sections) return;
