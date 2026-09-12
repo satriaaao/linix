@@ -1,14 +1,45 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
-    { "source": "/cms", "destination": "/cms.html" },
-    { "source": "/cms/:path*", "destination": "/cms.html" },
-    { "source": "/produk", "destination": "/" },
-    { "source": "/produk/:path*", "destination": "/" },
-    { "source": "/portfolio", "destination": "/" },
-    { "source": "/portfolio/:path*", "destination": "/" },
-    { "source": "/artikel", "destination": "/" },
-    { "source": "/artikel/:path*", "destination": "/" },
-    { "source": "/cart", "destination": "/" }
+    {
+      "source": "/cms",
+      "destination": "/cms.html"
+    },
+    {
+      "source": "/cms/:path*",
+      "destination": "/cms.html"
+    },
+    {
+      "source": "/produk",
+      "destination": "/"
+    },
+    {
+      "source": "/produk/:path*",
+      "destination": "/"
+    },
+    {
+      "source": "/portfolio",
+      "destination": "/"
+    },
+    {
+      "source": "/portfolio/:path*",
+      "destination": "/"
+    },
+    {
+      "source": "/artikel",
+      "destination": "/"
+    },
+    {
+      "source": "/artikel/:path*",
+      "destination": "/"
+    },
+    {
+      "source": "/cart",
+      "destination": "/"
+    },
+    {
+      "source": "/pesanan",
+      "destination": "/"
+    }
   ]
 }
