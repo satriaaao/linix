@@ -7,6 +7,8 @@
     { "source": "/portfolio/:path*", "destination": "/" },
     { "source": "/artikel", "destination": "/" },
     { "source": "/artikel/:path*", "destination": "/" },
-    { "source": "/cart", "destination": "/" }
+    { "source": "/cart", "destination": "/" },
+    { "source": "/cms", "destination": "/" },
+    { "source": "/cms/:path*", "destination": "/" }
   ]
 }
