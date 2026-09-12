@@ -7,7 +7,6 @@
     {key:'audio',title:'Audio',subtitle:'Production sound profesional.',categories:['audio']},
     {key:'wireless',title:'Monitor & Wireless',subtitle:'Monitoring gambar dan transmisi video untuk kru produksi.',categories:['wireless','monitor']},
     {key:'grip',title:'Grip & Support',subtitle:'Tripod head dan camera support untuk pergerakan yang stabil.',categories:['grip']},
-    {key:'accessories',title:'Accessories & Camera Control',subtitle:'Matte box, kontrol fokus dan aksesori untuk melengkapi rig kamera.',categories:['accessories','electronic control','electronic-control','matte box','matte-box','camera support','camera-support','follow focus','follow-focus','filters']},
     {key:'package',title:'Paket',subtitle:'Paket equipment siap produksi.',categories:['package','paket']}
   ];
   const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -92,7 +91,7 @@
   }
 
   function markup(){
-    return `<section class="home-product-sections"><div class="container">${productSections().map(s=>`<section class="home-product-section home-${s.key}"><div class="home-product-head"><div><h2>${esc(s.title)}</h2><p>${esc(s.subtitle)}</p></div><button class="home-product-view" onclick="go('/produk')">View all</button></div><div class="home-product-grid">${s.items.slice(0,8).map(x=>card(x,s.key)).join('')}</div></section>`).join('')}</div></section>`;
+    return `<section class="home-product-sections"><div class="container">${productSections().map(s=>`<section class="home-product-section home-${s.key}"><div class="home-product-head"><div><h2>${esc(s.title)}</h2><p>${esc(s.subtitle)}</p></div><button class="home-product-view" onclick="go('/produk')">View all</button></div><div class="home-product-grid">${s.items.map(x=>card(x,s.key)).join('')}</div></section>`).join('')}</div></section>`;
   }
 
   function mount(){
