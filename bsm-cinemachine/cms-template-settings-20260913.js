@@ -8,6 +8,12 @@
   const allRentalCategories=[
     ['camera','Kamera',10],['lens','Lensa',20],['lighting','Lighting',30],['audio','Audio',40],['camping','Alat Camping',50],['tent','Tenda',60],['car','Rental Mobil',70],['motorbike','Rental Motor',80],['playstation','Rental PS',90],['iphone','Rental iPhone',100],['food','Makanan UMKM',110],['accessories','Aksesori',120]
   ];
+  const defaultLabels=[
+    {id:'new',name:'NEW',active:true,sort:10},
+    {id:'promo',name:'PROMO',active:true,sort:20},
+    {id:'diskon',name:'DISKON',active:true,sort:30},
+    {id:'barang-baru',name:'BARANG BARU',active:true,sort:40}
+  ];
   const toast=(msg,bad=false)=>{
     const n=document.createElement('div');
     n.className='v5-toast '+(bad?'bad':'ok');
@@ -135,13 +141,21 @@
     const brands=[...new Set(c.customProducts.map(p=>p.brand).filter(Boolean))];
     c.brands=[...(c.brands||[])];
     brands.forEach((name,i)=>{if(!c.brands.some(b=>String(b.name).toLowerCase()===String(name).toLowerCase()))c.brands.push({id:slug(name),name,logo:'',sort:100+i,active:true})});
+    ensureProductLabels();
     const banners=baseBanners().map((b,i)=>({id:b.id||'banner-'+(i+1),ey:b.ey||'PROMO',title:b.t||b.title||'',text:b.p||b.text||'',image:b.img||b.image||'',active:true}));
     if(banners.length){
       c.banners=[...(c.banners||[])];
       banners.forEach(b=>{const i=c.banners.findIndex(x=>String(x.id)===String(b.id));if(i>=0)c.banners[i]={...b,...c.banners[i]};else c.banners.push(b)});
     }
     if(!c.popup)c.popup={};
-    c.popup={enabled:true,type:c.popup.type||'promo',floatLabel:c.popup.floatLabel||'',eyebrow:c.popup.eyebrow||'PROMO',title:c.popup.title||'Promo Rental Hari Ini',text:c.popup.text||'Cek promo dan produk terbaru. Klik untuk langsung masuk ke halaman produk.',buttonLabel:c.popup.buttonLabel||'Lihat produk',productId:c.popup.productId||'',buttonLink:c.popup.buttonLink||'',image:c.popup.image||banners[0]?.image||'',version:c.popup.version||'promo-live-1'};
+    c.popup={enabled:true,type:c.popup.type||'promo',labels:c.popup.labels?.length?c.popup.labels:['PROMO','NEW','DISKON'],floatLabel:c.popup.floatLabel||'',eyebrow:c.popup.eyebrow||'PROMO',title:c.popup.title||'Promo Rental Hari Ini',text:c.popup.text||'Cek promo dan produk terbaru. Klik untuk langsung masuk ke halaman produk.',buttonLabel:c.popup.buttonLabel||'Lihat produk',productId:c.popup.productId||'',buttonLink:c.popup.buttonLink||'',image:c.popup.image||banners[0]?.image||'',version:c.popup.version||'promo-live-1'};
+  }
+  function ensureProductLabels(){
+    const c=getCfg();
+    c.productLabels=[...(c.productLabels||[])];
+    defaultLabels.forEach(label=>{if(!c.productLabels.some(x=>String(x.name||'').toLowerCase()===label.name.toLowerCase()))c.productLabels.push({...label})});
+    c.popup=c.popup||{};
+    if(!Array.isArray(c.popup.labels)||!c.popup.labels.length)c.popup.labels=['PROMO','NEW','DISKON'];
   }
   function ensureAllRentalCategories(){
     const c=getCfg();
@@ -158,6 +172,28 @@
       <div class="tpl-card-head"><div><h3>Kategori All Rental di CMS</h3><p>Kategori ini muncul di dropdown website dan Master Data. Semua tetap bisa diedit, dinonaktifkan, atau dihapus dari menu Kategori & Brand.</p></div><button data-tpl-action="ensure-categories">Isi kategori all rental</button></div>
       <div class="tpl-cat-list">${cats.map(c=>`<span class="${c.active===false?'off':''}">${E(c.name||c.id)}</span>`).join('')||'<p>Belum ada kategori.</p>'}</div>
     </section>`;
+  }
+  function labelManager(){
+    ensureProductLabels();
+    const c=getCfg();
+    const labels=[...(c.productLabels||[])].sort((a,b)=>(a.sort||999)-(b.sort||999));
+    const selected=new Set((c.popup?.labels||[]).map(x=>String(x).toLowerCase()));
+    return `<section class="tpl-card">
+      <div class="tpl-card-head"><div><h3>Master Label Produk</h3><p>Label ini muncul di form produk dan bisa dipilih banyak untuk popup. Tombol Lihat produk akan membuka katalog berisi produk dengan label tersebut saja.</p></div><button data-tpl-action="add-label">+ Tambah label</button></div>
+      <div class="tpl-label-list">${labels.map((l,i)=>`<div class="tpl-label-row ${l.active===false?'off':''}">
+        <label><input type="checkbox" data-popup-label="${E(l.name||l.id)}" ${selected.has(String(l.name||l.id).toLowerCase())?'checked':''}> <strong>${E(l.name||l.id)}</strong><small>${l.active===false?'Hidden':'Aktif'}</small></label>
+        <span><button data-tpl-action="edit-label" data-label-name="${E(l.name||l.id)}">Edit</button><button data-tpl-action="toggle-label" data-label-name="${E(l.name||l.id)}">${l.active===false?'Aktifkan':'Hide'}</button><button data-tpl-action="delete-label" data-label-name="${E(l.name||l.id)}">Hapus</button></span>
+      </div>`).join('')}</div>
+    </section>`;
+  }
+  function findLabel(name){
+    const labels=getCfg().productLabels||[];
+    return labels.findIndex(x=>String(x.name||x.id).toLowerCase()===String(name||'').toLowerCase());
+  }
+  function updatePopupLabelsFromChecks(){
+    const c=getCfg();
+    c.popup=c.popup||{};
+    c.popup.labels=[...document.querySelectorAll('[data-popup-label]:checked')].map(x=>x.dataset.popupLabel).filter(Boolean);
   }
   function selectField(label,path,options){
     const parts=path.split('.');
@@ -181,6 +217,7 @@
         <button data-tpl-action="sync-content">Sinkronkan produk & banner</button>
       </section>
       ${categoryManager()}
+      ${labelManager()}
       <section class="tpl-card">
         <h3>Teks Website</h3>
         <p>Semua teks utama katalog dan homepage bisa diganti dari sini.</p>
@@ -199,7 +236,7 @@
         <h3>Popup Promo / Produk Baru</h3>
         <div class="tpl-fields">
           ${field('Tampilkan popup di website','popup.enabled','checkbox')}
-          ${selectField('Kategori popup','popup.type',[['promo','Promo'],['new','Barang baru']])}
+          ${selectField('Mode lama popup','popup.type',[['promo','Promo'],['new','Barang baru']])}
           ${field('Label tombol pinggir','popup.floatLabel','text','PROMO / NEW / DISKON')}
           ${field('Label kecil','popup.eyebrow')}
           ${field('Judul','popup.title')}
@@ -219,7 +256,7 @@
     const s=document.createElement('style');
     s.id='tpl-cms-style';
     s.textContent=`
-      .tpl-system{max-width:1240px}.tpl-hero,.tpl-card{background:#fff;border:1px solid #e3e8ef;border-radius:18px;padding:22px;margin-bottom:16px;box-shadow:0 10px 28px rgba(24,38,57,.04)}.tpl-hero{display:flex;align-items:center;justify-content:space-between;gap:20px;background:linear-gradient(135deg,#101827,#17324f);color:#fff}.tpl-hero small{letter-spacing:.14em;color:#9bc1ff;font-weight:800}.tpl-hero h2{font-size:28px;line-height:1.06;margin:8px 0}.tpl-hero p{color:#d8e5f8;max-width:620px}.tpl-hero button,.tpl-card button{border:0;border-radius:12px;background:#f26a21;color:#fff;font-weight:850;padding:13px 16px;cursor:pointer}.tpl-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.tpl-sync-card,.tpl-card-head{display:flex;align-items:center;justify-content:space-between;gap:18px}.tpl-sync-card{background:#f8fbff}.tpl-card h3{margin:0 0 8px;font-size:20px}.tpl-card p,.tpl-note{color:#6d7888;font-size:13px;line-height:1.55}.tpl-cat-list{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}.tpl-cat-list span{border:1px solid #dce5ef;background:#f6f9fc;border-radius:999px;padding:9px 12px;font-size:13px;font-weight:800;color:#26354a}.tpl-cat-list span.off{opacity:.45;text-decoration:line-through}.tpl-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.tpl-fields label{display:block;font-size:12px;font-weight:800;color:#3f4b5d}.tpl-fields input,.tpl-fields textarea,.tpl-fields select{display:block;width:100%;margin-top:7px;border:1px solid #dbe2eb;border-radius:11px;padding:11px 12px;font:inherit;font-size:13px;background:#fff}.tpl-fields textarea{min-height:88px}.tpl-check{display:flex!important;align-items:center;gap:9px;background:#f6f8fb;border:1px solid #e1e7ef;border-radius:12px;padding:13px}.tpl-check input{width:auto!important;margin:0!important}@media(max-width:850px){.tpl-hero,.tpl-sync-card,.tpl-card-head{display:block}.tpl-grid,.tpl-fields{grid-template-columns:1fr}.tpl-hero h2{font-size:23px}.tpl-card button{margin-top:8px}}
+      .tpl-system{max-width:1240px}.tpl-hero,.tpl-card{background:#fff;border:1px solid #e3e8ef;border-radius:18px;padding:22px;margin-bottom:16px;box-shadow:0 10px 28px rgba(24,38,57,.04)}.tpl-hero{display:flex;align-items:center;justify-content:space-between;gap:20px;background:linear-gradient(135deg,#101827,#17324f);color:#fff}.tpl-hero small{letter-spacing:.14em;color:#9bc1ff;font-weight:800}.tpl-hero h2{font-size:28px;line-height:1.06;margin:8px 0}.tpl-hero p{color:#d8e5f8;max-width:620px}.tpl-hero button,.tpl-card button{border:0;border-radius:12px;background:#f26a21;color:#fff;font-weight:850;padding:13px 16px;cursor:pointer}.tpl-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.tpl-sync-card,.tpl-card-head{display:flex;align-items:center;justify-content:space-between;gap:18px}.tpl-sync-card{background:#f8fbff}.tpl-card h3{margin:0 0 8px;font-size:20px}.tpl-card p,.tpl-note{color:#6d7888;font-size:13px;line-height:1.55}.tpl-cat-list{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}.tpl-cat-list span{border:1px solid #dce5ef;background:#f6f9fc;border-radius:999px;padding:9px 12px;font-size:13px;font-weight:800;color:#26354a}.tpl-cat-list span.off{opacity:.45;text-decoration:line-through}.tpl-label-list{display:grid;gap:10px;margin-top:14px}.tpl-label-row{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #e3e8ef;border-radius:14px;padding:12px;background:#fbfcfe}.tpl-label-row label{display:flex;align-items:center;gap:10px;margin:0}.tpl-label-row small{margin-left:8px;color:#7a8797;font-size:11px}.tpl-label-row span{display:flex;gap:6px;flex-wrap:wrap}.tpl-label-row button{padding:8px 10px!important;font-size:11px!important;border-radius:9px!important;background:#111!important}.tpl-label-row button:last-child{background:#fff0f0!important;color:#b52e2e!important;border:1px solid #ffd1d1!important}.tpl-label-row.off{opacity:.55}.tpl-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.tpl-fields label{display:block;font-size:12px;font-weight:800;color:#3f4b5d}.tpl-fields input,.tpl-fields textarea,.tpl-fields select{display:block;width:100%;margin-top:7px;border:1px solid #dbe2eb;border-radius:11px;padding:11px 12px;font:inherit;font-size:13px;background:#fff}.tpl-fields textarea{min-height:88px}.tpl-check{display:flex!important;align-items:center;gap:9px;background:#f6f8fb;border:1px solid #e1e7ef;border-radius:12px;padding:13px}.tpl-check input{width:auto!important;margin:0!important}@media(max-width:850px){.tpl-hero,.tpl-sync-card,.tpl-card-head,.tpl-label-row{display:block}.tpl-label-row span{margin-top:10px}.tpl-grid,.tpl-fields{grid-template-columns:1fr}.tpl-hero h2{font-size:23px}.tpl-card button{margin-top:8px}}
     `;
     document.head.append(s);
   }
@@ -261,7 +298,50 @@
         await saveConfig();
         toast('Kategori all rental sudah masuk ke CMS.');
       }
+      if(btn.dataset.tplAction==='add-label'){
+        ensureProductLabels();
+        const name=prompt('Nama label baru, contoh: FLASH SALE, BEST SELLER, DISKON 50%');
+        if(!name)return;
+        const c=getCfg();
+        if(c.productLabels.some(x=>String(x.name||'').toLowerCase()===String(name).toLowerCase()))return toast('Label sudah ada.',true);
+        c.productLabels.push({id:slug(name),name:String(name).trim().toUpperCase(),active:true,sort:(c.productLabels.length+1)*10});
+        render();
+        await saveConfig();
+        toast('Label baru tersimpan.');
+      }
+      if(btn.dataset.tplAction==='edit-label'){
+        const c=getCfg(),i=findLabel(btn.dataset.labelName);
+        if(i<0)return;
+        const name=prompt('Ubah nama label',c.productLabels[i].name||'');
+        if(!name)return;
+        const old=c.productLabels[i].name;
+        c.productLabels[i].name=String(name).trim().toUpperCase();
+        c.productLabels[i].id=slug(name);
+        if(c.popup?.labels)c.popup.labels=c.popup.labels.map(x=>String(x).toLowerCase()===String(old).toLowerCase()?c.productLabels[i].name:x);
+        render();
+        await saveConfig();
+        toast('Label diperbarui.');
+      }
+      if(btn.dataset.tplAction==='toggle-label'){
+        const c=getCfg(),i=findLabel(btn.dataset.labelName);
+        if(i<0)return;
+        c.productLabels[i].active=c.productLabels[i].active===false;
+        render();
+        await saveConfig();
+        toast('Status label diperbarui.');
+      }
+      if(btn.dataset.tplAction==='delete-label'){
+        const c=getCfg(),i=findLabel(btn.dataset.labelName);
+        if(i<0)return;
+        const name=c.productLabels[i].name;
+        c.productLabels.splice(i,1);
+        if(c.popup?.labels)c.popup.labels=c.popup.labels.filter(x=>String(x).toLowerCase()!==String(name).toLowerCase());
+        render();
+        await saveConfig();
+        toast('Label dihapus.');
+      }
       if(btn.dataset.tplAction==='save'){
+        updatePopupLabelsFromChecks();
         document.querySelectorAll('[data-tpl-field]').forEach(el=>setPath(el.dataset.tplField,el.type==='checkbox'?el.checked:el.value));
         await saveConfig();
         toast('Template, teks dan popup tersimpan.');
@@ -271,6 +351,10 @@
   document.addEventListener('input',e=>{
     if(!e.target.matches?.('[data-tpl-field]')) return;
     setPath(e.target.dataset.tplField,e.target.type==='checkbox'?e.target.checked:e.target.value);
+  });
+  document.addEventListener('change',e=>{
+    if(!e.target.matches?.('[data-popup-label]')) return;
+    updatePopupLabelsFromChecks();
   });
   new MutationObserver(install).observe(document.body,{childList:true,subtree:true});
   install();
