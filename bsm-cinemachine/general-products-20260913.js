@@ -54,10 +54,15 @@
   function ensureProducts(){
     const list=currentProducts(); if(!list) return false;
     const ids=new Set(list.map(p=>String(p.id)));
+    let added=0;
     products.forEach(p=>{
-      if(!ids.has(p.id)) list.push({...p});
+      if(!ids.has(p.id)){
+        list.push({...p});
+        ids.add(p.id);
+        added++;
+      }
     });
-    return true;
+    return added>0;
   }
   const originalGroup=window.rentcamCatalogGroup;
   window.rentcamCatalogGroup=function(p){
@@ -109,20 +114,16 @@
       section.innerHTML=html;
     }
   }
-  function tick(){
+  function tick(forceRender=false){
     const changed=ensureProducts();
     mountHome();
-    if(changed&&location.pathname.startsWith('/produk')&&typeof render==='function'){
+    if((changed||forceRender)&&location.pathname.startsWith('/produk')&&typeof render==='function'){
       try{render()}catch(e){}
     }
   }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',tick); else tick();
-  document.addEventListener('rentcam-route-change',()=>setTimeout(tick,0));
-  document.addEventListener('rentcam-cms-updated',()=>setTimeout(tick,0));
-  let queued=false;
-  new MutationObserver(()=>{
-    if(queued) return;
-    queued=true;
-    requestAnimationFrame(()=>{queued=false;ensureProducts();mountHome();});
-  }).observe(document.getElementById('app')||document.body,{childList:true,subtree:true});
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>tick(true)); else tick(true);
+  document.addEventListener('rentcam-route-change',()=>setTimeout(()=>tick(false),0));
+  document.addEventListener('rentcam-cms-updated',()=>setTimeout(()=>tick(false),0));
+  setTimeout(()=>{ensureProducts();mountHome()},500);
+  setTimeout(()=>{ensureProducts();mountHome()},1200);
 })();
