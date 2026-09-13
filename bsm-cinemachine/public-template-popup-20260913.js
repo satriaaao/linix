@@ -9,7 +9,8 @@
     eyebrow:'PROMO',
     title:'Promo & Produk Baru',
     text:'Klik untuk lihat daftar produk promo dan barang baru.',
-    buttonLabel:'Lihat daftar',
+    buttonLabel:'Lihat produk',
+    floatLabel:'',
     productId:'',
     buttonLink:'/produk',
     image:'',
@@ -47,9 +48,11 @@
     const p={...defaultPopup(),...(hasPopup?raw:{})};
     if(p.enabled===false||document.querySelector('.rc-promo-widget')) return;
     const type=String(p.type||p.category||p.eyebrow||'promo').toLowerCase();
-    const label=type.includes('new')||type.includes('baru')?'BARANG BARU':'PROMO';
-    const list=promoItems(p,label);
-    const primaryPath=(p.productId?'/produk/'+encodeURIComponent(p.productId):(list[0]?.path||p.buttonLink||'/produk'));
+    const isNew=type.includes('new')||type.includes('baru');
+    const label=p.floatLabel||(isNew?'BARANG BARU':'PROMO');
+    const list=promoItems(p,isNew,label);
+    const target=list.find(x=>x.path&&x.path!=='/produk')||list[0];
+    const primaryPath=target?.path||(p.productId?'/produk/'+encodeURIComponent(p.productId):(p.buttonLink||'/produk'));
     const primaryLabel=p.buttonLabel&&p.buttonLabel!=='Lihat daftar'?p.buttonLabel:'Lihat produk';
     const wrap=document.createElement('div');
     wrap.className='rc-promo-widget';
@@ -81,14 +84,28 @@
     });
     document.body.append(wrap);
   }
-  function promoItems(p,label){
+  function promoItems(p,isNew,label){
     const manual=Array.isArray(p.items)?p.items:[];
-    if(manual.length)return manual.filter(x=>x&&x.active!==false).map(x=>({name:x.title||x.name||'Produk promo',image:x.image||'',badge:x.type==='new'?'BARANG BARU':(x.badge||label),meta:x.text||x.subtitle||'',path:x.productId?'/produk/'+encodeURIComponent(x.productId):(x.link||'/produk')}));
+    if(manual.length)return manual.filter(x=>x&&x.active!==false&&(!x.type||String(x.type).toLowerCase()===(isNew?'new':'promo'))).map(x=>({name:x.title||x.name||'Produk promo',image:x.image||'',badge:x.type==='new'?'BARANG BARU':(x.badge||label),meta:x.text||x.subtitle||'',path:x.productId?'/produk/'+encodeURIComponent(x.productId):(x.link||'/produk')}));
     let products=[];try{products=Array.isArray(P)?P:[]}catch(e){}
-    const picked=products.filter(x=>x&&x.active!==false&&x.deleted!==true&&x._cmsActive!==false&&(x.discountPercent||x.discount||x.labelText==='NEW'||x.label==='NEW'||/promo|diskon|new|baru/i.test([x.name,x.discountLabel,x.promoName].join(' ')))).slice(0,8);
+    const isNewProduct=x=>x.labelText==='NEW'||x.label==='NEW'||/new|baru/i.test([x.badge,x.labelText,x.label,x.promoName,x.discountLabel].join(' '));
+    const isPromoProduct=x=>Number(x.discountPercent||x.discount||0)>0||/promo|diskon/i.test([x.badge,x.labelText,x.label,x.promoName,x.discountLabel].join(' '));
+    const picked=products.filter(x=>x&&x.active!==false&&x.deleted!==true&&x._cmsActive!==false&&(isNew?isNewProduct(x):isPromoProduct(x))).slice(0,8);
     const fallback=p.productId?products.filter(x=>String(x.id)===String(p.productId)):products.slice(0,5);
-    return (picked.length?picked:fallback).slice(0,8).map(x=>({name:x.name||'Produk',image:x.images?.[0]||x.image||x.img||p.image||'',badge:(x.labelText==='NEW'||x.label==='NEW')?'BARANG BARU':label,meta:[x.brand,x.discountPercent?`Diskon ${x.discountPercent}%`:x.discount?`Diskon ${x.discount}%`:x.cat||x.category].filter(Boolean).join(' · '),path:'/produk/'+encodeURIComponent(x.id)}));
+    return (picked.length?picked:fallback).slice(0,8).map(x=>({name:x.name||'Produk',image:x.images?.[0]||x.image||x.img||p.image||'',badge:isNewProduct(x)?'BARANG BARU':label,meta:[x.brand,x.discountPercent?`Diskon ${x.discountPercent}%`:x.discount?`Diskon ${x.discount}%`:x.cat||x.category].filter(Boolean).join(' · '),path:'/produk/'+encodeURIComponent(x.id)}));
   }
+  document.addEventListener('click',e=>{
+    const nav=e.target.closest?.('[data-go]');
+    if(!nav||e.defaultPrevented) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const drawer=document.getElementById('drawer');
+    drawer?.classList.remove('open');
+    document.body.classList.remove('menu-open');
+    const path=nav.dataset.go||'/';
+    if(typeof go==='function') go(path); else location.href=path;
+    requestAnimationFrame(()=>scrollTo(0,0));
+  },true);
   function style(){
     if(document.getElementById('rc-template-popup-style')) return;
     const s=document.createElement('style');
