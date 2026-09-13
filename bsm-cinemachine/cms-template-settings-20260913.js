@@ -82,7 +82,7 @@
     const val=E(v??'');
     if(type==='checkbox') return `<label class="tpl-check"><input data-tpl-field="${E(path)}" type="checkbox" ${v!==false?'checked':''}> ${E(label)}</label>`;
     if(type==='textarea') return `<label>${E(label)}<textarea data-tpl-field="${E(path)}" placeholder="${E(placeholder)}">${val}</textarea></label>`;
-    return `<label>${E(label)}<input data-tpl-field="${E(path)}" value="${val}" placeholder="${E(placeholder)}"></label>`;
+    return `<label>${E(label)}<input data-tpl-field="${E(path)}" type="${E(type||'text')}" value="${val}" placeholder="${E(placeholder)}"></label>`;
   }
   function setPath(path,value){
     const parts=path.split('.');
@@ -122,6 +122,7 @@
   }
   function syncWebsiteContent(){
     const c=getCfg();
+    c.tax={enabled:false,rate:11,label:'PPN',...(c.tax||{})};
     const products=baseProducts().map(normalizedProduct);
     const ids=new Set();
     c.customProducts=[...(c.customProducts||[])];
@@ -148,7 +149,7 @@
       banners.forEach(b=>{const i=c.banners.findIndex(x=>String(x.id)===String(b.id));if(i>=0)c.banners[i]={...b,...c.banners[i]};else c.banners.push(b)});
     }
     if(!c.popup)c.popup={};
-    c.popup={enabled:true,type:c.popup.type||'promo',labels:c.popup.labels?.length?c.popup.labels:['PROMO','NEW','DISKON'],floatLabel:c.popup.floatLabel||'',eyebrow:c.popup.eyebrow||'PROMO',title:c.popup.title||'Promo Rental Hari Ini',text:c.popup.text||'Cek promo dan produk terbaru. Klik untuk langsung masuk ke halaman produk.',buttonLabel:c.popup.buttonLabel||'Lihat produk',productId:c.popup.productId||'',buttonLink:c.popup.buttonLink||'',image:c.popup.image||banners[0]?.image||'',version:c.popup.version||'promo-live-1'};
+    c.popup={enabled:true,type:c.popup.type||'promo',labels:c.popup.labels?.length?c.popup.labels:['PROMO','NEW','DISKON'],floatLabel:c.popup.floatLabel||'',eyebrow:c.popup.eyebrow||'PROMO',title:c.popup.title||'Promo Rental Hari Ini',text:c.popup.text||'Cek promo dan produk terbaru. Klik untuk langsung masuk ke halaman produk.',buttonLabel:c.popup.buttonLabel||'Lihat produk',productId:c.popup.productId||'',buttonLink:c.popup.buttonLink||'',image:c.popup.image||banners[0]?.image||'',reappearSeconds:c.popup.reappearSeconds||8,version:c.popup.version||'promo-live-1'};
   }
   function ensureProductLabels(){
     const c=getCfg();
@@ -233,6 +234,15 @@
         </div>
       </section>
       <section class="tpl-card">
+        <h3>Pajak & Checkout</h3>
+        <p>Atur PPN yang dipakai di keranjang, order CMS, dan teks WhatsApp.</p>
+        <div class="tpl-fields">
+          ${field('Aktifkan PPN','tax.enabled','checkbox')}
+          ${field('Persentase PPN (%)','tax.rate','number','11')}
+          ${field('Nama label pajak','tax.label','text','PPN')}
+        </div>
+      </section>
+      <section class="tpl-card">
         <h3>Popup Promo / Produk Baru</h3>
         <div class="tpl-fields">
           ${field('Tampilkan popup di website','popup.enabled','checkbox')}
@@ -245,9 +255,10 @@
           ${field('ID produk tujuan manual','popup.productId','text','Kosongkan agar otomatis ikut promo/new pertama')}
           ${field('Link tombol manual','popup.buttonLink','text','Kosongkan agar otomatis ke detail produk')}
           ${field('URL gambar popup','popup.image')}
+          ${field('Muncul lagi setelah detik','popup.reappearSeconds','number','8')}
           ${field('Kode versi popup','popup.version','text','promo-1')}
         </div>
-        <p class="tpl-note">Kalau ingin popup tampil lagi ke pengunjung yang sudah pernah menutup, ubah Kode versi popup.</p>
+        <p class="tpl-note">Tombol pinggir bisa digeser. Kalau pengunjung sembunyikan, tombol muncul lagi sesuai detik di atas.</p>
       </section>
     </div>`;
   }

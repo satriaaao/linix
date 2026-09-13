@@ -19,6 +19,7 @@
     productId:'',
     buttonLink:'/produk',
     image:'',
+    reappearSeconds:8,
     version:'default-promo-20260913'
   });
   function copy(){
@@ -62,7 +63,8 @@
     const primaryLabel=p.buttonLabel&&p.buttonLabel!=='Lihat daftar'?p.buttonLabel:'Lihat produk';
     const wrap=document.createElement('div');
     wrap.className='rc-promo-widget';
-    wrap.innerHTML=`<button class="rc-promo-float" type="button" aria-expanded="false" aria-controls="rcPromoPanel">
+    wrap.innerHTML=`<button class="rc-promo-hide" type="button" aria-label="Sembunyikan promo sementara">&times;</button>
+    <button class="rc-promo-float" type="button" aria-expanded="false" aria-controls="rcPromoPanel">
       <span>${E(label)}</span><b>${list.length}</b>
     </button>
     <section class="rc-promo-panel" id="rcPromoPanel" hidden>
@@ -77,9 +79,19 @@
       </button>`).join('')}</div>
       <button class="rc-promo-all" type="button" data-popup-go="${E(primaryPath)}">${E(primaryLabel)}</button>
     </section>`;
-    const panel=wrap.querySelector('.rc-promo-panel'),btn=wrap.querySelector('.rc-promo-float');
+    const panel=wrap.querySelector('.rc-promo-panel'),btn=wrap.querySelector('.rc-promo-float'),hide=wrap.querySelector('.rc-promo-hide');
+    const savedY=Number(localStorage.getItem('rentcam_promo_y')||0);
+    if(savedY){wrap.style.top=Math.min(Math.max(76,savedY),innerHeight-76)+'px'}
     const toggle=open=>{panel.hidden=!open;btn.setAttribute('aria-expanded',open?'true':'false')};
-    btn.addEventListener('click',()=>toggle(panel.hidden));
+    const reappear=()=>Math.max(3000,(Number((cfg().popup||{}).reappearSeconds)||8)*1000);
+    let hideTimer=null,dragging=false,moved=false,startY=0,startTop=0;
+    const hideTemp=()=>{toggle(false);wrap.classList.add('is-hidden');clearTimeout(hideTimer);hideTimer=setTimeout(()=>wrap.classList.remove('is-hidden'),reappear())};
+    hide.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();hideTemp()});
+    btn.addEventListener('pointerdown',e=>{dragging=true;moved=false;startY=e.clientY;startTop=wrap.getBoundingClientRect().top+(wrap.offsetHeight/2);wrap.classList.add('dragging');btn.setPointerCapture?.(e.pointerId)});
+    btn.addEventListener('pointermove',e=>{if(!dragging)return;const dy=e.clientY-startY;if(Math.abs(dy)>7)moved=true;if(!moved)return;const y=Math.min(Math.max(76,startTop+dy),innerHeight-76);wrap.style.top=y+'px';try{localStorage.setItem('rentcam_promo_y',String(y))}catch(_){}});
+    const endDrag=()=>{dragging=false;wrap.classList.remove('dragging');setTimeout(()=>{moved=false},0)};
+    btn.addEventListener('pointerup',endDrag);btn.addEventListener('pointercancel',endDrag);
+    btn.addEventListener('click',e=>{if(moved){e.preventDefault();return}toggle(panel.hidden)});
     wrap.querySelector('.rc-promo-close').addEventListener('click',()=>toggle(false));
     wrap.addEventListener('click',e=>{
       const goTo=e.target.closest('[data-popup-go]');
@@ -126,11 +138,15 @@
     const s=document.createElement('style');
     s.id='rc-template-popup-style';
     s.textContent=`
-      .rc-promo-widget{position:fixed;right:14px;top:50%;transform:translateY(-50%);z-index:1200;font-family:inherit}
-      .rc-promo-float{width:58px;min-height:74px;border:0;border-radius:18px 0 0 18px;background:#111;color:#fff;box-shadow:0 12px 34px rgba(0,0,0,.22);cursor:pointer;display:grid;place-items:center;padding:9px 7px;gap:5px}
+      .rc-promo-widget{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:1200;font-family:inherit;transition:opacity .18s ease,right .18s ease}
+      .rc-promo-widget.is-hidden{opacity:0;right:-72px;pointer-events:none}
+      .rc-promo-widget.dragging{transition:none}
+      .rc-promo-hide{position:absolute;left:-12px;top:-10px;width:24px;height:24px;border:1px solid #e6e8ec;border-radius:999px;background:#fff;color:#111;box-shadow:0 6px 18px rgba(0,0,0,.14);font-size:17px;line-height:1;cursor:pointer;z-index:2}
+      .rc-promo-float{width:48px;min-height:64px;border:0;border-radius:16px 0 0 16px;background:#111;color:#fff;box-shadow:0 12px 34px rgba(0,0,0,.22);cursor:grab;display:grid;place-items:center;padding:8px 6px;gap:4px;touch-action:none}
+      .rc-promo-widget.dragging .rc-promo-float{cursor:grabbing}
       .rc-promo-float span{writing-mode:vertical-rl;text-orientation:mixed;font-size:9px;font-weight:900;letter-spacing:.14em}
-      .rc-promo-float b{position:absolute;right:43px;top:-7px;min-width:20px;height:20px;border-radius:999px;background:#f26a21;color:#fff;display:grid;place-items:center;font-size:11px}
-      .rc-promo-panel{position:absolute;right:66px;top:50%;transform:translateY(-50%);width:min(340px,calc(100vw - 92px));max-height:min(520px,78vh);overflow:auto;background:#fff;border:1px solid #e7e9ed;border-radius:18px;box-shadow:0 22px 70px rgba(0,0,0,.24);padding:14px}
+      .rc-promo-float b{position:absolute;right:35px;top:-7px;min-width:20px;height:20px;border-radius:999px;background:#f26a21;color:#fff;display:grid;place-items:center;font-size:11px}
+      .rc-promo-panel{position:absolute;right:56px;top:50%;transform:translateY(-50%);width:min(340px,calc(100vw - 82px));max-height:min(520px,78vh);overflow:auto;background:#fff;border:1px solid #e7e9ed;border-radius:18px;box-shadow:0 22px 70px rgba(0,0,0,.24);padding:14px}
       .rc-promo-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
       .rc-promo-head small{display:block;font-size:9px;letter-spacing:.13em;font-weight:900;color:#f26a21}
       .rc-promo-head h3{margin:4px 0 0;font-size:19px;line-height:1.15}
@@ -144,7 +160,7 @@
       .rc-promo-item b{display:block;color:#111;font-size:13px;line-height:1.2;margin:2px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
       .rc-promo-item em{display:block;color:#777;font-size:10px;font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
       .rc-promo-all{width:100%;margin-top:10px;border:0;border-radius:12px;background:#111;color:#fff;font-weight:900;padding:12px;cursor:pointer}
-      @media(max-width:640px){.rc-promo-widget{right:0}.rc-promo-float{width:50px;min-height:66px;border-radius:16px 0 0 16px}.rc-promo-panel{right:56px;width:calc(100vw - 72px);max-height:70vh}}
+      @media(max-width:640px){.rc-promo-float{width:44px;min-height:62px;border-radius:15px 0 0 15px}.rc-promo-panel{right:50px;width:calc(100vw - 64px);max-height:70vh}.rc-promo-hide{left:-10px;top:-9px;width:22px;height:22px;font-size:16px}}
     `;
     document.head.append(s);
   }
