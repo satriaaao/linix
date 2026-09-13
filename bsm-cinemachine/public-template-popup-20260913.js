@@ -51,8 +51,7 @@
     const isNew=type.includes('new')||type.includes('baru');
     const label=p.floatLabel||(isNew?'BARANG BARU':'PROMO');
     const list=promoItems(p,isNew,label);
-    const target=list.find(x=>x.path&&x.path!=='/produk')||list[0];
-    const primaryPath=target?.path||(p.productId?'/produk/'+encodeURIComponent(p.productId):(p.buttonLink||'/produk'));
+    const primaryPath=p.productId?'/produk/'+encodeURIComponent(p.productId):(p.buttonLink&&p.buttonLink!=='/produk'?p.buttonLink:'/produk?'+(isNew?'new=1':'promo=1'));
     const primaryLabel=p.buttonLabel&&p.buttonLabel!=='Lihat daftar'?p.buttonLabel:'Lihat produk';
     const wrap=document.createElement('div');
     wrap.className='rc-promo-widget';
@@ -105,6 +104,15 @@
     const path=nav.dataset.go||'/';
     if(typeof go==='function') go(path); else location.href=path;
     requestAnimationFrame(()=>scrollTo(0,0));
+  },true);
+  document.addEventListener('pointerup',e=>{
+    const cart=e.target.closest?.('.rc-cart-button,[aria-label*="Keranjang"],[data-go="/cart"]');
+    if(!cart)return;
+    e.preventDefault();
+    e.stopPropagation();
+    document.getElementById('drawer')?.classList.remove('open');
+    document.body.classList.remove('menu-open');
+    if(typeof go==='function')go('/cart');else location.href='/cart';
   },true);
   function style(){
     if(document.getElementById('rc-template-popup-style')) return;
