@@ -29,7 +29,7 @@
       mainCategory:main,subCategory:v.subCategory||p.subCategory||'',placement:v.placement||p.placement||'catalog',sortOrder:Number(v.sortOrder??p.sortOrder??999),
       _cmsActive:v.active!==false&&v.deleted!==true,
       deleted:v.deleted===true,
-      label:v.label||v.promoLabel||'',labelStart:v.labelStart||'',labelEnd:v.labelEnd||'',discount:Number(v.discount||v.discountPercent||0)||0,discountStart:v.discountStart||'',discountEnd:v.discountEnd||'',promoName:v.promoName||''
+      label:v.labelText||v.label||v.promoLabel||'',labelText:v.labelText||v.label||v.promoLabel||'',labelStart:v.labelStart||'',labelEnd:v.labelEnd||'',discount:Number(v.discount||v.discountPercent||0)||0,discountPercent:Number(v.discountPercent||v.discount||0)||0,discountStart:v.discountStart||'',discountEnd:v.discountEnd||'',promoName:v.promoName||v.discountLabel||'',discountLabel:v.discountLabel||v.promoName||''
     };
   }
   function syncProducts(){
