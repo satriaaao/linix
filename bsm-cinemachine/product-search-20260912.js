@@ -60,6 +60,7 @@
   }
   function ensureGeneralProducts(){
     if(typeof P==='undefined'||!Array.isArray(P))return;
+    if(!window.RENTCAM_CMS_CONFIG?.generalProductsEnabled)return;
     const byId=new Set(P.map(p=>String(p.id)));
     GENERAL_PRODUCTS.forEach(p=>{if(!byId.has(String(p.id)))P.push({...p})});
   }
