@@ -7,12 +7,12 @@
     enabled:true,
     type:'promo',
     eyebrow:'PROMO',
-    title:'Promo Rental Hari Ini',
-    text:'Cek promo dan produk terbaru. Klik untuk langsung masuk ke halaman produk.',
-    buttonLabel:'Lihat produk promo',
-    productId:'arri-alexa-mini-lf',
-    buttonLink:'/produk/arri-alexa-mini-lf',
-    image:(window.SL&&SL[0]?.img)||'https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1200&q=88',
+    title:'Promo & Produk Baru',
+    text:'Klik untuk lihat daftar produk promo dan barang baru.',
+    buttonLabel:'Lihat daftar',
+    productId:'',
+    buttonLink:'/produk',
+    image:'',
     version:'default-promo-20260913'
   });
   function copy(){
@@ -45,55 +45,72 @@
     const raw=cfg().popup||{};
     const hasPopup=raw.title||raw.text||raw.image||raw.productId||raw.buttonLink;
     const p={...defaultPopup(),...(hasPopup?raw:{})};
-    if(p.enabled===false||document.querySelector('.rc-site-popup')) return;
-    const version=String(p.version||p.title||'promo');
-    const key='rentcam_popup_seen_'+version;
-    try{if(sessionStorage.getItem(key)==='1') return}catch(e){}
+    if(p.enabled===false||document.querySelector('.rc-promo-widget')) return;
     const type=String(p.type||p.category||p.eyebrow||'promo').toLowerCase();
     const label=type.includes('new')||type.includes('baru')?'BARANG BARU':'PROMO';
-    const path=p.productId?'/produk/'+encodeURIComponent(p.productId):(p.buttonLink||'/produk');
+    const list=promoItems(p,label);
     const wrap=document.createElement('div');
-    wrap.className='rc-site-popup';
-    wrap.innerHTML=`<div class="rc-site-popup-card" role="dialog" aria-modal="true" aria-label="${E(p.title||'Promo')}">
-      <button class="rc-site-popup-close" type="button" aria-label="Tutup popup">&times;</button>
-      ${p.image?`<img class="rc-site-popup-img" src="${E(p.image)}" alt="">`:''}
-      <div class="rc-site-popup-body">
-        <small>${E(p.eyebrow||label)}</small>
-        <h2>${E(p.title||'Promo terbaru')}</h2>
-        <p>${E(p.text||'Cek produk dan penawaran terbaru kami.')}</p>
-        <button class="rc-site-popup-cta" type="button">${E(p.buttonLabel||'Lihat produk')}</button>
+    wrap.className='rc-promo-widget';
+    wrap.innerHTML=`<button class="rc-promo-float" type="button" aria-expanded="false" aria-controls="rcPromoPanel">
+      <span>${E(label)}</span><b>${list.length}</b>
+    </button>
+    <section class="rc-promo-panel" id="rcPromoPanel" hidden>
+      <div class="rc-promo-head">
+        <div><small>${E(p.eyebrow||label)}</small><h3>${E(p.title||'Promo & Produk Baru')}</h3></div>
+        <button class="rc-promo-close" type="button" aria-label="Tutup">&times;</button>
       </div>
-    </div>`;
-    const close=()=>{
-      try{sessionStorage.setItem(key,'1')}catch(e){}
-      wrap.classList.remove('show');
-      setTimeout(()=>wrap.remove(),220);
-    };
-    wrap.addEventListener('click',e=>{if(e.target===wrap||e.target.closest('.rc-site-popup-close')) close()});
-    wrap.querySelector('.rc-site-popup-cta').addEventListener('click',()=>{
-      close();
+      <p>${E(p.text||'Pilih produk promo atau barang baru.')}</p>
+      <div class="rc-promo-list">${list.map(item=>`<button class="rc-promo-item" type="button" data-popup-go="${E(item.path)}">
+        ${item.image?`<img src="${E(item.image)}" alt="">`:''}
+        <span><small>${E(item.badge)}</small><b>${E(item.name)}</b><em>${E(item.meta)}</em></span>
+      </button>`).join('')}</div>
+      <button class="rc-promo-all" type="button" data-popup-go="${E(p.buttonLink||'/produk')}">${E(p.buttonLabel||'Lihat semua produk')}</button>
+    </section>`;
+    const panel=wrap.querySelector('.rc-promo-panel'),btn=wrap.querySelector('.rc-promo-float');
+    const toggle=open=>{panel.hidden=!open;btn.setAttribute('aria-expanded',open?'true':'false')};
+    btn.addEventListener('click',()=>toggle(panel.hidden));
+    wrap.querySelector('.rc-promo-close').addEventListener('click',()=>toggle(false));
+    wrap.addEventListener('click',e=>{
+      const goTo=e.target.closest('[data-popup-go]');
+      if(!goTo)return;
+      toggle(false);
+      const path=goTo.dataset.popupGo||'/produk';
       if(typeof go==='function') go(path); else location.href=path;
     });
     document.body.append(wrap);
-    requestAnimationFrame(()=>wrap.classList.add('show'));
+  }
+  function promoItems(p,label){
+    const manual=Array.isArray(p.items)?p.items:[];
+    if(manual.length)return manual.filter(x=>x&&x.active!==false).map(x=>({name:x.title||x.name||'Produk promo',image:x.image||'',badge:x.type==='new'?'BARANG BARU':(x.badge||label),meta:x.text||x.subtitle||'',path:x.productId?'/produk/'+encodeURIComponent(x.productId):(x.link||'/produk')}));
+    let products=[];try{products=Array.isArray(P)?P:[]}catch(e){}
+    const picked=products.filter(x=>x&&x.active!==false&&x.deleted!==true&&x._cmsActive!==false&&(x.discountPercent||x.discount||x.labelText==='NEW'||x.label==='NEW'||/promo|diskon|new|baru/i.test([x.name,x.discountLabel,x.promoName].join(' ')))).slice(0,8);
+    const fallback=p.productId?products.filter(x=>String(x.id)===String(p.productId)):products.slice(0,5);
+    return (picked.length?picked:fallback).slice(0,8).map(x=>({name:x.name||'Produk',image:x.images?.[0]||x.image||x.img||p.image||'',badge:(x.labelText==='NEW'||x.label==='NEW')?'BARANG BARU':label,meta:[x.brand,x.discountPercent?`Diskon ${x.discountPercent}%`:x.discount?`Diskon ${x.discount}%`:x.cat||x.category].filter(Boolean).join(' · '),path:'/produk/'+encodeURIComponent(x.id)}));
   }
   function style(){
     if(document.getElementById('rc-template-popup-style')) return;
     const s=document.createElement('style');
     s.id='rc-template-popup-style';
     s.textContent=`
-      .rc-site-popup{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(8,12,18,.48);padding:18px;opacity:0;transition:.2s ease;backdrop-filter:blur(10px)}
-      .rc-site-popup.show{opacity:1}
-      .rc-site-popup-card{position:relative;width:min(480px,100%);overflow:hidden;border-radius:24px;background:#fff;box-shadow:0 28px 80px rgba(0,0,0,.28);transform:translateY(12px) scale(.98);transition:.2s ease}
-      .rc-site-popup.show .rc-site-popup-card{transform:none}
-      .rc-site-popup-close{position:absolute;right:12px;top:12px;z-index:2;width:40px;height:40px;border:0;border-radius:999px;background:rgba(255,255,255,.88);font-size:26px;line-height:1;cursor:pointer}
-      .rc-site-popup-img{width:100%;height:210px;object-fit:cover;display:block;background:#f3f4f6}
-      .rc-site-popup-body{padding:24px}
-      .rc-site-popup-body small{display:inline-flex;border:1px solid #e8edf3;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:900;letter-spacing:.13em;color:#f26a21}
-      .rc-site-popup-body h2{margin:14px 0 8px;font-size:31px;line-height:1.04;color:#101114}
-      .rc-site-popup-body p{margin:0 0 18px;color:#59616d;font-size:15px;line-height:1.55}
-      .rc-site-popup-cta{width:100%;border:0;border-radius:14px;background:#111;color:#fff;font-weight:900;padding:15px 18px;font-size:15px;cursor:pointer}
-      @media(max-width:640px){.rc-site-popup{align-items:flex-end;padding:12px}.rc-site-popup-card{border-radius:22px}.rc-site-popup-img{height:180px}.rc-site-popup-body h2{font-size:25px}}
+      .rc-promo-widget{position:fixed;right:14px;top:50%;transform:translateY(-50%);z-index:1200;font-family:inherit}
+      .rc-promo-float{width:58px;min-height:74px;border:0;border-radius:18px 0 0 18px;background:#111;color:#fff;box-shadow:0 12px 34px rgba(0,0,0,.22);cursor:pointer;display:grid;place-items:center;padding:9px 7px;gap:5px}
+      .rc-promo-float span{writing-mode:vertical-rl;text-orientation:mixed;font-size:9px;font-weight:900;letter-spacing:.14em}
+      .rc-promo-float b{position:absolute;right:43px;top:-7px;min-width:20px;height:20px;border-radius:999px;background:#f26a21;color:#fff;display:grid;place-items:center;font-size:11px}
+      .rc-promo-panel{position:absolute;right:66px;top:50%;transform:translateY(-50%);width:min(340px,calc(100vw - 92px));max-height:min(520px,78vh);overflow:auto;background:#fff;border:1px solid #e7e9ed;border-radius:18px;box-shadow:0 22px 70px rgba(0,0,0,.24);padding:14px}
+      .rc-promo-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+      .rc-promo-head small{display:block;font-size:9px;letter-spacing:.13em;font-weight:900;color:#f26a21}
+      .rc-promo-head h3{margin:4px 0 0;font-size:19px;line-height:1.15}
+      .rc-promo-close{width:34px;height:34px;border:0;border-radius:999px;background:#f3f4f6;font-size:22px;cursor:pointer}
+      .rc-promo-panel p{margin:9px 0 12px;color:#667085;font-size:12px;line-height:1.45}
+      .rc-promo-list{display:grid;gap:8px}
+      .rc-promo-item{display:grid;grid-template-columns:62px minmax(0,1fr);gap:10px;align-items:center;width:100%;border:1px solid #eceff3;background:#fff;border-radius:13px;padding:8px;text-align:left;cursor:pointer}
+      .rc-promo-item:hover{border-color:#111}
+      .rc-promo-item img{width:62px;height:54px;object-fit:contain;background:#f7f7f7;border-radius:9px}
+      .rc-promo-item small{font-size:8px;font-weight:900;color:#f26a21;letter-spacing:.1em}
+      .rc-promo-item b{display:block;color:#111;font-size:13px;line-height:1.2;margin:2px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .rc-promo-item em{display:block;color:#777;font-size:10px;font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .rc-promo-all{width:100%;margin-top:10px;border:0;border-radius:12px;background:#111;color:#fff;font-weight:900;padding:12px;cursor:pointer}
+      @media(max-width:640px){.rc-promo-widget{right:0}.rc-promo-float{width:50px;min-height:66px;border-radius:16px 0 0 16px}.rc-promo-panel{right:56px;width:calc(100vw - 72px);max-height:70vh}}
     `;
     document.head.append(s);
   }
