@@ -3,6 +3,18 @@
   if(location.pathname.startsWith('/cms')) return;
   const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const cfg=()=>window.RENTCAM_CMS_CONFIG||{};
+  const defaultPopup=()=>({
+    enabled:true,
+    type:'promo',
+    eyebrow:'PROMO',
+    title:'Promo Rental Hari Ini',
+    text:'Cek promo dan produk terbaru. Klik untuk langsung masuk ke halaman produk.',
+    buttonLabel:'Lihat produk promo',
+    productId:'arri-alexa-mini-lf',
+    buttonLink:'/produk/arri-alexa-mini-lf',
+    image:(window.SL&&SL[0]?.img)||'https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1200&q=88',
+    version:'default-promo-20260913'
+  });
   function copy(){
     const c=cfg().copy||{}, h=cfg().homepage||{};
     if(location.pathname==='/produk'){
@@ -30,19 +42,23 @@
     }
   }
   function popup(){
-    const p=cfg().popup||{};
+    const raw=cfg().popup||{};
+    const hasPopup=raw.title||raw.text||raw.image||raw.productId||raw.buttonLink;
+    const p={...defaultPopup(),...(hasPopup?raw:{})};
     if(p.enabled===false||document.querySelector('.rc-site-popup')) return;
-    if(!(p.title||p.text||p.image)) return;
     const version=String(p.version||p.title||'promo');
     const key='rentcam_popup_seen_'+version;
     try{if(sessionStorage.getItem(key)==='1') return}catch(e){}
+    const type=String(p.type||p.category||p.eyebrow||'promo').toLowerCase();
+    const label=type.includes('new')||type.includes('baru')?'BARANG BARU':'PROMO';
+    const path=p.productId?'/produk/'+encodeURIComponent(p.productId):(p.buttonLink||'/produk');
     const wrap=document.createElement('div');
     wrap.className='rc-site-popup';
     wrap.innerHTML=`<div class="rc-site-popup-card" role="dialog" aria-modal="true" aria-label="${E(p.title||'Promo')}">
       <button class="rc-site-popup-close" type="button" aria-label="Tutup popup">&times;</button>
       ${p.image?`<img class="rc-site-popup-img" src="${E(p.image)}" alt="">`:''}
       <div class="rc-site-popup-body">
-        <small>${E(p.eyebrow||'PROMO')}</small>
+        <small>${E(p.eyebrow||label)}</small>
         <h2>${E(p.title||'Promo terbaru')}</h2>
         <p>${E(p.text||'Cek produk dan penawaran terbaru kami.')}</p>
         <button class="rc-site-popup-cta" type="button">${E(p.buttonLabel||'Lihat produk')}</button>
@@ -56,7 +72,6 @@
     wrap.addEventListener('click',e=>{if(e.target===wrap||e.target.closest('.rc-site-popup-close')) close()});
     wrap.querySelector('.rc-site-popup-cta').addEventListener('click',()=>{
       close();
-      const path=p.buttonLink||'/produk';
       if(typeof go==='function') go(path); else location.href=path;
     });
     document.body.append(wrap);
