@@ -137,7 +137,7 @@
       banners.forEach(b=>{const i=c.banners.findIndex(x=>String(x.id)===String(b.id));if(i>=0)c.banners[i]={...b,...c.banners[i]};else c.banners.push(b)});
     }
     if(!c.popup)c.popup={};
-    c.popup={enabled:true,type:c.popup.type||'promo',eyebrow:c.popup.eyebrow||'PROMO',title:c.popup.title||'Promo Rental Hari Ini',text:c.popup.text||'Cek promo dan produk terbaru. Klik untuk langsung masuk ke halaman produk.',buttonLabel:c.popup.buttonLabel||'Lihat produk promo',productId:c.popup.productId||'arri-alexa-mini-lf',buttonLink:c.popup.buttonLink||'/produk/arri-alexa-mini-lf',image:c.popup.image||banners[0]?.image||'',version:c.popup.version||'promo-live-1'};
+    c.popup={enabled:true,type:c.popup.type||'promo',floatLabel:c.popup.floatLabel||'',eyebrow:c.popup.eyebrow||'PROMO',title:c.popup.title||'Promo Rental Hari Ini',text:c.popup.text||'Cek promo dan produk terbaru. Klik untuk langsung masuk ke halaman produk.',buttonLabel:c.popup.buttonLabel||'Lihat produk',productId:c.popup.productId||'',buttonLink:c.popup.buttonLink||'',image:c.popup.image||banners[0]?.image||'',version:c.popup.version||'promo-live-1'};
   }
   function selectField(label,path,options){
     const parts=path.split('.');
@@ -179,12 +179,13 @@
         <div class="tpl-fields">
           ${field('Tampilkan popup di website','popup.enabled','checkbox')}
           ${selectField('Kategori popup','popup.type',[['promo','Promo'],['new','Barang baru']])}
+          ${field('Label tombol pinggir','popup.floatLabel','text','PROMO / NEW / DISKON')}
           ${field('Label kecil','popup.eyebrow')}
           ${field('Judul','popup.title')}
           ${field('Deskripsi','popup.text','textarea')}
-          ${field('Tombol','popup.buttonLabel')}
-          ${field('ID produk tujuan','popup.productId','text','arri-alexa-mini-lf')}
-          ${field('Link tombol','popup.buttonLink','text','/produk')}
+          ${field('Nama tombol bawah','popup.buttonLabel','text','Lihat produk')}
+          ${field('ID produk tujuan manual','popup.productId','text','Kosongkan agar otomatis ikut promo/new pertama')}
+          ${field('Link tombol manual','popup.buttonLink','text','Kosongkan agar otomatis ke detail produk')}
           ${field('URL gambar popup','popup.image')}
           ${field('Kode versi popup','popup.version','text','promo-1')}
         </div>
