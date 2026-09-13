@@ -53,6 +53,8 @@
   function currentProducts(){try{return Array.isArray(P)?P:null}catch(e){return null}}
   function ensureProducts(){
     const list=currentProducts(); if(!list) return false;
+    const cms=window.RENTCAM_CMS_CONFIG;
+    if(!cms?.generalProductsEnabled) return false;
     const ids=new Set(list.map(p=>String(p.id)));
     let added=0;
     products.forEach(p=>{
