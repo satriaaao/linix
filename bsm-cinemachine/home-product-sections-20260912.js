@@ -68,6 +68,8 @@
       #app .home-product-section+.home-product-section{border-top:1px solid #e6e6e3!important}
       #app .home-product-head{display:flex!important;align-items:flex-end!important;justify-content:space-between!important;gap:16px!important;margin-bottom:22px!important}
       #app .home-product-head h2{margin:0!important;font-size:28px!important;line-height:1!important;letter-spacing:-.04em!important;color:#111!important}
+      #app .home-product-title-link{appearance:none!important;border:0!important;background:transparent!important;color:#111!important;padding:0!important;margin:0!important;font:inherit!important;font-size:28px!important;line-height:1!important;letter-spacing:-.04em!important;font-weight:900!important;text-align:left!important;cursor:pointer!important}
+      #app .home-product-title-link:hover{text-decoration:underline!important;text-underline-offset:5px!important}
       #app .home-product-head p{margin:8px 0 0!important;font-size:13px!important;line-height:1.5!important;color:#777!important}
       #app .home-product-view{border:0!important;background:transparent!important;color:#111!important;font-size:12px!important;font-weight:800!important;text-decoration:underline!important;text-underline-offset:4px!important;cursor:pointer!important;padding:8px 0!important;white-space:nowrap!important}
       #app .home-product-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:20px!important}
@@ -92,7 +94,7 @@
         #app .home-product-sections{padding-bottom:34px!important}
         #app .home-product-section{padding:22px 0 0!important}
         #app .home-product-head{align-items:flex-end!important;margin-bottom:14px!important;gap:10px!important}
-        #app .home-product-head h2{font-size:25px!important}
+        #app .home-product-head h2,#app .home-product-title-link{font-size:25px!important}
         #app .home-product-head p{font-size:11px!important;margin-top:5px!important;max-width:250px!important}
         #app .home-product-view{font-size:10px!important}
         #app .home-product-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
@@ -130,7 +132,7 @@
     const products=groups.map(g=>{
       const items=(available.find(s=>s.key===g.key)?.items||[]).slice(0,4);
       if(!items.length)return '';
-      return `<section class="home-product-section home-featured"><div class="home-product-head"><h2>${g.title}</h2><button class="home-product-view" onclick="go('/produk?cat=${g.catalog}')">Lihat semua →</button></div><div class="home-product-grid">${items.map(x=>card(x,g.key)).join('')}</div></section>`;
+      return `<section class="home-product-section home-featured"><div class="home-product-head"><button class="home-product-title-link" onclick="go('/produk?cat=${g.catalog}')">${g.title}</button><button class="home-product-view" onclick="go('/produk?cat=${g.catalog}')">Lihat semua →</button></div><div class="home-product-grid">${items.map(x=>card(x,g.key)).join('')}</div></section>`;
     }).join('');
     const configured=window.RENTCAM_CMS_CONFIG?.articles;
     let articles=Array.isArray(configured)&&configured.length?configured:[];
