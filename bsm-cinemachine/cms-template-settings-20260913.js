@@ -230,7 +230,8 @@
       if(btn.dataset.tplAction==='sync-content'){
         syncWebsiteContent();
         render();
-        toast('Produk, kategori, brand dan banner sudah masuk ke CMS. Klik Simpan semua.');
+        await saveConfig();
+        toast('Produk, kategori, brand dan banner sudah masuk ke CMS.');
       }
       if(btn.dataset.tplAction==='save'){
         document.querySelectorAll('[data-tpl-field]').forEach(el=>setPath(el.dataset.tplField,el.type==='checkbox'?el.checked:el.value));
