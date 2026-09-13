@@ -1,0 +1,38 @@
+{
+  "buildCommand": "rm -rf dist && mkdir -p dist && cp bsm-cinemachine/public-v5.html dist/index.html && cp bsm-cinemachine/cms-v5.html dist/cms.html && cp bsm-cinemachine/*.js dist/ && cp bsm-cinemachine/*.css dist/ 2>/dev/null || true",
+  "outputDirectory": "dist",
+  "cleanUrls": true,
+  "headers": [
+    {
+      "source": "/",
+      "headers": [
+        {"key": "Cache-Control", "value": "no-store, max-age=0"},
+        {"key": "Content-Type", "value": "text/html; charset=utf-8"}
+      ]
+    },
+    {
+      "source": "/cms",
+      "headers": [
+        {"key": "Cache-Control", "value": "no-store, max-age=0"},
+        {"key": "Content-Type", "value": "text/html; charset=utf-8"}
+      ]
+    },
+    {
+      "source": "/produk/:path*",
+      "headers": [
+        {"key": "Cache-Control", "value": "no-store, max-age=0"}
+      ]
+    }
+  ],
+  "rewrites": [
+    {"source": "/cms", "destination": "/cms.html"},
+    {"source": "/cms/:path*", "destination": "/cms.html"},
+    {"source": "/produk", "destination": "/index.html"},
+    {"source": "/produk/:path*", "destination": "/index.html"},
+    {"source": "/portfolio", "destination": "/index.html"},
+    {"source": "/portfolio/:path*", "destination": "/index.html"},
+    {"source": "/artikel", "destination": "/index.html"},
+    {"source": "/artikel/:path*", "destination": "/index.html"},
+    {"source": "/cart", "destination": "/index.html"}
+  ]
+}
