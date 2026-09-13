@@ -5,6 +5,9 @@
   const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const slug=s=>String(s||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
   const getCfg=()=>window.RENTCAM_CMS_CONFIG||(window.RENTCAM_CMS_CONFIG={});
+  const allRentalCategories=[
+    ['camera','Kamera',10],['lens','Lensa',20],['lighting','Lighting',30],['audio','Audio',40],['camping','Alat Camping',50],['tent','Tenda',60],['car','Rental Mobil',70],['motorbike','Rental Motor',80],['playstation','Rental PS',90],['iphone','Rental iPhone',100],['food','Makanan UMKM',110],['accessories','Aksesori',120]
+  ];
   const toast=(msg,bad=false)=>{
     const n=document.createElement('div');
     n.className='v5-toast '+(bad?'bad':'ok');
@@ -37,9 +40,7 @@
     allRental:{
       name:'All Rental',
       general:{siteName:'Rental All',tagline:'Sewa kebutuhan acara, produksi, perjalanan dan outdoor',seoTitle:'Rental All - Sewa Barang Harian'},
-      mainCategories:[
-        ['camera','Kamera',10],['lens','Lensa',20],['lighting','Lighting',30],['audio','Audio',40],['camping','Alat Camping',50],['tent','Tenda',60],['car','Rental Mobil',70],['motorbike','Rental Motor',80],['playstation','Rental PS',90],['iphone','Rental iPhone',100],['food','Makanan UMKM',110],['accessories','Aksesori',120]
-      ],
+      mainCategories:allRentalCategories,
       brands:['Rentcam','Rentcam Outdoor','Rentcam Transport','Rentcam Game','Rentcam Gadget','Rentcam UMKM','ARRI','Sony','Sigma','Aputure'],
       copy:{catalogTitle:'Semua Produk',catalogSubtitle:'Pilih kategori dan brand untuk semua kebutuhan rental.',catalogSearchPlaceholder:'Cari mobil, motor, PS, tenda, iPhone, makanan...',catalogFilterLabel:'Semua produk, kategori & brand'},
       homepage:{generalTitle:'Rental Lainnya',generalSubtitle:'Produk tambahan untuk event, perjalanan, outdoor, gadget dan UMKM.'}
@@ -127,7 +128,10 @@
     });
     const cats=[...new Map(c.customProducts.map(p=>[p.mainCategory,{id:p.mainCategory,name:p.category||p.mainCategory,sort:p.sortOrder||999,active:true}])).values()];
     c.mainCategories=[...(c.mainCategories||[])];
+    allRentalCategories.forEach(([id,name,sort])=>{if(!c.mainCategories.some(x=>String(x.id)===id))c.mainCategories.push({id,name,sort,active:true})});
     cats.forEach(cat=>{if(!c.mainCategories.some(x=>String(x.id)===String(cat.id)))c.mainCategories.push(cat)});
+    c.subCategories=[...(c.subCategories||[])];
+    allRentalCategories.forEach(([id,name])=>{if(!c.subCategories.some(x=>String(x.mainCategory)===id))c.subCategories.push({id:id+'-utama',name:name+' Utama',mainCategory:id,sort:10,active:true})});
     const brands=[...new Set(c.customProducts.map(p=>p.brand).filter(Boolean))];
     c.brands=[...(c.brands||[])];
     brands.forEach((name,i)=>{if(!c.brands.some(b=>String(b.name).toLowerCase()===String(name).toLowerCase()))c.brands.push({id:slug(name),name,logo:'',sort:100+i,active:true})});
@@ -138,6 +142,22 @@
     }
     if(!c.popup)c.popup={};
     c.popup={enabled:true,type:c.popup.type||'promo',floatLabel:c.popup.floatLabel||'',eyebrow:c.popup.eyebrow||'PROMO',title:c.popup.title||'Promo Rental Hari Ini',text:c.popup.text||'Cek promo dan produk terbaru. Klik untuk langsung masuk ke halaman produk.',buttonLabel:c.popup.buttonLabel||'Lihat produk',productId:c.popup.productId||'',buttonLink:c.popup.buttonLink||'',image:c.popup.image||banners[0]?.image||'',version:c.popup.version||'promo-live-1'};
+  }
+  function ensureAllRentalCategories(){
+    const c=getCfg();
+    c.mainCategories=[...(c.mainCategories||[])];
+    c.subCategories=[...(c.subCategories||[])];
+    allRentalCategories.forEach(([id,name,sort])=>{
+      if(!c.mainCategories.some(x=>String(x.id)===id))c.mainCategories.push({id,name,sort,active:true});
+      if(!c.subCategories.some(x=>String(x.mainCategory)===id))c.subCategories.push({id:id+'-utama',name:name+' Utama',mainCategory:id,sort:10,active:true});
+    });
+  }
+  function categoryManager(){
+    const cats=[...(getCfg().mainCategories||[])].sort((a,b)=>(a.sort||999)-(b.sort||999));
+    return `<section class="tpl-card">
+      <div class="tpl-card-head"><div><h3>Kategori All Rental di CMS</h3><p>Kategori ini muncul di dropdown website dan Master Data. Semua tetap bisa diedit, dinonaktifkan, atau dihapus dari menu Kategori & Brand.</p></div><button data-tpl-action="ensure-categories">Isi kategori all rental</button></div>
+      <div class="tpl-cat-list">${cats.map(c=>`<span class="${c.active===false?'off':''}">${E(c.name||c.id)}</span>`).join('')||'<p>Belum ada kategori.</p>'}</div>
+    </section>`;
   }
   function selectField(label,path,options){
     const parts=path.split('.');
@@ -160,6 +180,7 @@
         <div><h3>Sinkron konten website ke CMS</h3><p>Masukkan semua produk, kategori, brand dan banner yang sedang tampil di website ke data CMS agar bisa diedit, dinonaktifkan, atau dihapus.</p></div>
         <button data-tpl-action="sync-content">Sinkronkan produk & banner</button>
       </section>
+      ${categoryManager()}
       <section class="tpl-card">
         <h3>Teks Website</h3>
         <p>Semua teks utama katalog dan homepage bisa diganti dari sini.</p>
@@ -198,7 +219,7 @@
     const s=document.createElement('style');
     s.id='tpl-cms-style';
     s.textContent=`
-      .tpl-system{max-width:1240px}.tpl-hero,.tpl-card{background:#fff;border:1px solid #e3e8ef;border-radius:18px;padding:22px;margin-bottom:16px;box-shadow:0 10px 28px rgba(24,38,57,.04)}.tpl-hero{display:flex;align-items:center;justify-content:space-between;gap:20px;background:linear-gradient(135deg,#101827,#17324f);color:#fff}.tpl-hero small{letter-spacing:.14em;color:#9bc1ff;font-weight:800}.tpl-hero h2{font-size:28px;line-height:1.06;margin:8px 0}.tpl-hero p{color:#d8e5f8;max-width:620px}.tpl-hero button,.tpl-card button{border:0;border-radius:12px;background:#f26a21;color:#fff;font-weight:850;padding:13px 16px;cursor:pointer}.tpl-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.tpl-sync-card{display:flex;align-items:center;justify-content:space-between;gap:18px;background:#f8fbff}.tpl-card h3{margin:0 0 8px;font-size:20px}.tpl-card p,.tpl-note{color:#6d7888;font-size:13px;line-height:1.55}.tpl-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.tpl-fields label{display:block;font-size:12px;font-weight:800;color:#3f4b5d}.tpl-fields input,.tpl-fields textarea,.tpl-fields select{display:block;width:100%;margin-top:7px;border:1px solid #dbe2eb;border-radius:11px;padding:11px 12px;font:inherit;font-size:13px;background:#fff}.tpl-fields textarea{min-height:88px}.tpl-check{display:flex!important;align-items:center;gap:9px;background:#f6f8fb;border:1px solid #e1e7ef;border-radius:12px;padding:13px}.tpl-check input{width:auto!important;margin:0!important}@media(max-width:850px){.tpl-hero,.tpl-sync-card{display:block}.tpl-grid,.tpl-fields{grid-template-columns:1fr}.tpl-hero h2{font-size:23px}}
+      .tpl-system{max-width:1240px}.tpl-hero,.tpl-card{background:#fff;border:1px solid #e3e8ef;border-radius:18px;padding:22px;margin-bottom:16px;box-shadow:0 10px 28px rgba(24,38,57,.04)}.tpl-hero{display:flex;align-items:center;justify-content:space-between;gap:20px;background:linear-gradient(135deg,#101827,#17324f);color:#fff}.tpl-hero small{letter-spacing:.14em;color:#9bc1ff;font-weight:800}.tpl-hero h2{font-size:28px;line-height:1.06;margin:8px 0}.tpl-hero p{color:#d8e5f8;max-width:620px}.tpl-hero button,.tpl-card button{border:0;border-radius:12px;background:#f26a21;color:#fff;font-weight:850;padding:13px 16px;cursor:pointer}.tpl-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.tpl-sync-card,.tpl-card-head{display:flex;align-items:center;justify-content:space-between;gap:18px}.tpl-sync-card{background:#f8fbff}.tpl-card h3{margin:0 0 8px;font-size:20px}.tpl-card p,.tpl-note{color:#6d7888;font-size:13px;line-height:1.55}.tpl-cat-list{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}.tpl-cat-list span{border:1px solid #dce5ef;background:#f6f9fc;border-radius:999px;padding:9px 12px;font-size:13px;font-weight:800;color:#26354a}.tpl-cat-list span.off{opacity:.45;text-decoration:line-through}.tpl-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.tpl-fields label{display:block;font-size:12px;font-weight:800;color:#3f4b5d}.tpl-fields input,.tpl-fields textarea,.tpl-fields select{display:block;width:100%;margin-top:7px;border:1px solid #dbe2eb;border-radius:11px;padding:11px 12px;font:inherit;font-size:13px;background:#fff}.tpl-fields textarea{min-height:88px}.tpl-check{display:flex!important;align-items:center;gap:9px;background:#f6f8fb;border:1px solid #e1e7ef;border-radius:12px;padding:13px}.tpl-check input{width:auto!important;margin:0!important}@media(max-width:850px){.tpl-hero,.tpl-sync-card,.tpl-card-head{display:block}.tpl-grid,.tpl-fields{grid-template-columns:1fr}.tpl-hero h2{font-size:23px}.tpl-card button{margin-top:8px}}
     `;
     document.head.append(s);
   }
@@ -233,6 +254,12 @@
         render();
         await saveConfig();
         toast('Produk, kategori, brand dan banner sudah masuk ke CMS.');
+      }
+      if(btn.dataset.tplAction==='ensure-categories'){
+        ensureAllRentalCategories();
+        render();
+        await saveConfig();
+        toast('Kategori all rental sudah masuk ke CMS.');
       }
       if(btn.dataset.tplAction==='save'){
         document.querySelectorAll('[data-tpl-field]').forEach(el=>setPath(el.dataset.tplField,el.type==='checkbox'?el.checked:el.value));
