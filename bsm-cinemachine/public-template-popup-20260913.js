@@ -3,6 +3,10 @@
   if(location.pathname.startsWith('/cms')) return;
   const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const cfg=()=>window.RENTCAM_CMS_CONFIG||{};
+  const cleanLabel=s=>String(s||'').trim().toLowerCase();
+  const labelList=v=>Array.isArray(v)?v.map(cleanLabel).filter(Boolean):String(v||'').split(',').map(cleanLabel).filter(Boolean);
+  const productLabels=p=>[p?.labelText,p?.label,p?.badge,p?.promoName,p?.discountLabel,Number(p?.discountPercent||p?.discount||0)>0?'DISKON':''].map(cleanLabel).filter(Boolean);
+  const matchesLabel=(p,labels)=>!labels.length||labels.some(l=>productLabels(p).some(x=>x===l||x.includes(l)||l.includes(x)));
   const defaultPopup=()=>({
     enabled:true,
     type:'promo',
@@ -11,6 +15,7 @@
     text:'Klik untuk lihat daftar produk promo dan barang baru.',
     buttonLabel:'Lihat produk',
     floatLabel:'',
+    labels:['PROMO','NEW','DISKON'],
     productId:'',
     buttonLink:'/produk',
     image:'',
@@ -47,11 +52,13 @@
     const hasPopup=raw.title||raw.text||raw.image||raw.productId||raw.buttonLink;
     const p={...defaultPopup(),...(hasPopup?raw:{})};
     if(p.enabled===false||document.querySelector('.rc-promo-widget')) return;
-    const type=String(p.type||p.category||p.eyebrow||'promo').toLowerCase();
+    const chosenLabels=labelList(p.labels?.length?p.labels:(p.type||p.category||p.eyebrow||'promo'));
+    const type=String(p.type||p.category||p.eyebrow||chosenLabels[0]||'promo').toLowerCase();
     const isNew=type.includes('new')||type.includes('baru');
-    const label=p.floatLabel||(isNew?'BARANG BARU':'PROMO');
-    const list=promoItems(p,isNew,label);
-    const primaryPath=p.productId?'/produk/'+encodeURIComponent(p.productId):(p.buttonLink&&p.buttonLink!=='/produk'?p.buttonLink:'/produk?'+(isNew?'new=1':'promo=1'));
+    const label=p.floatLabel||(chosenLabels.length?chosenLabels.map(x=>x.toUpperCase()).join(' / '):(isNew?'BARANG BARU':'PROMO'));
+    const list=promoItems(p,isNew,label,chosenLabels);
+    const labelQuery=chosenLabels.length?'/produk?label='+encodeURIComponent(chosenLabels.join(',')):'';
+    const primaryPath=p.productId?'/produk/'+encodeURIComponent(p.productId):(p.buttonLink&&p.buttonLink!=='/produk'?p.buttonLink:(labelQuery||'/produk?'+(isNew?'new=1':'promo=1')));
     const primaryLabel=p.buttonLabel&&p.buttonLabel!=='Lihat daftar'?p.buttonLabel:'Lihat produk';
     const wrap=document.createElement('div');
     wrap.className='rc-promo-widget';
@@ -83,15 +90,15 @@
     });
     document.body.append(wrap);
   }
-  function promoItems(p,isNew,label){
+  function promoItems(p,isNew,label,chosenLabels=[]){
     const manual=Array.isArray(p.items)?p.items:[];
-    if(manual.length)return manual.filter(x=>x&&x.active!==false&&(!x.type||String(x.type).toLowerCase()===(isNew?'new':'promo'))).map(x=>({name:x.title||x.name||'Produk promo',image:x.image||'',badge:x.type==='new'?'BARANG BARU':(x.badge||label),meta:x.text||x.subtitle||'',path:x.productId?'/produk/'+encodeURIComponent(x.productId):(x.link||'/produk')}));
+    if(manual.length)return manual.filter(x=>x&&x.active!==false&&(!chosenLabels.length||matchesLabel(x,chosenLabels)||labelList(x.labels||x.type||x.badge).some(l=>chosenLabels.includes(l)))).map(x=>({name:x.title||x.name||'Produk promo',image:x.image||'',badge:x.badge||x.label||x.type||label,meta:x.text||x.subtitle||'',path:x.productId?'/produk/'+encodeURIComponent(x.productId):(x.link||('/produk?label='+encodeURIComponent(chosenLabels.join(','))))}));
     let products=[];try{products=Array.isArray(P)?P:[]}catch(e){}
     const isNewProduct=x=>x.labelText==='NEW'||x.label==='NEW'||/new|baru/i.test([x.badge,x.labelText,x.label,x.promoName,x.discountLabel].join(' '));
     const isPromoProduct=x=>Number(x.discountPercent||x.discount||0)>0||/promo|diskon/i.test([x.badge,x.labelText,x.label,x.promoName,x.discountLabel].join(' '));
-    const picked=products.filter(x=>x&&x.active!==false&&x.deleted!==true&&x._cmsActive!==false&&(isNew?isNewProduct(x):isPromoProduct(x))).slice(0,8);
+    const picked=products.filter(x=>x&&x.active!==false&&x.deleted!==true&&x._cmsActive!==false&&(chosenLabels.length?matchesLabel(x,chosenLabels):(isNew?isNewProduct(x):isPromoProduct(x)))).slice(0,8);
     const fallback=p.productId?products.filter(x=>String(x.id)===String(p.productId)):products.slice(0,5);
-    return (picked.length?picked:fallback).slice(0,8).map(x=>({name:x.name||'Produk',image:x.images?.[0]||x.image||x.img||p.image||'',badge:isNewProduct(x)?'BARANG BARU':label,meta:[x.brand,x.discountPercent?`Diskon ${x.discountPercent}%`:x.discount?`Diskon ${x.discount}%`:x.cat||x.category].filter(Boolean).join(' · '),path:'/produk/'+encodeURIComponent(x.id)}));
+    return (picked.length?picked:fallback).slice(0,8).map(x=>({name:x.name||'Produk',image:x.images?.[0]||x.image||x.img||p.image||'',badge:x.labelText||x.label||x.discountLabel||(isNewProduct(x)?'BARANG BARU':label),meta:[x.brand,x.discountPercent?`Diskon ${x.discountPercent}%`:x.discount?`Diskon ${x.discount}%`:x.cat||x.category].filter(Boolean).join(' · '),path:'/produk/'+encodeURIComponent(x.id)}));
   }
   document.addEventListener('click',e=>{
     const nav=e.target.closest?.('[data-go]');
