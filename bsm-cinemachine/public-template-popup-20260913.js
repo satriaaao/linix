@@ -49,6 +49,8 @@
     const type=String(p.type||p.category||p.eyebrow||'promo').toLowerCase();
     const label=type.includes('new')||type.includes('baru')?'BARANG BARU':'PROMO';
     const list=promoItems(p,label);
+    const primaryPath=(p.productId?'/produk/'+encodeURIComponent(p.productId):(list[0]?.path||p.buttonLink||'/produk'));
+    const primaryLabel=p.buttonLabel&&p.buttonLabel!=='Lihat daftar'?p.buttonLabel:'Lihat produk';
     const wrap=document.createElement('div');
     wrap.className='rc-promo-widget';
     wrap.innerHTML=`<button class="rc-promo-float" type="button" aria-expanded="false" aria-controls="rcPromoPanel">
@@ -64,7 +66,7 @@
         ${item.image?`<img src="${E(item.image)}" alt="">`:''}
         <span><small>${E(item.badge)}</small><b>${E(item.name)}</b><em>${E(item.meta)}</em></span>
       </button>`).join('')}</div>
-      <button class="rc-promo-all" type="button" data-popup-go="${E(p.buttonLink||'/produk')}">${E(p.buttonLabel||'Lihat semua produk')}</button>
+      <button class="rc-promo-all" type="button" data-popup-go="${E(primaryPath)}">${E(primaryLabel)}</button>
     </section>`;
     const panel=wrap.querySelector('.rc-promo-panel'),btn=wrap.querySelector('.rc-promo-float');
     const toggle=open=>{panel.hidden=!open;btn.setAttribute('aria-expanded',open?'true':'false')};
