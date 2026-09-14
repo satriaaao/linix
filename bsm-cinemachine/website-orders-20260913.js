@@ -56,9 +56,34 @@
   function wa(order,customer,items,x,link){
     const target=adminWa();if(!/^62[0-9]{7,14}$/.test(target))return '';
     const total=totals(items,x.start,x.end),code=order.order_number||'-';
-    const lines=[`Halo ${window.RENTCAM_CMS_CONFIG?.general?.siteName||'Rentcam'}, saya sudah mengisi order di website.`,'',`*KODE ORDER: ${code}*`,'Admin bisa cek kode ini di CMS > Order Masuk.','','*DATA CUSTOMER*',`Nama: ${customer.name||'Belum diisi'}`,`WhatsApp: ${customer.phone?('+'+customer.phone):'Belum diisi'}`,`Email: ${customer.email||'Belum diisi'}`,'','*DAFTAR PRODUK*',...items.map((i,n)=>{const p=productById(i.id),qty=Number(i.q)||1;return `${n+1}. ${p.name||p.title||pname(i.id)}\n   Qty: ${qty}\n   Harga: ${M(Number(p.price)||0)} / hari`;}),'','*JADWAL*',`Mulai: ${x.start||'Belum diisi'}`,`Selesai: ${x.end||'Belum diisi'}`,`Durasi: ${total.days} hari`,`Terima alat: ${x.mode==='delivery'?'Diantar ke lokasi':'Ambil sendiri'}`,`Jam terima: ${wib(x.deliver_at)}`,`Kembali: ${x.return_mode==='collect'?'Dijemput dari lokasi':'Kembalikan sendiri'}`,`Jam kembali: ${wib(x.collect_at)}`,'','*LOKASI*',`Alamat: ${x.address||'Belum diisi'}`,`Google Maps: ${x.maps_url||'Belum diisi'}`];
-    if(x.notes)lines.push('','*CATATAN*',x.notes);
-    lines.push('','*RINGKASAN BIAYA*',`Subtotal: ${M(total.subtotal)}`,`${total.tax.label}: ${total.tax.enabled?`${M(total.ppn)} (${total.tax.rate}%)`:'Belum termasuk'}`,`Total estimasi: ${M(total.tax.enabled?total.grand:(Number(order.total)||total.subtotal))}`,'',`Link status: ${location.origin}${link}`);
+    const d=v=>v?new Date(v+'T00:00:00+07:00').toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta',day:'numeric',month:'long',year:'numeric'}):'Belum diisi';
+    const period=(x.start&&x.end)?`${d(x.start).replace(/\s+\d{4}$/,'')}\u2013${d(x.end)} (${total.days} Hari)`: `${d(x.start||x.end)} (${total.days} Hari)`;
+    const method=x.mode==='delivery'?'Diantar':'Ambil Sendiri';
+    const memberStatus=x.customer_type==='member'?'Sudah Member':'Belum Member';
+    const productLines=items.map(i=>{
+      const p=productById(i.id),qty=Number(i.q)||1,price=(Number(p.price)||0)*qty;
+      return `- ${p.name||p.title||pname(i.id)} = ${qty}x (${M(price)})`;
+    });
+    const lines=[
+      '*Pesanan Rental*',
+      '',
+      `Status member : ${memberStatus}`,
+      `Customer: ${customer.name||'Belum diisi'}`,
+      `WhatsApp: ${customer.phone?('+'+customer.phone):'Belum diisi'}`,
+      `No. Pesanan: ${code}`,
+      `Periode: ${period}`,
+      `Metode: ${method}`,
+      '',
+      '____________________________________',
+      '',
+      '*Daftar Rental*',
+      ...productLines,
+      '',
+      '*Ringkasan Biaya*',
+      `- Subtotal: ${M(total.subtotal)}`,
+      `- ${total.tax.label}: ${total.tax.enabled?`${M(total.ppn)} (${total.tax.rate}%)`:'Belum Termasuk'}`,
+      `- Total Estimasi: ${M(total.tax.enabled?total.grand:(Number(order.total)||total.subtotal))}`
+    ];
     return 'https://wa.me/'+target+'?text='+encodeURIComponent(lines.join('\n'));
   }
   const bankFields=()=>`<div class="rc-payment-grid"><label>Rekening<select name="bank"><option value="">Pilih rekening</option>${banks().map(b=>`<option value="${E(b.id)}">${E(b.bank)} · ${E(b.holder)}</option>`).join('')}</select></label><label>Nominal<input name="amount" type="number" placeholder="Rp0"></label></div><p class="rc-help" data-bank-info>Opsional, bisa dilengkapi nanti.</p><label>Bukti transfer <span>(opsional)</span><input name="receipt" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"></label>`;
