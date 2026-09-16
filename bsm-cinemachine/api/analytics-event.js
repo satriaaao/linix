@@ -9,7 +9,7 @@ function header(req,name){
   return h[name]??h[name.toLowerCase()]??h[name.toUpperCase()]??'';
 }
 function decoded(value){try{return decodeURIComponent(String(value||''))}catch(_){return String(value||'')}}
-function roundCoord(value){const n=Number(value);return Number.isFinite(n)?Math.round(n*100)/100:null}
+function roundCoord(value){if(value===null||value===undefined||String(value).trim()==='')return null;const n=Number(value);return Number.isFinite(n)?Math.round(n*100)/100:null}
 function json(res,status,payload){res.statusCode=status;res.setHeader?.('content-type','application/json; charset=utf-8');res.setHeader?.('cache-control','no-store');res.end(JSON.stringify(payload))}
 function bodyObject(req){if(req?.body&&typeof req.body==='object')return req.body;try{return JSON.parse(req?.body||'{}')}catch(_){return {}}}
 function visitorHash(req,sessionId){
