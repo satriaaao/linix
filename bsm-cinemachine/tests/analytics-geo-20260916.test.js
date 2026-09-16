@@ -6,6 +6,8 @@ test('roundCoord rounds coordinates to two decimals',()=>{
   assert.equal(geo.roundCoord(-6.21462),-6.21);
   assert.equal(geo.roundCoord(106.84513),106.85);
   assert.equal(geo.roundCoord('bad'),null);
+  assert.equal(geo.roundCoord(''),null);
+  assert.equal(geo.roundCoord(null),null);
 });
 
 test('productName resolves overrides, custom products, then base products',()=>{
@@ -29,4 +31,5 @@ test('summarize groups product clicks, locations and unique anonymous visitors',
   assert.equal(result.uniqueVisitors,2);
   assert.equal(result.locations.find(x=>x.city==='Jakarta').clicks,2);
   assert.equal(result.locations.find(x=>x.city==='Bandung').views,1);
+  assert.equal(result.locations.some(x=>x.latitude===0&&x.longitude===0),false);
 });
