@@ -5,7 +5,7 @@
     'https://cdn.jsdelivr.net/gh/satriaaao/linix@636f895753b457a401c8357dc24e485795d28454/bsm-cinemachine/rental-integrity-lib-20260916.js',
     'https://cdn.jsdelivr.net/gh/satriaaao/linix@636f895753b457a401c8357dc24e485795d28454/bsm-cinemachine/cms-integrity-fix-20260916.js',
     'https://cdn.jsdelivr.net/gh/satriaaao/linix@86145acbcd398ed7ec8d1c93d0331bc770313d6f/bsm-cinemachine/analytics-geo-lib-20260916.js',
-    'https://cdn.jsdelivr.net/gh/satriaaao/linix@3dc9cc39250a84b496fabf248dc4e68d6aa5034a/bsm-cinemachine/analytics-geo-dashboard-20260916.js'
+    'https://cdn.jsdelivr.net/gh/satriaaao/linix@6ef966228ed66b49c27cbf8b3561aab3a2f3f767/bsm-cinemachine/analytics-geo-dashboard-20260916.js'
   ];
   const load=src=>new Promise((resolve,reject)=>{
     if(document.querySelector(`script[data-rc-src="${src}"]`))return resolve();
