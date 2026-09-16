@@ -40,3 +40,15 @@ test('analytics endpoint stores rounded geo and hash but never raw IP',async()=>
     assert.equal(JSON.stringify(insert).includes('203.0.113.44'),false);
   }finally{global.fetch=oldFetch}
 });
+
+test('analytics endpoint keeps missing coordinates null instead of zero',async()=>{
+  let insert=null;const oldFetch=global.fetch;
+  global.fetch=async(url,opt)=>{insert=JSON.parse(opt.body);return {ok:true,status:201,text:async()=>''}};
+  try{
+    const res=resMock();
+    await handler({method:'POST',headers:{},body:{event_type:'page_view',path:'/',session_id:'session-no-geo'}},res);
+    assert.equal(res.statusCode,200);
+    assert.equal(insert.meta.geo.latitude,null);
+    assert.equal(insert.meta.geo.longitude,null);
+  }finally{global.fetch=oldFetch}
+});
