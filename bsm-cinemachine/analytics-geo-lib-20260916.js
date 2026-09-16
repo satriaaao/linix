@@ -4,6 +4,7 @@
   if(root)root.RentcamAnalyticsGeo=api;
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
   function roundCoord(value){
+    if(value===null||value===undefined||String(value).trim()==='')return null;
     const n=Number(value);
     return Number.isFinite(n)?Math.round(n*100)/100:null;
   }
