@@ -17,10 +17,10 @@
     #v5report .rca-card{border:1px solid #e5e7ea;border-radius:14px;padding:15px;background:#fff;min-width:0}
     #v5report .rca-card h3{font-size:13px;margin:0 0 11px}
     #v5report .rca-scroll{overflow:auto}
-    #v5report .rca-table{width:100%;border-collapse:collapse;min-width:560px;font-size:10px}
+    #v5report .rca-table{width:100%;border-collapse:collapse;min-width:640px;font-size:10px}
     #v5report .rca-table th{padding:9px;text-align:left;background:#f7f8fa;color:#667085;font-size:8px;text-transform:uppercase;letter-spacing:.05em}
     #v5report .rca-table td{padding:10px 9px;border-top:1px solid #edf0f2;vertical-align:top}
-    #v5report .rca-table b{display:block;font-size:10px}.rca-muted{color:#8b93a0;font-size:9px}
+    #v5report .rca-table b{display:block;font-size:10px}.rca-muted{display:block;color:#8b93a0;font-size:9px;margin-top:2px}
     #v5report #rcAnalyticsMap{height:380px;border-radius:12px;overflow:hidden;background:#eef1f4}
     #v5report .leaflet-container{font:11px/1.4 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
     @media(max-width:800px){#v5report .rca-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}#v5report .rca-grid{grid-template-columns:1fr}#v5report #rcAnalyticsMap{height:330px}}
@@ -33,7 +33,11 @@
       const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js';s.dataset.rcLeaflet='1';s.onload=()=>resolve(window.L);s.onerror=reject;document.head.appendChild(s);
     });return leafletPromise;
   }
-  function productLabel(e,products,cfg){return e.product_id?lib.productName(e.product_id,products,cfg):(e.path||'-')}
+  function productLabel(e,products,cfg){
+    if(e.product_id)return lib.productName(e.product_id,products,cfg);
+    const m=String(e.path||'').match(/^\/produk\/([^/?#]+)/);
+    return m?lib.productName(decodeURIComponent(m[1]),products,cfg):(e.path||'-');
+  }
   function locationText(e){return lib.locationLabel(e?.meta?.geo||{})}
   async function loadData(){
     const d7=new Date(Date.now()-7*864e5).toISOString(),cut=new Date(Date.now()-2*60000).toISOString();
@@ -65,7 +69,7 @@
     try{
       const {events,presence}=await loadData(),cfg=window.RENTCAM_CMS_CONFIG||{},products=baseProducts(),sum=lib.summarize(events,products,cfg);
       const views=events.filter(x=>x.event_type==='page_view').length,clicks=events.filter(x=>x.event_type==='product_click').length;
-      const recent=events.slice(0,30);
+      const recent=events.slice(0,40);
       host.innerHTML=`<div data-geo-analytics="1">
         <div class="rca-metrics">
           <div class="rca-metric"><small>Online sekarang</small><strong>${new Set(presence.map(x=>x.session_id)).size}</strong></div>
@@ -75,10 +79,10 @@
         </div>
         <div class="rca-grid">
           <div class="rca-card"><h3>Top Produk — Klik 7 Hari</h3><div class="rca-scroll"><table class="rca-table"><thead><tr><th>Nama Produk</th><th>ID</th><th>Klik</th></tr></thead><tbody>${sum.topProducts.slice(0,20).map(x=>`<tr><td><b>${esc(x.name)}</b></td><td>${esc(x.id)}</td><td><b>${x.count}</b></td></tr>`).join('')||'<tr><td colspan="3">Belum ada klik produk.</td></tr>'}</tbody></table></div></div>
-          <div class="rca-card"><h3>Top Lokasi</h3><div class="rca-scroll"><table class="rca-table"><thead><tr><th>Lokasi</th><th>Event</th><th>Klik</th><th>Views</th></tr></thead><tbody>${sum.locations.slice(0,20).map(x=>`<tr><td><b>${esc(x.label)}</b><span class="rca-muted">${x.latitude??'-'}, ${x.longitude??'-'}</span></td><td>${x.events}</td><td>${x.clicks}</td><td>${x.views}</td></tr>`).join('')||'<tr><td colspan="4">Data lokasi baru akan muncul setelah tracking baru aktif.</td></tr>'}</tbody></table></div></div>
+          <div class="rca-card"><h3>Top Lokasi</h3><div class="rca-scroll"><table class="rca-table"><thead><tr><th>Lokasi</th><th>Event</th><th>Klik</th><th>Views</th></tr></thead><tbody>${sum.locations.slice(0,20).map(x=>`<tr><td><b>${esc(x.label)}</b><span class="rca-muted">${x.latitude??'-'}, ${x.longitude??'-'}</span></td><td>${x.events}</td><td>${x.clicks}</td><td>${x.views}</td></tr>`).join('')||'<tr><td colspan="4">Belum ada data lokasi.</td></tr>'}</tbody></table></div></div>
         </div>
-        <div class="rca-card" style="margin-bottom:14px"><h3>Peta Lokasi Pengunjung</h3><div id="rcAnalyticsMap"></div><p class="rca-muted">Lokasi berasal dari geolocation IP Vercel dan dibulatkan. IP mentah tidak disimpan.</p></div>
-        <div class="rca-card"><h3>Aktivitas Terbaru</h3><div class="rca-scroll"><table class="rca-table"><thead><tr><th>Event</th><th>Produk / Halaman</th><th>Lokasi</th><th>Visitor ID</th><th>Waktu</th></tr></thead><tbody>${recent.map(e=>`<tr><td>${esc(e.event_type)}</td><td><b>${esc(productLabel(e,products,cfg))}</b>${e.product_id?`<span class="rca-muted">${esc(e.product_id)}</span>`:''}</td><td>${esc(locationText(e))}</td><td>${esc(e?.meta?.visitor_hash?String(e.meta.visitor_hash).slice(0,12):'-')}</td><td>${new Date(e.created_at).toLocaleString('id-ID')}</td></tr>`).join('')||'<tr><td colspan="5">Belum ada aktivitas.</td></tr>'}</tbody></table></div></div>
+        <div class="rca-card" style="margin-bottom:14px"><h3>Peta Lokasi Pengunjung</h3><div id="rcAnalyticsMap"></div><p class="rca-muted">Lokasi dari geolocation jaringan Vercel. IP ditampilkan dalam bentuk disamarkan.</p></div>
+        <div class="rca-card"><h3>Aktivitas Terbaru</h3><div class="rca-scroll"><table class="rca-table"><thead><tr><th>Event</th><th>Nama Produk / Halaman</th><th>Lokasi</th><th>IP</th><th>Visitor ID</th><th>Waktu</th></tr></thead><tbody>${recent.map(e=>`<tr><td>${esc(e.event_type)}</td><td><b>${esc(productLabel(e,products,cfg))}</b>${e.product_id?`<span class="rca-muted">${esc(e.product_id)}</span>`:''}</td><td>${esc(locationText(e))}</td><td>${esc(e?.meta?.ip_masked||'-')}</td><td>${esc(e?.meta?.visitor_hash?String(e.meta.visitor_hash).slice(0,12):'-')}</td><td>${new Date(e.created_at).toLocaleString('id-ID')}</td></tr>`).join('')||'<tr><td colspan="6">Belum ada aktivitas.</td></tr>'}</tbody></table></div></div>
       </div>`;
       await renderMap(sum.locations);
     }catch(err){host.innerHTML=`<div data-geo-analytics="1">Gagal memuat analytics: ${esc(err.message)}</div>`}
