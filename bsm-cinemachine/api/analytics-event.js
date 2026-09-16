@@ -12,10 +12,18 @@ function decoded(value){try{return decodeURIComponent(String(value||''))}catch(_
 function roundCoord(value){if(value===null||value===undefined||String(value).trim()==='')return null;const n=Number(value);return Number.isFinite(n)?Math.round(n*100)/100:null}
 function json(res,status,payload){res.statusCode=status;res.setHeader?.('content-type','application/json; charset=utf-8');res.setHeader?.('cache-control','no-store');res.end(JSON.stringify(payload))}
 function bodyObject(req){if(req?.body&&typeof req.body==='object')return req.body;try{return JSON.parse(req?.body||'{}')}catch(_){return {}}}
+function rawIp(req){return String(header(req,'x-forwarded-for')||'').split(',')[0].trim()}
+function maskIp(value){
+  const ip=String(value||'').trim();
+  if(!ip)return '';
+  if(ip.includes('.')){const p=ip.split('.');return p.length===4?`${p[0]}.${p[1]}.${p[2]}.xxx`:''}
+  if(ip.includes(':')){const p=ip.split(':').filter(Boolean);return p.length?`${p.slice(0,4).join(':')}::`:''}
+  return '';
+}
 function visitorHash(req,sessionId){
-  const rawIp=String(header(req,'x-forwarded-for')||'').split(',')[0].trim();
+  const ip=rawIp(req);
   const salt=process.env.RENTCAM_ANALYTICS_SALT||process.env.VERCEL_URL||'rentcam-analytics-v1';
-  return crypto.createHash('sha256').update(`${rawIp}|${sessionId}|${salt}`).digest('hex').slice(0,16);
+  return crypto.createHash('sha256').update(`${ip}|${sessionId}|${salt}`).digest('hex').slice(0,16);
 }
 function geoFromHeaders(req){
   return {
@@ -41,7 +49,7 @@ async function handler(req,res){
     path,
     product_id:productId,
     session_id:sessionId,
-    meta:{ua,geo:geoFromHeaders(req),visitor_hash:visitorHash(req,sessionId)}
+    meta:{ua,geo:geoFromHeaders(req),visitor_hash:visitorHash(req,sessionId),ip_masked:maskIp(rawIp(req))}
   };
   try{
     const r=await fetch(SB+'/rest/v1/rentcam_events',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(event)});
@@ -53,3 +61,4 @@ async function handler(req,res){
 module.exports=handler;
 module.exports._geoFromHeaders=geoFromHeaders;
 module.exports._visitorHash=visitorHash;
+module.exports._maskIp=maskIp;
