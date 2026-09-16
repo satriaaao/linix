@@ -5,6 +5,7 @@
     'https://cdn.jsdelivr.net/gh/satriaaao/linix@636f895753b457a401c8357dc24e485795d28454/bsm-cinemachine/rental-integrity-lib-20260916.js',
     'https://cdn.jsdelivr.net/gh/satriaaao/linix@636f895753b457a401c8357dc24e485795d28454/bsm-cinemachine/cms-integrity-fix-20260916.js',
     'https://cdn.jsdelivr.net/gh/satriaaao/linix@86145acbcd398ed7ec8d1c93d0331bc770313d6f/bsm-cinemachine/analytics-geo-lib-20260916.js',
+    'https://cdn.jsdelivr.net/gh/satriaaao/linix@5e03f7dc8d58d9c18ffd8f090d7510581ce5a566/bsm-cinemachine/analytics-calendar-range-20260916.js',
     'https://cdn.jsdelivr.net/gh/satriaaao/linix@8064e6f650ed721641d42495f2b6f36b53909bf2/bsm-cinemachine/analytics-geo-dashboard-stable-20260916.js'
   ];
   const load=src=>new Promise((resolve,reject)=>{
