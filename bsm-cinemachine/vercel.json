@@ -15,7 +15,7 @@
     {"source":"/product-search-20260912.js","destination":"https://cdn.jsdelivr.net/gh/satriaaao/linix@e93d10acb30bb43db49eae9e43d998279c2e4c07/bsm-cinemachine/product-search-analytics-loader-20260916.js"},
     {"source":"/home-product-sections-20260912.js","destination":"https://cdn.jsdelivr.net/gh/satriaaao/linix@46bde66fd10ce06d2ba9f0c1af67689bb43c5ba0/bsm-cinemachine/home-product-sections-20260912.js"},
     {"source":"/product-cms-native-v11-20260912.js","destination":"https://cdn.jsdelivr.net/gh/satriaaao/linix@46bde66fd10ce06d2ba9f0c1af67689bb43c5ba0/bsm-cinemachine/product-cms-native-v11-20260912.js"},
-    {"source":"/website-orders-20260913.js","destination":"https://cdn.jsdelivr.net/gh/satriaaao/linix@46bde66fd10ce06d2ba9f0c1af67689bb43c5ba0/bsm-cinemachine/website-orders-20260913.js"},
+    {"source":"/website-orders-20260913.js","destination":"/api/website-orders"},
     {"source":"/general-products-20260913.js","destination":"https://cdn.jsdelivr.net/gh/satriaaao/linix@46bde66fd10ce06d2ba9f0c1af67689bb43c5ba0/bsm-cinemachine/general-products-20260913.js"},
     {"source":"/public-template-popup-20260913.js","destination":"https://cdn.jsdelivr.net/gh/satriaaao/linix@46bde66fd10ce06d2ba9f0c1af67689bb43c5ba0/bsm-cinemachine/public-template-popup-20260913.js"},
     {"source":"/cart-click-fix-20260914.js","destination":"https://cdn.jsdelivr.net/gh/satriaaao/linix@9dcecf5b929322ee9e953d377ac6894fb8e891d2/bsm-cinemachine/cart-click-loader-20260916.js"},
