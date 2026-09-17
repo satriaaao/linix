@@ -72,7 +72,7 @@
   }
   function install(root){
     const transport=(path,init)=>{
-      const url=SB+'/rest/v1/'+String(path||'').replace(/^\\/+/, '');
+      const url=SB+'/rest/v1/'+String(path||'').replace(/^\/+/, '');
       if(root.RentcamCmsAdmin?.request)return root.RentcamCmsAdmin.request(url,init);
       return root.fetch(url,init);
     };
