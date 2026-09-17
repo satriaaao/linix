@@ -1,5 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "headers": [
+    {"source":"/cms","headers":[{"key":"X-Robots-Tag","value":"noindex, nofollow"}]},
+    {"source":"/cms/:path*","headers":[{"key":"X-Robots-Tag","value":"noindex, nofollow"}]}
+  ],
   "rewrites": [
     {"source":"/cms-admin-v5-20260912.js","destination":"https://cdn.jsdelivr.net/gh/satriaaao/linix@46bde66fd10ce06d2ba9f0c1af67689bb43c5ba0/bsm-cinemachine/cms-admin-v5-20260912.js"},
     {"source":"/rental-management-20260913.js","destination":"https://cdn.jsdelivr.net/gh/satriaaao/linix@46bde66fd10ce06d2ba9f0c1af67689bb43c5ba0/bsm-cinemachine/rental-management-20260913.js"},
@@ -15,16 +19,22 @@
     {"source":"/general-products-20260913.js","destination":"https://cdn.jsdelivr.net/gh/satriaaao/linix@46bde66fd10ce06d2ba9f0c1af67689bb43c5ba0/bsm-cinemachine/general-products-20260913.js"},
     {"source":"/public-template-popup-20260913.js","destination":"https://cdn.jsdelivr.net/gh/satriaaao/linix@46bde66fd10ce06d2ba9f0c1af67689bb43c5ba0/bsm-cinemachine/public-template-popup-20260913.js"},
     {"source":"/cart-click-fix-20260914.js","destination":"https://cdn.jsdelivr.net/gh/satriaaao/linix@9dcecf5b929322ee9e953d377ac6894fb8e891d2/bsm-cinemachine/cart-click-loader-20260916.js"},
+
+    {"source":"/robots.txt","destination":"/api/robots"},
+    {"source":"/sitemap.xml","destination":"/api/sitemap"},
+    {"source":"/llms.txt","destination":"/api/llms"},
+    {"source":"/.well-known/llms.txt","destination":"/api/llms"},
+
     {"source":"/cms","destination":"/api/cms"},
     {"source":"/cms/:path*","destination":"/api/cms"},
-    {"source":"/","destination":"/api/site"},
-    {"source":"/produk","destination":"/api/site"},
-    {"source":"/produk/:path*","destination":"/api/site"},
-    {"source":"/portfolio","destination":"/api/site"},
-    {"source":"/portfolio/:path*","destination":"/api/site"},
-    {"source":"/artikel","destination":"/api/site"},
-    {"source":"/artikel/:path*","destination":"/api/site"},
-    {"source":"/cart","destination":"/api/site"},
-    {"source":"/pesanan","destination":"/api/site"}
+    {"source":"/","destination":"/api/site?kind=home"},
+    {"source":"/produk","destination":"/api/site?kind=products"},
+    {"source":"/produk/:slug","destination":"/api/site?kind=product&slug=:slug"},
+    {"source":"/portfolio","destination":"/api/site?kind=portfolio"},
+    {"source":"/portfolio/:slug","destination":"/api/site?kind=portfolioItem&slug=:slug"},
+    {"source":"/artikel","destination":"/api/site?kind=articles"},
+    {"source":"/artikel/:slug","destination":"/api/site?kind=article&slug=:slug"},
+    {"source":"/cart","destination":"/api/site?kind=cart"},
+    {"source":"/pesanan","destination":"/api/site?kind=order"}
   ]
 }
