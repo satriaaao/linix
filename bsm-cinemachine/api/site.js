@@ -1,31 +1,32 @@
 const SOURCE='https://cdn.jsdelivr.net/gh/satriaaao/linix@abf80b9027c53913083477eed694ba0ca8e97f82/bsm-cinemachine/index.html';
 const {seoForRoute}=require('../seo-lib-20260917');
+const {getCatalogProduct}=require('../catalog-public-20260917');
 
 function txt(v){return Array.isArray(v)?String(v[0]||''):String(v||'')}
 function esc(s){return String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]))}
 function safeJson(v){return JSON.stringify(v).replace(/</g,'\\u003c')}
 function routeFromReq(req){return {kind:txt(req?.query?.kind)||'home',slug:txt(req?.query?.slug)}}
+function breadcrumb(base,items){return {'@type':'BreadcrumbList',itemListElement:items.map((x,i)=>({'@type':'ListItem',position:i+1,name:x.name,item:base+x.path}))}}
+function productSeo(p,base){
+  const desc=p.description||`Sewa ${p.name} untuk kebutuhan produksi profesional di Jakarta.`;
+  const product={'@type':'Product',name:p.name,description:desc,brand:{'@type':'Brand',name:p.brand||'Rentcam'},category:p.category||'Rental Equipment',url:base+'/produk/'+p.id};
+  if(p.image)product.image=[p.image];
+  if(p.price!=null)product.offers={'@type':'Offer',url:base+'/produk/'+p.id,priceCurrency:'IDR',price:String(p.price),availability:p.stock===0?'https://schema.org/OutOfStock':'https://schema.org/InStock',businessFunction:'http://purl.org/goodrelations/v1#LeaseOut'};
+  return {title:`Sewa ${p.name} Jakarta | Rentcam`,description:desc,canonical:base+'/produk/'+p.id,robots:'index,follow,max-image-preview:large',h1:`Sewa ${p.name} Jakarta`,summary:`${desc}${p.price!=null?` Harga rental mulai Rp${new Intl.NumberFormat('id-ID').format(p.price)} per hari.`:''}`,schema:[product,breadcrumb(base,[{name:'Home',path:'/'},{name:'Rentals',path:'/produk'},{name:p.name,path:'/produk/'+p.id}])]};
+}
+function addRealHrefs(html){
+  return String(html||'').replace(/<a([^>]*?)\sdata-go=(["'])([^"']+)\2([^>]*)>/gi,(m,before,q,path,after)=>{
+    if(/\shref\s*=/i.test(before+after))return m;
+    return `<a${before} href="${esc(path)}" data-go=${q}${path}${q}${after}>`;
+  });
+}
 function patchPublicHtml(html,seo){
-  let out=String(html||'');
+  let out=addRealHrefs(String(html||''));
   out=out.replace(/<title>[\s\S]*?<\/title>/i,`<title>${esc(seo.title)}</title>`);
   if(/<meta\s+name=["']description["']/i.test(out))out=out.replace(/<meta\s+name=["']description["'][^>]*>/i,`<meta name="description" content="${esc(seo.description)}">`);
   else out=out.replace('</head>',`<meta name="description" content="${esc(seo.description)}"></head>`);
   const schema=(seo.schema||[]).map(x=>`<script type="application/ld+json">${safeJson({'@context':'https://schema.org',...x})}</script>`).join('');
-  const meta=`
-<link rel="canonical" href="${esc(seo.canonical)}">
-<link rel="alternate" hreflang="id-ID" href="${esc(seo.canonical)}">
-<link rel="alternate" hreflang="x-default" href="${esc(seo.canonical)}">
-<meta name="robots" content="${esc(seo.robots)}">
-<meta property="og:locale" content="id_ID">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="Rentcam">
-<meta property="og:title" content="${esc(seo.title)}">
-<meta property="og:description" content="${esc(seo.description)}">
-<meta property="og:url" content="${esc(seo.canonical)}">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="${esc(seo.title)}">
-<meta name="twitter:description" content="${esc(seo.description)}">
-${schema}`;
+  const meta=`\n<link rel="canonical" href="${esc(seo.canonical)}">\n<link rel="alternate" hreflang="id-ID" href="${esc(seo.canonical)}">\n<link rel="alternate" hreflang="x-default" href="${esc(seo.canonical)}">\n<meta name="robots" content="${esc(seo.robots)}">\n<meta property="og:locale" content="id_ID">\n<meta property="og:type" content="website">\n<meta property="og:site_name" content="Rentcam">\n<meta property="og:title" content="${esc(seo.title)}">\n<meta property="og:description" content="${esc(seo.description)}">\n<meta property="og:url" content="${esc(seo.canonical)}">\n<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:title" content="${esc(seo.title)}">\n<meta name="twitter:description" content="${esc(seo.description)}">\n${schema}`;
   out=out.replace('</head>',meta+'</head>');
   const ssr=`<main id="app"><section data-seo-ssr="1" style="max-width:1180px;margin:0 auto;padding:28px 20px;font-family:Arial,sans-serif"><h1>${esc(seo.h1)}</h1><p>${esc(seo.summary)}</p></section></main>`;
   out=out.replace(/<main\s+id=["']app["']\s*><\/main>/i,ssr);
@@ -37,7 +38,11 @@ async function handler(req,res){
   if(req.method!=='GET'&&req.method!=='HEAD'){
     res.statusCode=405;res.setHeader('content-type','text/plain; charset=utf-8');return res.end('Method not allowed');
   }
-  const seo=seoForRoute(routeFromReq(req),'https://rentalcamera.aiorbitlab.me');
+  const route=routeFromReq(req),base='https://rentalcamera.aiorbitlab.me';
+  let seo=seoForRoute(route,base);
+  if(route.kind==='product'&&route.slug){
+    try{const live=await getCatalogProduct(route.slug);if(live)seo=productSeo(live,base)}catch(_){/* static SEO fallback */}
+  }
   try{
     const r=await fetch(SOURCE,{cache:'no-store'});
     if(!r.ok)throw new Error('site source '+r.status);
@@ -58,3 +63,4 @@ async function handler(req,res){
 module.exports=handler;
 module.exports._patchPublicHtml=patchPublicHtml;
 module.exports._routeFromReq=routeFromReq;
+module.exports._addRealHrefs=addRealHrefs;
