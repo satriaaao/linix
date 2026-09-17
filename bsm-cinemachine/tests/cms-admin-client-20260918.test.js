@@ -1,0 +1,17 @@
+const assert=require('node:assert/strict');
+const lib=require('../cms-admin-client-20260918.js');
+const future=new Date(Date.now()+3600000).toISOString();
+const past=new Date(Date.now()-3600000).toISOString();
+assert.equal(lib.parseSession(JSON.stringify({token:'abc',expires_at:future})).token,'abc');
+assert.equal(lib.parseSession(JSON.stringify({token:'abc',expires_at:past})),null);
+assert.equal(lib.parseSession('{bad'),null);
+assert.equal(lib.isLoginRequest(lib.DEFAULTS.sb+'/auth/v1/token?grant_type=password','POST'),true);
+assert.equal(lib.isLoginRequest(lib.DEFAULTS.sb+'/auth/v1/token?grant_type=password','GET'),false);
+assert.equal(lib.isAdminUrl(lib.DEFAULTS.sb+'/rest/v1/rentcam_orders'),true);
+assert.equal(lib.isAdminUrl(lib.DEFAULTS.sb+'/storage/v1/object/cms-media/a.jpg'),true);
+assert.equal(lib.isAdminUrl('https://example.com/rest/v1/a'),false);
+const h=lib.addAdminHeaders({'x-test':'1'},{token:'tok'},'pw');
+assert.equal(h.get('x-rentcam-session'),'tok');
+assert.equal(h.get('x-rentcam-admin'),'pw');
+assert.equal(h.get('x-test'),'1');
+console.log('cms-admin-client tests: PASS');
