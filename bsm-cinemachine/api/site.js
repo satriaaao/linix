@@ -31,6 +31,8 @@ function patchPublicHtml(html,seo){
   const ssr=`<main id="app"><section data-seo-ssr="1" style="max-width:1180px;margin:0 auto;padding:28px 20px;font-family:Arial,sans-serif"><h1>${esc(seo.h1)}</h1><p>${esc(seo.summary)}</p></section></main>`;
   out=out.replace(/<main\s+id=["']app["']\s*><\/main>/i,ssr);
   out=out.replace(/src="\/product-search-20260912\.js(?:\?[^\"]*)?"/,'src="/product-search-20260912.js?v=geo4"');
+  out=out.replace(/src="\/general-products-20260913\.js(?:\?[^\"]*)?"/,'src="/general-products-20260913.js?v=pcfix1"');
+  out=out.replace(/src="\/cart-click-fix-20260914\.js(?:\?[^\"]*)?"/,'src="/cart-click-fix-20260914.js?v=pcfix1"');
   return out;
 }
 
