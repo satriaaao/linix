@@ -28,6 +28,42 @@ function patchPublicHtml(html,seo){
   const schema=(seo.schema||[]).map(x=>`<script type="application/ld+json">${safeJson({'@context':'https://schema.org',...x})}</script>`).join('');
   const meta=`\n<link rel="canonical" href="${esc(seo.canonical)}">\n<link rel="alternate" hreflang="id-ID" href="${esc(seo.canonical)}">\n<link rel="alternate" hreflang="x-default" href="${esc(seo.canonical)}">\n<meta name="robots" content="${esc(seo.robots)}">\n<meta property="og:locale" content="id_ID">\n<meta property="og:type" content="website">\n<meta property="og:site_name" content="Rentcam">\n<meta property="og:title" content="${esc(seo.title)}">\n<meta property="og:description" content="${esc(seo.description)}">\n<meta property="og:url" content="${esc(seo.canonical)}">\n<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:title" content="${esc(seo.title)}">\n<meta name="twitter:description" content="${esc(seo.description)}">\n${schema}`;
   out=out.replace('</head>',meta+'</head>');
+  const cartHardening=`
+<style id="rc-cart-direct-fix">
+.rc-cart-button,[data-go="/cart"]{pointer-events:auto!important;cursor:pointer!important}
+.header .actions,.header .rc-cart-button{position:relative!important;z-index:9999!important}
+.rc-cart-button::before{content:"";position:absolute;inset:-10px;z-index:-1}
+</style>
+<script id="rc-cart-direct-handler">
+(function(){
+  if(window.__rcCartDirectFix)return;
+  window.__rcCartDirectFix=true;
+  function target(el){
+    return el&&el.closest?el.closest('.rc-cart-button,[data-go="/cart"],[aria-label*="Keranjang"],[aria-label*="keranjang"]'):null;
+  }
+  function openCart(e){
+    var b=target(e.target);
+    if(!b)return;
+    e.preventDefault();
+    e.stopPropagation();
+    if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+    try{document.getElementById('drawer')?.classList.remove('open')}catch(_){}
+    try{document.body.classList.remove('menu-open')}catch(_){}
+    if(location.pathname==='/cart'){
+      try{scrollTo(0,0)}catch(_){}
+      return;
+    }
+    location.assign('/cart');
+  }
+  document.addEventListener('pointerup',openCart,true);
+  document.addEventListener('touchend',openCart,true);
+  document.addEventListener('click',openCart,true);
+  document.addEventListener('keydown',function(e){
+    if((e.key==='Enter'||e.key===' ')&&target(e.target))openCart(e);
+  },true);
+})();
+</script>`;
+  out=out.replace('</body>',cartHardening+'</body>');
   const ssr=`<main id="app"><section data-seo-ssr="1" style="max-width:1180px;margin:0 auto;padding:28px 20px;font-family:Arial,sans-serif"><h1>${esc(seo.h1)}</h1><p>${esc(seo.summary)}</p></section></main>`;
   out=out.replace(/<main\s+id=["']app["']\s*><\/main>/i,ssr);
   out=out.replace(/src="\/product-search-20260912\.js(?:\?[^\"]*)?"/,'src="/product-search-20260912.js?v=geo4"');
