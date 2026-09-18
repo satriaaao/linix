@@ -29,7 +29,7 @@
     on_the_way:['arrived','Sudah tiba'],
     arrived:['completed','Selesaikan tugas']
   };
-  let active=false, orders=[], filter='all', modal=null, loading=false, masterDrivers=[], masterVehicles=[];
+  let active=false, orders=[], filter='all', modal=null, loading=false, masterDrivers=[], masterVehicles=[], dispatchSettings={};
 
   async function decode(r){
     const text=await r.text(); let data=null;
@@ -60,12 +60,14 @@
     return decode(r);
   }
   async function loadMasters(){
-    const [drivers,vehicles]=await Promise.all([
+    const [drivers,vehicles,settings]=await Promise.all([
       adminRpc('rentcam_admin_driver_list'),
-      adminRpc('rentcam_admin_vehicle_list')
+      adminRpc('rentcam_admin_vehicle_list'),
+      adminRpc('rentcam_admin_dispatch_settings')
     ]);
     masterDrivers=Array.isArray(drivers)?drivers:[];
     masterVehicles=Array.isArray(vehicles)?vehicles:[];
+    dispatchSettings=settings?.ok?settings.settings:{};
   }
   const PUBLIC_ORIGIN='https://rentalcamera.aiorbitlab.me';
   function trackingUrl(o){
@@ -179,7 +181,7 @@
     const host=document.querySelector('.v5-content'); if(!host)return;
     const all=jobs(), c=counts(all), list=visibleJobs();
     host.innerHTML='<div class="gd">'+
-      '<section class="gd-hero"><div><span class="gd-eyebrow">DISPATCH CENTER</span><h2>Antar–Jemput</h2><p>Kelola pengantaran dan penjemputan rental seperti aplikasi ride-hailing: assign driver, status perjalanan, ETA operasional, lokasi, dan komunikasi.</p></div><div class="gd-hero-actions"><button data-gd-action="new" class="primary">+ Buat tugas</button><button data-gd-action="refresh" class="secondary">Perbarui</button></div></section>'+
+      '<section class="gd-hero"><div><span class="gd-eyebrow">DISPATCH CENTER</span><h2>Antar–Jemput</h2><p>Kelola pengantaran dan penjemputan rental seperti aplikasi ride-hailing: assign driver, status perjalanan, ETA operasional, lokasi, dan komunikasi.</p></div><div class="gd-hero-actions"><button data-gd-action="office" class="secondary">Lokasi Kantor</button><button data-gd-action="new" class="primary">+ Buat tugas</button><button data-gd-action="refresh" class="secondary">Perbarui</button></div></section>'+
       '<section class="gd-stats"><button data-gd-filter="all" class="'+(filter==='all'?'on':'')+'"><small>Semua tugas</small><strong>'+c.total+'</strong></button><button data-gd-filter="unassigned" class="'+(filter==='unassigned'?'on':'')+'"><small>Perlu driver</small><strong>'+c.unassigned+'</strong></button><button data-gd-filter="moving" class="'+(filter==='moving'?'on':'')+'"><small>Dalam perjalanan</small><strong>'+c.moving+'</strong></button><button data-gd-filter="done" class="'+(filter==='done'?'on':'')+'"><small>Selesai</small><strong>'+c.done+'</strong></button></section>'+
       '<div class="gd-toolbar"><input data-gd-search placeholder="Cari order / customer / driver..." autocomplete="off"><span>'+list.length+' tugas</span></div>'+
       '<section class="gd-list" data-gd-list>'+ (list.map(jobCard).join('')||'<div class="gd-empty"><b>Belum ada tugas antar–jemput.</b><span>Klik “Buat tugas” atau aktifkan opsi antar/jemput pada order rental.</span></div>') +'</section>'+
@@ -188,6 +190,17 @@
   }
   function modalHtml(){
     if(!modal)return '';
+    if(modal.type==='office'){
+      const s=dispatchSettings||{};
+      return '<div class="gd-modal"><form class="gd-dialog" data-gd-form="office"><div class="gd-dialog-head"><div><small>TITIK AWAL RUTE</small><h3>Lokasi Kantor Rentcam</h3></div><button type="button" data-gd-action="close">×</button></div><div class="gd-form">'+
+        '<label>Nama kantor<input name="office_name" value="'+E(s.office_name||'Kantor Rentcam')+'" required></label>'+
+        '<label>Alamat kantor<textarea name="office_address" required placeholder="Alamat lengkap kantor">'+E(s.office_address||'')+'</textarea></label>'+
+        '<label>Link Google Maps kantor<input name="office_maps_url" value="'+E(s.office_maps_url||'')+'" type="url" placeholder="https://maps.google.com/..."></label>'+
+        '<div class="gd-two"><label>Latitude (opsional)<input name="office_lat" type="number" step="any" value="'+E(s.office_lat??'')+'" placeholder="-6.xxxxxx"></label><label>Longitude (opsional)<input name="office_lng" type="number" step="any" value="'+E(s.office_lng??'')+'" placeholder="106.xxxxxx"></label></div>'+
+        '<div class="gd-master-warning">Peta driver memakai lokasi ini sebagai titik <b>S (Start)</b>. Jika koordinat kosong, sistem mencari koordinat dari alamat/link Google Maps.</div>'+
+        '<div class="gd-dialog-actions"><button type="button" data-gd-action="close" class="secondary">Batal</button><button class="primary" type="submit">Simpan Lokasi Kantor</button></div>'+
+      '</div></form></div>';
+    }
     if(modal.type==='assign'){
       const j=makeJob(orders.find(o=>o.id===modal.id),modal.kind);
       return '<div class="gd-modal"><form class="gd-dialog" data-gd-form="assign"><div class="gd-dialog-head"><div><small>DRIVER & PERJALANAN</small><h3>'+E(j.order.order_number||'')+'</h3></div><button type="button" data-gd-action="close">×</button></div><div class="gd-form">'+
@@ -227,6 +240,30 @@
     const delivery=await patchDelivery(id,d);
     o.delivery=delivery;
     return o;
+  }
+  function parseCoordsFromMapsUrl(url){
+    const s=String(url||'');
+    let m=s.match(/[?&](?:q|query|destination)=(-?\d+(?:\.\d+)?)[,%2C]+(-?\d+(?:\.\d+)?)/i);
+    if(!m)m=s.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+    if(!m)return null;
+    const lat=Number(m[1]),lng=Number(m[2]);
+    return Number.isFinite(lat)&&Number.isFinite(lng)?{lat,lng}:null;
+  }
+  async function saveOffice(form){
+    const fd=Object.fromEntries(new FormData(form));
+    const fromUrl=parseCoordsFromMapsUrl(fd.office_maps_url);
+    const lat=fd.office_lat!==''?Number(fd.office_lat):(fromUrl?.lat??null);
+    const lng=fd.office_lng!==''?Number(fd.office_lng):(fromUrl?.lng??null);
+    const d=await adminRpc('rentcam_admin_dispatch_settings_save',{
+      p_office_name:String(fd.office_name||'').trim(),
+      p_office_address:String(fd.office_address||'').trim(),
+      p_office_maps_url:String(fd.office_maps_url||'').trim(),
+      p_office_lat:Number.isFinite(lat)?lat:null,
+      p_office_lng:Number.isFinite(lng)?lng:null
+    });
+    if(!d?.ok)throw new Error(d?.message||'Gagal menyimpan lokasi kantor');
+    dispatchSettings=d.settings||{};
+    modal=null;render();
   }
   async function assign(form){
     const fd=Object.fromEntries(new FormData(form));
@@ -311,6 +348,7 @@
     const b=e.target.closest('[data-gd-action]'); if(!b)return;
     const a=b.dataset.gdAction;
     if(a==='close'){modal=null;render();return}
+    if(a==='office'){modal={type:'office'};render();return}
     if(a==='new'){modal={type:'new'};render();return}
     if(a==='refresh'){await refresh();return}
     if(a==='assign'){modal={type:'assign',id:b.dataset.id,kind:b.dataset.kind};render();return}
@@ -342,6 +380,7 @@
     e.preventDefault();
     const submit=f.querySelector('[type="submit"]');if(submit)submit.disabled=true;
     try{
+      if(f.dataset.gdForm==='office')await saveOffice(f);
       if(f.dataset.gdForm==='assign')await assign(f);
       if(f.dataset.gdForm==='new')await createTask(f);
     }catch(err){alert(err.message)}finally{if(submit)submit.disabled=false}
