@@ -14,7 +14,7 @@
     {id:'media',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@5594ada689dba66ac285d271f4bfd383c58dd4e8/bsm-cinemachine/cms-media-20260918.js',after:['admin-client','config-store']},
     {id:'data-tables',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@cf75d3e38eda2ca803f7ee55e2617a019f29db1c/bsm-cinemachine/cms-data-tables-20260918.js',after:['admin-client']},
     {id:'publishing',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@0a88133a8e4fe4852a54cf4a9edfa9c6e57c29c4/bsm-cinemachine/cms-publishing-20260918.js',after:['config-store']},
-    {id:'cms-ui',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@c4d12b3fd2631a9de2f74a16c1e8854324cdd658/bsm-cinemachine/cms-admin-media-data-adapter-20260918.js',after:['config-store','media','data-tables']},
+    {id:'cms-ui',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@48a8d2fedc4fe0fc5c0c8bfcecd2f9a6a7b9b271/bsm-cinemachine/cms-admin-all-tables-adapter-20260918.js',after:['config-store','media','data-tables']},
     {id:'promo-schedule',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@509c90dfb8cfaa3c0f6564cafdd27555dad2388e/bsm-cinemachine/cms-promo-publishing-adapter-20260918.js',after:['cms-ui','publishing']},
     {id:'global-status',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@2d79b380805c155f0bf7b6f8a63480729c0e4e0c/bsm-cinemachine/cms-global-status-publishing-adapter-20260918.js',after:['cms-ui','publishing']},
     {id:'product-sync',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@9e74e816c0c8887553503244ec7e87c04fcfa347/bsm-cinemachine/cms-product-publishing-adapter-20260918.js',after:['cms-ui','publishing']},
