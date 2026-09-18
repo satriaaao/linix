@@ -15,6 +15,38 @@ function coordsFromText(input=''){
   return {lat,lng};
 }
 
+function placeQueryFromUrl(raw=''){
+  try{
+    const u=new URL(raw);
+    for(const key of ['q','query','destination']){
+      const v=String(u.searchParams.get(key)||'').trim();
+      if(v&&!coordsFromText('?q='+encodeURIComponent(v)))return v.replace(/\+/g,' ');
+    }
+  }catch(_){}
+  return '';
+}
+
+async function geocodePlace(query){
+  const q=String(query||'').trim();if(!q)return null;
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),5000);
+  try{
+    const u='https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=id&q='+encodeURIComponent(q);
+    const r=await fetch(u,{
+      signal:controller.signal,
+      headers:{
+        'accept':'application/json',
+        'user-agent':'RentcamMapsResolver/1.0 (rentalcamera.aiorbitlab.me)'
+      }
+    });
+    if(!r.ok)return null;
+    const j=await r.json(),x=j?.[0];
+    const lat=Number(x?.lat),lng=Number(x?.lon);
+    if(!Number.isFinite(lat)||!Number.isFinite(lng))return null;
+    return{lat,lng,display_name:String(x?.display_name||'')};
+  }catch(_){return null}finally{clearTimeout(timer)}
+}
+
 module.exports=async function handler(req,res){
   res.setHeader('cache-control','no-store, max-age=0');
   if(req.method!=='GET'){res.statusCode=405;return res.end(JSON.stringify({ok:false,message:'Method not allowed'}))}
@@ -44,7 +76,7 @@ module.exports=async function handler(req,res){
     clearTimeout(timer);
     const finalUrl=r.url||raw;
     let coords=coordsFromText(finalUrl);
-    let html='';
+    let html='',geocoded=null,place_query='';
     if(!coords){
       html=await r.text();
       coords=coordsFromText(html);
@@ -53,8 +85,20 @@ module.exports=async function handler(req,res){
         if(m)coords=coordsFromText(m[0]);
       }
     }
+    if(!coords){
+      place_query=placeQueryFromUrl(finalUrl);
+      if(place_query)geocoded=await geocodePlace(place_query);
+      if(geocoded)coords={lat:geocoded.lat,lng:geocoded.lng};
+    }
     res.statusCode=200;res.setHeader('content-type','application/json');
-    return res.end(JSON.stringify({ok:true,final_url:finalUrl,lat:coords?.lat??null,lng:coords?.lng??null}));
+    return res.end(JSON.stringify({
+      ok:true,
+      final_url:finalUrl,
+      lat:coords?.lat??null,
+      lng:coords?.lng??null,
+      place_query:place_query||null,
+      resolved_address:geocoded?.display_name||null
+    }));
   }catch(e){
     res.statusCode=502;res.setHeader('content-type','application/json');
     return res.end(JSON.stringify({ok:false,message:'Link Google Maps tidak bisa di-resolve',detail:String(e?.message||e)}));
