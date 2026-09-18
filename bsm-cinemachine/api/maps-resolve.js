@@ -15,6 +15,18 @@ function coordsFromText(input=''){
   return {lat,lng};
 }
 
+function normalizeInput(value){
+  const s=Array.isArray(value)?String(value[0]||'').trim():String(value||'').trim();
+  if(!s||/^(?:undefined|null|false|-)$/i.test(s))return '';
+  return s;
+}
+
+function sendJson(res,status,payload){
+  res.statusCode=status;
+  res.setHeader('content-type','application/json; charset=utf-8');
+  return res.end(JSON.stringify(payload));
+}
+
 function placeQueryFromUrl(raw=''){
   try{
     const u=new URL(raw);
@@ -49,13 +61,16 @@ async function geocodePlace(query){
 
 module.exports=async function handler(req,res){
   res.setHeader('cache-control','no-store, max-age=0');
-  if(req.method!=='GET'){res.statusCode=405;return res.end(JSON.stringify({ok:false,message:'Method not allowed'}))}
-  const raw=String(req.query?.url||'').trim();
-  if(!raw){res.statusCode=400;res.setHeader('content-type','application/json');return res.end(JSON.stringify({ok:false,message:'URL wajib'}))}
+  if(req.method!=='GET')return sendJson(res,405,{ok:false,code:'method_not_allowed',message:'Method not allowed'});
+  const raw=normalizeInput(req.query?.url);
+  // Missing/placeholder values are normal while CMS forms are being edited.
+  // Return a soft validation response instead of polluting production logs with 400s.
+  if(!raw)return sendJson(res,200,{ok:false,code:'missing_url',message:'URL Google Maps belum diisi'});
+  if(raw.length>4096)return sendJson(res,200,{ok:false,code:'url_too_long',message:'URL terlalu panjang'});
   let u;
-  try{u=new URL(raw)}catch(_){res.statusCode=400;res.setHeader('content-type','application/json');return res.end(JSON.stringify({ok:false,message:'URL tidak valid'}))}
+  try{u=new URL(raw)}catch(_){return sendJson(res,200,{ok:false,code:'invalid_url',message:'URL tidak valid'})}
   if(u.protocol!=='https:'||!ALLOWED.has(u.hostname.toLowerCase())){
-    res.statusCode=400;res.setHeader('content-type','application/json');return res.end(JSON.stringify({ok:false,message:'Hanya link Google Maps yang didukung'}));
+    return sendJson(res,200,{ok:false,code:'unsupported_url',message:'Hanya link Google Maps yang didukung'});
   }
 
   const direct=coordsFromText(raw);
