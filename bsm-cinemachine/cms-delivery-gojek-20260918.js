@@ -366,9 +366,12 @@
     if(!mapEl||!groupEl)return;
     const base=await officePoint();
     if(!base){mapEl.innerHTML='<div class="gd-map-empty"><b>Lokasi saat ini belum siap</b><span>Tekan tombol “Lokasi Saat Ini” untuk mengambil GPS dan menghitung pembagian rute.</span></div>';groupEl.innerHTML='';return}
-    await hydrateCustomerCoords();
+    hydrateCustomerCoords().catch(()=>{});
     routeGroupsCache=buildRouteGroups(base);
-    await enrichAreaLabels(routeGroupsCache);
+    routeGroupsCache.forEach(g=>g.items.forEach(x=>{
+      const raw=String(x.job.destination||x.job.address||'').trim();
+      if(raw&&!/^https?:\/\//i.test(raw))x.areaLabel=raw;
+    }));
     if(!routeGroupsCache.length){groupEl.innerHTML='<div class="gd-map-empty"><b>Belum ada lokasi customer yang bisa dipetakan</b><span>Isi alamat atau Google Maps customer agar jarak dan waktu bisa dihitung.</span></div>'}
     const L=await ensureLeaflet();
     if(dispatchMap){dispatchMap.remove();dispatchMap=null}
@@ -391,6 +394,9 @@
     dispatchMap.fitBounds(bounds,{padding:[35,35],maxZoom:13});
     groupEl.innerHTML=routeGroupsCache.length?routeGroupsCache.map((g,i)=>groupCard(g,i,colors[i%colors.length])).join(''):'';
     setTimeout(()=>dispatchMap&&dispatchMap.invalidateSize(),150);
+    enrichAreaLabels(routeGroupsCache).then(()=>{
+      if(groupEl.isConnected)groupEl.innerHTML=routeGroupsCache.length?routeGroupsCache.map((g,i)=>groupCard(g,i,colors[i%colors.length])).join(''):'';
+    }).catch(()=>{});
   }
   function counts(xs){
     return {
