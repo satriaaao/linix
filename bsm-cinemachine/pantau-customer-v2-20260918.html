@@ -65,7 +65,7 @@ const stepInfo={
  arrived:{sub:'Driver sudah tiba di lokasi tujuan',icon:'●'},
  completed:{sub:'Pengantaran telah selesai',icon:'⚑'}
 };
-let map=null,routeLayer=null,driverMarker=null,destMarker=null,lastData=null;
+let map=null,routeLayer=null,trailLayer=null,driverMarker=null,destMarker=null,lastData=null,lastStructureKey='',lastRouteAt=0;
 const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const clean=v=>String(v||'').replace(/\D/g,'').replace(/^0/,'62');
 const fmt=v=>{if(!v)return'Belum dijadwalkan';const d=new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString('id-ID',{timeZone:'Asia/Jakarta',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
@@ -73,6 +73,10 @@ const money=n=>Number(n||0)>0?'Rp'+Number(n).toLocaleString('id-ID'):'Belum ters
 function statusOf(d){let s=d?.deliver_trip_status||'';if(!s&&d?.deliver_status==='completed')s='completed';if(!s&&d?.driver)s='assigned';return s||'waiting'}
 function badgeClass(s){if(s==='completed')return'done';if(s==='cancelled')return'cancelled';if(['to_pickup','picked_up','on_the_way','arrived'].includes(s))return'moving';return''}
 function n(v,fallback='—'){return v===null||v===undefined||v===''?fallback:String(v)}
+function structureKey(data){
+ const d=data?.delivery||{},q=data?.queue||{};
+ return JSON.stringify([data?.order_number,statusOf(d),q.position,q.total,d.driver,d.plate,d.vehicle,d.address]);
+}
 function currentCoords(d){
  const loc=d?.deliver_driver_location;
  if(!loc)return null;
@@ -93,6 +97,7 @@ function showCodeForm(message=''){
 function normalizeCode(v){return String(v||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10)}
 function render(data){
  lastData=data;
+ lastStructureKey=structureKey(data);
  document.getElementById('refresh').style.display='block';
  const d=data.delivery||{},q=data.queue||{},status=statusOf(d),idx=steps.indexOf(status);
  const driver=currentCoords(d),dest=destinationCoords(d);
@@ -118,12 +123,12 @@ function render(data){
   '<div class="meta"><span>🕐 '+E(fmt(d.deliver_at))+'</span><span id="distanceValue">📍 '+E(n(d.deliver_distance_km?d.deliver_distance_km+' km':null,'Menghitung jarak…'))+'</span><span>💳 '+E(money(d.deliver_fee))+'</span></div>'+
   '<div class="timeline">'+steps.map((x,i)=>{const state=i<idx?'completed':i===idx?'current':'upcoming';const info=stepInfo[x]||{sub:'',icon:'•'};return '<div class="step '+state+'"><span class="step-marker"></span><span class="step-icon">'+E(info.icon)+'</span><div class="step-copy"><div class="step-title">'+E(labels[x])+'<span class="step-current">SAAT INI</span></div><div class="step-sub">'+E(info.sub)+'</div></div></div>'}).join('')+'</div>'+
  '</section>'+
- '<section class="card mapcard"><div class="maphead"><div class="maptitle">Peta perjalanan</div><div class="mapsub">Posisi driver → lokasi Anda</div><div class="mapstats"><span id="mapDistance">Jarak: —</span><span id="mapEta">ETA: —</span><span>'+(driver?'Driver update '+E(fmt(driver.updated_at)):'Posisi driver belum tersedia')+'</span></div></div><div class="mapwrap"><div id="map" class="map"></div><div id="mapEmpty" class="mapempty" style="display:none"><div><b>Peta tujuan sudah siap</b><span>Lokasi customer ditemukan. Posisi driver akan muncul setelah driver menekan Update lokasi di CMS.</span></div></div><div class="maplegend"><span class="legend orange">Driver</span><span class="legend blue">Tujuan</span></div></div></section>'+
+ '<section class="card mapcard"><div class="maphead"><div class="maptitle">Peta perjalanan</div><div class="mapsub">Posisi driver → lokasi Anda</div><div class="mapstats"><span id="mapDistance">Jarak: —</span><span id="mapEta">ETA: —</span><span id="driverFreshness">'+(driver?'Driver update '+E(fmt(driver.updated_at)):'Posisi driver belum tersedia')+'</span></div></div><div class="mapwrap"><div id="map" class="map"></div><div id="mapEmpty" class="mapempty" style="display:none"><div><b>Peta tujuan sudah siap</b><span>Lokasi customer ditemukan. Posisi driver akan muncul setelah driver mengaktifkan Live Lokasi.</span></div></div><div class="maplegend"><span class="legend orange">Jejak driver</span><span class="legend blue">Rute tujuan</span></div></div></section>'+
  '</div>';
  document.getElementById('updated').textContent='Terakhir diperbarui '+new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
- initMap(driver,dest,d);
+ initMap(driver,dest,d,data.driver_path||[]);
 }
-function initMap(driver,dest,d){
+function initMap(driver,dest,d,path=[]){
  if(map){map.remove();map=null}
  const mapEmpty=document.getElementById('mapEmpty');
  if(!dest){
@@ -178,13 +183,25 @@ function initMap(driver,dest,d){
  driverMarker=L.marker([driver.lat,driver.lng],{icon:driverIcon})
    .addTo(map)
    .bindPopup('<b>Driver</b><br>Posisi terakhir '+E(fmt(driver.updated_at)));
+ drawTrail(path);
  const bounds=L.latLngBounds([[driver.lat,driver.lng],[dest.lat,dest.lng]]);
  map.fitBounds(bounds,{padding:[48,48],maxZoom:16});
  requestAnimationFrame(()=>map.invalidateSize());
  setTimeout(()=>map&&map.invalidateSize(),300);
  drawRoute(driver,dest);
 }
+function drawTrail(path){
+ if(!map)return;
+ const pts=(Array.isArray(path)?path:[]).map(p=>[Number(p.lat),Number(p.lng)]).filter(p=>Number.isFinite(p[0])&&Number.isFinite(p[1]));
+ if(trailLayer){map.removeLayer(trailLayer);trailLayer=null}
+ if(pts.length>1){
+   trailLayer=L.polyline(pts,{weight:5,opacity:.82,color:'#f26a21',lineCap:'round',lineJoin:'round'}).addTo(map);
+ }
+}
 async function drawRoute(driver,dest){
+ if(!map||!driver||!dest)return;
+ if(routeLayer){map.removeLayer(routeLayer);routeLayer=null}
+ lastRouteAt=Date.now();
  try{
    const url='https://router.project-osrm.org/route/v1/driving/'+driver.lng+','+driver.lat+';'+dest.lng+','+dest.lat+'?overview=full&geometries=geojson&steps=false';
    const r=await fetch(url,{cache:'no-store'});
@@ -203,6 +220,25 @@ async function drawRoute(driver,dest){
    routeLayer=L.polyline([[driver.lat,driver.lng],[dest.lat,dest.lng]],{weight:5,opacity:.78,color:'#2f6fe5',dashArray:'8 8',lineCap:'round'}).addTo(map);
  }
 }
+async function updateLive(data){
+ if(!lastData||!map||structureKey(data)!==lastStructureKey){render(data);return}
+ lastData=data;
+ const d=data.delivery||{},driver=currentCoords(d),dest=destinationCoords(d),path=data.driver_path||[];
+ const up=document.getElementById('updated');
+ if(up)up.textContent='Terakhir diperbarui '+new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+ const fresh=document.getElementById('driverFreshness');
+ if(fresh)fresh.textContent=driver?'Live '+fmt(driver.updated_at):'Posisi driver belum tersedia';
+ drawTrail(path);
+ if(driver&&dest){
+   if(driverMarker){
+     driverMarker.setLatLng([driver.lat,driver.lng]);
+     driverMarker.setPopupContent('<b>Driver</b><br>Posisi terakhir '+E(fmt(driver.updated_at)));
+   }
+   if(Date.now()-lastRouteAt>15000)await drawRoute(driver,dest);
+ }else if(driver&&map&&!driverMarker){
+   render(data);
+ }
+}
 async function load(code=trackingCode){
  const app=document.getElementById('app');
  const normalized=normalizeCode(code);
@@ -214,7 +250,7 @@ async function load(code=trackingCode){
    if(!r.ok)throw new Error(data?.message||'Gagal memuat');
    if(!data?.order_number){showCodeForm('Kode pantau tidak ditemukan. Periksa kembali kode dari Rentcam.');return}
    trackingCode=normalized;
-   render(data);
+   if(lastData)await updateLive(data);else render(data);
  }catch(e){
    if(trackingCode)app.innerHTML='<div class="error">Tracking belum bisa diperbarui. Silakan coba lagi.</div>';
    else showCodeForm('Tracking belum bisa dimuat. Silakan coba lagi.');
@@ -232,7 +268,7 @@ document.addEventListener('input',e=>{
 });
 document.getElementById('refresh').addEventListener('click',()=>trackingCode&&load(trackingCode));
 showCodeForm();
-setInterval(()=>{if(!document.hidden&&trackingCode)load(trackingCode)},10000);
+setInterval(()=>{if(!document.hidden&&trackingCode)load(trackingCode)},5000);
 })();
 </script>
 </body>
