@@ -19,7 +19,7 @@
     {id:'global-status',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@2d79b380805c155f0bf7b6f8a63480729c0e4e0c/bsm-cinemachine/cms-global-status-publishing-adapter-20260918.js',after:['cms-ui','publishing']},
     {id:'product-sync',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@9e74e816c0c8887553503244ec7e87c04fcfa347/bsm-cinemachine/cms-product-publishing-adapter-20260918.js',after:['cms-ui','publishing']},
     {id:'rental-desk',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@9b65e9329ae2dd033cf3a8ea535133080e812a06/bsm-cinemachine/cms-rental-desk-20260918.js',after:['admin-client','config-store']},
-    {id:'rental-management',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@2c09e4beb6d19984c6bf16e176bf39ef5266ece7/bsm-cinemachine/rental-management-table-adapter-20260918.js',after:['rental-desk','cms-ui']},
+    {id:'rental-management',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@7c5d87c8bbc03f047ed20cac4484081277a0f977/bsm-cinemachine/rental-management-table-adapter-20260918.js',after:['rental-desk','cms-ui']},
     {id:'rental-professional',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@3d265f6b649b776965d91adf9698219b2ff85ead/bsm-cinemachine/rental-professional-adapter-20260918.js',after:['rental-management']},
     {id:'quotation-fix',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@cebdf67bbe40807a403649ecedbac62391609abc/bsm-cinemachine/quotation-product-fix-20260915.js',after:['rental-professional']},
     {id:'rental-insights',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@46bde66fd10ce06d2ba9f0c1af67689bb43c5ba0/bsm-cinemachine/rental-insights-20260913.js',after:['rental-professional']},
