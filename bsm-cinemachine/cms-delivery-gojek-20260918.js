@@ -188,33 +188,84 @@
     const g=await geocodePlaceBrowser(s.office_address||'');
     return g?{...g,name:s.office_name||'Lokasi Saat Ini'}:null;
   }
-  function buildRouteGroups(base){
-    const candidates=jobs().filter(j=>j.status==='waiting').map(j=>({job:j,coords:coordFromJob(j)})).filter(x=>x.coords);
-    const enriched=candidates.map(x=>({...x,bearing:bearingDeg(base,x.coords),radius:haversineKm(base,x.coords)})).sort((a,b)=>a.bearing-b.bearing);
-    const groups=[];
-    for(const item of enriched){
-      let best=null,bestScore=Infinity;
-      for(const g of groups){
-        const ad=angleDiff(item.bearing,g.meanBearing);
-        const near=Math.min(...g.items.map(x=>haversineKm(x.coords,item.coords)));
-        const score=ad+(near>10?40:near*1.5);
-        if(ad<=38&&near<=14&&score<bestScore){best=g;bestScore=score}
+  async function resolveJobCoords(j){
+    const existing=coordFromJob(j);
+    if(existing)return existing;
+    const d=j?.order?.delivery||{};
+    const candidates=[d.maps_url,j.address,j.destination].map(x=>String(x||'').trim()).filter(Boolean);
+    for(const raw of candidates){
+      if(/^https?:\/\//i.test(raw)){
+        const resolved=await resolveMapsLink(raw);
+        if(resolved&&Number.isFinite(resolved.lat)&&Number.isFinite(resolved.lng)){
+          d.latitude=resolved.lat;d.longitude=resolved.lng;
+          if(resolved.final_url)d.maps_url=resolved.final_url;
+          return{lat:resolved.lat,lng:resolved.lng};
+        }
+      }else{
+        const g=await geocodePlaceBrowser(raw);
+        if(g){d.latitude=g.lat;d.longitude=g.lng;return{lat:g.lat,lng:g.lng}}
       }
-      if(!best){best={items:[],meanBearing:item.bearing};groups.push(best)}
-      best.items.push(item);
-      const sx=best.items.reduce((n,x)=>n+Math.cos(x.bearing*Math.PI/180),0);
-      const sy=best.items.reduce((n,x)=>n+Math.sin(x.bearing*Math.PI/180),0);
-      best.meanBearing=(Math.atan2(sy,sx)*180/Math.PI+360)%360;
     }
-    groups.forEach(g=>g.items.sort((a,b)=>a.radius-b.radius));
-    return groups.sort((a,b)=>a.meanBearing-b.meanBearing);
+    return null;
+  }
+  async function hydrateCustomerCoords(){
+    const active=jobs().filter(j=>j.status!=='completed'&&j.status!=='cancelled');
+    await Promise.all(active.map(async j=>{
+      if(coordFromJob(j))return;
+      try{await resolveJobCoords(j)}catch(_){}
+    }));
+  }
+  function greedyOrder(base,items){
+    const rest=items.slice(),out=[];let current=base;
+    while(rest.length){
+      let bestIndex=0,best=Infinity;
+      for(let i=0;i<rest.length;i++){
+        const d=haversineKm(current,rest[i].coords);
+        if(d<best){best=d;bestIndex=i}
+      }
+      const next=rest.splice(bestIndex,1)[0];
+      out.push(next);current=next.coords;
+    }
+    return out;
+  }
+  function buildRouteGroups(base){
+    const candidates=jobs()
+      .filter(j=>j.status!=='completed'&&j.status!=='cancelled')
+      .map(j=>({job:j,coords:coordFromJob(j)}))
+      .filter(x=>x.coords)
+      .map(x=>({...x,bearing:bearingDeg(base,x.coords),radius:haversineKm(base,x.coords)}));
+    const groups=[];
+    const seen=new Set();
+    for(let i=0;i<candidates.length;i++){
+      if(seen.has(i))continue;
+      const queue=[i],items=[];seen.add(i);
+      while(queue.length){
+        const idx=queue.shift(),a=candidates[idx];items.push(a);
+        for(let k=0;k<candidates.length;k++){
+          if(seen.has(k))continue;
+          const b=candidates[k];
+          const between=haversineKm(a.coords,b.coords);
+          const sameDirection=angleDiff(a.bearing,b.bearing)<=45;
+          const nearEnough=between<=8 || (sameDirection&&between<=14);
+          if(nearEnough){seen.add(k);queue.push(k)}
+        }
+      }
+      const ordered=greedyOrder(base,items);
+      const meanBearing=ordered.length?ordered.reduce((n,x)=>n+x.bearing,0)/ordered.length:0;
+      groups.push({items:ordered,meanBearing});
+    }
+    return groups.sort((a,b)=>{
+      const da=a.items[0]?haversineKm(base,a.items[0].coords):999;
+      const db=b.items[0]?haversineKm(base,b.items[0].coords):999;
+      return da-db;
+    });
   }
   function directionLabel(b){
     const dirs=['Utara','Timur Laut','Timur','Tenggara','Selatan','Barat Daya','Barat','Barat Laut'];
     return dirs[Math.round(b/45)%8];
   }
   function routeGroupPanel(){
-    return '<section class="gd-distribution"><div class="gd-dist-head"><div><small>PEMBAGIAN RUTE OTOMATIS</small><h3>Peta & Kelompok Lokasi Searah</h3><p>Order tanpa driver dikelompokkan berdasarkan arah dan kedekatan dari lokasi Anda saat ini.</p></div><button class="secondary" data-gd-action="rebuild-routes">Hitung Ulang</button></div><div class="gd-dist-body"><div id="gdDispatchMap" class="gd-dispatch-map"><div class="gd-map-loading">Memuat peta pembagian rute…</div></div><div id="gdRouteGroups" class="gd-route-groups"><div class="gd-map-loading">Menghitung kelompok lokasi…</div></div></div></section>';
+    return '<section class="gd-distribution"><div class="gd-dist-head"><div><small>PEMBAGIAN RUTE CUSTOMER</small><h3>Peta Lokasi Customer & Rekomendasi 1 Driver</h3><p>Lihat posisi customer, jarak dan waktu antar-stop, lalu gabungkan customer yang berdekatan ke satu driver.</p></div><button class="secondary" data-gd-action="rebuild-routes">Hitung Ulang</button></div><div class="gd-dist-body"><div id="gdDispatchMap" class="gd-dispatch-map"><div class="gd-map-loading">Memuat lokasi customer…</div></div><div id="gdRouteGroups" class="gd-route-groups"><div class="gd-map-loading">Menghitung jarak & waktu antar customer…</div></div></div></section>';
   }
   async function ensureLeaflet(){
     if(window.L)return window.L;
@@ -226,6 +277,36 @@
       if(existing){existing.addEventListener('load',()=>resolve(window.L),{once:true});existing.addEventListener('error',reject,{once:true});return}
       const s=document.createElement('script');s.id='gd-leaflet-js';s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';s.onload=()=>resolve(window.L);s.onerror=reject;document.head.appendChild(s);
     });
+  }
+  async function customerAreaLabel(item){
+    if(item.areaLabel)return item.areaLabel;
+    const lat=item.coords?.lat,lng=item.coords?.lng;
+    if(!Number.isFinite(lat)||!Number.isFinite(lng))return '';
+    const key='area:'+Number(lat).toFixed(4)+','+Number(lng).toFixed(4);
+    if(geoLabelCache.has(key)){item.areaLabel=geoLabelCache.get(key);return item.areaLabel}
+    try{
+      const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),3500);
+      const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=id&zoom=14&lat='+encodeURIComponent(lat)+'&lon='+encodeURIComponent(lng),{headers:{Accept:'application/json'},signal:controller.signal});
+      clearTimeout(timer);
+      if(r.ok){
+        const j=await r.json(),a=j.address||{};
+        const district=a.city_district||a.suburb||a.village||a.town||'';
+        const city=a.city||a.municipality||a.county||'';
+        const label=[district,city].filter((v,i,arr)=>v&&arr.indexOf(v)===i).join(', ');
+        if(label){geoLabelCache.set(key,label);item.areaLabel=label;return label}
+      }
+    }catch(_){}
+    item.areaLabel=item.job.destination||item.job.address||'Lokasi customer';
+    return item.areaLabel;
+  }
+  async function enrichAreaLabels(groups){
+    await Promise.all(groups.flatMap(g=>g.items.map(x=>customerAreaLabel(x))));
+  }
+  function fmtMinutes(min){
+    const m=Math.max(1,Math.round(Number(min)||0));
+    if(m<60)return m+' menit';
+    const h=Math.floor(m/60),r=m%60;
+    return h+' jam'+(r?' '+r+' menit':'');
   }
   async function drawRoadGroup(L,map,base,g,color){
     const pts=[base,...g.items.map(x=>x.coords)];
@@ -239,25 +320,56 @@
       const main=L.polyline(latlngs,{weight:5,opacity:.95,color,lineCap:'round',lineJoin:'round'});
       const layer=L.layerGroup([casing,main]).addTo(map);dispatchRouteLayers.push(layer);
       g.roadKm=route.distance/1000;g.roadMin=Math.max(1,Math.round(route.duration/60));
+      g.legs=(route.legs||[]).map((leg,idx)=>({
+        distanceKm:Number(leg.distance||0)/1000,
+        minutes:Math.max(1,Math.round(Number(leg.duration||0)/60)),
+        from:idx===0?'Start':('Stop '+idx),
+        to:'Stop '+(idx+1)
+      }));
     }catch(_){
       const latlngs=pts.map(x=>[x.lat,x.lng]);
       const main=L.polyline(latlngs,{weight:4,opacity:.8,color,dashArray:'7 7'}).addTo(map);dispatchRouteLayers.push(main);
-      g.roadKm=pts.slice(1).reduce((n,p,i)=>n+haversineKm(pts[i],p),0);
+      g.legs=pts.slice(1).map((p,i)=>({distanceKm:haversineKm(pts[i],p),minutes:null,from:i===0?'Start':('Stop '+i),to:'Stop '+(i+1)}));
+      g.roadKm=g.legs.reduce((n,x)=>n+x.distanceKm,0);
       g.roadMin=null;
     }
   }
   function groupCard(g,i,color){
     const letter=String.fromCharCode(65+i),count=g.items.length;
-    const ordersHtml=g.items.map((x,idx)=>'<li><span><b>'+E(x.job.order.order_number||'Order')+'</b><small>'+E((x.job.kind==='deliver'?'Antar':'Jemput')+' · '+(x.job.destination||x.job.address||'-'))+'</small></span><em>Stop '+(idx+1)+'</em></li>').join('');
-    return '<article class="gd-group-card" style="--route-color:'+color+'"><div class="gd-group-top"><span class="gd-route-letter">'+letter+'</span><div><small>RUTE '+letter+' · '+E(directionLabel(g.meanBearing))+'</small><h4>'+count+' stop searah</h4><p><b data-group-km="'+i+'">'+(g.roadKm?g.roadKm.toFixed(1)+' km':'Menghitung km…')+'</b>'+(g.roadMin?' · ±'+g.roadMin+' menit':'')+'</p></div></div><ol>'+ordersHtml+'</ol><button class="primary" data-gd-action="assign-route-group" data-group="'+i+'">Tugaskan 1 Driver ke Rute '+letter+'</button></article>';
+    const waiting=g.items.filter(x=>x.job.status==='waiting');
+    const assigned=g.items.filter(x=>x.job.status!=='waiting');
+    const assignedDriverIds=[...new Set(assigned.map(x=>x.job.driver_id).filter(Boolean))];
+    const assignedNames=[...new Set(assigned.map(x=>x.job.driver).filter(Boolean))];
+    const oneDriver=assignedDriverIds.length===1;
+    const suitable=count>1 && (g.legs||[]).slice(1).every(x=>x.distanceKm<=10);
+    let timeline='<div class="gd-trip-stop start"><span class="gd-trip-dot">S</span><div><b>BSM / Lokasi Saat Ini</b><small>Titik awal perjalanan</small></div></div>';
+    g.items.forEach((x,idx)=>{
+      const leg=g.legs?.[idx];
+      if(leg){
+        timeline+='<div class="gd-trip-leg"><i></i><b>'+leg.distanceKm.toFixed(1)+' km</b><span>· '+(leg.minutes?fmtMinutes(leg.minutes):'estimasi')+'</span></div>';
+      }
+      timeline+='<div class="gd-trip-stop"><span class="gd-trip-dot" style="background:'+color+'">'+(idx+1)+'</span><div><b>'+E(x.job.order.customer_name||'Customer')+' · '+E(x.areaLabel||'Lokasi customer')+'</b><small>'+E(x.job.order.order_number||'')+' · '+E(x.job.kind==='deliver'?'Antar':'Jemput')+(x.job.driver?' · Driver '+E(x.job.driver):' · Belum ada driver')+'</small></div></div>';
+    });
+    let action='';
+    if(waiting.length){
+      const label=oneDriver?('Gabungkan '+waiting.length+' stop ke '+E(assignedNames[0]||'driver')):('Tugaskan 1 Driver ke Rute '+letter);
+      action='<button class="primary" data-gd-action="assign-route-group" data-group="'+i+'">'+label+'</button>';
+    }else if(assignedNames.length===1){
+      action='<div class="gd-route-assigned">Driver rute ini: <b>'+E(assignedNames[0])+'</b></div>';
+    }else if(assignedNames.length>1){
+      action='<div class="gd-route-assigned">Rute ini sedang ditangani beberapa driver.</div>';
+    }
+    return '<article class="gd-group-card gd-trip-card" style="--route-color:'+color+'"><div class="gd-group-top"><span class="gd-route-letter">'+letter+'</span><div><small>RUTE '+letter+' · '+E(directionLabel(g.meanBearing))+'</small><h4>'+count+' customer'+(suitable?' · Cocok 1 driver':'')+'</h4><p><b>'+((g.roadKm||0).toFixed(1))+' km</b>'+(g.roadMin?' · ±'+fmtMinutes(g.roadMin):'')+'</p></div></div><div class="gd-trip-timeline">'+timeline+'</div>'+action+'</article>';
   }
   async function initDistribution(){
     const mapEl=document.getElementById('gdDispatchMap'),groupEl=document.getElementById('gdRouteGroups');
     if(!mapEl||!groupEl)return;
     const base=await officePoint();
     if(!base){mapEl.innerHTML='<div class="gd-map-empty"><b>Lokasi saat ini belum siap</b><span>Tekan tombol “Lokasi Saat Ini” untuk mengambil GPS dan menghitung pembagian rute.</span></div>';groupEl.innerHTML='';return}
+    await hydrateCustomerCoords();
     routeGroupsCache=buildRouteGroups(base);
-    if(!routeGroupsCache.length){groupEl.innerHTML='<div class="gd-map-empty"><b>Belum ada order yang perlu dibagi</b><span>Order tanpa driver dan memiliki koordinat akan muncul di sini.</span></div>'}
+    await enrichAreaLabels(routeGroupsCache);
+    if(!routeGroupsCache.length){groupEl.innerHTML='<div class="gd-map-empty"><b>Belum ada lokasi customer yang bisa dipetakan</b><span>Isi alamat atau Google Maps customer agar jarak dan waktu bisa dihitung.</span></div>'}
     const L=await ensureLeaflet();
     if(dispatchMap){dispatchMap.remove();dispatchMap=null}
     dispatchRouteLayers=[];
@@ -272,17 +384,10 @@
       g.items.forEach((x,idx)=>{
         bounds.push([x.coords.lat,x.coords.lng]);
         const icon=L.divIcon({className:'gd-map-div',html:'<div class="gd-map-pin" style="background:'+color+'">'+letter+(idx+1)+'</div>',iconSize:[34,34],iconAnchor:[17,17]});
-        L.marker([x.coords.lat,x.coords.lng],{icon}).addTo(dispatchMap).bindPopup('<b>'+E(x.job.order.order_number||'Order')+'</b><br>'+E(x.job.destination||x.job.address||''));
+        L.marker([x.coords.lat,x.coords.lng],{icon}).addTo(dispatchMap).bindPopup('<b>'+E(x.job.order.customer_name||'Customer')+'</b><br>'+E(x.areaLabel||x.job.destination||x.job.address||'')+'<br>'+E(x.job.order.order_number||'')+(x.job.driver?'<br>Driver: '+E(x.job.driver):''));
       });
       await drawRoadGroup(L,dispatchMap,base,g,color);
     }
-    const assigned=jobs().filter(j=>j.status!=='waiting'&&j.status!=='completed'&&j.status!=='cancelled').map(j=>({job:j,coords:coordFromJob(j)})).filter(x=>x.coords);
-    assigned.forEach(x=>{
-      bounds.push([x.coords.lat,x.coords.lng]);
-      const label=x.job.kind==='deliver'?'A':'J';
-      const icon=L.divIcon({className:'gd-map-div',html:'<div class="gd-map-pin assigned">'+label+'</div>',iconSize:[34,34],iconAnchor:[17,17]});
-      L.marker([x.coords.lat,x.coords.lng],{icon}).addTo(dispatchMap).bindPopup('<b>'+E(x.job.order.order_number||'Order')+'</b><br>'+E(x.job.driver||'Driver')+' · '+E(x.job.destination||x.job.address||''));
-    });
     dispatchMap.fitBounds(bounds,{padding:[35,35],maxZoom:13});
     groupEl.innerHTML=routeGroupsCache.length?routeGroupsCache.map((g,i)=>groupCard(g,i,colors[i%colors.length])).join(''):'';
     setTimeout(()=>dispatchMap&&dispatchMap.invalidateSize(),150);
@@ -374,7 +479,7 @@
       const letter=String.fromCharCode(65+Number(modal.groupIndex));
       return '<div class="gd-modal"><form class="gd-dialog" data-gd-form="route-group"><div class="gd-dialog-head"><div><small>PEMBAGIAN DRIVER</small><h3>Rute '+letter+' · '+g.items.length+' stop</h3></div><button type="button" data-gd-action="close">×</button></div><div class="gd-form">'+
         '<div class="gd-route-summary">'+g.items.map((x,i)=>'<div><b>Stop '+(i+1)+' · '+E(x.job.order.order_number||'')+'</b><span>'+E(x.job.kind==='deliver'?'Antar':'Jemput')+' · '+E(x.job.destination||x.job.address||'')+'</span></div>').join('')+'</div>'+
-        '<label>Driver<select name="driver_id" required><option value="">Pilih driver…</option>'+masterDrivers.filter(x=>x.active).map(x=>'<option value="'+E(x.id)+'">'+E(x.name)+' · @'+E(x.username)+'</option>').join('')+'</select></label>'+
+        '<label>Driver<select name="driver_id" required><option value="">Pilih driver…</option>'+masterDrivers.filter(x=>x.active).map(x=>{const existing=[...new Set(g.items.map(y=>y.job.driver_id).filter(Boolean))];return '<option value="'+E(x.id)+'" '+(existing.length===1&&existing[0]===x.id?'selected':'')+'>'+E(x.name)+' · @'+E(x.username)+'</option>'}).join('')+'</select></label>'+
         '<label>Kendaraan / Plat<select name="vehicle_id"><option value="">Driver pilih kendaraan saat ambil kunci</option>'+masterVehicles.filter(x=>x.active).map(x=>'<option value="'+E(x.id)+'">'+E(x.plate)+' · '+E(x.name)+'</option>').join('')+'</select></label>'+
         '<div class="gd-master-warning">Semua stop dalam Rute '+letter+' akan ditugaskan ke driver yang sama. Urutan stop di portal driver mengikuti urutan rute ini.</div>'+
         '<div class="gd-dialog-actions"><button type="button" data-gd-action="close" class="secondary">Batal</button><button class="primary" type="submit">Tugaskan '+g.items.length+' Stop</button></div>'+
@@ -609,8 +714,10 @@
     if(!g||!g.items.length)throw new Error('Kelompok rute tidak ditemukan');
     const fd=Object.fromEntries(new FormData(form));
     if(!fd.driver_id)throw new Error('Pilih driver');
-    for(let i=0;i<g.items.length;i++){
-      const j=g.items[i].job;
+    const pendingItems=g.items.filter(x=>x.job.status==='waiting');
+    if(!pendingItems.length)throw new Error('Semua stop di rute ini sudah punya driver');
+    for(let i=0;i<pendingItems.length;i++){
+      const j=pendingItems[i].job;
       const data=await adminRpc('rentcam_admin_assign_driver',{
         p_order:j.id,
         p_kind:j.kind,
@@ -618,7 +725,7 @@
         p_vehicle:fd.vehicle_id||null,
         p_distance_km:0,
         p_fee:0,
-        p_note:(j.note?j.note+' · ':'')+'Rute '+String.fromCharCode(65+Number(modal.groupIndex))+' · Stop '+(i+1)+'/'+g.items.length
+        p_note:(j.note?j.note+' · ':'')+'Rute '+String.fromCharCode(65+Number(modal.groupIndex))+' · Stop '+(i+1)+'/'+pendingItems.length
       });
       if(!data?.ok)throw new Error('Gagal assign '+(j.order.order_number||j.id)+': '+(data?.message||''));
       const o=getOrder(j.id);if(o&&data.delivery)o.delivery=data.delivery;
@@ -693,7 +800,7 @@
     .gd button,.gd-button{border:0;border-radius:12px;min-height:42px;padding:0 15px;font-size:12px;font-weight:850;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:7px}.gd .primary{background:linear-gradient(145deg,#ff8240,#f26a21);color:#fff;box-shadow:0 8px 18px rgba(242,106,33,.2)}.gd .secondary{background:#fff;color:#263248;border:1px solid #dde3eb}.gd .ghost{background:#f4f6f9;color:#405069;border:1px solid #e4e8ee}
     .gd-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:17px}.gd-stats button{text-align:left;height:auto;min-height:92px;display:block;padding:18px;background:#fff;color:#1b283d;border:1px solid #e2e7ef;border-radius:18px;box-shadow:0 5px 18px rgba(25,39,58,.035)}.gd-stats button.on{border-color:#ff9d6a;box-shadow:0 0 0 3px rgba(242,106,33,.08)}.gd-stats small{display:block;color:#7a8799;font-size:11px;margin-bottom:8px}.gd-stats strong{font-size:28px;letter-spacing:-.04em}
     .gd-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 14px}.gd-toolbar input{height:44px;min-width:320px;width:min(520px,100%);border:1px solid #dce2eb;border-radius:13px;background:#fff;padding:0 14px;font-size:13px;outline:none}.gd-toolbar input:focus{border-color:#f58a50;box-shadow:0 0 0 3px rgba(242,106,33,.1)}.gd-toolbar span{font-size:11px;color:#8390a2}
-    .gd-distribution{background:#fff;border:1px solid #e2e7ef;border-radius:22px;overflow:hidden;margin-bottom:18px;box-shadow:0 7px 24px rgba(25,39,58,.045)}.gd-dist-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 20px;border-bottom:1px solid #edf0f4}.gd-dist-head small{display:block;color:#f26a21;font-size:9px;font-weight:900;letter-spacing:.12em}.gd-dist-head h3{margin:4px 0 3px;font-size:18px;color:#223149}.gd-dist-head p{margin:0;color:#8792a3;font-size:10px}.gd-dist-body{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(320px,.8fr);min-height:430px}.gd-dispatch-map{min-height:430px;background:#e9eef4}.gd-route-groups{padding:14px;display:grid;align-content:start;gap:10px;max-height:560px;overflow:auto;background:#f8fafc;border-left:1px solid #edf0f4}.gd-map-loading,.gd-map-empty{min-height:180px;display:grid;place-items:center;text-align:center;padding:22px;color:#7c899a;font-size:10px}.gd-map-empty b,.gd-map-empty span{display:block}.gd-map-empty b{font-size:12px;color:#33445a}.gd-map-empty span{margin-top:5px}.gd-group-card{background:#fff;border:1px solid #e1e6ee;border-radius:15px;padding:13px;box-shadow:inset 4px 0 0 var(--route-color)}.gd-group-top{display:flex;gap:10px;align-items:flex-start}.gd-route-letter{width:36px;height:36px;border-radius:11px;background:var(--route-color);color:#fff;display:grid;place-items:center;font-weight:950}.gd-group-top>div{min-width:0;flex:1}.gd-group-top small{display:block;color:#8390a1;font-size:8px;font-weight:900}.gd-group-top h4{margin:3px 0;font-size:12px;color:#293a52}.gd-group-top p{margin:0;color:#718096;font-size:9px}.gd-group-card ol{list-style:none;margin:10px 0;padding:0;border-top:1px solid #edf0f4}.gd-group-card li{display:flex;align-items:center;justify-content:space-between;gap:9px;padding:9px 0;border-bottom:1px solid #edf0f4}.gd-group-card li span{min-width:0}.gd-group-card li b,.gd-group-card li small{display:block}.gd-group-card li b{font-size:9px;color:#34455c}.gd-group-card li small{margin-top:2px;color:#8b96a6;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px}.gd-group-card li em{font-size:8px;font-style:normal;color:#7f8b9c;white-space:nowrap}.gd-group-card>button{width:100%;min-height:36px!important;font-size:9px!important}.gd-map-div{background:transparent;border:0}.gd-map-pin{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#fff;border:3px solid #fff;box-shadow:0 4px 14px rgba(25,39,58,.25);font-size:9px;font-weight:950}.gd-map-pin.office{background:#17243a}.gd-map-pin.assigned{background:#7d8998}.gd-route-summary{display:grid;gap:8px;margin-bottom:14px}.gd-route-summary>div{padding:10px 11px;border-radius:11px;background:#f7f9fb;border:1px solid #e8ecf1}.gd-route-summary b,.gd-route-summary span{display:block}.gd-route-summary b{font-size:10px;color:#304158}.gd-route-summary span{margin-top:2px;font-size:8px;color:#8591a2}
+    .gd-distribution{background:#fff;border:1px solid #e2e7ef;border-radius:22px;overflow:hidden;margin-bottom:18px;box-shadow:0 7px 24px rgba(25,39,58,.045)}.gd-dist-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 20px;border-bottom:1px solid #edf0f4}.gd-dist-head small{display:block;color:#f26a21;font-size:9px;font-weight:900;letter-spacing:.12em}.gd-dist-head h3{margin:4px 0 3px;font-size:18px;color:#223149}.gd-dist-head p{margin:0;color:#8792a3;font-size:10px}.gd-dist-body{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(320px,.8fr);min-height:430px}.gd-dispatch-map{min-height:430px;background:#e9eef4}.gd-route-groups{padding:14px;display:grid;align-content:start;gap:10px;max-height:560px;overflow:auto;background:#f8fafc;border-left:1px solid #edf0f4}.gd-map-loading,.gd-map-empty{min-height:180px;display:grid;place-items:center;text-align:center;padding:22px;color:#7c899a;font-size:10px}.gd-map-empty b,.gd-map-empty span{display:block}.gd-map-empty b{font-size:12px;color:#33445a}.gd-map-empty span{margin-top:5px}.gd-group-card{background:#fff;border:1px solid #e1e6ee;border-radius:15px;padding:13px;box-shadow:inset 4px 0 0 var(--route-color)}.gd-group-top{display:flex;gap:10px;align-items:flex-start}.gd-route-letter{width:36px;height:36px;border-radius:11px;background:var(--route-color);color:#fff;display:grid;place-items:center;font-weight:950}.gd-group-top>div{min-width:0;flex:1}.gd-group-top small{display:block;color:#8390a1;font-size:8px;font-weight:900}.gd-group-top h4{margin:3px 0;font-size:12px;color:#293a52}.gd-group-top p{margin:0;color:#718096;font-size:9px}.gd-group-card ol{list-style:none;margin:10px 0;padding:0;border-top:1px solid #edf0f4}.gd-group-card li{display:flex;align-items:center;justify-content:space-between;gap:9px;padding:9px 0;border-bottom:1px solid #edf0f4}.gd-group-card li span{min-width:0}.gd-group-card li b,.gd-group-card li small{display:block}.gd-group-card li b{font-size:9px;color:#34455c}.gd-group-card li small{margin-top:2px;color:#8b96a6;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px}.gd-group-card li em{font-size:8px;font-style:normal;color:#7f8b9c;white-space:nowrap}.gd-group-card>button{width:100%;min-height:36px!important;font-size:9px!important}.gd-trip-card{padding:14px}.gd-trip-timeline{margin:12px 0 14px;padding:10px 0;border-top:1px solid #edf0f4;border-bottom:1px solid #edf0f4}.gd-trip-stop{display:grid;grid-template-columns:34px 1fr;gap:9px;align-items:center}.gd-trip-stop+.gd-trip-stop{margin-top:4px}.gd-trip-stop b,.gd-trip-stop small{display:block}.gd-trip-stop b{font-size:9px;color:#304158;line-height:1.35}.gd-trip-stop small{margin-top:2px;font-size:8px;color:#8a96a7;line-height:1.35}.gd-trip-dot{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#17243a;color:#fff;border:3px solid #fff;box-shadow:0 2px 7px rgba(24,36,55,.18);font-size:8px;font-weight:950}.gd-trip-leg{display:flex;align-items:center;gap:5px;min-height:34px;margin-left:14px;padding-left:30px;position:relative;color:#6d7b8e;font-size:8px}.gd-trip-leg:before{content:'';position:absolute;left:0;top:0;bottom:0;border-left:2px dashed #cbd4e0}.gd-trip-leg i{width:15px;height:1px;background:#cbd4e0}.gd-trip-leg b{color:#2f4057;font-size:9px}.gd-route-assigned{padding:10px 11px;border-radius:10px;background:#edf8f3;color:#28735b;font-size:9px;text-align:center}.gd-route-assigned b{font-weight:950}.gd-map-div{background:transparent;border:0}.gd-map-pin{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#fff;border:3px solid #fff;box-shadow:0 4px 14px rgba(25,39,58,.25);font-size:9px;font-weight:950}.gd-map-pin.office{background:#17243a}.gd-map-pin.assigned{background:#7d8998}.gd-route-summary{display:grid;gap:8px;margin-bottom:14px}.gd-route-summary>div{padding:10px 11px;border-radius:11px;background:#f7f9fb;border:1px solid #e8ecf1}.gd-route-summary b,.gd-route-summary span{display:block}.gd-route-summary b{font-size:10px;color:#304158}.gd-route-summary span{margin-top:2px;font-size:8px;color:#8591a2}
     .gd-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.gd-job{background:#fff;border:1px solid #e2e7ef;border-radius:22px;padding:20px;box-shadow:0 7px 24px rgba(25,39,58,.045)}.gd-jobtop{display:flex;justify-content:space-between;align-items:flex-start;gap:15px}.gd-kind{display:inline-flex;padding:5px 8px;border-radius:999px;background:#fff1e9;color:#c75b21;font-size:9px;font-weight:900;letter-spacing:.08em}.gd-kind.collect{background:#eef3ff;color:#4d69b8}.gd-job h3{margin:8px 0 3px;font-size:18px;color:#202d43}.gd-jobtop p{margin:0;color:#7d899b;font-size:11px}
     .gd-status{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:7px 10px;font-size:10px;font-weight:850;background:#f3f5f8;color:#657286;white-space:nowrap}.gd-status i{width:7px;height:7px;border-radius:50%;background:#9ba5b3}.gd-status.assigned{background:#fff7e8;color:#9c6a12}.gd-status.assigned i{background:#efa520}.gd-status.moving{background:#eef4ff;color:#3e62b1}.gd-status.moving i{background:#4a74d8}.gd-status.arrived{background:#f1edff;color:#7655b4}.gd-status.arrived i{background:#8a69cf}.gd-status.done{background:#eaf8f2;color:#197c5d}.gd-status.done i{background:#1ea77b}.gd-status.cancelled{background:#fff0f1;color:#ac4550}.gd-status.cancelled i{background:#dc5965}
     .gd-route{display:grid;grid-template-columns:24px 1fr;gap:8px;margin:18px 0 15px;padding:15px;border-radius:16px;background:#f7f9fc}.gd-route-line{display:grid;grid-template-rows:12px 1fr 12px;justify-items:center;min-height:84px}.gd-route .dot{width:10px;height:10px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #f26a21;background:#f26a21}.gd-route .dot.end{box-shadow:0 0 0 2px #2f6ee5;background:#2f6ee5}.gd-route .rail{width:2px;background:repeating-linear-gradient(to bottom,#bbc5d3 0 4px,transparent 4px 8px)}.gd-route-text{display:flex;flex-direction:column;justify-content:space-between;gap:15px}.gd-route-text small{display:block;color:#97a1b0;font-size:8px;font-weight:850;letter-spacing:.08em}.gd-route-text b{display:block;margin-top:3px;color:#35445a;font-size:11px;line-height:1.4}
