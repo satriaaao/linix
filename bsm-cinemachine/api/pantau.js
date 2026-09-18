@@ -1,4 +1,4 @@
-const SOURCE='https://cdn.jsdelivr.net/gh/satriaaao/linix@f282ffd3069c8dc6fd2982e424577ddbe6409eba/bsm-cinemachine/pantau-customer-v2-20260918.html';
+const SOURCE='https://cdn.jsdelivr.net/gh/satriaaao/linix@80e52a8b4622f0bba8a3b61fef3bdac7233836af/bsm-cinemachine/pantau-customer-v2-20260918.html';
 
 module.exports=async function handler(req,res){
   if(req.method!=='GET'&&req.method!=='HEAD'){
