@@ -18,6 +18,15 @@
           "value": "noindex, nofollow"
         }
       ]
+    },
+    {
+      "source": "/driver",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
     }
   ],
   "rewrites": [
@@ -96,6 +105,10 @@
     {
       "source": "/pantau",
       "destination": "/api/pantau"
+    },
+    {
+      "source": "/driver",
+      "destination": "/api/driver"
     },
     {
       "source": "/cms",
