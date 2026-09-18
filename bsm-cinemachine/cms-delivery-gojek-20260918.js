@@ -143,7 +143,7 @@
     const rawLat=s.office_lat,rawLng=s.office_lng;
     if(rawLat!==null&&rawLat!==undefined&&rawLat!==''&&rawLng!==null&&rawLng!==undefined&&rawLng!==''){
       const lat=Number(rawLat),lng=Number(rawLng);
-      if(Number.isFinite(lat)&&Number.isFinite(lng))return{lat,lng,name:s.office_name||'Kantor Rentcam'};
+      if(Number.isFinite(lat)&&Number.isFinite(lng))return{lat,lng,name:s.office_name||'Lokasi Saat Ini'};
     }
     const fromUrl=parseCoordsFromMapsUrl(s.office_maps_url);
     if(fromUrl)return{...fromUrl,name:s.office_name||'Kantor Rentcam'};
@@ -176,7 +176,7 @@
     return dirs[Math.round(b/45)%8];
   }
   function routeGroupPanel(){
-    return '<section class="gd-distribution"><div class="gd-dist-head"><div><small>PEMBAGIAN RUTE OTOMATIS</small><h3>Peta & Kelompok Lokasi Searah</h3><p>Order tanpa driver dikelompokkan berdasarkan arah dan kedekatan lokasi dari kantor.</p></div><button class="secondary" data-gd-action="rebuild-routes">Hitung Ulang</button></div><div class="gd-dist-body"><div id="gdDispatchMap" class="gd-dispatch-map"><div class="gd-map-loading">Memuat peta pembagian rute…</div></div><div id="gdRouteGroups" class="gd-route-groups"><div class="gd-map-loading">Menghitung kelompok lokasi…</div></div></div></section>';
+    return '<section class="gd-distribution"><div class="gd-dist-head"><div><small>PEMBAGIAN RUTE OTOMATIS</small><h3>Peta & Kelompok Lokasi Searah</h3><p>Order tanpa driver dikelompokkan berdasarkan arah dan kedekatan dari lokasi Anda saat ini.</p></div><button class="secondary" data-gd-action="rebuild-routes">Hitung Ulang</button></div><div class="gd-dist-body"><div id="gdDispatchMap" class="gd-dispatch-map"><div class="gd-map-loading">Memuat peta pembagian rute…</div></div><div id="gdRouteGroups" class="gd-route-groups"><div class="gd-map-loading">Menghitung kelompok lokasi…</div></div></div></section>';
   }
   async function ensureLeaflet(){
     if(window.L)return window.L;
@@ -217,7 +217,7 @@
     const mapEl=document.getElementById('gdDispatchMap'),groupEl=document.getElementById('gdRouteGroups');
     if(!mapEl||!groupEl)return;
     const base=await officePoint();
-    if(!base){mapEl.innerHTML='<div class="gd-map-empty"><b>Lokasi kantor belum siap</b><span>Isi Lokasi Kantor supaya pembagian rute bisa dihitung.</span></div>';groupEl.innerHTML='';return}
+    if(!base){mapEl.innerHTML='<div class="gd-map-empty"><b>Lokasi saat ini belum siap</b><span>Tekan tombol “Lokasi Saat Ini” untuk mengambil GPS dan menghitung pembagian rute.</span></div>';groupEl.innerHTML='';return}
     routeGroupsCache=buildRouteGroups(base);
     if(!routeGroupsCache.length){groupEl.innerHTML='<div class="gd-map-empty"><b>Belum ada order yang perlu dibagi</b><span>Order tanpa driver dan memiliki koordinat akan muncul di sini.</span></div>'}
     const L=await ensureLeaflet();
@@ -227,8 +227,8 @@
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(dispatchMap);
     const colors=['#f26a21','#2f6fe5','#16a36f','#8a5cf6','#d99a14','#e15462','#0f8b8d','#7d5a50'];
     const bounds=[[base.lat,base.lng]];
-    const officeIcon=L.divIcon({className:'gd-map-div',html:'<div class="gd-map-pin office">K</div>',iconSize:[34,34],iconAnchor:[17,17]});
-    L.marker([base.lat,base.lng],{icon:officeIcon}).addTo(dispatchMap).bindPopup('<b>'+E(base.name||'Kantor')+'</b>');
+    const officeIcon=L.divIcon({className:'gd-map-div',html:'<div class="gd-map-pin office">S</div>',iconSize:[34,34],iconAnchor:[17,17]});
+    L.marker([base.lat,base.lng],{icon:officeIcon}).addTo(dispatchMap).bindPopup('<b>'+E(base.name||'Lokasi Saat Ini')+'</b>');
     for(let i=0;i<routeGroupsCache.length;i++){
       const g=routeGroupsCache[i],color=colors[i%colors.length],letter=String.fromCharCode(65+i);
       g.items.forEach((x,idx)=>{
@@ -319,7 +319,7 @@
     const host=document.querySelector('.v5-content'); if(!host)return;
     const all=jobs(), c=counts(all), list=visibleJobs();
     host.innerHTML='<div class="gd">'+
-      '<section class="gd-hero"><div><span class="gd-eyebrow">DISPATCH CENTER</span><h2>Antar–Jemput</h2><p>Kelola pengantaran dan penjemputan rental seperti aplikasi ride-hailing: assign driver, status perjalanan, ETA operasional, lokasi, dan komunikasi.</p></div><div class="gd-hero-actions"><button data-gd-action="office" class="secondary">Lokasi Kantor</button><button data-gd-action="new" class="primary">+ Buat tugas</button><button data-gd-action="refresh" class="secondary">Perbarui</button></div></section>'+
+      '<section class="gd-hero"><div><span class="gd-eyebrow">DISPATCH CENTER</span><h2>Antar–Jemput</h2><p>Kelola pengantaran dan penjemputan rental seperti aplikasi ride-hailing: assign driver, status perjalanan, ETA operasional, lokasi, dan komunikasi.</p></div><div class="gd-hero-actions"><button data-gd-action="current-start" class="secondary">📍 Lokasi Saat Ini</button><button data-gd-action="new" class="primary">+ Buat tugas</button><button data-gd-action="refresh" class="secondary">Perbarui</button></div></section>'+
       '<section class="gd-stats"><button data-gd-filter="all" class="'+(filter==='all'?'on':'')+'"><small>Semua tugas</small><strong>'+c.total+'</strong></button><button data-gd-filter="unassigned" class="'+(filter==='unassigned'?'on':'')+'"><small>Perlu driver</small><strong>'+c.unassigned+'</strong></button><button data-gd-filter="moving" class="'+(filter==='moving'?'on':'')+'"><small>Dalam perjalanan</small><strong>'+c.moving+'</strong></button><button data-gd-filter="done" class="'+(filter==='done'?'on':'')+'"><small>Selesai</small><strong>'+c.done+'</strong></button></section>'+
       routeGroupPanel()+
       '<div class="gd-toolbar"><input data-gd-search placeholder="Cari order / customer / driver..." autocomplete="off"><span>'+list.length+' tugas</span></div>'+
@@ -344,12 +344,12 @@
     }
     if(modal.type==='office'){
       const s=dispatchSettings||{};
-      return '<div class="gd-modal"><form class="gd-dialog" data-gd-form="office"><div class="gd-dialog-head"><div><small>TITIK AWAL RUTE</small><h3>Lokasi Kantor Rentcam</h3></div><button type="button" data-gd-action="close">×</button></div><div class="gd-form">'+
-        '<label>Nama kantor<input name="office_name" value="'+E(s.office_name||'Kantor Rentcam')+'" required></label>'+
-        '<label>Alamat kantor<textarea name="office_address" required placeholder="Alamat lengkap kantor">'+E(s.office_address||'')+'</textarea></label>'+
-        '<label>Link Google Maps kantor<input name="office_maps_url" value="'+E(s.office_maps_url||'')+'" type="url" placeholder="https://maps.google.com/..."></label>'+
+      return '<div class="gd-modal"><form class="gd-dialog" data-gd-form="office"><div class="gd-dialog-head"><div><small>TITIK AWAL RUTE</small><h3>Lokasi Awal Rute</h3></div><button type="button" data-gd-action="close">×</button></div><div class="gd-form">'+
+        '<label>Nama titik awal<input name="office_name" value="'+E(s.office_name||'Kantor Rentcam')+'" required></label>'+
+        '<label>Alamat titik awal<textarea name="office_address" required placeholder="Alamat lengkap kantor">'+E(s.office_address||'')+'</textarea></label>'+
+        '<label>Link Google Maps titik awal<input name="office_maps_url" value="'+E(s.office_maps_url||'')+'" type="url" placeholder="https://maps.google.com/..."></label>'+
         '<div class="gd-two"><label>Latitude (opsional)<input name="office_lat" type="number" step="any" value="'+E(s.office_lat??'')+'" placeholder="-6.xxxxxx"></label><label>Longitude (opsional)<input name="office_lng" type="number" step="any" value="'+E(s.office_lng??'')+'" placeholder="106.xxxxxx"></label></div>'+
-        '<div class="gd-master-warning">Peta driver memakai lokasi ini sebagai titik <b>S (Start)</b>. Jika koordinat kosong, sistem mencari koordinat dari alamat/link Google Maps.</div>'+
+        '<div class="gd-master-warning">Peta driver memakai lokasi ini sebagai titik <b>S (Start)</b>. Tombol Lokasi Saat Ini akan mengisi titik ini otomatis dari GPS.</div>'+
         '<div class="gd-dialog-actions"><button type="button" data-gd-action="close" class="secondary">Batal</button><button class="primary" type="submit">Simpan Lokasi Kantor</button></div>'+
       '</div></form></div>';
     }
@@ -516,6 +516,38 @@
     modal=null;
     render();
   }
+  async function useCurrentStart(button){
+    if(!navigator.geolocation)throw new Error('Browser tidak mendukung GPS');
+    const old=button?.textContent||'📍 Lokasi Saat Ini';
+    if(button){button.disabled=true;button.textContent='Mengambil GPS…'}
+    try{
+      const pos=await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(
+        resolve,reject,{enableHighAccuracy:true,timeout:15000,maximumAge:5000}
+      ));
+      const lat=Number(pos.coords.latitude.toFixed(6));
+      const lng=Number(pos.coords.longitude.toFixed(6));
+      const address=await reverseDriverLabel(lat,lng);
+      const maps='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(lat+','+lng);
+      const d=await adminRpc('rentcam_admin_dispatch_settings_save',{
+        p_office_name:'Lokasi Saat Ini',
+        p_office_address:address,
+        p_office_maps_url:maps,
+        p_office_lat:lat,
+        p_office_lng:lng
+      });
+      if(!d?.ok)throw new Error(d?.message||'Gagal menyimpan lokasi saat ini');
+      dispatchSettings=d.settings||{
+        office_name:'Lokasi Saat Ini',
+        office_address:address,
+        office_maps_url:maps,
+        office_lat:lat,
+        office_lng:lng
+      };
+      render();
+    }finally{
+      if(button&&button.isConnected){button.disabled=false;button.textContent=old}
+    }
+  }
   async function saveOffice(form){
     const fd=Object.fromEntries(new FormData(form));
     const resolved=await resolveMapsLink(fd.office_maps_url);
@@ -648,6 +680,10 @@
     const a=b.dataset.gdAction;
     if(a==='close'){modal=null;render();return}
     if(a==='office'){modal={type:'office'};render();return}
+    if(a==='current-start'){
+      try{await useCurrentStart(b)}catch(err){alert(err.message||'Gagal mengambil lokasi saat ini')}
+      return;
+    }
     if(a==='new'){modal={type:'new'};render();return}
     if(a==='refresh'){await refresh();return}
     if(a==='rebuild-routes'){await initDistribution();return}
