@@ -241,6 +241,272 @@
       .rc-wizard-nav button{flex:1}
       .rc-wizard-next{min-width:0}
     }
+
+    /* 2026-09-18 responsive polish */
+    body:has(#rentcamOrderForm){background:#fff}
+    #app .cartLayout{
+      align-items:start!important;
+      gap:28px!important;
+    }
+    #app .summary{
+      border:1px solid #e7eaf0!important;
+      border-radius:20px!important;
+      background:#fff!important;
+      box-shadow:0 14px 38px rgba(18,31,49,.06)!important;
+      overflow:visible!important;
+    }
+    #rentcamOrderForm.rc-checkout{
+      width:100%!important;
+      max-width:none!important;
+      margin:12px 0 0!important;
+      padding:14px 0 0!important;
+    }
+    #rentcamOrderForm .rc-form-head{
+      gap:12px!important;
+      padding:0 2px!important;
+    }
+    #rentcamOrderForm .rc-form-head h3{
+      font-size:22px!important;
+      letter-spacing:-.025em!important;
+    }
+    .rc-wizard-progress{
+      border:1px solid #eceff3!important;
+      background:#fafbfc!important;
+      padding:9px 10px!important;
+      margin-bottom:12px!important;
+    }
+    .rc-wizard-panel{
+      border:1px solid #e6eaf0!important;
+      border-radius:18px!important;
+      padding:16px!important;
+      box-shadow:0 5px 18px rgba(28,42,60,.035)!important;
+    }
+    .rc-wizard-panel-head{
+      display:grid!important;
+      grid-template-columns:1fr auto!important;
+      column-gap:12px!important;
+      align-items:end!important;
+      margin-bottom:12px!important;
+    }
+    .rc-wizard-panel-head small,
+    .rc-wizard-panel-head h4,
+    .rc-wizard-panel-head p{
+      grid-column:1!important;
+    }
+    .rc-wizard-panel-head h4{
+      font-size:20px!important;
+      line-height:1.15!important;
+      letter-spacing:-.02em!important;
+    }
+    .rc-wizard-panel-head p{
+      font-size:11px!important;
+      max-width:44ch!important;
+    }
+    .rc-wizard-panel .rc-compact-section{
+      border:0!important;
+      background:transparent!important;
+      padding:0!important;
+      margin:0!important;
+      border-radius:0!important;
+    }
+    .rc-wizard-panel .rc-compact-section>h4{
+      display:none!important;
+    }
+    .rc-wizard-panel .rc-section-title{
+      display:flex!important;
+      justify-content:flex-end!important;
+      align-items:center!important;
+      margin:0 0 8px!important;
+    }
+    .rc-wizard-panel .rc-section-title h4{
+      display:none!important;
+    }
+    .rc-wizard-panel [data-estimate]{
+      margin:0!important;
+      padding:6px 10px!important;
+      border-radius:999px!important;
+      background:#fff4ec!important;
+      color:#d95a16!important;
+      font-size:10px!important;
+      font-weight:850!important;
+    }
+    .rc-wizard-panel .rc-grid,
+    .rc-wizard-panel .rc-payment-grid,
+    .rc-wizard-panel .rc-guest-grid{
+      gap:10px!important;
+    }
+    .rc-wizard-panel label{
+      margin:6px 0!important;
+      font-size:11px!important;
+    }
+    .rc-wizard-panel input,
+    .rc-wizard-panel select,
+    .rc-wizard-panel textarea{
+      min-height:46px!important;
+      margin-top:5px!important;
+      padding:11px 12px!important;
+      border-radius:12px!important;
+      border-color:#dde3ea!important;
+      background:#fff!important;
+    }
+    .rc-wizard-panel textarea{
+      min-height:84px!important;
+    }
+    .rc-wizard-panel .rc-member-box{
+      margin:0!important;
+      padding:12px!important;
+      border-radius:14px!important;
+      background:#fbfcfd!important;
+    }
+    .rc-wizard-panel .rc-segment{
+      padding:3px!important;
+    }
+    .rc-wizard-panel .rc-segment span{
+      padding:9px 10px!important;
+    }
+    .rc-wizard-panel .rc-disclosure{
+      margin:8px 0!important;
+      border-radius:13px!important;
+    }
+    .rc-wizard-panel .rc-disclosure summary{
+      padding:11px 12px!important;
+    }
+    .rc-wizard-review{
+      gap:7px!important;
+    }
+    .rc-wizard-nav{
+      margin-top:10px!important;
+    }
+    .rc-wizard-nav button{
+      min-height:44px!important;
+      font-size:12px!important;
+    }
+
+    @media(min-width:1101px){
+      #app .cartLayout{
+        grid-template-columns:minmax(0,1.55fr) minmax(430px,.72fr)!important;
+      }
+      #app .summary{
+        position:sticky!important;
+        top:92px!important;
+        width:100%!important;
+        min-width:430px!important;
+        padding:20px!important;
+      }
+      #rentcamOrderForm{
+        width:100%!important;
+      }
+      .rc-wizard-panel{
+        padding:18px!important;
+      }
+      .rc-wizard-progress em{
+        font-size:9px!important;
+      }
+    }
+
+    @media(min-width:901px) and (max-width:1100px){
+      #app .cartLayout{
+        grid-template-columns:minmax(0,1fr) minmax(390px,.82fr)!important;
+        gap:20px!important;
+      }
+      #app .summary{
+        position:sticky!important;
+        top:82px!important;
+        min-width:390px!important;
+        padding:16px!important;
+      }
+      .rc-wizard-progress em{
+        display:none!important;
+      }
+      .rc-wizard-progress{
+        gap:5px!important;
+      }
+    }
+
+    @media(max-width:900px){
+      #app .cartLayout{
+        grid-template-columns:1fr!important;
+        gap:14px!important;
+      }
+      #app .summary{
+        position:static!important;
+        width:100%!important;
+        min-width:0!important;
+        border-radius:16px!important;
+        padding:14px!important;
+        box-shadow:none!important;
+      }
+      #rentcamOrderForm.rc-checkout{
+        margin-top:10px!important;
+      }
+      .rc-wizard-panel{
+        padding:14px!important;
+      }
+      .rc-wizard-nav{
+        position:sticky!important;
+        bottom:max(8px,env(safe-area-inset-bottom))!important;
+        margin-left:-2px!important;
+        margin-right:-2px!important;
+        padding:12px 2px 2px!important;
+        background:linear-gradient(to bottom,rgba(255,255,255,0),#fff 24%)!important;
+      }
+      .rc-wizard-nav button{
+        min-height:48px!important;
+      }
+    }
+
+    @media(max-width:620px){
+      #app .summary{
+        padding:12px!important;
+      }
+      #rentcamOrderForm .rc-form-head h3{
+        font-size:19px!important;
+      }
+      .rc-wizard-progress{
+        grid-template-columns:auto 1fr auto 1fr auto 1fr auto!important;
+        padding:8px!important;
+        margin-bottom:10px!important;
+      }
+      .rc-wizard-progress em{
+        display:none!important;
+      }
+      .rc-wizard-panel{
+        padding:12px!important;
+        border-radius:14px!important;
+      }
+      .rc-wizard-panel-head{
+        margin-bottom:10px!important;
+      }
+      .rc-wizard-panel-head h4{
+        font-size:18px!important;
+      }
+      .rc-wizard-panel .rc-grid,
+      .rc-wizard-panel .rc-payment-grid,
+      .rc-wizard-panel .rc-guest-grid,
+      .rc-wizard-panel .rc-phone-check{
+        grid-template-columns:1fr!important;
+      }
+      .rc-wizard-panel input,
+      .rc-wizard-panel select,
+      .rc-wizard-panel textarea{
+        font-size:16px!important;
+        min-height:48px!important;
+      }
+      .rc-wizard-review{
+        grid-template-columns:1fr!important;
+      }
+      .rc-wizard-nav{
+        gap:8px!important;
+      }
+      .rc-wizard-nav button{
+        flex:1 1 0!important;
+        min-width:0!important;
+      }
+      .rc-wizard-back[hidden] + .rc-wizard-next{
+        margin-left:auto!important;
+        flex:0 0 100%!important;
+      }
+    }
   `;
   document.head.appendChild(st);
 
