@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101927">
+<meta name="robots" content="noindex,nofollow">
+<title>Pantau Antar–Jemput | Rentcam</title>
+<link rel="preconnect" href="https://unpkg.com">
+<link rel="preconnect" href="https://tile.openstreetmap.org">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#f3f6fa;color:#162033;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}button,a{font:inherit}.wrap{width:min(920px,100%);margin:0 auto;padding:14px 14px 28px}.hero{position:relative;overflow:hidden;border-radius:26px;padding:22px;background:linear-gradient(145deg,#101927,#1c2c44);color:#fff;box-shadow:0 18px 45px rgba(13,25,43,.17)}.hero:after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;right:-65px;top:-75px;background:rgba(242,106,33,.16)}.brand{position:relative;z-index:1;display:flex;align-items:center;gap:10px;font-size:17px;font-weight:900}.brandmark{width:38px;height:38px;border-radius:13px;background:#f26a21;display:grid;place-items:center;color:#fff}.hero-kicker{margin-top:24px;font-size:9px;letter-spacing:.14em;font-weight:900;color:#ff9a63}.hero h1{margin:6px 0 5px;font-size:28px;line-height:1.05;letter-spacing:-.045em}.hero p{max-width:620px;margin:0;color:#adbacb;font-size:12px;line-height:1.6}.statusline{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-top:18px}.livepill{display:inline-flex;align-items:center;gap:7px;padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.09);font-size:10px;font-weight:800}.livepill i{width:8px;height:8px;border-radius:50%;background:#36d399;box-shadow:0 0 0 4px rgba(54,211,153,.12)}.updated{font-size:9px;color:#8fa0b5}
+.main{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:14px;margin-top:14px}.card{background:#fff;border:1px solid #e2e7ee;border-radius:22px;padding:18px;box-shadow:0 8px 24px rgba(27,42,62,.045)}.orderhead{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.eyebrow{font-size:9px;letter-spacing:.12em;font-weight:900;color:#f26a21}.orderno{margin-top:5px;font-size:20px;font-weight:950;letter-spacing:-.035em}.customer{margin-top:3px;font-size:11px;color:#7c8899}.badge{display:inline-flex;align-items:center;gap:7px;padding:8px 10px;border-radius:999px;background:#fff7e8;color:#956714;font-size:10px;font-weight:900;white-space:nowrap}.badge i{width:8px;height:8px;border-radius:50%;background:#e5a62f}.badge.moving{background:#eef4ff;color:#4467b3}.badge.moving i{background:#4b75dc}.badge.done{background:#eaf8f2;color:#177b5c}.badge.done i{background:#21a67b}.badge.cancelled{background:#fff0f1;color:#a54651}.badge.cancelled i{background:#d75c67}
+.queue{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:16px}.metric{padding:13px 10px;border:1px solid #e7ebf0;border-radius:16px;background:#f8fafc;text-align:center}.metric small{display:block;font-size:8px;letter-spacing:.08em;font-weight:900;color:#8c98a8}.metric strong{display:block;margin-top:5px;font-size:22px;letter-spacing:-.04em}.queue-note{margin-top:10px;padding:11px 12px;border-radius:13px;background:#fff7f2;color:#795c4b;font-size:10px;line-height:1.5}.queue-note b{color:#4c382e}
+.routebox{display:grid;grid-template-columns:24px 1fr;gap:9px;margin-top:16px;padding:15px;border-radius:16px;background:#f7f9fc}.route-line{display:grid;grid-template-rows:12px 1fr 12px;justify-items:center;min-height:92px}.dot{width:10px;height:10px;border-radius:50%;background:#f26a21;box-shadow:0 0 0 3px #fff,0 0 0 5px rgba(242,106,33,.18)}.dot.end{background:#2f6fe5;box-shadow:0 0 0 3px #fff,0 0 0 5px rgba(47,111,229,.15)}.rail{width:2px;background:repeating-linear-gradient(to bottom,#bcc5d2 0 4px,transparent 4px 8px)}.route-text{display:flex;flex-direction:column;justify-content:space-between;gap:16px}.route-text small{display:block;font-size:8px;letter-spacing:.1em;font-weight:900;color:#96a1b0}.route-text b{display:block;margin-top:3px;font-size:11px;line-height:1.45;color:#35445b}
+.driver{display:flex;align-items:center;gap:11px;margin-top:15px;padding:14px 0;border-top:1px solid #edf0f4;border-bottom:1px solid #edf0f4}.avatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:#17243a;color:#fff;font-size:17px;font-weight:900;flex:0 0 auto}.driverinfo{min-width:0;flex:1}.driverinfo b{display:block;font-size:13px}.driverinfo small{display:block;margin-top:3px;font-size:9px;color:#8995a6}.action{height:39px;border-radius:12px;padding:0 12px;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border:1px solid #dfe5ec;background:#fff;color:#344258;font-size:10px;font-weight:900}.action.wa{background:#eaf8f1;border-color:#d5eee2;color:#148059}.meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:13px}.meta span{padding:7px 9px;border:1px solid #e7ebf0;border-radius:10px;background:#f8fafb;font-size:9px;color:#68758a}.timeline{display:grid;gap:9px;margin-top:15px}.step{display:flex;align-items:center;gap:9px;color:#9aa3af;font-size:10px}.step i{width:9px;height:9px;border-radius:50%;background:#d9dee6}.step.on{color:#34445b;font-weight:800}.step.on i{background:#f26a21;box-shadow:0 0 0 4px rgba(242,106,33,.09)}
+.mapcard{padding:0;overflow:hidden}.maphead{padding:17px 18px 13px}.maptitle{font-size:14px;font-weight:950}.mapsub{margin-top:3px;font-size:9px;color:#8793a3}.mapstats{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}.mapstats span{padding:7px 9px;border-radius:10px;background:#f5f7fa;font-size:9px;color:#627086}.mapwrap{position:relative;height:430px;border-top:1px solid #e8ecf1;background:#eef2f6}.map{height:100%;width:100%}.mapempty{position:absolute;inset:0;z-index:400;display:grid;place-items:center;padding:28px;text-align:center;background:linear-gradient(180deg,#eef3f8,#f7f9fb);color:#738096}.mapempty b{display:block;color:#344258;font-size:13px;margin-bottom:5px}.mapempty span{font-size:10px;line-height:1.55}.maplegend{position:absolute;left:12px;right:12px;bottom:12px;z-index:500;display:flex;gap:8px;pointer-events:none}.legend{background:rgba(255,255,255,.95);box-shadow:0 8px 25px rgba(18,31,48,.14);border:1px solid #e1e6ed;border-radius:12px;padding:8px 10px;font-size:9px;font-weight:800;color:#526075}.legend.orange:before,.legend.blue:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}.legend.orange:before{background:#f26a21}.legend.blue:before{background:#2f6fe5}.refresh{width:100%;margin-top:14px;border:1px solid #e0e5ec;background:#fff;color:#5d6b80;border-radius:14px;min-height:44px;font-size:10px;font-weight:900}.foot{text-align:center;color:#98a3b1;font-size:9px;padding:16px 0 2px}.loading,.error{margin-top:14px;background:#fff;border:1px solid #e1e6ed;border-radius:22px;padding:34px;text-align:center;color:#798698}.error{color:#aa4652}
+.leaflet-control-attribution{font-size:8px!important}.leaflet-popup-content-wrapper{border-radius:13px}.leaflet-popup-content{font-size:11px}
+@media(max-width:760px){.wrap{padding:10px}.hero{border-radius:21px;padding:19px}.hero h1{font-size:24px}.main{grid-template-columns:1fr}.card{border-radius:19px;padding:15px}.mapcard{padding:0}.maphead{padding:15px}.mapwrap{height:360px}.queue{gap:7px}.metric{padding:11px 7px}.metric strong{font-size:20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<section class="hero">
+<div class="brand"><span class="brandmark">R</span>Rentcam</div>
+<div class="hero-kicker">LIVE DELIVERY TRACKING</div>
+<h1>Pantau Antar–Jemput</h1>
+<p>Lihat urutan antaran, estimasi tiba, posisi driver, dan rute menuju lokasi Anda.</p>
+<div class="statusline"><span class="livepill"><i></i>Update otomatis</span><span class="updated" id="updated">Memuat…</span></div>
+</section>
+<main id="app"><div class="loading">Memuat perjalanan Anda…</div></main>
+<button class="refresh" id="refresh" type="button">Perbarui tracking sekarang</button>
+<div class="foot">Link ini bersifat pribadi. Jangan bagikan ke orang yang tidak berkepentingan.</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function(){
+const SB='https://xleceiffuopioeguniwj.supabase.co';
+const KEY='sb_publishable_POksYryhG_mkFbs7N0fjKQ_4dUim7Ex';
+const token=new URLSearchParams(location.search).get('token')||'';
+const labels={waiting:'Menunggu driver',assigned:'Driver ditugaskan',to_pickup:'Menuju lokasi jemput',picked_up:'Barang sudah diambil',on_the_way:'Dalam perjalanan',arrived:'Driver sudah tiba',completed:'Selesai',cancelled:'Dibatalkan'};
+const steps=['waiting','assigned','to_pickup','picked_up','on_the_way','arrived','completed'];
+let map=null,routeLayer=null,driverMarker=null,destMarker=null,lastData=null;
+const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clean=v=>String(v||'').replace(/\D/g,'').replace(/^0/,'62');
+const fmt=v=>{if(!v)return'Belum dijadwalkan';const d=new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString('id-ID',{timeZone:'Asia/Jakarta',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
+const money=n=>Number(n||0)>0?'Rp'+Number(n).toLocaleString('id-ID'):'Belum tersedia';
+function statusOf(d){let s=d?.deliver_trip_status||'';if(!s&&d?.deliver_status==='completed')s='completed';if(!s&&d?.driver)s='assigned';return s||'waiting'}
+function badgeClass(s){if(s==='completed')return'done';if(s==='cancelled')return'cancelled';if(['to_pickup','picked_up','on_the_way','arrived'].includes(s))return'moving';return''}
+function n(v,fallback='—'){return v===null||v===undefined||v===''?fallback:String(v)}
+function currentCoords(d){
+ const loc=d?.deliver_driver_location;
+ if(!loc)return null;
+ const lat=Number(loc.lat),lng=Number(loc.lng);
+ return Number.isFinite(lat)&&Number.isFinite(lng)?{lat,lng,updated_at:loc.updated_at}:null;
+}
+function destinationCoords(d){
+ const lat=Number(d?.latitude),lng=Number(d?.longitude);
+ return Number.isFinite(lat)&&Number.isFinite(lng)?{lat,lng}:null;
+}
+function render(data){
+ lastData=data;
+ const d=data.delivery||{},q=data.queue||{},status=statusOf(d),idx=steps.indexOf(status);
+ const driver=currentCoords(d),dest=destinationCoords(d);
+ const position=q.position||null,total=q.total||0,before=q.stops_before;
+ const queueText=position?'Antaran ke-'+position+' dari '+Math.max(total,position):'Urutan belum tersedia';
+ const beforeText=before===null||before===undefined?'Urutan driver belum ditentukan':before===0?'Setelah driver berangkat, tujuan berikutnya adalah lokasi Anda':'Masih ada '+before+' tujuan sebelum lokasi Anda';
+ const eta=q.eta_minutes===null||q.eta_minutes===undefined?'—':q.eta_minutes+' mnt';
+ const phone=clean(d.driver_phone);
+ const origin=d.origin||'Rentcam';
+ const destName=d.address||'Lokasi customer';
+ document.getElementById('app').innerHTML=
+ '<div class="main">'+
+ '<section class="card">'+
+  '<div class="orderhead"><div><div class="eyebrow">ANTAR KE CUSTOMER</div><div class="orderno">'+E(data.order_number||'-')+'</div><div class="customer">'+E(data.customer_name||'Customer')+'</div></div><span class="badge '+badgeClass(status)+'"><i></i>'+E(labels[status]||status)+'</span></div>'+
+  '<div class="queue">'+
+   '<div class="metric"><small>ANTARAN KE</small><strong>'+(position?'#'+position:'—')+'</strong></div>'+
+   '<div class="metric"><small>TOTAL ANTARAN</small><strong>'+E(total||'—')+'</strong></div>'+
+   '<div class="metric"><small>ESTIMASI TIBA</small><strong id="etaValue">'+E(eta)+'</strong></div>'+
+  '</div>'+
+  '<div class="queue-note"><b>'+E(queueText)+'</b><br>'+E(beforeText)+'</div>'+
+  '<div class="routebox"><div class="route-line"><span class="dot"></span><span class="rail"></span><span class="dot end"></span></div><div class="route-text"><div><small>DARI</small><b>'+E(origin)+'</b></div><div><small>TUJUAN</small><b>'+E(destName)+'</b></div></div></div>'+
+  '<div class="driver"><div class="avatar">'+E((d.driver||'?').slice(0,1).toUpperCase())+'</div><div class="driverinfo"><b>'+E(d.driver||'Belum ada driver')+'</b><small>'+E([d.vehicle,d.plate].filter(Boolean).join(' · ')||'Petugas antar–jemput')+'</small></div>'+(phone?'<a class="action wa" href="https://wa.me/'+E(phone)+'" target="_blank" rel="noopener">WhatsApp</a>':'')+'</div>'+
+  '<div class="meta"><span>🕐 '+E(fmt(d.deliver_at))+'</span><span id="distanceValue">📍 '+E(n(d.deliver_distance_km?d.deliver_distance_km+' km':null,'Menghitung jarak…'))+'</span><span>💳 '+E(money(d.deliver_fee))+'</span></div>'+
+  '<div class="timeline">'+steps.map((x,i)=>'<div class="step '+(i<=idx?'on':'')+'"><i></i><span>'+E(labels[x])+'</span></div>').join('')+'</div>'+
+ '</section>'+
+ '<section class="card mapcard"><div class="maphead"><div class="maptitle">Peta perjalanan</div><div class="mapsub">Posisi driver → lokasi Anda</div><div class="mapstats"><span id="mapDistance">Jarak: —</span><span id="mapEta">ETA: —</span><span>'+(driver?'Driver update '+E(fmt(driver.updated_at)):'Posisi driver belum tersedia')+'</span></div></div><div class="mapwrap"><div id="map" class="map"></div><div id="mapEmpty" class="mapempty" style="display:none"><div><b>Peta tujuan sudah siap</b><span>Lokasi customer ditemukan. Posisi driver akan muncul setelah driver menekan Update lokasi di CMS.</span></div></div><div class="maplegend"><span class="legend orange">Driver</span><span class="legend blue">Tujuan</span></div></div></section>'+
+ '</div>';
+ document.getElementById('updated').textContent='Terakhir diperbarui '+new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+ initMap(driver,dest,d);
+}
+function initMap(driver,dest,d){
+ if(map){map.remove();map=null}
+ const mapEmpty=document.getElementById('mapEmpty');
+ if(!dest){mapEmpty.style.display='grid';mapEmpty.querySelector('b').textContent='Lokasi tujuan belum tersedia';mapEmpty.querySelector('span').textContent='Koordinat customer belum tersimpan pada order ini.';return}
+ map=L.map('map',{zoomControl:true,attributionControl:true});
+ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+ destMarker=L.marker([dest.lat,dest.lng]).addTo(map).bindPopup('Lokasi Anda');
+ if(!driver){
+   map.setView([dest.lat,dest.lng],15);
+   mapEmpty.style.display='grid';
+   return;
+ }
+ mapEmpty.style.display='none';
+ driverMarker=L.marker([driver.lat,driver.lng]).addTo(map).bindPopup('Posisi driver');
+ const bounds=L.latLngBounds([[driver.lat,driver.lng],[dest.lat,dest.lng]]);
+ map.fitBounds(bounds,{padding:[42,42],maxZoom:16});
+ drawRoute(driver,dest);
+}
+async function drawRoute(driver,dest){
+ try{
+   const url='https://router.project-osrm.org/route/v1/driving/'+driver.lng+','+driver.lat+';'+dest.lng+','+dest.lat+'?overview=full&geometries=geojson&steps=false';
+   const r=await fetch(url,{cache:'no-store'});
+   const j=await r.json();
+   const route=j?.routes?.[0];
+   if(!route)throw new Error('route unavailable');
+   const coords=route.geometry.coordinates.map(p=>[p[1],p[0]]);
+   routeLayer=L.polyline(coords,{weight:5,opacity:.88,color:'#f26a21'}).addTo(map);
+   const km=route.distance/1000,mins=Math.max(1,Math.round(route.duration/60));
+   document.getElementById('mapDistance').textContent='Jarak: '+km.toFixed(1)+' km';
+   document.getElementById('mapEta').textContent='ETA: ±'+mins+' mnt';
+   document.getElementById('distanceValue').textContent='📍 '+km.toFixed(1)+' km';
+   document.getElementById('etaValue').textContent='±'+mins+' mnt';
+   map.fitBounds(routeLayer.getBounds(),{padding:[38,38]});
+ }catch(_){
+   routeLayer=L.polyline([[driver.lat,driver.lng],[dest.lat,dest.lng]],{weight:4,opacity:.7,color:'#f26a21',dashArray:'8 8'}).addTo(map);
+ }
+}
+async function load(){
+ const app=document.getElementById('app');
+ if(!token){app.innerHTML='<div class="error">Link tracking tidak valid.</div>';return}
+ try{
+   const r=await fetch(SB+'/rest/v1/rpc/rentcam_customer_tracking',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_token:token}),cache:'no-store'});
+   const data=await r.json();
+   if(!r.ok)throw new Error(data?.message||'Gagal memuat');
+   if(!data?.order_number){app.innerHTML='<div class="error">Data tracking tidak ditemukan.</div>';return}
+   render(data);
+ }catch(e){app.innerHTML='<div class="error">Tracking belum bisa dimuat. Silakan coba lagi.</div>'}
+}
+document.getElementById('refresh').addEventListener('click',load);
+load();
+setInterval(()=>{if(!document.hidden)load()},10000);
+})();
+</script>
+</body>
+</html>
