@@ -28,10 +28,14 @@ function patchPublicHtml(html,seo){
   const schema=(seo.schema||[]).map(x=>`<script type="application/ld+json">${safeJson({'@context':'https://schema.org',...x})}</script>`).join('');
   const meta=`\n<link rel="canonical" href="${esc(seo.canonical)}">\n<link rel="alternate" hreflang="id-ID" href="${esc(seo.canonical)}">\n<link rel="alternate" hreflang="x-default" href="${esc(seo.canonical)}">\n<meta name="robots" content="${esc(seo.robots)}">\n<meta property="og:locale" content="id_ID">\n<meta property="og:type" content="website">\n<meta property="og:site_name" content="Rentcam">\n<meta property="og:title" content="${esc(seo.title)}">\n<meta property="og:description" content="${esc(seo.description)}">\n<meta property="og:url" content="${esc(seo.canonical)}">\n<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:title" content="${esc(seo.title)}">\n<meta name="twitter:description" content="${esc(seo.description)}">\n${schema}`;
   out=out.replace('</head>',meta+'</head>');
+  // Keep exactly one cart navigation handler. The source HTML also loads an older
+  // cart hardening script; remove it here so touch/pointer/click events cannot race.
+  out=out.replace(/<script\s+src=["']\/cart-click-fix-20260914\.js(?:\?[^"']*)?["']><\\/script>/i,'');
   const cartHardening=`
 <style id="rc-cart-direct-fix">
 .rc-cart-button,[data-go="/cart"]{pointer-events:auto!important;cursor:pointer!important}
-.header .actions,.header .rc-cart-button{position:relative!important;z-index:9999!important}
+.header .actions{position:relative!important;z-index:40!important}
+.header .rc-cart-button{position:relative!important;z-index:41!important;touch-action:manipulation}
 .rc-cart-button::before{content:"";position:absolute;inset:-10px;z-index:-1}
 </style>
 <script id="rc-cart-direct-handler">
@@ -42,8 +46,7 @@ function patchPublicHtml(html,seo){
     return el&&el.closest?el.closest('.rc-cart-button,[data-go="/cart"],[aria-label*="Keranjang"],[aria-label*="keranjang"]'):null;
   }
   function openCart(e){
-    var b=target(e.target);
-    if(!b)return;
+    if(!target(e.target))return;
     e.preventDefault();
     e.stopPropagation();
     if(e.stopImmediatePropagation)e.stopImmediatePropagation();
@@ -55,8 +58,6 @@ function patchPublicHtml(html,seo){
     }
     location.assign('/cart');
   }
-  document.addEventListener('pointerup',openCart,true);
-  document.addEventListener('touchend',openCart,true);
   document.addEventListener('click',openCart,true);
   document.addEventListener('keydown',function(e){
     if((e.key==='Enter'||e.key===' ')&&target(e.target))openCart(e);
