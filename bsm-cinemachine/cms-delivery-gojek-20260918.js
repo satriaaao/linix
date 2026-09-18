@@ -29,7 +29,7 @@
     on_the_way:['arrived','Sudah tiba'],
     arrived:['completed','Selesaikan tugas']
   };
-  let active=false, orders=[], filter='all', modal=null, loading=false, masterDrivers=[], masterVehicles=[], dispatchSettings={};
+  let active=false, orders=[], filter='all', modal=null, loading=false, masterDrivers=[], masterVehicles=[], dispatchSettings={},livePollBusy=false,geoLabelCache=new Map();
 
   async function decode(r){
     const text=await r.text(); let data=null;
@@ -159,10 +159,13 @@
     const trackCode=trackingCode(j.order);
     return '<article class="gd-job" data-job="'+E(j.id)+'" data-kind="'+E(j.kind)+'">'+
       '<div class="gd-jobtop"><div><span class="gd-kind '+j.kind+'">'+(j.kind==='deliver'?'ANTAR':'JEMPUT')+'</span><h3>'+E(j.order.order_number||j.id)+'</h3><p>'+E(j.order.customer_name||'-')+' · '+E(j.order.phone||'-')+'</p></div>'+badge(j.status)+'</div>'+
-      '<div class="gd-route"><div class="gd-route-line"><span class="dot start"></span><span class="rail"></span><span class="dot end"></span></div><div class="gd-route-text"><div><small>DARI</small><b>'+E(j.origin||'-')+'</b></div><div><small>TUJUAN</small><b>'+E(j.destination||j.address||'-')+'</b></div></div></div>'+
+      '<div class="gd-route"><div class="gd-route-line"><span class="dot start"></span><span class="rail"></span><span class="dot end"></span></div><div class="gd-route-text">'+
+        '<div class="gd-route-row"><div><small>LOKASI SAAT INI</small><b data-live-origin="'+E(j.id)+'" data-kind="'+E(j.kind)+'">'+E(j.location?('GPS '+Number(j.location.lat).toFixed(6)+', '+Number(j.location.lng).toFixed(6)):(j.origin||'-'))+'</b><em data-live-time="'+E(j.id)+'">'+(j.location?('Update '+E(fmtDate(j.location.updated_at))):'Menunggu GPS driver')+'</em></div></div>'+
+        '<div class="gd-route-row"><div><small>TUJUAN</small><b data-destination-label="'+E(j.id)+'">'+E(j.destination||j.address||'-')+'</b></div><button type="button" class="gd-edit-dest" data-gd-action="edit-destination" data-id="'+E(j.id)+'" data-kind="'+E(j.kind)+'">Edit</button></div>'+
+      '</div></div>'+
       '<div class="gd-meta"><span>🕐 '+E(fmtDate(j.time))+'</span><span>📍 '+(j.distance_km?E(j.distance_km)+' km':'Jarak belum diisi')+'</span><span>💳 '+(j.fee?E(money(j.fee)):'Biaya belum diisi')+'</span></div>'+
       driverBlock(j)+
-      (j.location?'<div class="gd-live"><span class="pulse"></span><div><b>Lokasi driver terakhir</b><small>'+E(fmtDate(j.location.updated_at))+'</small></div><a href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(j.location.lat+','+j.location.lng)+'" target="_blank" rel="noopener">Lihat</a></div>':'')+
+      (j.location?'<div class="gd-live"><span class="pulse"></span><div><b>GPS driver realtime</b><small data-live-detail="'+E(j.id)+'">'+E(fmtDate(j.location.updated_at))+' · akurasi ±'+E(j.location.accuracy||0)+' m</small></div><a data-live-map="'+E(j.id)+'" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(j.location.lat+','+j.location.lng)+'" target="_blank" rel="noopener">Lihat</a></div>':'')+
       '<div class="gd-actions">'+
         '<button data-gd-action="assign" data-id="'+E(j.id)+'" data-kind="'+j.kind+'" class="secondary">'+(j.driver?'Edit driver':'Tugaskan driver')+'</button>'+
         (nxt?'<button data-gd-action="next" data-id="'+E(j.id)+'" data-kind="'+j.kind+'" data-next="'+E(nxt[0])+'" class="primary">'+E(nxt[1])+'</button>':'')+
@@ -201,6 +204,19 @@
         '<div class="gd-dialog-actions"><button type="button" data-gd-action="close" class="secondary">Batal</button><button class="primary" type="submit">Simpan Lokasi Kantor</button></div>'+
       '</div></form></div>';
     }
+    if(modal.type==='destination'){
+      const j=makeJob(orders.find(o=>String(o.id)===String(modal.id)),modal.kind);
+      const d=j.order?.delivery||{};
+      const isDeliver=modal.kind==='deliver';
+      const currentAddress=isDeliver?(d.address||''):(d.return_address||d.address||'');
+      return '<div class="gd-modal"><form class="gd-dialog" data-gd-form="destination"><div class="gd-dialog-head"><div><small>EDIT TUJUAN</small><h3>'+E(j.order.order_number||'')+'</h3></div><button type="button" data-gd-action="close">×</button></div><div class="gd-form">'+
+        '<label>Alamat tujuan<textarea name="address" required placeholder="Alamat lengkap / patokan">'+E(currentAddress)+'</textarea></label>'+
+        '<label>Link Google Maps<input name="maps_url" type="url" value="'+E(d.maps_url||'')+'" placeholder="https://maps.app.goo.gl/..."></label>'+
+        '<div class="gd-two"><label>Latitude (opsional)<input name="latitude" type="number" step="any" value="'+E(d.latitude??'')+'" placeholder="-6.xxxxxx"></label><label>Longitude (opsional)<input name="longitude" type="number" step="any" value="'+E(d.longitude??'')+'" placeholder="106.xxxxxx"></label></div>'+
+        '<div class="gd-master-warning">Boleh isi alamat saja, link Google Maps saja, atau koordinat. Setelah disimpan, peta driver dan pantau customer memakai tujuan baru.</div>'+
+        '<div class="gd-dialog-actions"><button type="button" data-gd-action="close" class="secondary">Batal</button><button class="primary" type="submit">Simpan Tujuan</button></div>'+
+      '</div></form></div>';
+    }
     if(modal.type==='assign'){
       const j=makeJob(orders.find(o=>o.id===modal.id),modal.kind);
       return '<div class="gd-modal"><form class="gd-dialog" data-gd-form="assign"><div class="gd-dialog-head"><div><small>DRIVER & PERJALANAN</small><h3>'+E(j.order.order_number||'')+'</h3></div><button type="button" data-gd-action="close">×</button></div><div class="gd-form">'+
@@ -227,6 +243,47 @@
     active=true; filter='all'; modal=null; setNavOn();
     const host=document.querySelector('.v5-content'); if(host)host.innerHTML='<div class="gd-loading">Memuat dispatch antar–jemput…</div>';
     try{[orders]=await Promise.all([loadOrders(),loadMasters()]); render()}catch(e){if(host)host.innerHTML='<div class="gd-error">'+E(e.message)+'</div>'}
+  }
+  async function reverseDriverLabel(lat,lng){
+    const key=Number(lat).toFixed(4)+','+Number(lng).toFixed(4);
+    if(geoLabelCache.has(key))return geoLabelCache.get(key);
+    try{
+      const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),3500);
+      const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=id&zoom=18&lat='+encodeURIComponent(lat)+'&lon='+encodeURIComponent(lng),{headers:{Accept:'application/json'},signal:controller.signal});
+      clearTimeout(timer);
+      if(r.ok){
+        const j=await r.json();
+        const label=String(j.display_name||'').trim();
+        if(label){geoLabelCache.set(key,label);return label}
+      }
+    }catch(_){}
+    return 'GPS '+Number(lat).toFixed(6)+', '+Number(lng).toFixed(6);
+  }
+  async function updateLiveDom(){
+    const js=jobs();
+    for(const j of js){
+      if(!j.location)continue;
+      const origin=document.querySelector('[data-live-origin="'+CSS.escape(String(j.id))+'"]');
+      const time=document.querySelector('[data-live-time="'+CSS.escape(String(j.id))+'"]');
+      const detail=document.querySelector('[data-live-detail="'+CSS.escape(String(j.id))+'"]');
+      const link=document.querySelector('[data-live-map="'+CSS.escape(String(j.id))+'"]');
+      if(origin){
+        origin.textContent='GPS '+Number(j.location.lat).toFixed(6)+', '+Number(j.location.lng).toFixed(6);
+        reverseDriverLabel(j.location.lat,j.location.lng).then(label=>{if(origin.isConnected)origin.textContent=label});
+      }
+      if(time)time.textContent='Update '+fmtDate(j.location.updated_at);
+      if(detail)detail.textContent=fmtDate(j.location.updated_at)+' · akurasi ±'+Math.round(j.location.accuracy||0)+' m';
+      if(link)link.href='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(j.location.lat+','+j.location.lng);
+    }
+  }
+  async function pollLive(){
+    if(!active||modal||livePollBusy||document.hidden)return;
+    livePollBusy=true;
+    try{
+      orders=await loadOrders();
+      await updateLiveDom();
+    }catch(_){}
+    finally{livePollBusy=false}
   }
   async function refresh(){
     if(loading)return; loading=true;
@@ -282,6 +339,33 @@
       }
     }catch(_){}
     return{final_url:url,lat:null,lng:null};
+  }
+  async function saveDestination(form){
+    const fd=Object.fromEntries(new FormData(form));
+    const id=modal.id,kind=modal.kind;
+    const address=String(fd.address||'').trim();
+    let lat=fd.latitude!==''?Number(fd.latitude):null;
+    let lng=fd.longitude!==''?Number(fd.longitude):null;
+    let finalUrl=String(fd.maps_url||'').trim();
+    if((!Number.isFinite(lat)||!Number.isFinite(lng))&&finalUrl){
+      const resolved=await resolveMapsLink(finalUrl);
+      if(resolved){
+        finalUrl=String(resolved.final_url||finalUrl);
+        if(Number.isFinite(resolved.lat)&&Number.isFinite(resolved.lng)){lat=resolved.lat;lng=resolved.lng}
+      }
+    }
+    if((!Number.isFinite(lat)||!Number.isFinite(lng))&&address){
+      const g=await geocodePlaceBrowser(address);
+      if(g){lat=g.lat;lng=g.lng}
+    }
+    await updateDelivery(id,d=>{
+      if(kind==='deliver')d.address=address;
+      else d.return_address=address;
+      d.maps_url=finalUrl;
+      if(Number.isFinite(lat)&&Number.isFinite(lng)){d.latitude=lat;d.longitude=lng}
+    });
+    modal=null;
+    render();
   }
   async function saveOffice(form){
     const fd=Object.fromEntries(new FormData(form));
@@ -395,6 +479,7 @@
     if(a==='new'){modal={type:'new'};render();return}
     if(a==='refresh'){await refresh();return}
     if(a==='assign'){modal={type:'assign',id:b.dataset.id,kind:b.dataset.kind};render();return}
+    if(a==='edit-destination'){modal={type:'destination',id:b.dataset.id,kind:b.dataset.kind};render();return}
     if(a==='next'){
       b.disabled=true;
       try{await moveStatus(b.dataset.id,b.dataset.kind,b.dataset.next)}catch(err){alert(err.message)}finally{b.disabled=false}
@@ -424,6 +509,7 @@
     const submit=f.querySelector('[type="submit"]');if(submit)submit.disabled=true;
     try{
       if(f.dataset.gdForm==='office')await saveOffice(f);
+      if(f.dataset.gdForm==='destination')await saveDestination(f);
       if(f.dataset.gdForm==='assign')await assign(f);
       if(f.dataset.gdForm==='new')await createTask(f);
     }catch(err){alert(err.message)}finally{if(submit)submit.disabled=false}
@@ -439,6 +525,7 @@
 
   function boot(){
     injectCss();navInject();
+    setInterval(()=>pollLive(),5000);
     let queued=false;
     new MutationObserver(()=>{
       if(queued)return;queued=true;
