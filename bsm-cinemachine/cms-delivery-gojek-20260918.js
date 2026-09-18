@@ -249,6 +249,19 @@
     const lat=Number(m[1]),lng=Number(m[2]);
     return Number.isFinite(lat)&&Number.isFinite(lng)?{lat,lng}:null;
   }
+  async function geocodePlaceBrowser(query){
+    const q=String(query||'').trim();if(!q)return null;
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),5000);
+    try{
+      const r=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=id&q='+encodeURIComponent(q),{
+        headers:{Accept:'application/json'},signal:controller.signal
+      });
+      if(!r.ok)return null;
+      const j=await r.json(),x=j?.[0];
+      const lat=Number(x?.lat),lng=Number(x?.lon);
+      return Number.isFinite(lat)&&Number.isFinite(lng)?{lat,lng}:null;
+    }catch(_){return null}finally{clearTimeout(timer)}
+  }
   async function resolveMapsLink(raw){
     const url=String(raw||'').trim();if(!url)return null;
     const direct=parseCoordsFromMapsUrl(url);
@@ -257,11 +270,16 @@
       const r=await fetch('/api/maps-resolve?url='+encodeURIComponent(url),{cache:'no-store'});
       const j=await r.json();
       const lat=Number(j?.lat),lng=Number(j?.lng);
-      if(j?.ok)return{
-        final_url:j.final_url||url,
-        lat:Number.isFinite(lat)?lat:null,
-        lng:Number.isFinite(lng)?lng:null
-      };
+      if(j?.ok){
+        if(Number.isFinite(lat)&&Number.isFinite(lng)){
+          return{final_url:j.final_url||url,lat,lng};
+        }
+        if(j?.place_query){
+          const g=await geocodePlaceBrowser(j.place_query);
+          if(g)return{final_url:j.final_url||url,lat:g.lat,lng:g.lng};
+        }
+        return{final_url:j.final_url||url,lat:null,lng:null};
+      }
     }catch(_){}
     return{final_url:url,lat:null,lng:null};
   }
