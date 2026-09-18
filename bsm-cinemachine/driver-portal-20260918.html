@@ -34,7 +34,8 @@
 const SB='https://xleceiffuopioeguniwj.supabase.co';
 const KEY='sb_publishable_POksYryhG_mkFbs7N0fjKQ_4dUim7Ex';
 const STORE='rentcam_driver_token_v1';
-let token=localStorage.getItem(STORE)||'',data=null,vehicleData=null,opsModal=null,watchId=null,lastSent=0,knownJobs=new Set(),wakeLock=null;
+const LIVE_STORE='rentcam_driver_live_always_v1';
+let token=localStorage.getItem(STORE)||'',data=null,vehicleData=null,opsModal=null,watchId=null,lastSent=0,knownJobs=new Set(),wakeLock=null,autoLiveStarting=false;
 const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=v=>{if(!v)return'Belum dijadwalkan';const d=new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString('id-ID',{timeZone:'Asia/Jakarta',weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
 const clean=v=>String(v||'').replace(/\D/g,'').replace(/^0/,'62');
@@ -270,7 +271,7 @@ function render(){
  const todayCount=open.filter(x=>String(x.scheduled_at||'').slice(0,10)===today).length;
  document.getElementById('app').innerHTML=
   '<div class="top"><div class="topin"><div class="logo">R</div><div class="toptext"><b>'+E(data.driver?.name||'Driver')+'</b><small>@'+E(data.driver?.username||'')+'</small></div><button data-action="logout">Keluar</button></div></div>'+
-  '<section class="hero"><small>PORTAL DRIVER RENTCAM</small><h1>Halo, '+E((data.driver?.name||'Driver').split(' ')[0])+'</h1><p>Tugas yang dijadwalkan admin akan muncul otomatis di sini. Update status dan lokasi supaya customer bisa mengikuti perjalanan.</p><div class="heroActions"><button data-action="live" class="live '+(watchId!==null?'on':'')+'">'+(watchId!==null?'Matikan Live Lokasi':'Aktifkan Live Lokasi')+'</button><button data-action="notify">Aktifkan Notifikasi</button><button data-action="refresh">Perbarui</button></div></section>'+
+  '<section class="hero"><small>PORTAL DRIVER RENTCAM</small><h1>Halo, '+E((data.driver?.name||'Driver').split(' ')[0])+'</h1><p>Live Lokasi aktif otomatis selama Anda login supaya customer bisa mengikuti perjalanan secara realtime.</p><div class="heroActions"><button data-action="live" class="live '+(watchId!==null?'on':'')+'">'+(watchId!==null?'● Live Lokasi Aktif':'Aktifkan Lokasi Sekarang')+'</button><button data-action="notify">Aktifkan Notifikasi</button><button data-action="refresh">Perbarui</button></div></section>'+
   vehiclePanel()+
   '<div class="summary"><div><small>TUGAS AKTIF</small><b>'+open.length+'</b></div><div><small>HARI INI</small><b>'+todayCount+'</b></div><div><small>SELESAI</small><b>'+jobs.filter(x=>x.status==='completed').length+'</b></div></div>'+
   '<div class="sectionTitle"><h2>Jadwal Saya</h2><span>'+jobs.length+' tugas</span></div>'+
@@ -318,8 +319,9 @@ function showGpsHelp(message='Izin lokasi belum aktif.'){
      try{
        const pos=await getCurrentPositionStrict();
        el.remove();
+       localStorage.setItem(LIVE_STORE,'1');
        await sendLocation(pos);
-       startLive();
+       await startLive(false);
      }catch(err){el.querySelector('p').textContent=err.message;b.disabled=false}
    }
  });
@@ -332,15 +334,32 @@ async function requestWakeLock(){
 async function releaseWakeLock(){
  try{if(wakeLock){await wakeLock.release();wakeLock=null}}catch(_){}
 }
-async function startLive(){
- if(!navigator.geolocation){showGpsHelp('Browser ini tidak mendukung GPS.');return}
- if(watchId!==null)return;
+function liveAlwaysWanted(){
+ return !!token && localStorage.getItem(LIVE_STORE)==='1';
+}
+async function ensureLiveLocation(showHelp=true){
+ if(!liveAlwaysWanted()||document.hidden||watchId!==null||autoLiveStarting)return;
+ autoLiveStarting=true;
+ try{
+   await startLive(showHelp);
+ }finally{
+   autoLiveStarting=false;
+ }
+}
+async function startLive(showHelp=true){
+ if(!token)return false;
+ localStorage.setItem(LIVE_STORE,'1');
+ if(!navigator.geolocation){
+   if(showHelp)showGpsHelp('Browser ini tidak mendukung GPS.');
+   return false;
+ }
+ if(watchId!==null)return true;
  try{
    const first=await getCurrentPositionStrict();
    await sendLocation(first);
  }catch(err){
-   showGpsHelp(err.message);
-   return;
+   if(showHelp)showGpsHelp(err.message);
+   return false;
  }
  await requestWakeLock();
  watchId=navigator.geolocation.watchPosition(async pos=>{
@@ -350,15 +369,21 @@ async function startLive(){
     const el=document.getElementById('liveText');
     if(el)el.textContent='Live • akurasi ±'+Math.round(pos.coords.accuracy||0)+' m • '+new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   }catch(_){}
- },err=>{
-   stopLive();
-   showGpsHelp(err.code===1?'Akses lokasi ditolak oleh Safari. Izinkan lokasi untuk domain ini.':'Lokasi berhenti: '+err.message);
+ },async err=>{
+   await stopLive(false);
+   if(liveAlwaysWanted())showGpsHelp(err.code===1?'Akses lokasi ditolak oleh Safari. Izinkan lokasi untuk domain ini.':'Lokasi berhenti: '+err.message);
  },{enableHighAccuracy:true,maximumAge:1000,timeout:12000});
- document.getElementById('livebar').classList.add('on');render();
+ const bar=document.getElementById('livebar');if(bar)bar.classList.add('on');
+ render();
+ return true;
 }
-async function stopLive(){
+async function stopLive(clearIntent=false){
  if(watchId!==null&&navigator.geolocation)navigator.geolocation.clearWatch(watchId);
- watchId=null;await releaseWakeLock();document.getElementById('livebar').classList.remove('on');render();
+ watchId=null;
+ if(clearIntent)localStorage.removeItem(LIVE_STORE);
+ await releaseWakeLock();
+ const bar=document.getElementById('livebar');if(bar)bar.classList.remove('on');
+ if(data?.ok)render();
 }
 async function updateStatus(id,status,button){
  button.disabled=true;
@@ -432,7 +457,12 @@ document.addEventListener('submit',async e=>{
  try{
   const d=await rpc('rentcam_driver_login',{p_username:String(fd.get('username')||''),p_password:String(fd.get('password')||'')});
   if(!d?.ok){renderLogin(d?.message||'Login gagal');return}
-  token=d.token;localStorage.setItem(STORE,token);knownJobs.clear();await load();
+  token=d.token;
+  localStorage.setItem(STORE,token);
+  localStorage.setItem(LIVE_STORE,'1');
+  knownJobs.clear();
+  await load();
+  await ensureLiveLocation(true);
  }catch(err){renderLogin(err.message)}finally{btn.disabled=false}
 });
 document.addEventListener('click',async e=>{
@@ -448,18 +478,34 @@ document.addEventListener('click',async e=>{
    const out=await rpc('rentcam_driver_logout',{p_token:token});
    if(!out?.ok){alert(out?.message||'Kunci kendaraan harus dipulangkan sebelum logout');return}
   }catch(err){alert(err.message);return}
-  stopLive();localStorage.removeItem(STORE);token='';data=null;vehicleData=null;renderLogin();return
+  await stopLive(true);
+  localStorage.removeItem(STORE);
+  localStorage.removeItem(LIVE_STORE);
+  token='';data=null;vehicleData=null;renderLogin();return
  }
- if(a==='live'){watchId===null?await startLive():await stopLive();return}
+ if(a==='live'){localStorage.setItem(LIVE_STORE,'1');await ensureLiveLocation(true);return}
  if(a==='notify'){
   if(!('Notification'in window)){alert('Browser ini belum mendukung notifikasi web.');return}
   const p=await Notification.requestPermission();alert(p==='granted'?'Notifikasi aktif.':'Notifikasi belum diizinkan.');return;
  }
  if(a==='next'){await updateStatus(b.dataset.id,b.dataset.status,b)}
 });
-load();
-document.addEventListener('visibilitychange',async()=>{if(!document.hidden&&watchId!==null)await requestWakeLock()});
-setInterval(()=>{if(token&&!document.hidden)load(true)},10000);
+if(token&&localStorage.getItem(LIVE_STORE)!=='1')localStorage.setItem(LIVE_STORE,'1');
+load().then(()=>ensureLiveLocation(true));
+document.addEventListener('visibilitychange',async()=>{
+ if(document.hidden)return;
+ await requestWakeLock();
+ await ensureLiveLocation(false);
+});
+window.addEventListener('focus',()=>ensureLiveLocation(false));
+window.addEventListener('pageshow',()=>ensureLiveLocation(false));
+window.addEventListener('online',()=>ensureLiveLocation(false));
+setInterval(()=>{
+ if(token&&!document.hidden){
+   load(true);
+   ensureLiveLocation(false);
+ }
+},10000);
 })();</script>
 </body>
 </html>
