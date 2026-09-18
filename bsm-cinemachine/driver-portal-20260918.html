@@ -21,6 +21,7 @@
 .keycard{background:#fff;border:1px solid #e1e6ee;border-radius:21px;padding:17px;margin-bottom:13px;box-shadow:0 7px 24px rgba(25,39,58,.045)}.keytop{display:flex;align-items:center;gap:11px}.keyicon{width:48px;height:48px;border-radius:15px;background:#fff2e9;color:#f26a21;display:grid;place-items:center;font-size:23px}.keycopy{min-width:0;flex:1}.keycopy small{display:block;font-size:8px;letter-spacing:.11em;font-weight:900;color:#f26a21}.keycopy h3{margin:4px 0 2px;font-size:15px}.keycopy p{margin:0;color:#8491a2;font-size:9px;line-height:1.45}.keybadge{padding:7px 9px;border-radius:999px;font-size:8px;font-weight:900;background:#fff4e9;color:#a86b20}.keybadge.out{background:#eaf8f2;color:#197b5d}.keymeta{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:13px}.keymeta div{padding:10px;border-radius:12px;background:#f7f9fb}.keymeta small{display:block;color:#8d98a7;font-size:7px}.keymeta b{display:block;margin-top:4px;font-size:10px}.keyactions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px}.keyactions button{min-height:42px;border-radius:12px;border:1px solid #dfe4eb;background:#fff;color:#354359;font-size:9px;font-weight:900}.keyactions .take{grid-column:1/-1;background:#f26a21;border-color:#f26a21;color:#fff}.keyactions .fuel{background:#eef4ff;color:#4265ae;border-color:#dce6fb}.keyactions .return{background:#fff0f1;color:#a54651;border-color:#f4d9dc}
 .opsModal{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:14px;background:rgba(7,13,23,.68);backdrop-filter:blur(8px)}.opsDialog{width:min(560px,100%);max-height:94dvh;overflow:auto;border-radius:23px;background:#f7f9fb;box-shadow:0 30px 90px rgba(0,0,0,.34)}.opsHead{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:17px 18px;background:#fff;border-bottom:1px solid #e5e9ef}.opsHead small{display:block;color:#f26a21;font-size:8px;font-weight:900;letter-spacing:.12em}.opsHead h3{margin:3px 0 0;font-size:17px}.opsHead button{width:38px;height:38px;border:0;border-radius:50%;background:#f0f2f5;color:#344258;font-size:20px}.opsBody{padding:17px}.opsBody label{display:block;margin-bottom:12px;font-size:9px;font-weight:850;color:#5d697b}.opsBody input,.opsBody select,.opsBody textarea{display:block;width:100%;margin-top:6px;border:1px solid #d8dfe8;border-radius:12px;background:#fff;padding:11px 12px;color:#25334a;font-size:12px;outline:none}.opsBody textarea{min-height:76px;resize:vertical}.opsGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.photoField{padding:11px;border:1px dashed #cfd7e2;border-radius:13px;background:#fff}.photoField input{border:0;padding:0;background:transparent}.photoField small{display:block;margin-top:6px;color:#8f9aaa;font-size:8px;line-height:1.4}.opsHint{margin:4px 0 13px;padding:10px 11px;border-radius:11px;background:#fff6ed;color:#8c5c31;font-size:9px;line-height:1.45}.opsActions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.opsActions button{height:42px;padding:0 14px;border-radius:11px;font-size:9px;font-weight:900}.opsActions .cancel{border:1px solid #dce2ea;background:#fff;color:#465469}.opsActions .save{border:0;background:#f26a21;color:#fff}.opsProgress{min-height:16px;margin-top:9px;text-align:center;color:#6d7a8c;font-size:9px}
 .fuelHistory{margin-top:11px}.fuelRow{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid #edf0f4;font-size:9px}.fuelRow span{color:#7e899a}.fuelRow b{color:#344258}
+.gpsHelp{position:fixed;inset:0;z-index:160;display:grid;place-items:center;padding:16px;background:rgba(6,12,21,.7);backdrop-filter:blur(8px)}.gpsHelpCard{width:min(470px,100%);background:#fff;border-radius:22px;padding:20px;box-shadow:0 30px 90px rgba(0,0,0,.34)}.gpsHelpIcon{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:#eef4ff;font-size:24px}.gpsHelpCard h3{margin:14px 0 6px;font-size:18px}.gpsHelpCard p{margin:0;color:#6f7c90;font-size:10px;line-height:1.6}.gpsSteps{margin:14px 0;padding:12px 13px;border-radius:13px;background:#f7f9fc;color:#536176;font-size:10px;line-height:1.7}.gpsButtons{display:grid;grid-template-columns:1fr 1fr;gap:8px}.gpsButtons button{height:43px;border-radius:12px;font-size:10px;font-weight:900}.gpsButtons .secondary{border:1px solid #dce2ea;background:#fff;color:#425169}.gpsButtons .primary{border:0;background:#f26a21;color:#fff}
 
 @media(max-width:540px){.summary{grid-template-columns:1fr 1fr 1fr}.summary>div{padding:11px 9px}.summary b{font-size:18px}.job{padding:15px}.hero{padding:19px}.hero h1{font-size:24px}}
 </style>
@@ -33,7 +34,7 @@
 const SB='https://xleceiffuopioeguniwj.supabase.co';
 const KEY='sb_publishable_POksYryhG_mkFbs7N0fjKQ_4dUim7Ex';
 const STORE='rentcam_driver_token_v1';
-let token=localStorage.getItem(STORE)||'',data=null,vehicleData=null,opsModal=null,watchId=null,lastSent=0,knownJobs=new Set();
+let token=localStorage.getItem(STORE)||'',data=null,vehicleData=null,opsModal=null,watchId=null,lastSent=0,knownJobs=new Set(),wakeLock=null;
 const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=v=>{if(!v)return'Belum dijadwalkan';const d=new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString('id-ID',{timeZone:'Asia/Jakarta',weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
 const clean=v=>String(v||'').replace(/\D/g,'').replace(/^0/,'62');
@@ -305,18 +306,59 @@ async function sendLocation(pos){
  await Promise.allSettled(active.map(j=>rpc('rentcam_driver_update_location',{...payload,p_assignment:j.id})));
  document.getElementById('liveText').textContent='Posisi terakhir '+new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
 }
-function startLive(){
- if(!navigator.geolocation){alert('Browser tidak mendukung lokasi');return}
+function showGpsHelp(message='Izin lokasi belum aktif.'){
+ document.querySelector('.gpsHelp')?.remove();
+ const el=document.createElement('div');el.className='gpsHelp';
+ el.innerHTML='<div class="gpsHelpCard"><div class="gpsHelpIcon">📍</div><h3>Aktifkan Lokasi Driver</h3><p>'+E(message)+'</p><div class="gpsSteps"><b>Di iPhone/Safari:</b><br>1. Buka pengaturan situs/browser untuk rentalcamera.aiorbitlab.me<br>2. Ubah <b>Location / Lokasi</b> menjadi <b>Allow / Izinkan</b><br>3. Jika masih ditolak: Settings → Privacy & Security → Location Services → Safari Websites → While Using App<br>4. Kembali ke halaman ini lalu tekan <b>Coba GPS Lagi</b>.</div><div class="gpsButtons"><button class="secondary" data-gps-close>Tutup</button><button class="primary" data-gps-retry>Coba GPS Lagi</button></div></div>';
+ document.body.appendChild(el);
+ el.addEventListener('click',async e=>{
+   if(e.target.closest('[data-gps-close]')){el.remove();return}
+   if(e.target.closest('[data-gps-retry]')){
+     const b=e.target.closest('button');b.disabled=true;
+     try{
+       const pos=await getCurrentPositionStrict();
+       el.remove();
+       await sendLocation(pos);
+       startLive();
+     }catch(err){el.querySelector('p').textContent=err.message;b.disabled=false}
+   }
+ });
+}
+async function requestWakeLock(){
+ try{
+  if('wakeLock' in navigator&&!wakeLock)wakeLock=await navigator.wakeLock.request('screen');
+ }catch(_){}
+}
+async function releaseWakeLock(){
+ try{if(wakeLock){await wakeLock.release();wakeLock=null}}catch(_){}
+}
+async function startLive(){
+ if(!navigator.geolocation){showGpsHelp('Browser ini tidak mendukung GPS.');return}
  if(watchId!==null)return;
+ try{
+   const first=await getCurrentPositionStrict();
+   await sendLocation(first);
+ }catch(err){
+   showGpsHelp(err.message);
+   return;
+ }
+ await requestWakeLock();
  watchId=navigator.geolocation.watchPosition(async pos=>{
-  const now=Date.now();if(now-lastSent<12000)return;lastSent=now;
-  try{await sendLocation(pos)}catch(_){}
- },err=>{alert('Lokasi gagal: '+err.message);stopLive()},{enableHighAccuracy:true,maximumAge:5000,timeout:15000});
+  const now=Date.now();if(now-lastSent<5000)return;lastSent=now;
+  try{
+    await sendLocation(pos);
+    const el=document.getElementById('liveText');
+    if(el)el.textContent='Live • akurasi ±'+Math.round(pos.coords.accuracy||0)+' m • '+new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  }catch(_){}
+ },err=>{
+   stopLive();
+   showGpsHelp(err.code===1?'Akses lokasi ditolak oleh Safari. Izinkan lokasi untuk domain ini.':'Lokasi berhenti: '+err.message);
+ },{enableHighAccuracy:true,maximumAge:1000,timeout:12000});
  document.getElementById('livebar').classList.add('on');render();
 }
-function stopLive(){
+async function stopLive(){
  if(watchId!==null&&navigator.geolocation)navigator.geolocation.clearWatch(watchId);
- watchId=null;document.getElementById('livebar').classList.remove('on');render();
+ watchId=null;await releaseWakeLock();document.getElementById('livebar').classList.remove('on');render();
 }
 async function updateStatus(id,status,button){
  button.disabled=true;
@@ -408,7 +450,7 @@ document.addEventListener('click',async e=>{
   }catch(err){alert(err.message);return}
   stopLive();localStorage.removeItem(STORE);token='';data=null;vehicleData=null;renderLogin();return
  }
- if(a==='live'){watchId===null?startLive():stopLive();return}
+ if(a==='live'){watchId===null?await startLive():await stopLive();return}
  if(a==='notify'){
   if(!('Notification'in window)){alert('Browser ini belum mendukung notifikasi web.');return}
   const p=await Notification.requestPermission();alert(p==='granted'?'Notifikasi aktif.':'Notifikasi belum diizinkan.');return;
@@ -416,7 +458,8 @@ document.addEventListener('click',async e=>{
  if(a==='next'){await updateStatus(b.dataset.id,b.dataset.status,b)}
 });
 load();
-setInterval(()=>{if(token&&!document.hidden)load(true)},12000);
+document.addEventListener('visibilitychange',async()=>{if(!document.hidden&&watchId!==null)await requestWakeLock()});
+setInterval(()=>{if(token&&!document.hidden)load(true)},10000);
 })();</script>
 </body>
 </html>
