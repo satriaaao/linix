@@ -280,7 +280,13 @@ document.addEventListener('click',async e=>{
  if(a==='open-fuel'){if(!vehicleData?.active_shift){alert('Ambil kunci kendaraan dulu.');return}opsModal='fuel';render();return}
  if(a==='open-return'){if(!vehicleData?.active_shift){alert('Tidak ada kendaraan yang sedang dibawa.');return}opsModal='return';render();return}
  if(a==='close-ops'){opsModal=null;render();return}
- if(a==='logout'){try{await rpc('rentcam_driver_logout',{p_token:token})}catch(_){}stopLive();localStorage.removeItem(STORE);token='';data=null;renderLogin();return}
+ if(a==='logout'){
+  try{
+   const out=await rpc('rentcam_driver_logout',{p_token:token});
+   if(!out?.ok){alert(out?.message||'Kunci kendaraan harus dipulangkan sebelum logout');return}
+  }catch(err){alert(err.message);return}
+  stopLive();localStorage.removeItem(STORE);token='';data=null;vehicleData=null;renderLogin();return
+ }
  if(a==='live'){watchId===null?startLive():stopLive();return}
  if(a==='notify'){
   if(!('Notification'in window)){alert('Browser ini belum mendukung notifikasi web.');return}
