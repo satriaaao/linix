@@ -1,4 +1,4 @@
-const SOURCE='https://cdn.jsdelivr.net/gh/satriaaao/linix@41bfa0f5f6ade8690c548512187993319cca85f2/bsm-cinemachine/cms-v14-20260918.html';
+const SOURCE='https://cdn.jsdelivr.net/gh/satriaaao/linix@caf4f07ab9a024efe6748146b6d8df3e7fdc6172/bsm-cinemachine/cms-v15-20260918.html';
 
 async function handler(req,res){
   if(req.method!=='GET'&&req.method!=='HEAD'){
