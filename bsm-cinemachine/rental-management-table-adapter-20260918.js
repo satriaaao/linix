@@ -1,5 +1,19 @@
 /* Rental operations CMS */
 (()=>{if(!location.pathname.startsWith('/cms'))return;const SB='https://xleceiffuopioeguniwj.supabase.co',KEY='sb_publishable_POksYryhG_mkFbs7N0fjKQ_4dUim7Ex';let page='',orders=[],proofs=[],finance=[],events=[],busy=false,focusId='';const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),M=n=>'Rp'+Number(n||0).toLocaleString('id-ID'),D=s=>s?new Date(s).toLocaleString('id-ID',{timeZone:'Asia/Jakarta'}):'—',S=s=>({unpaid:'Belum bayar',pending:'Menunggu verifikasi',partial:'Sebagian',paid:'Lunas',rejected:'Ditolak',requested:'Order masuk',approved:'Siap disewa',rented:'Sedang disewa',returned:'Selesai',cancelled:'Dibatalkan',completed:'Selesai'})[s]||s;async function req(path,data){return window.RentcamRentalDesk.request(path,data)}const action=(id,a,d={})=>req('rpc/rentcam_admin_action',{p_order:id||null,p_action:a,p_data:d});
+async function resolveGoogleMapsLink(raw){
+  const url=String(raw||'').trim();if(!url)return null;
+  try{
+    const r=await fetch('/api/maps-resolve?url='+encodeURIComponent(url),{cache:'no-store'});
+    const j=await r.json();
+    const lat=Number(j?.lat),lng=Number(j?.lng);
+    if(j?.ok)return{
+      final_url:j.final_url||url,
+      lat:Number.isFinite(lat)?lat:null,
+      lng:Number.isFinite(lng)?lng:null
+    };
+  }catch(_){}
+  return{final_url:url,lat:null,lng:null};
+}
 async function openDriverPicker(id,kind='deliver'){
   document.querySelector('[data-rc-driver-modal]')?.remove();
   const [drivers,vehicles]=await Promise.all([
@@ -30,12 +44,18 @@ async function openDriverPicker(id,kind='deliver'){
     const btn=e.submitter;if(btn)btn.disabled=true;
     try{
       const fd=Object.fromEntries(new FormData(e.target));
+      const resolvedMap=await resolveGoogleMapsLink(fd.maps_url);
       const data=await req('rpc/rentcam_admin_assign_driver',{
         p_order:id,p_kind:kind,p_driver:fd.driver_id,p_vehicle:fd.vehicle_id||null,
         p_distance_km:Number(fd.distance_km||0),p_fee:fd.fee===''?0:Number(fd.fee||0),p_note:String(fd.note||'').trim()
       });
       if(!data?.ok)throw new Error(data?.message||'Gagal menugaskan driver');
-      await req('rpc/rentcam_admin_delivery_patch',{p_order:id,p_patch:{maps_url:String(fd.maps_url||'').trim()}});
+      const patch={maps_url:String(resolvedMap?.final_url||fd.maps_url||'').trim()};
+      if(Number.isFinite(resolvedMap?.lat)&&Number.isFinite(resolvedMap?.lng)){
+        patch.latitude=resolvedMap.lat;
+        patch.longitude=resolvedMap.lng;
+      }
+      await req('rpc/rentcam_admin_delivery_patch',{p_order:id,p_patch:patch});
       modal.remove();await open(page);
     }catch(err){alert(err.message)}finally{if(btn)btn.disabled=false}
   });
