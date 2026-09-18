@@ -24,7 +24,8 @@
     {id:'integrity-lib',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@636f895753b457a401c8357dc24e485795d28454/bsm-cinemachine/rental-integrity-lib-20260916.js',after:['rental-professional']},
     {id:'integrity-fix',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@636f895753b457a401c8357dc24e485795d28454/bsm-cinemachine/cms-integrity-fix-20260916.js',after:['integrity-lib','rental-professional']},
     {id:'analytics',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@7e4a56377b145bea226dc0f08c35637e5ac34978/bsm-cinemachine/cms-analytics-20260918.js',after:['cms-ui','config-store','admin-client']},
-    {id:'serial-dispatch',src:'/serial-dispatch-20260913.js',after:['cms-ui']},
+    {id:'inventory',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@bdad3ed3f5a7985c252a87d49bb23669d0cd9f20/bsm-cinemachine/cms-inventory-20260918.js',after:['admin-client','config-store']},
+    {id:'serial-dispatch',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@26aedf2dffb5f4ab0f3c7db14605760087054de1/bsm-cinemachine/cms-serial-dispatch-adapter-20260918.js',after:['cms-ui','inventory']},
     {id:'site-logo',src:'/site-logo-20260913.js',after:['cms-ui']},
     {id:'template-settings',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@3d7613c90fb618ca29466ccb98da4e32bf2460e8/bsm-cinemachine/cms-template-publishing-adapter-20260918.js',after:['config-store','publishing','cms-ui']}
   ];
