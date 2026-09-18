@@ -1,4 +1,4 @@
-const SOURCE='https://cdn.jsdelivr.net/gh/satriaaao/linix@abf80b9027c53913083477eed694ba0ca8e97f82/bsm-cinemachine/index.html';
+const SOURCE='https://cdn.jsdelivr.net/gh/satriaaao/linix@5d986794f449058b8ce61b81c00b09331719a0f9/bsm-cinemachine/index.html';
 const {seoForRoute}=require('../seo-lib-20260917');
 const {getCatalogProduct}=require('../catalog-public-20260917');
 
