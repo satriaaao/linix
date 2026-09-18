@@ -194,7 +194,8 @@
         '<label>Driver<select name="driver_id" required><option value="">Pilih driver…</option>'+masterDrivers.filter(x=>x.active).map(x=>'<option value="'+E(x.id)+'" '+(String(x.id)===String(j.driver_id)?'selected':'')+'>'+E(x.name)+' · @'+E(x.username)+'</option>').join('')+'</select></label>'+
         '<label>Kendaraan / Plat<select name="vehicle_id"><option value="">Tanpa kendaraan</option>'+masterVehicles.filter(x=>x.active).map(x=>'<option value="'+E(x.id)+'" '+(String(x.id)===String(j.vehicle_id)?'selected':'')+'>'+E(x.plate)+' · '+E(x.name)+'</option>').join('')+'</select></label>'+
         (!masterDrivers.some(x=>x.active)?'<div class="gd-master-warning">Belum ada akun driver aktif. Buat dulu di menu <b>Master Driver</b>.</div>':'')+
-        '<div class="gd-two"><label>Jarak (km)<input name="distance_km" value="'+E(j.distance_km||'')+'" type="number" min="0" step="0.1"></label><label>Biaya antar/jemput<input name="fee" value="'+E(j.fee||'')+'" type="number" min="0" step="1000"></label></div>'+
+        '<div class="gd-two"><label>Jarak (km)<input name="distance_km" value="'+E(j.distance_km||'')+'" type="number" min="0" step="0.1"></label><label>Biaya (opsional)<input name="fee" value="'+E(j.fee||'')+'" type="number" min="0" step="1000" placeholder="Boleh dikosongkan"></label></div>'+
+        '<label>Link Google Maps<input name="maps_url" value="'+E(j.order?.delivery?.maps_url||'')+'" type="url" placeholder="https://maps.google.com/..."></label>'+
         '<label>Catatan perjalanan<textarea name="note" placeholder="Patokan lokasi, kontak PIC, instruksi khusus...">'+E(j.note)+'</textarea></label>'+
         '<div class="gd-dialog-actions"><button type="button" data-gd-action="close" class="secondary">Batal</button><button class="primary" type="submit" '+(!masterDrivers.some(x=>x.active)?'disabled':'')+'>Tugaskan driver</button></div>'+
       '</div></form></div>';
@@ -237,12 +238,13 @@
       p_driver:fd.driver_id,
       p_vehicle:fd.vehicle_id||null,
       p_distance_km:Number(fd.distance_km||0),
-      p_fee:Number(fd.fee||0),
+      p_fee:fd.fee===''?0:Number(fd.fee||0),
       p_note:String(fd.note||'').trim()
     });
     if(!data?.ok)throw new Error(data?.message||'Gagal menugaskan driver');
     const o=getOrder(id);
     if(o&&data.delivery)o.delivery=data.delivery;
+    await updateDelivery(id,d=>{d.maps_url=String(fd.maps_url||'').trim()});
     modal=null;render();
   }
   async function createTask(form){
