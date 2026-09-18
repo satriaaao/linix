@@ -69,26 +69,30 @@
         (root.document.head||root.document.documentElement).appendChild(s);
       });
     }
-    async function start(){
-      if(state.status==='ready')return snapshot();
-      if(state.status==='loading')return snapshot();
-      state.status='loading';state.startedAt=Date.now();state.failed=null;
-      try{
-        for(const item of manifest){
-          state.current=item.id;
-          await load(item);
-          state.loaded.push(item.id);
+    let bootPromise=null;
+    function start(){
+      if(state.status==='ready')return Promise.resolve(snapshot());
+      if(bootPromise)return bootPromise;
+      bootPromise=(async()=>{
+        state.status='loading';state.startedAt=Date.now();state.failed=null;
+        try{
+          for(const item of manifest){
+            state.current=item.id;
+            await load(item);
+            state.loaded.push(item.id);
+          }
+          state.current=null;state.status='ready';state.finishedAt=Date.now();
+          try{root.document.documentElement.dataset.cmsReady='1'}catch(_){}
+          try{root.dispatchEvent(new root.CustomEvent('rentcam:cms-ready',{detail:snapshot()}))}catch(_){}
+          return snapshot();
+        }catch(error){
+          state.status='failed';state.failed=state.current;state.finishedAt=Date.now();
+          try{console.error('Rentcam CMS Kernel failed',state.current,error)}catch(_){}
+          showFailure(error);
+          throw error;
         }
-        state.current=null;state.status='ready';state.finishedAt=Date.now();
-        try{root.document.documentElement.dataset.cmsReady='1'}catch(_){}
-        try{root.dispatchEvent(new root.CustomEvent('rentcam:cms-ready',{detail:snapshot()}))}catch(_){}
-        return snapshot();
-      }catch(error){
-        state.status='failed';state.failed=state.current;state.finishedAt=Date.now();
-        console.error('Rentcam CMS Kernel failed',state.current,error);
-        showFailure(error);
-        throw error;
-      }
+      })();
+      return bootPromise;
     }
     return Object.freeze({start,status:snapshot,manifest:manifest.map(x=>({...x,after:[...(x.after||[])]}))});
   }
