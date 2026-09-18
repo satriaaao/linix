@@ -507,6 +507,133 @@
         flex:0 0 100%!important;
       }
     }
+
+    /* Full-width cart shell fix */
+    html:has(#rentcamOrderForm),
+    body:has(#rentcamOrderForm){
+      width:100%!important;
+      max-width:none!important;
+      min-width:0!important;
+      margin:0!important;
+      overflow-x:hidden!important;
+    }
+    body:has(#rentcamOrderForm) #app{
+      display:block!important;
+      width:100%!important;
+      max-width:none!important;
+      min-width:0!important;
+      margin:0!important;
+      padding:0!important;
+      overflow:visible!important;
+    }
+    body:has(#rentcamOrderForm) #app>.page{
+      width:100%!important;
+      max-width:none!important;
+      margin:0!important;
+      padding-left:0!important;
+      padding-right:0!important;
+      overflow:visible!important;
+    }
+    body:has(#rentcamOrderForm) #app>.page>.container{
+      width:min(1480px,calc(100% - 48px))!important;
+      max-width:1480px!important;
+      margin-left:auto!important;
+      margin-right:auto!important;
+      padding-left:0!important;
+      padding-right:0!important;
+      box-sizing:border-box!important;
+    }
+    body:has(#rentcamOrderForm) #app .cartLayout{
+      width:100%!important;
+      max-width:none!important;
+      min-width:0!important;
+      margin:0!important;
+      box-sizing:border-box!important;
+      grid-template-columns:minmax(0,1fr) minmax(420px,470px)!important;
+      gap:24px!important;
+    }
+    body:has(#rentcamOrderForm) #app .cartLayout>div:first-child{
+      width:100%!important;
+      min-width:0!important;
+      max-width:none!important;
+    }
+    body:has(#rentcamOrderForm) #app .summary{
+      width:100%!important;
+      min-width:0!important;
+      max-width:470px!important;
+      justify-self:end!important;
+      box-sizing:border-box!important;
+    }
+    body:has(#rentcamOrderForm) .footer{
+      width:100%!important;
+      max-width:none!important;
+      margin-left:0!important;
+      margin-right:0!important;
+      left:auto!important;
+      right:auto!important;
+      box-sizing:border-box!important;
+    }
+    body:has(#rentcamOrderForm) .footer>.container{
+      width:min(1480px,calc(100% - 48px))!important;
+      max-width:1480px!important;
+      margin-left:auto!important;
+      margin-right:auto!important;
+    }
+    body:has(#rentcamOrderForm) .promo-rail,
+    body:has(#rentcamOrderForm) .promo-tab,
+    body:has(#rentcamOrderForm) [class*="promo"]{
+      max-width:100vw!important;
+    }
+
+    @media(min-width:1600px){
+      body:has(#rentcamOrderForm) #app>.page>.container,
+      body:has(#rentcamOrderForm) .footer>.container{
+        width:min(1560px,calc(100% - 64px))!important;
+        max-width:1560px!important;
+      }
+      body:has(#rentcamOrderForm) #app .cartLayout{
+        grid-template-columns:minmax(0,1fr) 500px!important;
+        gap:30px!important;
+      }
+      body:has(#rentcamOrderForm) #app .summary{
+        max-width:500px!important;
+      }
+    }
+
+    @media(max-width:1100px){
+      body:has(#rentcamOrderForm) #app>.page>.container{
+        width:calc(100% - 28px)!important;
+      }
+      body:has(#rentcamOrderForm) #app .cartLayout{
+        grid-template-columns:minmax(0,1fr) minmax(360px,410px)!important;
+        gap:16px!important;
+      }
+      body:has(#rentcamOrderForm) #app .summary{
+        max-width:410px!important;
+      }
+    }
+
+    @media(max-width:900px){
+      body:has(#rentcamOrderForm) #app>.page>.container,
+      body:has(#rentcamOrderForm) .footer>.container{
+        width:calc(100% - 24px)!important;
+      }
+      body:has(#rentcamOrderForm) #app .cartLayout{
+        grid-template-columns:1fr!important;
+        gap:14px!important;
+      }
+      body:has(#rentcamOrderForm) #app .summary{
+        max-width:none!important;
+        justify-self:stretch!important;
+      }
+    }
+
+    @media(max-width:620px){
+      body:has(#rentcamOrderForm) #app>.page>.container,
+      body:has(#rentcamOrderForm) .footer>.container{
+        width:calc(100% - 20px)!important;
+      }
+    }
   `;
   document.head.appendChild(st);
 
