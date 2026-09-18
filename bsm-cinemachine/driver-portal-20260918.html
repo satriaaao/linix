@@ -36,7 +36,7 @@ const KEY='sb_publishable_POksYryhG_mkFbs7N0fjKQ_4dUim7Ex';
 const STORE='rentcam_driver_token_v1';
 const LIVE_STORE='rentcam_driver_live_always_v1';
 const OPS_DRAFT='rentcam_driver_ops_draft_v1';
-let token=localStorage.getItem(STORE)||'',data=null,vehicleData=null,opsModal=null,watchId=null,lastSent=0,knownJobs=new Set(),wakeLock=null,autoLiveStarting=false;
+let token=localStorage.getItem(STORE)||'',data=null,vehicleData=null,opsModal=null,watchId=null,lastSent=0,knownJobs=new Set(),wakeLock=null,autoLiveStarting=false,lastLivePosition=null,addressCache=null;
 const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=v=>{if(!v)return'Belum dijadwalkan';const d=new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString('id-ID',{timeZone:'Asia/Jakarta',weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
 const clean=v=>String(v||'').replace(/\D/g,'').replace(/^0/,'62');
@@ -93,15 +93,28 @@ function formatWIB(value){
  }).format(d)+' WIB';
 }
 async function reverseAddress(lat,lng){
+ const now=Date.now();
+ if(addressCache&&now-addressCache.at<120000){
+   const dy=(addressCache.lat-lat)*111000;
+   const dx=(addressCache.lng-lng)*111000*Math.cos(lat*Math.PI/180);
+   if(Math.hypot(dx,dy)<120)return addressCache.address;
+ }
+ const controller=new AbortController();
+ const timer=setTimeout(()=>controller.abort(),3500);
  try{
   const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=id&zoom=18&lat='+encodeURIComponent(lat)+'&lon='+encodeURIComponent(lng),{
-    headers:{Accept:'application/json'}
+    headers:{Accept:'application/json'},
+    signal:controller.signal
   });
   if(!r.ok)throw new Error('reverse geocode '+r.status);
   const j=await r.json();
-  return String(j.display_name||'').trim()||('GPS '+lat.toFixed(6)+', '+lng.toFixed(6));
+  const address=String(j.display_name||'').trim()||('GPS '+lat.toFixed(6)+', '+lng.toFixed(6));
+  addressCache={lat,lng,address,at:Date.now()};
+  return address;
  }catch(_){
   return 'GPS '+lat.toFixed(6)+', '+lng.toFixed(6);
+ }finally{
+  clearTimeout(timer);
  }
 }
 function loadPhoto(file){
@@ -136,7 +149,7 @@ async function watermarkPhoto(file,meta){
  if(file.type&&!String(file.type).startsWith('image/'))throw new Error((meta.photoType||'Foto')+' harus berupa gambar');
 
  const img=await loadPhoto(file);
- const maxSide=1800;
+ const maxSide=1280;
  const scale=Math.min(1,maxSide/Math.max(img.naturalWidth||img.width,img.naturalHeight||img.height));
  const w=Math.max(1,Math.round((img.naturalWidth||img.width)*scale));
  const h=Math.max(1,Math.round((img.naturalHeight||img.height)*scale));
@@ -180,7 +193,7 @@ async function watermarkPhoto(file,meta){
  ctx.fillStyle='#e2e8f0';addressLines.forEach(line=>{ctx.fillText(line,boxX+pad,y);y+=bodyLH});
  ctx.fillStyle='#b7c3d4';gpsLines.forEach(line=>{ctx.fillText(line,boxX+pad,y);y+=bodyLH});
 
- const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.9));
+ const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.82));
  if(!blob)throw new Error('Gagal membuat foto watermark');
  return blob;
 }
@@ -196,18 +209,33 @@ async function uploadBlob(blob,label='foto'){
  if(!r.ok){let msg='Upload '+label+' gagal';try{const j=await r.json();msg=j.message||j.error||msg}catch(_){}throw new Error(msg)}
  return SB+'/storage/v1/object/public/cms-media/'+path;
 }
-async function processOperationalPhoto(file,photoType,vehiclePlate,orderNumber=''){
- const pos=await getCurrentPositionStrict();
+async function getOperationalPhotoContext(){
+ let pos=null;
+ if(lastLivePosition&&Date.now()-lastLivePosition.at<15000){
+   pos=lastLivePosition.pos;
+ }else{
+   pos=await getCurrentPositionStrict();
+ }
  const lat=pos.coords.latitude,lng=pos.coords.longitude;
- const capturedAt=new Date();
  const address=await reverseAddress(lat,lng);
+ return {
+   capturedAt:new Date(),
+   address,lat,lng,
+   accuracy:pos.coords.accuracy
+ };
+}
+async function processOperationalPhotoWithContext(file,photoType,vehiclePlate,orderNumber='',ctx){
  const blob=await watermarkPhoto(file,{
    photoType,orderNumber,
    driverName:data?.driver?.name||'Driver',
    vehiclePlate:vehiclePlate||vehicleData?.active_shift?.plate||'-',
-   capturedAt,address,lat,lng,accuracy:pos.coords.accuracy
+   capturedAt:ctx.capturedAt,address:ctx.address,lat:ctx.lat,lng:ctx.lng,accuracy:ctx.accuracy
  });
  return uploadBlob(blob,photoType);
+}
+async function processOperationalPhoto(file,photoType,vehiclePlate,orderNumber=''){
+ const ctx=await getOperationalPhotoContext();
+ return processOperationalPhotoWithContext(file,photoType,vehiclePlate,orderNumber,ctx);
 }
 function vehiclePanel(){
  const s=vehicleData?.active_shift;
@@ -392,6 +420,7 @@ async function startLive(showHelp=true){
  }
  await requestWakeLock();
  watchId=navigator.geolocation.watchPosition(async pos=>{
+  lastLivePosition={pos,at:Date.now()};
   const now=Date.now();if(now-lastSent<5000)return;lastSent=now;
   try{
     await sendLocation(pos);
@@ -435,13 +464,16 @@ async function saveOps(form){
  try{
    const activeJob=(data?.jobs||[]).find(j=>j.status!=='completed'&&j.status!=='cancelled')||(data?.jobs||[])[0];
    const orderNumber=activeJob?.order_number||'OPERASIONAL';
+   if(progress)progress.textContent='Menyiapkan lokasi & alamat…';
+   const photoCtx=await getOperationalPhotoContext();
    if(kind==='checkout'){
      const selected=(vehicleData?.vehicles||[]).find(v=>String(v.id)===String(fd.get('vehicle_id')));
      const plate=selected?.plate||'-';
-     if(progress)progress.textContent='Mengambil GPS & membuat watermark foto kondisi…';
-     const condition=await processOperationalPhoto(fd.get('condition_photo'),'KONDISI MOBIL AWAL',plate,orderNumber);
-     if(progress)progress.textContent='Membuat watermark foto spidometer…';
-     const odo=await processOperationalPhoto(fd.get('odometer_photo'),'SPIDOMETER AWAL',plate,orderNumber);
+     if(progress)progress.textContent='Memproses & upload 2 foto sekaligus…';
+     const [condition,odo]=await Promise.all([
+       processOperationalPhotoWithContext(fd.get('condition_photo'),'KONDISI MOBIL AWAL',plate,orderNumber,photoCtx),
+       processOperationalPhotoWithContext(fd.get('odometer_photo'),'SPIDOMETER AWAL',plate,orderNumber,photoCtx)
+     ]);
      if(progress)progress.textContent='Menyimpan checkout kendaraan…';
      const d=await rpc('rentcam_driver_vehicle_checkout',{
        p_token:token,p_vehicle:fd.get('vehicle_id'),
@@ -451,10 +483,11 @@ async function saveOps(form){
      if(!d?.ok)throw new Error(d?.message||'Checkout kendaraan gagal');
    }else if(kind==='fuel'){
      const plate=vehicleData?.active_shift?.plate||'-';
-     if(progress)progress.textContent='Mengambil GPS & membuat watermark struk BBM…';
-     const receipt=await processOperationalPhoto(fd.get('receipt_photo'),'STRUK BBM',plate,orderNumber);
-     if(progress)progress.textContent='Membuat watermark foto spidometer BBM…';
-     const odo=await processOperationalPhoto(fd.get('odometer_photo'),'SPIDOMETER SAAT ISI BBM',plate,orderNumber);
+     if(progress)progress.textContent='Memproses & upload 2 foto BBM sekaligus…';
+     const [receipt,odo]=await Promise.all([
+       processOperationalPhotoWithContext(fd.get('receipt_photo'),'STRUK BBM',plate,orderNumber,photoCtx),
+       processOperationalPhotoWithContext(fd.get('odometer_photo'),'SPIDOMETER SAAT ISI BBM',plate,orderNumber,photoCtx)
+     ]);
      if(progress)progress.textContent='Menyimpan log BBM…';
      const d=await rpc('rentcam_driver_fuel_add',{
        p_token:token,p_odometer:Number(fd.get('odometer')),p_amount:Number(fd.get('amount')),
@@ -464,10 +497,11 @@ async function saveOps(form){
      if(!d?.ok)throw new Error(d?.message||'Log BBM gagal');
    }else if(kind==='return'){
      const plate=vehicleData?.active_shift?.plate||'-';
-     if(progress)progress.textContent='Mengambil GPS & membuat watermark kondisi akhir…';
-     const condition=await processOperationalPhoto(fd.get('condition_photo'),'KONDISI MOBIL AKHIR',plate,orderNumber);
-     if(progress)progress.textContent='Membuat watermark spidometer akhir…';
-     const odo=await processOperationalPhoto(fd.get('odometer_photo'),'SPIDOMETER AKHIR',plate,orderNumber);
+     if(progress)progress.textContent='Memproses & upload 2 foto akhir sekaligus…';
+     const [condition,odo]=await Promise.all([
+       processOperationalPhotoWithContext(fd.get('condition_photo'),'KONDISI MOBIL AKHIR',plate,orderNumber,photoCtx),
+       processOperationalPhotoWithContext(fd.get('odometer_photo'),'SPIDOMETER AKHIR',plate,orderNumber,photoCtx)
+     ]);
      if(progress)progress.textContent='Mengembalikan kunci…';
      const d=await rpc('rentcam_driver_vehicle_return',{
        p_token:token,p_odometer:Number(fd.get('odometer')),p_fuel_level:Number(fd.get('fuel_level')),
