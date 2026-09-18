@@ -79,13 +79,10 @@
     return `${range.start} – ${range.end}`;
   }
   function eventPath(range,limit=PAGE_SIZE,offset=0){
-    const b=isoBounds(range.start,range.end);
-    const qs=new URLSearchParams();
-    qs.set('select','event_type,path,product_id,session_id,meta,created_at');
-    qs.append('created_at','gte.'+b.start);
-    qs.append('created_at','lt.'+b.endExclusive);
-    qs.set('order','created_at.desc');qs.set('limit',String(limit));qs.set('offset',String(offset));
-    return '/rest/v1/rentcam_events?'+qs.toString();
+    const b=isoBounds(range.start,range.end),enc=encodeURIComponent;
+    return '/rest/v1/rentcam_events?select='+enc('event_type,path,product_id,session_id,meta,created_at')+
+      '&created_at='+enc('gte.'+b.start)+'&created_at='+enc('lt.'+b.endExclusive)+
+      '&order='+enc('created_at.desc')+'&limit='+enc(String(limit))+'&offset='+enc(String(offset));
   }
   function createClient(root){
     const request=async(path,init={})=>{
