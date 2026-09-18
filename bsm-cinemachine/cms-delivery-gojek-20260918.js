@@ -29,7 +29,7 @@
     on_the_way:['arrived','Sudah tiba'],
     arrived:['completed','Selesaikan tugas']
   };
-  let active=false, orders=[], filter='all', modal=null, loading=false;
+  let active=false, orders=[], filter='all', modal=null, loading=false, masterDrivers=[], masterVehicles=[];
 
   async function decode(r){
     const text=await r.text(); let data=null;
@@ -50,6 +50,22 @@
     const data=await decode(r);
     if(!data?.ok)throw new Error('Gagal memperbarui antar-jemput');
     return data.delivery||delivery;
+  }
+  async function adminRpc(name,payload={}){
+    const r=await window.RentcamCmsAdmin.request(SB+'/rest/v1/rpc/'+name,{
+      method:'POST',
+      headers:{apikey:KEY,'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    return decode(r);
+  }
+  async function loadMasters(){
+    const [drivers,vehicles]=await Promise.all([
+      adminRpc('rentcam_admin_driver_list'),
+      adminRpc('rentcam_admin_vehicle_list')
+    ]);
+    masterDrivers=Array.isArray(drivers)?drivers:[];
+    masterVehicles=Array.isArray(vehicles)?vehicles:[];
   }
   function trackingUrl(o){
     return o?.tracking_code?location.origin+'/pantau':'';
@@ -82,8 +98,10 @@
       address:d.address||'',
       origin:isDeliver?(d.origin||'Rentcam'):d.address||'Lokasi customer',
       destination:isDeliver?(d.address||'Lokasi customer'):(d.return_address||'Rentcam'),
+      driver_id:d.driver_id||'',
       driver:d.driver||'',
       driver_phone:d.driver_phone||'',
+      vehicle_id:d.vehicle_id||'',
       vehicle:d.vehicle||'',
       plate:d.plate||'',
       distance_km:Number(d[kind+'_distance_km']||d.distance_km||0),
@@ -172,12 +190,12 @@
     if(modal.type==='assign'){
       const j=makeJob(orders.find(o=>o.id===modal.id),modal.kind);
       return '<div class="gd-modal"><form class="gd-dialog" data-gd-form="assign"><div class="gd-dialog-head"><div><small>DRIVER & PERJALANAN</small><h3>'+E(j.order.order_number||'')+'</h3></div><button type="button" data-gd-action="close">×</button></div><div class="gd-form">'+
-        '<label>Nama driver / petugas<input name="driver" value="'+E(j.driver)+'" required placeholder="Contoh: Budi"></label>'+
-        '<label>No. WhatsApp driver<input name="driver_phone" value="'+E(j.driver_phone)+'" inputmode="tel" placeholder="08xxxxxxxxxx"></label>'+
-        '<div class="gd-two"><label>Kendaraan<input name="vehicle" value="'+E(j.vehicle)+'" placeholder="Motor / Mobil"></label><label>Plat nomor<input name="plate" value="'+E(j.plate)+'" placeholder="B 1234 XYZ"></label></div>'+
+        '<label>Driver<select name="driver_id" required><option value="">Pilih driver…</option>'+masterDrivers.filter(x=>x.active).map(x=>'<option value="'+E(x.id)+'" '+(String(x.id)===String(j.driver_id)?'selected':'')+'>'+E(x.name)+' · @'+E(x.username)+'</option>').join('')+'</select></label>'+
+        '<label>Kendaraan / Plat<select name="vehicle_id"><option value="">Tanpa kendaraan</option>'+masterVehicles.filter(x=>x.active).map(x=>'<option value="'+E(x.id)+'" '+(String(x.id)===String(j.vehicle_id)?'selected':'')+'>'+E(x.plate)+' · '+E(x.name)+'</option>').join('')+'</select></label>'+
+        (!masterDrivers.some(x=>x.active)?'<div class="gd-master-warning">Belum ada akun driver aktif. Buat dulu di menu <b>Master Driver</b>.</div>':'')+
         '<div class="gd-two"><label>Jarak (km)<input name="distance_km" value="'+E(j.distance_km||'')+'" type="number" min="0" step="0.1"></label><label>Biaya antar/jemput<input name="fee" value="'+E(j.fee||'')+'" type="number" min="0" step="1000"></label></div>'+
         '<label>Catatan perjalanan<textarea name="note" placeholder="Patokan lokasi, kontak PIC, instruksi khusus...">'+E(j.note)+'</textarea></label>'+
-        '<div class="gd-dialog-actions"><button type="button" data-gd-action="close" class="secondary">Batal</button><button class="primary" type="submit">Simpan driver</button></div>'+
+        '<div class="gd-dialog-actions"><button type="button" data-gd-action="close" class="secondary">Batal</button><button class="primary" type="submit" '+(!masterDrivers.some(x=>x.active)?'disabled':'')+'>Tugaskan driver</button></div>'+
       '</div></form></div>';
     }
     if(modal.type==='new'){
@@ -193,11 +211,11 @@
   async function open(){
     active=true; filter='all'; modal=null; setNavOn();
     const host=document.querySelector('.v5-content'); if(host)host.innerHTML='<div class="gd-loading">Memuat dispatch antar–jemput…</div>';
-    try{orders=await loadOrders(); render()}catch(e){if(host)host.innerHTML='<div class="gd-error">'+E(e.message)+'</div>'}
+    try{[orders]=await Promise.all([loadOrders(),loadMasters()]); render()}catch(e){if(host)host.innerHTML='<div class="gd-error">'+E(e.message)+'</div>'}
   }
   async function refresh(){
     if(loading)return; loading=true;
-    try{orders=await loadOrders();render()}catch(e){alert(e.message)}finally{loading=false}
+    try{[orders]=await Promise.all([loadOrders(),loadMasters()]);render()}catch(e){alert(e.message)}finally{loading=false}
   }
   function getOrder(id){return orders.find(o=>String(o.id)===String(id))}
   async function updateDelivery(id,mutate){
@@ -211,16 +229,19 @@
   async function assign(form){
     const fd=Object.fromEntries(new FormData(form));
     const id=modal.id, kind=modal.kind;
-    await updateDelivery(id,d=>{
-      d.driver=String(fd.driver||'').trim();
-      d.driver_phone=String(fd.driver_phone||'').trim();
-      d.vehicle=String(fd.vehicle||'').trim();
-      d.plate=String(fd.plate||'').trim();
-      d[kind+'_distance_km']=Number(fd.distance_km||0);
-      d[kind+'_fee']=Number(fd.fee||0);
-      d[kind+'_note']=String(fd.note||'').trim();
-      if(!d[kind+'_trip_status']||d[kind+'_trip_status']==='waiting')d[kind+'_trip_status']='assigned';
+    if(!fd.driver_id)throw new Error('Pilih driver dari Master Driver');
+    const data=await adminRpc('rentcam_admin_assign_driver',{
+      p_order:id,
+      p_kind:kind,
+      p_driver:fd.driver_id,
+      p_vehicle:fd.vehicle_id||null,
+      p_distance_km:Number(fd.distance_km||0),
+      p_fee:Number(fd.fee||0),
+      p_note:String(fd.note||'').trim()
     });
+    if(!data?.ok)throw new Error(data?.message||'Gagal menugaskan driver');
+    const o=getOrder(id);
+    if(o&&data.delivery)o.delivery=data.delivery;
     modal=null;render();
   }
   async function createTask(form){
@@ -271,7 +292,7 @@
     .gd-driver{display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid #edf0f4;border-bottom:1px solid #edf0f4}.gd-avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:#17243a;color:#fff;font-weight:900}.gd-driver>div:nth-child(2){min-width:0;flex:1}.gd-driver b{display:block;font-size:12px;color:#25334a}.gd-driver small{display:block;font-size:9px;color:#8894a6;margin-top:2px}.gd-driver.empty .gd-avatar{background:#eef1f5;color:#7d8998}.gd-round{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#eaf8f0;color:#1b8b5e;text-decoration:none;font-size:10px;font-weight:900}
     .gd-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}.gd-actions button,.gd-actions .gd-button{min-height:38px;padding:0 11px;font-size:10px}.gd .track{background:#0f9d68;color:#fff}.gd-track{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-top:12px;padding:11px 12px;border:1px solid #dcece5;background:#f3faf7;border-radius:13px}.gd-track div{min-width:0}.gd-track small{display:block;font-size:8px;font-weight:900;letter-spacing:.08em;color:#2d7d60}.gd-track b{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px;font-size:16px;letter-spacing:.12em;color:#263a31}.gd-track em{display:block;margin-top:3px;font-size:8px;font-style:normal;color:#7a8d84}.gd-track a{flex:0 0 auto;text-decoration:none;color:#0e855b;font-size:10px;font-weight:900}.gd-note{margin:12px 0 0;padding:10px 12px;border-radius:10px;background:#fff9f5;color:#7a5a48;font-size:10px;line-height:1.5}.gd-live{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 12px;border-radius:13px;background:#f0f8f5}.gd-live .pulse{width:9px;height:9px;border-radius:50%;background:#19a575;box-shadow:0 0 0 4px rgba(25,165,117,.12)}.gd-live div{flex:1}.gd-live b,.gd-live small{display:block}.gd-live b{font-size:10px}.gd-live small{font-size:8px;color:#7c8b84}.gd-live a{font-size:9px;font-weight:850;color:#18815e;text-decoration:none}
     .gd-empty,.gd-loading,.gd-error{grid-column:1/-1;padding:42px;border:1px dashed #d8dee8;border-radius:20px;text-align:center;background:#fff;color:#7b8798}.gd-empty b,.gd-empty span{display:block}.gd-empty span{font-size:11px;margin-top:7px}.gd-error{color:#b42318}
-    .gd-modal{position:fixed;inset:0;z-index:500;display:grid;place-items:center;padding:18px;background:rgba(7,13,23,.62);backdrop-filter:blur(8px)}.gd-dialog{width:min(620px,100%);max-height:92dvh;overflow:auto;background:#f7f9fb;border-radius:24px;box-shadow:0 30px 90px rgba(0,0,0,.30)}.gd-dialog-head{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:18px 21px;background:#fff;border-bottom:1px solid #e6eaf0}.gd-dialog-head small{font-size:8px;letter-spacing:.12em;color:#f26a21;font-weight:900}.gd-dialog-head h3{margin:3px 0 0;font-size:18px}.gd-dialog-head>button{width:38px;height:38px;padding:0;border-radius:50%;background:#f1f3f6;color:#334056;font-size:20px}.gd-form{padding:20px}.gd-form label{display:block;margin-bottom:13px;font-size:10px;color:#5c687a;font-weight:800}.gd-form input,.gd-form select,.gd-form textarea{display:block;width:100%;margin-top:6px;border:1px solid #d9dfe8;border-radius:12px;background:#fff;padding:11px 12px;font:inherit;font-size:12px;color:#25334a;outline:none}.gd-form textarea{min-height:88px;resize:vertical}.gd-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.gd-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+    .gd-modal{position:fixed;inset:0;z-index:500;display:grid;place-items:center;padding:18px;background:rgba(7,13,23,.62);backdrop-filter:blur(8px)}.gd-dialog{width:min(620px,100%);max-height:92dvh;overflow:auto;background:#f7f9fb;border-radius:24px;box-shadow:0 30px 90px rgba(0,0,0,.30)}.gd-dialog-head{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:18px 21px;background:#fff;border-bottom:1px solid #e6eaf0}.gd-dialog-head small{font-size:8px;letter-spacing:.12em;color:#f26a21;font-weight:900}.gd-dialog-head h3{margin:3px 0 0;font-size:18px}.gd-dialog-head>button{width:38px;height:38px;padding:0;border-radius:50%;background:#f1f3f6;color:#334056;font-size:20px}.gd-form{padding:20px}.gd-form label{display:block;margin-bottom:13px;font-size:10px;color:#5c687a;font-weight:800}.gd-form input,.gd-form select,.gd-form textarea{display:block;width:100%;margin-top:6px;border:1px solid #d9dfe8;border-radius:12px;background:#fff;padding:11px 12px;font:inherit;font-size:12px;color:#25334a;outline:none}.gd-form textarea{min-height:88px;resize:vertical}.gd-master-warning{margin:-2px 0 14px;padding:11px 12px;border-radius:12px;background:#fff6ed;color:#9a5a2a;font-size:10px;line-height:1.45}.gd-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.gd-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
     @media(max-width:900px){.gd-list{grid-template-columns:1fr}.gd-hero{align-items:flex-start;flex-direction:column}.gd-stats{grid-template-columns:1fr 1fr}}
     @media(max-width:620px){.gd-hero{padding:20px;border-radius:19px}.gd-hero h2{font-size:24px}.gd-hero-actions{width:100%}.gd-hero-actions button{flex:1}.gd-stats{gap:8px}.gd-stats button{min-height:78px;padding:13px;border-radius:15px}.gd-stats strong{font-size:23px}.gd-toolbar{align-items:stretch;flex-direction:column}.gd-toolbar input{min-width:0;width:100%}.gd-job{padding:15px;border-radius:18px}.gd-jobtop{flex-direction:column}.gd-two{grid-template-columns:1fr}.gd-actions>*{flex:1 1 calc(50% - 8px)}}
     `;document.head.appendChild(s);
