@@ -47,22 +47,138 @@ async function rpc(name,payload={}){
 }
 function statusClass(s){if(s==='completed')return'done';if(['to_pickup','picked_up','on_the_way','arrived'].includes(s))return'moving';return''}
 function fuelText(v){const n=Number(v);if(!Number.isFinite(n))return'—';return n+'%'}
-function extFor(file){const t=String(file?.type||'').toLowerCase();if(t.includes('png'))return'png';if(t.includes('webp'))return'webp';if(t.includes('gif'))return'gif';return'jpg'}
-async function uploadPhoto(file,label='foto'){
- if(!file)throw new Error(label+' wajib diupload');
- const allowed=['image/jpeg','image/png','image/webp','image/gif'];
- if(file.type&&!allowed.includes(file.type))throw new Error(label+' harus JPG, PNG, WebP, atau GIF');
- if(file.size>10*1024*1024)throw new Error(label+' maksimal 10 MB');
+function getCurrentPositionStrict(){
+ return new Promise((resolve,reject)=>{
+  if(!navigator.geolocation){reject(new Error('GPS tidak didukung browser ini'));return}
+  navigator.geolocation.getCurrentPosition(resolve,err=>{
+    const map={1:'Izin lokasi ditolak. Aktifkan Location untuk portal driver.',2:'Lokasi tidak tersedia.',3:'Pengambilan lokasi terlalu lama.'};
+    reject(new Error(map[err.code]||('Lokasi gagal: '+err.message)));
+  },{enableHighAccuracy:true,timeout:18000,maximumAge:3000});
+ });
+}
+function formatWIB(value){
+ const d=value instanceof Date?value:new Date(value||Date.now());
+ return new Intl.DateTimeFormat('id-ID',{
+   timeZone:'Asia/Jakarta',day:'2-digit',month:'short',year:'numeric',
+   hour:'2-digit',minute:'2-digit',second:'2-digit'
+ }).format(d)+' WIB';
+}
+async function reverseAddress(lat,lng){
+ try{
+  const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=id&zoom=18&lat='+encodeURIComponent(lat)+'&lon='+encodeURIComponent(lng),{
+    headers:{Accept:'application/json'}
+  });
+  if(!r.ok)throw new Error('reverse geocode '+r.status);
+  const j=await r.json();
+  return String(j.display_name||'').trim()||('GPS '+lat.toFixed(6)+', '+lng.toFixed(6));
+ }catch(_){
+  return 'GPS '+lat.toFixed(6)+', '+lng.toFixed(6);
+ }
+}
+function loadPhoto(file){
+ return new Promise((resolve,reject)=>{
+  const url=URL.createObjectURL(file);
+  const img=new Image();
+  img.onload=()=>{URL.revokeObjectURL(url);resolve(img)};
+  img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('Foto tidak dapat dibaca'))};
+  img.src=url;
+ });
+}
+function wrapCanvasText(ctx,text,maxWidth){
+ const words=String(text||'').split(/\s+/).filter(Boolean),lines=[];let line='';
+ for(const word of words){
+  const test=line?line+' '+word:word;
+  if(line&&ctx.measureText(test).width>maxWidth){lines.push(line);line=word}else line=test;
+ }
+ if(line)lines.push(line);
+ return lines;
+}
+function roundRectPath(ctx,x,y,w,h,r){
+ const rr=Math.min(r,w/2,h/2);
+ ctx.beginPath();
+ ctx.moveTo(x+rr,y);ctx.lineTo(x+w-rr,y);ctx.quadraticCurveTo(x+w,y,x+w,y+rr);
+ ctx.lineTo(x+w,y+h-rr);ctx.quadraticCurveTo(x+w,y+h,x+w-rr,y+h);
+ ctx.lineTo(x+rr,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-rr);
+ ctx.lineTo(x,y+rr);ctx.quadraticCurveTo(x,y,x+rr,y);ctx.closePath();
+}
+async function watermarkPhoto(file,meta){
+ if(!file||!file.size)throw new Error((meta.photoType||'Foto')+' wajib diupload');
+ if(file.size>15*1024*1024)throw new Error((meta.photoType||'Foto')+' maksimal 15 MB');
+ if(file.type&&!String(file.type).startsWith('image/'))throw new Error((meta.photoType||'Foto')+' harus berupa gambar');
+
+ const img=await loadPhoto(file);
+ const maxSide=1800;
+ const scale=Math.min(1,maxSide/Math.max(img.naturalWidth||img.width,img.naturalHeight||img.height));
+ const w=Math.max(1,Math.round((img.naturalWidth||img.width)*scale));
+ const h=Math.max(1,Math.round((img.naturalHeight||img.height)*scale));
+ const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+ const ctx=canvas.getContext('2d',{alpha:false});
+ ctx.drawImage(img,0,0,w,h);
+
+ const pad=Math.max(18,Math.round(w*.022));
+ const titleSize=Math.max(20,Math.round(w*.024));
+ const bodySize=Math.max(15,Math.round(w*.017));
+ const boxX=pad,boxW=w-pad*2,maxText=boxW-pad*2;
+ const title=(meta.photoType||'FOTO OPERASIONAL')+(meta.orderNumber?' • '+meta.orderNumber:'');
+ const time=formatWIB(meta.capturedAt);
+ const who='Driver: '+(meta.driverName||'-')+' • Plat: '+(meta.vehiclePlate||'-');
+ const address=meta.address||('GPS '+Number(meta.lat).toFixed(6)+', '+Number(meta.lng).toFixed(6));
+ const gps='GPS: '+Number(meta.lat).toFixed(6)+', '+Number(meta.lng).toFixed(6)+' • Akurasi ±'+Math.round(meta.accuracy||0)+' m';
+
+ ctx.font='700 '+titleSize+'px -apple-system,BlinkMacSystemFont,Segoe UI,Arial,sans-serif';
+ const titleLines=wrapCanvasText(ctx,title,maxText);
+ ctx.font='500 '+bodySize+'px -apple-system,BlinkMacSystemFont,Segoe UI,Arial,sans-serif';
+ const addressLines=wrapCanvasText(ctx,address,maxText);
+ const gpsLines=wrapCanvasText(ctx,gps,maxText);
+ const titleLH=Math.round(titleSize*1.32),bodyLH=Math.round(bodySize*1.42);
+ const boxH=pad*2+titleLines.length*titleLH+bodyLH*2+(addressLines.length+gpsLines.length)*bodyLH;
+ const boxY=h-boxH-pad;
+
+ ctx.save();
+ ctx.fillStyle='rgba(10,18,31,.88)';
+ roundRectPath(ctx,boxX,boxY,boxW,boxH,Math.max(16,Math.round(w*.016)));
+ ctx.fill();
+ ctx.restore();
+
+ const accent=Math.max(10,Math.round(w*.012));
+ let y=boxY+pad+titleSize;
+ ctx.fillStyle='#f26a21';ctx.beginPath();ctx.arc(boxX+pad+accent/2,y-titleSize*.35,accent/2,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#fff';ctx.font='700 '+titleSize+'px -apple-system,BlinkMacSystemFont,Segoe UI,Arial,sans-serif';
+ titleLines.forEach((line,i)=>{ctx.fillText(line,boxX+pad+(i===0?accent+12:0),y);y+=titleLH});
+ ctx.font='500 '+bodySize+'px -apple-system,BlinkMacSystemFont,Segoe UI,Arial,sans-serif';
+ ctx.fillStyle='#f8fafc';ctx.fillText(time,boxX+pad,y);y+=bodyLH;
+ ctx.fillText(who,boxX+pad,y);y+=bodyLH;
+ ctx.fillStyle='#e2e8f0';addressLines.forEach(line=>{ctx.fillText(line,boxX+pad,y);y+=bodyLH});
+ ctx.fillStyle='#b7c3d4';gpsLines.forEach(line=>{ctx.fillText(line,boxX+pad,y);y+=bodyLH});
+
+ const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.9));
+ if(!blob)throw new Error('Gagal membuat foto watermark');
+ return blob;
+}
+async function uploadBlob(blob,label='foto'){
  const uploadToken=await rpc('rentcam_driver_issue_upload_token',{p_token:token});
  if(!uploadToken)throw new Error('Gagal membuat izin upload');
- const path=uploadToken+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+'.'+extFor(file);
+ const path=uploadToken+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+'.jpg';
  const r=await fetch(SB+'/storage/v1/object/cms-media/'+path,{
    method:'POST',
-   headers:{apikey:KEY,Authorization:'Bearer '+KEY,'Content-Type':file.type||'image/jpeg','x-upsert':'false'},
-   body:file
+   headers:{apikey:KEY,Authorization:'Bearer '+KEY,'Content-Type':'image/jpeg','x-upsert':'false'},
+   body:blob
  });
  if(!r.ok){let msg='Upload '+label+' gagal';try{const j=await r.json();msg=j.message||j.error||msg}catch(_){}throw new Error(msg)}
  return SB+'/storage/v1/object/public/cms-media/'+path;
+}
+async function processOperationalPhoto(file,photoType,vehiclePlate,orderNumber=''){
+ const pos=await getCurrentPositionStrict();
+ const lat=pos.coords.latitude,lng=pos.coords.longitude;
+ const capturedAt=new Date();
+ const address=await reverseAddress(lat,lng);
+ const blob=await watermarkPhoto(file,{
+   photoType,orderNumber,
+   driverName:data?.driver?.name||'Driver',
+   vehiclePlate:vehiclePlate||vehicleData?.active_shift?.plate||'-',
+   capturedAt,address,lat,lng,accuracy:pos.coords.accuracy
+ });
+ return uploadBlob(blob,photoType);
 }
 function vehiclePanel(){
  const s=vehicleData?.active_shift;
@@ -89,8 +205,8 @@ function opsModalHtml(){
    return '<div class="opsModal"><form class="opsDialog" data-ops-form="checkout"><div class="opsHead"><div><small>CHECKOUT KENDARAAN</small><h3>Ambil Kunci Mobil</h3></div><button type="button" data-action="close-ops">×</button></div><div class="opsBody">'+
     '<label>Plat / Kendaraan<select name="vehicle_id" required><option value="">Pilih kendaraan tersedia…</option>'+availableVehicleOptions()+'</select></label>'+
     '<div class="opsGrid"><label>Odometer awal (km)<input name="odometer" type="number" step="0.1" min="0" required inputmode="decimal"></label><label>BBM tersisa<select name="fuel_level" required><option value="">Pilih…</option>'+fuelOptions()+'</select></label></div>'+
-    '<div class="photoField"><label>Foto kondisi mobil<input name="condition_photo" type="file" accept="image/*" capture="environment" required></label><small>Foto mobil sebelum dipakai. Pastikan kondisi body terlihat jelas.</small></div>'+
-    '<div class="photoField"><label>Foto spidometer + indikator BBM<input name="odometer_photo" type="file" accept="image/*" capture="environment" required></label><small>Angka kilometer dan indikator BBM harus terlihat.</small></div>'+
+    '<div class="photoField"><label>Foto kondisi mobil<input name="condition_photo" type="file" accept="image/*" capture="environment" required></label><small>Foto mobil sebelum dipakai. Watermark GPS, alamat, waktu, driver, dan plat ditambahkan otomatis.</small></div>'+
+    '<div class="photoField"><label>Foto spidometer + indikator BBM<input name="odometer_photo" type="file" accept="image/*" capture="environment" required></label><small>Angka kilometer dan indikator BBM harus terlihat. Watermark otomatis ditambahkan.</small></div>'+
     '<label>Catatan kondisi<textarea name="notes" placeholder="Contoh: baret pintu kiri, ban normal, kabin bersih"></textarea></label>'+
     '<div class="opsHint">Setelah checklist tersimpan, kunci tercatat atas nama Anda dan tombol perjalanan akan aktif.</div>'+
     '<div class="opsActions"><button type="button" class="cancel" data-action="close-ops">Batal</button><button type="submit" class="save">Ambil Kunci</button></div><div class="opsProgress"></div>'+
@@ -101,8 +217,8 @@ function opsModalHtml(){
    return '<div class="opsModal"><form class="opsDialog" data-ops-form="fuel"><div class="opsHead"><div><small>LOG BBM</small><h3>Isi BBM · '+E(s.plate||'')+'</h3></div><button type="button" data-action="close-ops">×</button></div><div class="opsBody">'+
     '<div class="opsGrid"><label>Odometer saat isi<input name="odometer" type="number" step="0.1" min="'+E(s.checkout_odometer||0)+'" required></label><label>Nominal (Rp)<input name="amount" type="number" min="1" step="1000" required></label></div>'+
     '<div class="opsGrid"><label>Liter (opsional)<input name="liters" type="number" step="0.01" min="0"></label><label>BBM setelah isi<select name="fuel_level_after" required><option value="">Pilih…</option>'+fuelOptions()+'</select></label></div>'+
-    '<div class="photoField"><label>Foto struk BBM<input name="receipt_photo" type="file" accept="image/*" capture="environment" required></label><small>Struk harus terbaca jelas.</small></div>'+
-    '<div class="photoField"><label>Foto spidometer saat isi BBM<input name="odometer_photo" type="file" accept="image/*" capture="environment" required></label><small>Odometer dan indikator BBM harus terlihat.</small></div>'+
+    '<div class="photoField"><label>Foto struk BBM<input name="receipt_photo" type="file" accept="image/*" capture="environment" required></label><small>Struk harus terbaca jelas. Lokasi, waktu, driver, dan plat ditambahkan otomatis.</small></div>'+
+    '<div class="photoField"><label>Foto spidometer saat isi BBM<input name="odometer_photo" type="file" accept="image/*" capture="environment" required></label><small>Odometer dan indikator BBM harus terlihat. Watermark otomatis ditambahkan.</small></div>'+
     '<label>Catatan<textarea name="notes" placeholder="SPBU / jenis BBM / catatan"></textarea></label>'+
     '<div class="opsActions"><button type="button" class="cancel" data-action="close-ops">Batal</button><button type="submit" class="save">Simpan BBM</button></div><div class="opsProgress"></div>'+
    '</div></form></div>';
@@ -111,8 +227,8 @@ function opsModalHtml(){
    const s=vehicleData?.active_shift||{};
    return '<div class="opsModal"><form class="opsDialog" data-ops-form="return"><div class="opsHead"><div><small>CHECK-IN KENDARAAN</small><h3>Pulangkan Kunci · '+E(s.plate||'')+'</h3></div><button type="button" data-action="close-ops">×</button></div><div class="opsBody">'+
     '<div class="opsGrid"><label>Odometer pulang (km)<input name="odometer" type="number" step="0.1" min="'+E(s.checkout_odometer||0)+'" required></label><label>BBM tersisa<select name="fuel_level" required><option value="">Pilih…</option>'+fuelOptions()+'</select></label></div>'+
-    '<div class="photoField"><label>Foto kondisi mobil saat pulang<input name="condition_photo" type="file" accept="image/*" capture="environment" required></label><small>Foto kondisi akhir kendaraan sebelum kunci diserahkan.</small></div>'+
-    '<div class="photoField"><label>Foto spidometer + BBM akhir<input name="odometer_photo" type="file" accept="image/*" capture="environment" required></label><small>Odometer dan indikator BBM harus terlihat jelas.</small></div>'+
+    '<div class="photoField"><label>Foto kondisi mobil saat pulang<input name="condition_photo" type="file" accept="image/*" capture="environment" required></label><small>Foto kondisi akhir kendaraan sebelum kunci diserahkan. Watermark otomatis ditambahkan.</small></div>'+
+    '<div class="photoField"><label>Foto spidometer + BBM akhir<input name="odometer_photo" type="file" accept="image/*" capture="environment" required></label><small>Odometer dan indikator BBM harus terlihat jelas. Watermark otomatis ditambahkan.</small></div>'+
     '<label>Catatan kondisi akhir<textarea name="notes" placeholder="Kerusakan / kebersihan / kondisi akhir"></textarea></label>'+
     '<div class="opsHint">Setelah disimpan, kunci dianggap sudah kembali dan kendaraan tersedia untuk driver lain.</div>'+
     '<div class="opsActions"><button type="button" class="cancel" data-action="close-ops">Batal</button><button type="submit" class="save">Pulangkan Kunci</button></div><div class="opsProgress"></div>'+
@@ -221,12 +337,15 @@ async function saveOps(form){
  const progress=form.querySelector('.opsProgress');
  const btn=form.querySelector('[type="submit"]');if(btn)btn.disabled=true;
  try{
-   if(progress)progress.textContent='Mengupload foto…';
+   const activeJob=(data?.jobs||[]).find(j=>j.status!=='completed'&&j.status!=='cancelled')||(data?.jobs||[])[0];
+   const orderNumber=activeJob?.order_number||'OPERASIONAL';
    if(kind==='checkout'){
-     const [condition,odo]=await Promise.all([
-       uploadPhoto(fd.get('condition_photo'),'Foto kondisi mobil'),
-       uploadPhoto(fd.get('odometer_photo'),'Foto spidometer')
-     ]);
+     const selected=(vehicleData?.vehicles||[]).find(v=>String(v.id)===String(fd.get('vehicle_id')));
+     const plate=selected?.plate||'-';
+     if(progress)progress.textContent='Mengambil GPS & membuat watermark foto kondisi…';
+     const condition=await processOperationalPhoto(fd.get('condition_photo'),'KONDISI MOBIL AWAL',plate,orderNumber);
+     if(progress)progress.textContent='Membuat watermark foto spidometer…';
+     const odo=await processOperationalPhoto(fd.get('odometer_photo'),'SPIDOMETER AWAL',plate,orderNumber);
      if(progress)progress.textContent='Menyimpan checkout kendaraan…';
      const d=await rpc('rentcam_driver_vehicle_checkout',{
        p_token:token,p_vehicle:fd.get('vehicle_id'),
@@ -235,10 +354,11 @@ async function saveOps(form){
      });
      if(!d?.ok)throw new Error(d?.message||'Checkout kendaraan gagal');
    }else if(kind==='fuel'){
-     const [receipt,odo]=await Promise.all([
-       uploadPhoto(fd.get('receipt_photo'),'Foto struk BBM'),
-       uploadPhoto(fd.get('odometer_photo'),'Foto spidometer')
-     ]);
+     const plate=vehicleData?.active_shift?.plate||'-';
+     if(progress)progress.textContent='Mengambil GPS & membuat watermark struk BBM…';
+     const receipt=await processOperationalPhoto(fd.get('receipt_photo'),'STRUK BBM',plate,orderNumber);
+     if(progress)progress.textContent='Membuat watermark foto spidometer BBM…';
+     const odo=await processOperationalPhoto(fd.get('odometer_photo'),'SPIDOMETER SAAT ISI BBM',plate,orderNumber);
      if(progress)progress.textContent='Menyimpan log BBM…';
      const d=await rpc('rentcam_driver_fuel_add',{
        p_token:token,p_odometer:Number(fd.get('odometer')),p_amount:Number(fd.get('amount')),
@@ -247,10 +367,11 @@ async function saveOps(form){
      });
      if(!d?.ok)throw new Error(d?.message||'Log BBM gagal');
    }else if(kind==='return'){
-     const [condition,odo]=await Promise.all([
-       uploadPhoto(fd.get('condition_photo'),'Foto kondisi mobil'),
-       uploadPhoto(fd.get('odometer_photo'),'Foto spidometer')
-     ]);
+     const plate=vehicleData?.active_shift?.plate||'-';
+     if(progress)progress.textContent='Mengambil GPS & membuat watermark kondisi akhir…';
+     const condition=await processOperationalPhoto(fd.get('condition_photo'),'KONDISI MOBIL AKHIR',plate,orderNumber);
+     if(progress)progress.textContent='Membuat watermark spidometer akhir…';
+     const odo=await processOperationalPhoto(fd.get('odometer_photo'),'SPIDOMETER AKHIR',plate,orderNumber);
      if(progress)progress.textContent='Mengembalikan kunci…';
      const d=await rpc('rentcam_driver_vehicle_return',{
        p_token:token,p_odometer:Number(fd.get('odometer')),p_fuel_level:Number(fd.get('fuel_level')),
