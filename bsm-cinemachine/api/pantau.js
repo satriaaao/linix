@@ -5,7 +5,7 @@ module.exports=function handler(req,res){
   if(req.method!=='GET'&&req.method!=='HEAD'){
     res.statusCode=405;res.setHeader('content-type','text/plain; charset=utf-8');return res.end('Method not allowed');
   }
-  const html=String.raw\`<!doctype html>
+  const html=String.raw`<!doctype html>
 <html lang="id">
 <head>
 <meta charset="utf-8">
@@ -91,7 +91,7 @@ document.getElementById('refresh').onclick=load;
 load();setInterval(()=>{if(!document.hidden)load()},10000);
 </script>
 </body>
-</html>\`;
+</html>`;
   res.statusCode=200;
   res.setHeader('content-type','text/html; charset=utf-8');
   res.setHeader('cache-control','no-store, max-age=0');
