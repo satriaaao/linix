@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#101927">
 <meta name="robots" content="noindex,nofollow">
 <title>Portal Driver | Rentcam</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#f3f6fa;color:#172238;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}button,input,a{font:inherit}.wrap{width:min(760px,100%);margin:0 auto;padding:12px 12px 28px}.top{position:sticky;top:0;z-index:20;margin:-12px -12px 12px;padding:14px 16px;background:rgba(243,246,250,.9);backdrop-filter:blur(14px);border-bottom:1px solid rgba(221,227,235,.85)}.topin{max-width:760px;margin:auto;display:flex;align-items:center;gap:11px}.logo{width:42px;height:42px;border-radius:14px;background:#f26a21;color:#fff;display:grid;place-items:center;font-weight:950}.toptext{min-width:0;flex:1}.toptext b{display:block;font-size:14px}.toptext small{display:block;margin-top:2px;color:#8491a3;font-size:9px}.top button{border:1px solid #dce2ea;background:#fff;color:#405069;border-radius:11px;height:38px;padding:0 11px;font-size:9px;font-weight:900}
 .hero{border-radius:24px;padding:22px;background:linear-gradient(145deg,#101927,#1c2c44);color:#fff;box-shadow:0 18px 45px rgba(13,25,43,.16);margin-bottom:13px}.hero small{font-size:9px;letter-spacing:.13em;color:#ff9b65;font-weight:900}.hero h1{margin:6px 0;font-size:27px;letter-spacing:-.04em}.hero p{margin:0;color:#acb9cb;font-size:11px;line-height:1.55}.heroActions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}.heroActions button{height:40px;border-radius:11px;padding:0 13px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:#fff;font-size:9px;font-weight:900}.heroActions button.live{background:#177f5c;border-color:#177f5c}.heroActions button.live.on{background:#cf5332;border-color:#cf5332}
@@ -22,6 +23,7 @@
 .opsModal{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:14px;background:rgba(7,13,23,.68);backdrop-filter:blur(8px)}.opsDialog{width:min(560px,100%);max-height:94dvh;overflow:auto;border-radius:23px;background:#f7f9fb;box-shadow:0 30px 90px rgba(0,0,0,.34)}.opsHead{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:17px 18px;background:#fff;border-bottom:1px solid #e5e9ef}.opsHead small{display:block;color:#f26a21;font-size:8px;font-weight:900;letter-spacing:.12em}.opsHead h3{margin:3px 0 0;font-size:17px}.opsHead button{width:38px;height:38px;border:0;border-radius:50%;background:#f0f2f5;color:#344258;font-size:20px}.opsBody{padding:17px}.opsBody label{display:block;margin-bottom:12px;font-size:9px;font-weight:850;color:#5d697b}.opsBody input,.opsBody select,.opsBody textarea{display:block;width:100%;margin-top:6px;border:1px solid #d8dfe8;border-radius:12px;background:#fff;padding:11px 12px;color:#25334a;font-size:12px;outline:none}.opsBody textarea{min-height:76px;resize:vertical}.opsGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.photoField{padding:11px;border:1px dashed #cfd7e2;border-radius:13px;background:#fff}.photoField input{border:0;padding:0;background:transparent}.photoField small{display:block;margin-top:6px;color:#8f9aaa;font-size:8px;line-height:1.4}.opsHint{margin:4px 0 13px;padding:10px 11px;border-radius:11px;background:#fff6ed;color:#8c5c31;font-size:9px;line-height:1.45}.opsActions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.opsActions button{height:42px;padding:0 14px;border-radius:11px;font-size:9px;font-weight:900}.opsActions .cancel{border:1px solid #dce2ea;background:#fff;color:#465469}.opsActions .save{border:0;background:#f26a21;color:#fff}.opsProgress{min-height:16px;margin-top:9px;text-align:center;color:#6d7a8c;font-size:9px}
 .fuelHistory{margin-top:11px}.fuelRow{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid #edf0f4;font-size:9px}.fuelRow span{color:#7e899a}.fuelRow b{color:#344258}
 .gpsHelp{position:fixed;inset:0;z-index:160;display:grid;place-items:center;padding:16px;background:rgba(6,12,21,.7);backdrop-filter:blur(8px)}.gpsHelpCard{width:min(470px,100%);background:#fff;border-radius:22px;padding:20px;box-shadow:0 30px 90px rgba(0,0,0,.34)}.gpsHelpIcon{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:#eef4ff;font-size:24px}.gpsHelpCard h3{margin:14px 0 6px;font-size:18px}.gpsHelpCard p{margin:0;color:#6f7c90;font-size:10px;line-height:1.6}.gpsSteps{margin:14px 0;padding:12px 13px;border-radius:13px;background:#f7f9fc;color:#536176;font-size:10px;line-height:1.7}.gpsButtons{display:grid;grid-template-columns:1fr 1fr;gap:8px}.gpsButtons button{height:43px;border-radius:12px;font-size:10px;font-weight:900}.gpsButtons .secondary{border:1px solid #dce2ea;background:#fff;color:#425169}.gpsButtons .primary{border:0;background:#f26a21;color:#fff}
+.routePlan{background:#fff;border:1px solid #e1e6ee;border-radius:21px;overflow:hidden;margin-bottom:13px;box-shadow:0 7px 24px rgba(25,39,58,.045)}.routePlanHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:16px 17px 13px}.routePlanHead small{display:block;color:#f26a21;font-size:8px;letter-spacing:.12em;font-weight:950}.routePlanHead h2{margin:4px 0 3px;font-size:17px}.routePlanHead p{margin:0;color:#8491a2;font-size:9px;line-height:1.45}.routePlanHead a{flex:0 0 auto;min-height:38px;padding:0 12px;border-radius:11px;background:#17243a;color:#fff;text-decoration:none;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900}.routePlanStats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 17px 13px}.routePlanStats div{padding:10px 11px;border-radius:12px;background:#f7f9fb}.routePlanStats small{display:block;color:#8c97a7;font-size:7px}.routePlanStats b{display:block;margin-top:4px;color:#26354a;font-size:11px}.routeMap{height:330px;border-top:1px solid #e6eaf0;border-bottom:1px solid #e6eaf0;background:#e9eef4}.routeLegs{padding:12px 17px 16px;display:grid;gap:8px}.routeLeg{display:grid;grid-template-columns:34px 1fr auto;gap:9px;align-items:center;padding:10px 11px;border-radius:13px;background:#f8fafc;border:1px solid #edf0f4}.routeLetter{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#f26a21;color:#fff;font-size:11px;font-weight:950}.routeLeg:first-child .routeLetter{background:#17243a}.routeLeg b,.routeLeg small{display:block}.routeLeg b{font-size:10px;color:#304057}.routeLeg small{margin-top:2px;color:#8a95a5;font-size:8px}.routeLeg strong{font-size:10px;color:#23344c;white-space:nowrap}.routeLoading{padding:16px;text-align:center;color:#7d8999;font-size:9px}.route-pin{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#f26a21;color:#fff;border:3px solid #fff;box-shadow:0 5px 16px rgba(29,42,61,.28);font-weight:950}.route-pin.start{background:#17243a}.leaflet-marker-icon.route-div-icon{background:transparent;border:0}
 
 @media(max-width:540px){.summary{grid-template-columns:1fr 1fr 1fr}.summary>div{padding:11px 9px}.summary b{font-size:18px}.job{padding:15px}.hero{padding:19px}.hero h1{font-size:24px}}
 </style>
@@ -29,6 +31,7 @@
 <body>
 <div class="wrap" id="app"></div>
 <div class="livebar" id="livebar"><span class="pulse"></span><div><b>Live lokasi aktif</b><small id="liveText">Mengirim posisi ke customer…</small></div></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 (function(){
 const SB='https://xleceiffuopioeguniwj.supabase.co';
@@ -36,7 +39,7 @@ const KEY='sb_publishable_POksYryhG_mkFbs7N0fjKQ_4dUim7Ex';
 const STORE='rentcam_driver_token_v1';
 const LIVE_STORE='rentcam_driver_live_always_v1';
 const OPS_DRAFT='rentcam_driver_ops_draft_v1';
-let token=localStorage.getItem(STORE)||'',data=null,vehicleData=null,opsModal=null,watchId=null,lastSent=0,knownJobs=new Set(),wakeLock=null,autoLiveStarting=false,lastLivePosition=null,addressCache=null;
+let token=localStorage.getItem(STORE)||'',data=null,vehicleData=null,opsModal=null,watchId=null,lastSent=0,knownJobs=new Set(),wakeLock=null,autoLiveStarting=false,lastLivePosition=null,addressCache=null,routePlannerMap=null,routePlannerLine=null,routePlannerMarkers=[],routePlannerLastAt=0;
 const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=v=>{if(!v)return'Belum dijadwalkan';const d=new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString('id-ID',{timeZone:'Asia/Jakarta',weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
 const clean=v=>String(v||'').replace(/\D/g,'').replace(/^0/,'62');
@@ -294,6 +297,108 @@ function opsModalHtml(){
  return'';
 }
 
+function parseMapsCoords(url){
+ const s=String(url||'');
+ let m=s.match(/[?&](?:q|query|destination)=(-?\d+(?:\.\d+)?)[,%2C]+(-?\d+(?:\.\d+)?)/i);
+ if(!m)m=s.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+ if(!m)return null;
+ const lat=Number(m[1]),lng=Number(m[2]);
+ return Number.isFinite(lat)&&Number.isFinite(lng)?{lat,lng}:null;
+}
+function jobCoords(j){
+ const d=j?.delivery||{};
+ const lat=Number(d.latitude),lng=Number(d.longitude);
+ if(Number.isFinite(lat)&&Number.isFinite(lng))return{lat,lng};
+ return parseMapsCoords(d.maps_url);
+}
+function routeStops(jobs){
+ return (jobs||[])
+  .filter(j=>j.status!=='completed'&&j.status!=='cancelled')
+  .map(j=>({job:j,coords:jobCoords(j)}))
+  .filter(x=>x.coords)
+  .sort((a,b)=>String(a.job.scheduled_at||'').localeCompare(String(b.job.scheduled_at||'')));
+}
+function routePlannerCard(jobs){
+ const stops=routeStops(jobs);
+ if(!stops.length)return '';
+ return '<section class="routePlan"><div class="routePlanHead"><div><small>RUTE KERJA DRIVER</small><h2>Peta Perjalanan Hari Ini</h2><p>Posisi awal / kantor → lokasi A → B → C sesuai urutan jadwal.</p></div><a id="routeGoogle" href="#" target="_blank" rel="noopener">Navigasi Semua Stop</a></div>'+
+ '<div class="routePlanStats"><div><small>TOTAL STOP</small><b>'+stops.length+'</b></div><div><small>TOTAL JARAK</small><b id="routeTotalKm">Menghitung…</b></div><div><small>ESTIMASI</small><b id="routeTotalEta">—</b></div></div>'+
+ '<div id="driverRouteMap" class="routeMap"></div><div id="routeLegs" class="routeLegs"><div class="routeLoading">Menghitung rute jalan…</div></div></section>';
+}
+function haversineKm(a,b){
+ const R=6371,toRad=x=>x*Math.PI/180;
+ const dLat=toRad(b.lat-a.lat),dLng=toRad(b.lng-a.lng);
+ const q=Math.sin(dLat/2)**2+Math.cos(toRad(a.lat))*Math.cos(toRad(b.lat))*Math.sin(dLng/2)**2;
+ return R*2*Math.atan2(Math.sqrt(q),Math.sqrt(1-q));
+}
+function googleMultiStopUrl(start,stops){
+ if(!start||!stops.length)return'#';
+ const last=stops[stops.length-1].coords;
+ const mids=stops.slice(0,-1).map(x=>x.coords.lat+','+x.coords.lng).join('|');
+ let u='https://www.google.com/maps/dir/?api=1&travelmode=driving&origin='+encodeURIComponent(start.lat+','+start.lng)+'&destination='+encodeURIComponent(last.lat+','+last.lng);
+ if(mids)u+='&waypoints='+encodeURIComponent(mids);
+ return u;
+}
+function renderRouteLegs(start,stops,legs){
+ const host=document.getElementById('routeLegs');if(!host)return;
+ const rows=[];
+ let prevName='Posisi awal / kantor';
+ stops.forEach((s,i)=>{
+   const leg=legs?.[i];
+   const km=leg?leg.distance/1000:haversineKm(i===0?start:stops[i-1].coords,s.coords);
+   const mins=leg?Math.max(1,Math.round(leg.duration/60)):null;
+   const letter=String.fromCharCode(65+i);
+   const destName=(s.job.customer_name||'Lokasi '+letter)+' · '+(s.job.kind==='deliver'?'Antar':'Jemput');
+   rows.push('<div class="routeLeg"><span class="routeLetter">'+letter+'</span><div><b>'+E(prevName)+' → '+E(destName)+'</b><small>'+E(s.job.delivery?.address||s.job.delivery?.maps_url||'Lokasi customer')+'</small></div><strong>'+km.toFixed(1)+' km'+(mins?' · '+mins+' mnt':'')+'</strong></div>');
+   prevName=destName;
+ });
+ host.innerHTML=rows.join('');
+}
+async function initRoutePlanner(jobs,forcedPos=null){
+ const el=document.getElementById('driverRouteMap');if(!el||typeof L==='undefined')return;
+ const stops=routeStops(jobs);if(!stops.length)return;
+ let pos=forcedPos;
+ if(!pos&&lastLivePosition?.pos)pos=lastLivePosition.pos;
+ if(!pos){try{pos=await getCurrentPositionStrict()}catch(_){document.getElementById('routeLegs').innerHTML='<div class="routeLoading">Aktifkan GPS untuk menghitung rute dari posisi awal.</div>';return}}
+ const start={lat:pos.coords.latitude,lng:pos.coords.longitude};
+ routePlannerLastAt=Date.now();
+ if(routePlannerMap){routePlannerMap.remove();routePlannerMap=null}
+ routePlannerMap=L.map(el,{zoomControl:true,attributionControl:true});
+ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(routePlannerMap);
+ routePlannerMarkers=[];
+ const startIcon=L.divIcon({className:'route-div-icon',html:'<div class="route-pin start">S</div>',iconSize:[34,34],iconAnchor:[17,17]});
+ routePlannerMarkers.push(L.marker([start.lat,start.lng],{icon:startIcon}).addTo(routePlannerMap).bindPopup('Posisi awal / kantor'));
+ stops.forEach((s,i)=>{
+   const letter=String.fromCharCode(65+i);
+   const icon=L.divIcon({className:'route-div-icon',html:'<div class="route-pin">'+letter+'</div>',iconSize:[34,34],iconAnchor:[17,17]});
+   routePlannerMarkers.push(L.marker([s.coords.lat,s.coords.lng],{icon}).addTo(routePlannerMap).bindPopup('<b>'+letter+' · '+E(s.job.customer_name||'Customer')+'</b><br>'+E(s.job.delivery?.address||'')));
+ });
+ const bounds=L.latLngBounds([[start.lat,start.lng],...stops.map(x=>[x.coords.lat,x.coords.lng])]);
+ routePlannerMap.fitBounds(bounds,{padding:[35,35],maxZoom:15});
+ const g=document.getElementById('routeGoogle');if(g)g.href=googleMultiStopUrl(start,stops);
+ const coords=[start,...stops.map(x=>x.coords)];
+ try{
+   const path=coords.map(x=>x.lng+','+x.lat).join(';');
+   const r=await fetch('https://router.project-osrm.org/route/v1/driving/'+path+'?overview=full&geometries=geojson&steps=false');
+   const j=await r.json();
+   const route=j?.routes?.[0];if(!route)throw new Error('route');
+   if(routePlannerLine)routePlannerMap.removeLayer(routePlannerLine);
+   const latlngs=route.geometry.coordinates.map(x=>[x[1],x[0]]);
+   routePlannerLine=L.polyline(latlngs,{weight:6,opacity:.9,color:'#2f6fe5',lineCap:'round',lineJoin:'round'}).addTo(routePlannerMap);
+   const km=route.distance/1000,mins=Math.max(1,Math.round(route.duration/60));
+   const kmEl=document.getElementById('routeTotalKm'),etaEl=document.getElementById('routeTotalEta');
+   if(kmEl)kmEl.textContent=km.toFixed(1)+' km';if(etaEl)etaEl.textContent=mins+' mnt';
+   renderRouteLegs(start,stops,route.legs);
+ }catch(_){
+   const pts=coords.map(x=>[x.lat,x.lng]);
+   routePlannerLine=L.polyline(pts,{weight:5,opacity:.72,color:'#2f6fe5',dashArray:'8 8'}).addTo(routePlannerMap);
+   const legs=stops.map((s,i)=>({distance:haversineKm(i===0?start:stops[i-1].coords,s.coords)*1000,duration:0}));
+   const total=legs.reduce((n,x)=>n+x.distance,0)/1000;
+   const kmEl=document.getElementById('routeTotalKm'),etaEl=document.getElementById('routeTotalEta');
+   if(kmEl)kmEl.textContent='± '+total.toFixed(1)+' km';if(etaEl)etaEl.textContent='Rute estimasi';
+   renderRouteLegs(start,stops,legs);
+ }
+}
 function renderLogin(msg=''){
  document.getElementById('livebar').classList.remove('on');
  document.getElementById('app').innerHTML='<div class="login"><form class="loginCard" id="loginForm"><div class="loginBrand"><div class="logo">R</div><div><b>Rentcam Driver</b><small>Portal Operasional</small></div></div><h1>Login Driver</h1><p>Masuk untuk melihat jadwal, kendaraan, customer, status perjalanan, dan live lokasi.</p><label>Username<input name="username" required autocomplete="username" autocapitalize="none"></label><label>Password<input name="password" type="password" required autocomplete="current-password"></label><button class="loginBtn" type="submit">Masuk</button><div class="loginError">'+E(msg)+'</div></form></div>';
@@ -305,6 +410,7 @@ function jobCard(j){
  const phone=clean(j.customer_phone);
  const lat=Number(d.latitude),lng=Number(d.longitude);
  const dest=(Number.isFinite(lat)&&Number.isFinite(lng))?lat+','+lng:address;
+ const mapHref=d.maps_url||('https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(dest));
  return '<article class="job" data-job="'+E(j.id)+'">'+
   '<div class="jobHead"><div><span class="kind '+(deliver?'':'collect')+'">'+(deliver?'ANTAR':'JEMPUT')+'</span><h3>'+E(j.order_number)+'</h3><div class="customer">'+E(j.customer_name)+' · '+E(j.customer_phone||'-')+'</div></div><span class="status '+statusClass(j.status)+'"><i></i>'+E(labels[j.status]||j.status)+'</span></div>'+
   '<div class="vehicle"><div class="vehicleIcon">🚘</div><div><b>'+E(j.vehicle?.plate||'Belum ada plat')+'</b><small>'+E(j.vehicle?.name||'Kendaraan belum dipilih')+'</small></div></div>'+
@@ -312,7 +418,7 @@ function jobCard(j){
   '<div class="meta"><span>🕐 '+E(fmt(j.scheduled_at))+'</span><span>📦 '+E(j.kind==='deliver'?'Pengantaran':'Penjemputan')+'</span></div>'+
   (j.notes?'<div class="note">'+E(j.notes)+'</div>':'')+
   '<div class="actions">'+
-   '<a href="https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(dest)+'" target="_blank" rel="noopener">Navigasi</a>'+
+   '<a href="'+E(mapHref)+'" target="_blank" rel="noopener">Navigasi</a>'+
    (phone?'<a class="wa" href="https://wa.me/'+E(phone)+'" target="_blank" rel="noopener">WhatsApp Customer</a>':'<span></span>')+
    (n?'<button class="primary" data-action="next" data-id="'+E(j.id)+'" data-status="'+E(n[0])+'">'+E(n[1])+'</button>':'')+
   '</div>'+
@@ -328,11 +434,13 @@ function render(){
   '<div class="top"><div class="topin"><div class="logo">R</div><div class="toptext"><b>'+E(data.driver?.name||'Driver')+'</b><small>@'+E(data.driver?.username||'')+'</small></div><button data-action="logout">Keluar</button></div></div>'+
   '<section class="hero"><small>PORTAL DRIVER RENTCAM</small><h1>Halo, '+E((data.driver?.name||'Driver').split(' ')[0])+'</h1><p>Live Lokasi aktif otomatis selama Anda login supaya customer bisa mengikuti perjalanan secara realtime.</p><div class="heroActions"><button data-action="live" class="live '+(watchId!==null?'on':'')+'">'+(watchId!==null?'● Live Lokasi Aktif':'Aktifkan Lokasi Sekarang')+'</button><button data-action="notify">Aktifkan Notifikasi</button><button data-action="refresh">Perbarui</button></div></section>'+
   vehiclePanel()+
+  routePlannerCard(open)+
   '<div class="summary"><div><small>TUGAS AKTIF</small><b>'+open.length+'</b></div><div><small>HARI INI</small><b>'+todayCount+'</b></div><div><small>SELESAI</small><b>'+jobs.filter(x=>x.status==='completed').length+'</b></div></div>'+
   '<div class="sectionTitle"><h2>Jadwal Saya</h2><span>'+jobs.length+' tugas</span></div>'+
   '<section class="jobs">'+(jobs.map(jobCard).join('')||'<div class="empty"><b>Belum ada tugas.</b><br><small>Jadwal dari CMS akan muncul otomatis.</small></div>')+'</section>'+
   opsModalHtml();
  if(opsModal)requestAnimationFrame(()=>restoreOpsDraft(document.querySelector('[data-ops-form]')));
+ if(!opsModal)requestAnimationFrame(()=>initRoutePlanner(open));
 }
 async function load(silent=false){
  if(!token){renderLogin();return}
@@ -424,6 +532,7 @@ async function startLive(showHelp=true){
   const now=Date.now();if(now-lastSent<5000)return;lastSent=now;
   try{
     await sendLocation(pos);
+    if(document.getElementById('driverRouteMap')&&Date.now()-routePlannerLastAt>15000)initRoutePlanner(data?.jobs||[],pos);
     const el=document.getElementById('liveText');
     if(el)el.textContent='Live • akurasi ±'+Math.round(pos.coords.accuracy||0)+' m • '+new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   }catch(_){}
