@@ -29,7 +29,7 @@
     on_the_way:['arrived','Sudah tiba'],
     arrived:['completed','Selesaikan tugas']
   };
-  let active=false, orders=[], filter='all', modal=null, loading=false, masterDrivers=[], masterVehicles=[], dispatchSettings={},livePollBusy=false,geoLabelCache=new Map();
+  let active=false, orders=[], filter='all', modal=null, loading=false, masterDrivers=[], masterVehicles=[], dispatchSettings={},livePollBusy=false,geoLabelCache=new Map(),dispatchMap=null,dispatchRouteLayers=[],routeGroupsCache=[];
 
   async function decode(r){
     const text=await r.text(); let data=null;
@@ -114,6 +114,134 @@
       location:d[kind+'_driver_location']||d.driver_location||null
     };
   }
+  function coordFromJob(j){
+    const d=j?.order?.delivery||{};
+    const rawLat=d.latitude,rawLng=d.longitude;
+    if(rawLat!==null&&rawLat!==undefined&&rawLat!==''&&rawLng!==null&&rawLng!==undefined&&rawLng!==''){
+      const lat=Number(rawLat),lng=Number(rawLng);
+      if(Number.isFinite(lat)&&Number.isFinite(lng)&&lat>=-90&&lat<=90&&lng>=-180&&lng<=180)return{lat,lng};
+    }
+    return parseCoordsFromMapsUrl(d.maps_url);
+  }
+  function haversineKm(a,b){
+    const R=6371,toRad=x=>x*Math.PI/180;
+    const dLat=toRad(b.lat-a.lat),dLng=toRad(b.lng-a.lng);
+    const q=Math.sin(dLat/2)**2+Math.cos(toRad(a.lat))*Math.cos(toRad(b.lat))*Math.sin(dLng/2)**2;
+    return R*2*Math.atan2(Math.sqrt(q),Math.sqrt(1-q));
+  }
+  function bearingDeg(a,b){
+    const r=x=>x*Math.PI/180,d=x=>x*180/Math.PI;
+    const y=Math.sin(r(b.lng-a.lng))*Math.cos(r(b.lat));
+    const x=Math.cos(r(a.lat))*Math.sin(r(b.lat))-Math.sin(r(a.lat))*Math.cos(r(b.lat))*Math.cos(r(b.lng-a.lng));
+    return (d(Math.atan2(y,x))+360)%360;
+  }
+  function angleDiff(a,b){
+    const d=Math.abs(a-b)%360;return d>180?360-d:d;
+  }
+  async function officePoint(){
+    const s=dispatchSettings||{};
+    const rawLat=s.office_lat,rawLng=s.office_lng;
+    if(rawLat!==null&&rawLat!==undefined&&rawLat!==''&&rawLng!==null&&rawLng!==undefined&&rawLng!==''){
+      const lat=Number(rawLat),lng=Number(rawLng);
+      if(Number.isFinite(lat)&&Number.isFinite(lng))return{lat,lng,name:s.office_name||'Kantor Rentcam'};
+    }
+    const fromUrl=parseCoordsFromMapsUrl(s.office_maps_url);
+    if(fromUrl)return{...fromUrl,name:s.office_name||'Kantor Rentcam'};
+    const g=await geocodePlaceBrowser(s.office_address||'');
+    return g?{...g,name:s.office_name||'Kantor Rentcam'}:null;
+  }
+  function buildRouteGroups(base){
+    const candidates=jobs().filter(j=>j.status==='waiting').map(j=>({job:j,coords:coordFromJob(j)})).filter(x=>x.coords);
+    const enriched=candidates.map(x=>({...x,bearing:bearingDeg(base,x.coords),radius:haversineKm(base,x.coords)})).sort((a,b)=>a.bearing-b.bearing);
+    const groups=[];
+    for(const item of enriched){
+      let best=null,bestScore=Infinity;
+      for(const g of groups){
+        const ad=angleDiff(item.bearing,g.meanBearing);
+        const near=Math.min(...g.items.map(x=>haversineKm(x.coords,item.coords)));
+        const score=ad+(near>10?40:near*1.5);
+        if(ad<=38&&near<=14&&score<bestScore){best=g;bestScore=score}
+      }
+      if(!best){best={items:[],meanBearing:item.bearing};groups.push(best)}
+      best.items.push(item);
+      const sx=best.items.reduce((n,x)=>n+Math.cos(x.bearing*Math.PI/180),0);
+      const sy=best.items.reduce((n,x)=>n+Math.sin(x.bearing*Math.PI/180),0);
+      best.meanBearing=(Math.atan2(sy,sx)*180/Math.PI+360)%360;
+    }
+    groups.forEach(g=>g.items.sort((a,b)=>a.radius-b.radius));
+    return groups.sort((a,b)=>a.meanBearing-b.meanBearing);
+  }
+  function directionLabel(b){
+    const dirs=['Utara','Timur Laut','Timur','Tenggara','Selatan','Barat Daya','Barat','Barat Laut'];
+    return dirs[Math.round(b/45)%8];
+  }
+  function routeGroupPanel(){
+    return '<section class="gd-distribution"><div class="gd-dist-head"><div><small>PEMBAGIAN RUTE OTOMATIS</small><h3>Peta & Kelompok Lokasi Searah</h3><p>Order tanpa driver dikelompokkan berdasarkan arah dan kedekatan lokasi dari kantor.</p></div><button class="secondary" data-gd-action="rebuild-routes">Hitung Ulang</button></div><div class="gd-dist-body"><div id="gdDispatchMap" class="gd-dispatch-map"><div class="gd-map-loading">Memuat peta pembagian rute…</div></div><div id="gdRouteGroups" class="gd-route-groups"><div class="gd-map-loading">Menghitung kelompok lokasi…</div></div></div></section>';
+  }
+  async function ensureLeaflet(){
+    if(window.L)return window.L;
+    if(!document.getElementById('gd-leaflet-css')){
+      const l=document.createElement('link');l.id='gd-leaflet-css';l.rel='stylesheet';l.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';document.head.appendChild(l);
+    }
+    return new Promise((resolve,reject)=>{
+      const existing=document.getElementById('gd-leaflet-js');
+      if(existing){existing.addEventListener('load',()=>resolve(window.L),{once:true});existing.addEventListener('error',reject,{once:true});return}
+      const s=document.createElement('script');s.id='gd-leaflet-js';s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';s.onload=()=>resolve(window.L);s.onerror=reject;document.head.appendChild(s);
+    });
+  }
+  async function drawRoadGroup(L,map,base,g,color){
+    const pts=[base,...g.items.map(x=>x.coords)];
+    try{
+      const path=pts.map(x=>x.lng+','+x.lat).join(';');
+      const r=await fetch('https://router.project-osrm.org/route/v1/driving/'+path+'?overview=full&geometries=geojson&steps=false');
+      const j=await r.json(),route=j?.routes?.[0];
+      if(!route)throw new Error('route');
+      const latlngs=route.geometry.coordinates.map(x=>[x[1],x[0]]);
+      const casing=L.polyline(latlngs,{weight:9,opacity:.95,color:'#fff',lineCap:'round',lineJoin:'round'});
+      const main=L.polyline(latlngs,{weight:5,opacity:.95,color,lineCap:'round',lineJoin:'round'});
+      const layer=L.layerGroup([casing,main]).addTo(map);dispatchRouteLayers.push(layer);
+      g.roadKm=route.distance/1000;g.roadMin=Math.max(1,Math.round(route.duration/60));
+    }catch(_){
+      const latlngs=pts.map(x=>[x.lat,x.lng]);
+      const main=L.polyline(latlngs,{weight:4,opacity:.8,color,dashArray:'7 7'}).addTo(map);dispatchRouteLayers.push(main);
+      g.roadKm=pts.slice(1).reduce((n,p,i)=>n+haversineKm(pts[i],p),0);
+      g.roadMin=null;
+    }
+  }
+  function groupCard(g,i,color){
+    const letter=String.fromCharCode(65+i),count=g.items.length;
+    const ordersHtml=g.items.map((x,idx)=>'<li><span><b>'+E(x.job.order.order_number||'Order')+'</b><small>'+E((x.job.kind==='deliver'?'Antar':'Jemput')+' · '+(x.job.destination||x.job.address||'-'))+'</small></span><em>Stop '+(idx+1)+'</em></li>').join('');
+    return '<article class="gd-group-card" style="--route-color:'+color+'"><div class="gd-group-top"><span class="gd-route-letter">'+letter+'</span><div><small>RUTE '+letter+' · '+E(directionLabel(g.meanBearing))+'</small><h4>'+count+' stop searah</h4><p><b data-group-km="'+i+'">'+(g.roadKm?g.roadKm.toFixed(1)+' km':'Menghitung km…')+'</b>'+(g.roadMin?' · ±'+g.roadMin+' menit':'')+'</p></div></div><ol>'+ordersHtml+'</ol><button class="primary" data-gd-action="assign-route-group" data-group="'+i+'">Tugaskan 1 Driver ke Rute '+letter+'</button></article>';
+  }
+  async function initDistribution(){
+    const mapEl=document.getElementById('gdDispatchMap'),groupEl=document.getElementById('gdRouteGroups');
+    if(!mapEl||!groupEl)return;
+    const base=await officePoint();
+    if(!base){mapEl.innerHTML='<div class="gd-map-empty"><b>Lokasi kantor belum siap</b><span>Isi Lokasi Kantor supaya pembagian rute bisa dihitung.</span></div>';groupEl.innerHTML='';return}
+    routeGroupsCache=buildRouteGroups(base);
+    if(!routeGroupsCache.length){groupEl.innerHTML='<div class="gd-map-empty"><b>Belum ada order yang perlu dibagi</b><span>Order tanpa driver dan memiliki koordinat akan muncul di sini.</span></div>'}
+    const L=await ensureLeaflet();
+    if(dispatchMap){dispatchMap.remove();dispatchMap=null}
+    dispatchRouteLayers=[];
+    dispatchMap=L.map(mapEl,{zoomControl:true,attributionControl:true});
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(dispatchMap);
+    const colors=['#f26a21','#2f6fe5','#16a36f','#8a5cf6','#d99a14','#e15462','#0f8b8d','#7d5a50'];
+    const bounds=[[base.lat,base.lng]];
+    const officeIcon=L.divIcon({className:'gd-map-div',html:'<div class="gd-map-pin office">K</div>',iconSize:[34,34],iconAnchor:[17,17]});
+    L.marker([base.lat,base.lng],{icon:officeIcon}).addTo(dispatchMap).bindPopup('<b>'+E(base.name||'Kantor')+'</b>');
+    for(let i=0;i<routeGroupsCache.length;i++){
+      const g=routeGroupsCache[i],color=colors[i%colors.length],letter=String.fromCharCode(65+i);
+      g.items.forEach((x,idx)=>{
+        bounds.push([x.coords.lat,x.coords.lng]);
+        const icon=L.divIcon({className:'gd-map-div',html:'<div class="gd-map-pin" style="background:'+color+'">'+letter+(idx+1)+'</div>',iconSize:[34,34],iconAnchor:[17,17]});
+        L.marker([x.coords.lat,x.coords.lng],{icon}).addTo(dispatchMap).bindPopup('<b>'+E(x.job.order.order_number||'Order')+'</b><br>'+E(x.job.destination||x.job.address||''));
+      });
+      await drawRoadGroup(L,dispatchMap,base,g,color);
+    }
+    dispatchMap.fitBounds(bounds,{padding:[35,35],maxZoom:13});
+    groupEl.innerHTML=routeGroupsCache.length?routeGroupsCache.map((g,i)=>groupCard(g,i,colors[i%colors.length])).join(''):'';
+    setTimeout(()=>dispatchMap&&dispatchMap.invalidateSize(),150);
+  }
   function counts(xs){
     return {
       total:xs.length,
@@ -186,13 +314,27 @@
     host.innerHTML='<div class="gd">'+
       '<section class="gd-hero"><div><span class="gd-eyebrow">DISPATCH CENTER</span><h2>Antar–Jemput</h2><p>Kelola pengantaran dan penjemputan rental seperti aplikasi ride-hailing: assign driver, status perjalanan, ETA operasional, lokasi, dan komunikasi.</p></div><div class="gd-hero-actions"><button data-gd-action="office" class="secondary">Lokasi Kantor</button><button data-gd-action="new" class="primary">+ Buat tugas</button><button data-gd-action="refresh" class="secondary">Perbarui</button></div></section>'+
       '<section class="gd-stats"><button data-gd-filter="all" class="'+(filter==='all'?'on':'')+'"><small>Semua tugas</small><strong>'+c.total+'</strong></button><button data-gd-filter="unassigned" class="'+(filter==='unassigned'?'on':'')+'"><small>Perlu driver</small><strong>'+c.unassigned+'</strong></button><button data-gd-filter="moving" class="'+(filter==='moving'?'on':'')+'"><small>Dalam perjalanan</small><strong>'+c.moving+'</strong></button><button data-gd-filter="done" class="'+(filter==='done'?'on':'')+'"><small>Selesai</small><strong>'+c.done+'</strong></button></section>'+
+      routeGroupPanel()+
       '<div class="gd-toolbar"><input data-gd-search placeholder="Cari order / customer / driver..." autocomplete="off"><span>'+list.length+' tugas</span></div>'+
       '<section class="gd-list" data-gd-list>'+ (list.map(jobCard).join('')||'<div class="gd-empty"><b>Belum ada tugas antar–jemput.</b><span>Klik “Buat tugas” atau aktifkan opsi antar/jemput pada order rental.</span></div>') +'</section>'+
       modalHtml()+
     '</div>';
+    if(!modal)requestAnimationFrame(()=>initDistribution());
   }
   function modalHtml(){
     if(!modal)return '';
+    if(modal.type==='route-group'){
+      const g=routeGroupsCache[Number(modal.groupIndex)];
+      if(!g)return '';
+      const letter=String.fromCharCode(65+Number(modal.groupIndex));
+      return '<div class="gd-modal"><form class="gd-dialog" data-gd-form="route-group"><div class="gd-dialog-head"><div><small>PEMBAGIAN DRIVER</small><h3>Rute '+letter+' · '+g.items.length+' stop</h3></div><button type="button" data-gd-action="close">×</button></div><div class="gd-form">'+
+        '<div class="gd-route-summary">'+g.items.map((x,i)=>'<div><b>Stop '+(i+1)+' · '+E(x.job.order.order_number||'')+'</b><span>'+E(x.job.kind==='deliver'?'Antar':'Jemput')+' · '+E(x.job.destination||x.job.address||'')+'</span></div>').join('')+'</div>'+
+        '<label>Driver<select name="driver_id" required><option value="">Pilih driver…</option>'+masterDrivers.filter(x=>x.active).map(x=>'<option value="'+E(x.id)+'">'+E(x.name)+' · @'+E(x.username)+'</option>').join('')+'</select></label>'+
+        '<label>Kendaraan / Plat<select name="vehicle_id"><option value="">Driver pilih kendaraan saat ambil kunci</option>'+masterVehicles.filter(x=>x.active).map(x=>'<option value="'+E(x.id)+'">'+E(x.plate)+' · '+E(x.name)+'</option>').join('')+'</select></label>'+
+        '<div class="gd-master-warning">Semua stop dalam Rute '+letter+' akan ditugaskan ke driver yang sama. Urutan stop di portal driver mengikuti urutan rute ini.</div>'+
+        '<div class="gd-dialog-actions"><button type="button" data-gd-action="close" class="secondary">Batal</button><button class="primary" type="submit">Tugaskan '+g.items.length+' Stop</button></div>'+
+      '</div></form></div>';
+    }
     if(modal.type==='office'){
       const s=dispatchSettings||{};
       return '<div class="gd-modal"><form class="gd-dialog" data-gd-form="office"><div class="gd-dialog-head"><div><small>TITIK AWAL RUTE</small><h3>Lokasi Kantor Rentcam</h3></div><button type="button" data-gd-action="close">×</button></div><div class="gd-form">'+
@@ -385,6 +527,28 @@
     dispatchSettings=d.settings||{};
     modal=null;render();
   }
+  async function assignRouteGroup(form){
+    const g=routeGroupsCache[Number(modal.groupIndex)];
+    if(!g||!g.items.length)throw new Error('Kelompok rute tidak ditemukan');
+    const fd=Object.fromEntries(new FormData(form));
+    if(!fd.driver_id)throw new Error('Pilih driver');
+    for(let i=0;i<g.items.length;i++){
+      const j=g.items[i].job;
+      const data=await adminRpc('rentcam_admin_assign_driver',{
+        p_order:j.id,
+        p_kind:j.kind,
+        p_driver:fd.driver_id,
+        p_vehicle:fd.vehicle_id||null,
+        p_distance_km:0,
+        p_fee:0,
+        p_note:(j.note?j.note+' · ':'')+'Rute '+String.fromCharCode(65+Number(modal.groupIndex))+' · Stop '+(i+1)+'/'+g.items.length
+      });
+      if(!data?.ok)throw new Error('Gagal assign '+(j.order.order_number||j.id)+': '+(data?.message||''));
+      const o=getOrder(j.id);if(o&&data.delivery)o.delivery=data.delivery;
+    }
+    modal=null;
+    await refresh();
+  }
   async function assign(form){
     const fd=Object.fromEntries(new FormData(form));
     const id=modal.id, kind=modal.kind;
@@ -452,6 +616,7 @@
     .gd button,.gd-button{border:0;border-radius:12px;min-height:42px;padding:0 15px;font-size:12px;font-weight:850;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:7px}.gd .primary{background:linear-gradient(145deg,#ff8240,#f26a21);color:#fff;box-shadow:0 8px 18px rgba(242,106,33,.2)}.gd .secondary{background:#fff;color:#263248;border:1px solid #dde3eb}.gd .ghost{background:#f4f6f9;color:#405069;border:1px solid #e4e8ee}
     .gd-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:17px}.gd-stats button{text-align:left;height:auto;min-height:92px;display:block;padding:18px;background:#fff;color:#1b283d;border:1px solid #e2e7ef;border-radius:18px;box-shadow:0 5px 18px rgba(25,39,58,.035)}.gd-stats button.on{border-color:#ff9d6a;box-shadow:0 0 0 3px rgba(242,106,33,.08)}.gd-stats small{display:block;color:#7a8799;font-size:11px;margin-bottom:8px}.gd-stats strong{font-size:28px;letter-spacing:-.04em}
     .gd-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 14px}.gd-toolbar input{height:44px;min-width:320px;width:min(520px,100%);border:1px solid #dce2eb;border-radius:13px;background:#fff;padding:0 14px;font-size:13px;outline:none}.gd-toolbar input:focus{border-color:#f58a50;box-shadow:0 0 0 3px rgba(242,106,33,.1)}.gd-toolbar span{font-size:11px;color:#8390a2}
+    .gd-distribution{background:#fff;border:1px solid #e2e7ef;border-radius:22px;overflow:hidden;margin-bottom:18px;box-shadow:0 7px 24px rgba(25,39,58,.045)}.gd-dist-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 20px;border-bottom:1px solid #edf0f4}.gd-dist-head small{display:block;color:#f26a21;font-size:9px;font-weight:900;letter-spacing:.12em}.gd-dist-head h3{margin:4px 0 3px;font-size:18px;color:#223149}.gd-dist-head p{margin:0;color:#8792a3;font-size:10px}.gd-dist-body{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(320px,.8fr);min-height:430px}.gd-dispatch-map{min-height:430px;background:#e9eef4}.gd-route-groups{padding:14px;display:grid;align-content:start;gap:10px;max-height:560px;overflow:auto;background:#f8fafc;border-left:1px solid #edf0f4}.gd-map-loading,.gd-map-empty{min-height:180px;display:grid;place-items:center;text-align:center;padding:22px;color:#7c899a;font-size:10px}.gd-map-empty b,.gd-map-empty span{display:block}.gd-map-empty b{font-size:12px;color:#33445a}.gd-map-empty span{margin-top:5px}.gd-group-card{background:#fff;border:1px solid #e1e6ee;border-radius:15px;padding:13px;box-shadow:inset 4px 0 0 var(--route-color)}.gd-group-top{display:flex;gap:10px;align-items:flex-start}.gd-route-letter{width:36px;height:36px;border-radius:11px;background:var(--route-color);color:#fff;display:grid;place-items:center;font-weight:950}.gd-group-top>div{min-width:0;flex:1}.gd-group-top small{display:block;color:#8390a1;font-size:8px;font-weight:900}.gd-group-top h4{margin:3px 0;font-size:12px;color:#293a52}.gd-group-top p{margin:0;color:#718096;font-size:9px}.gd-group-card ol{list-style:none;margin:10px 0;padding:0;border-top:1px solid #edf0f4}.gd-group-card li{display:flex;align-items:center;justify-content:space-between;gap:9px;padding:9px 0;border-bottom:1px solid #edf0f4}.gd-group-card li span{min-width:0}.gd-group-card li b,.gd-group-card li small{display:block}.gd-group-card li b{font-size:9px;color:#34455c}.gd-group-card li small{margin-top:2px;color:#8b96a6;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px}.gd-group-card li em{font-size:8px;font-style:normal;color:#7f8b9c;white-space:nowrap}.gd-group-card>button{width:100%;min-height:36px!important;font-size:9px!important}.gd-map-div{background:transparent;border:0}.gd-map-pin{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#fff;border:3px solid #fff;box-shadow:0 4px 14px rgba(25,39,58,.25);font-size:9px;font-weight:950}.gd-map-pin.office{background:#17243a}.gd-route-summary{display:grid;gap:8px;margin-bottom:14px}.gd-route-summary>div{padding:10px 11px;border-radius:11px;background:#f7f9fb;border:1px solid #e8ecf1}.gd-route-summary b,.gd-route-summary span{display:block}.gd-route-summary b{font-size:10px;color:#304158}.gd-route-summary span{margin-top:2px;font-size:8px;color:#8591a2}
     .gd-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.gd-job{background:#fff;border:1px solid #e2e7ef;border-radius:22px;padding:20px;box-shadow:0 7px 24px rgba(25,39,58,.045)}.gd-jobtop{display:flex;justify-content:space-between;align-items:flex-start;gap:15px}.gd-kind{display:inline-flex;padding:5px 8px;border-radius:999px;background:#fff1e9;color:#c75b21;font-size:9px;font-weight:900;letter-spacing:.08em}.gd-kind.collect{background:#eef3ff;color:#4d69b8}.gd-job h3{margin:8px 0 3px;font-size:18px;color:#202d43}.gd-jobtop p{margin:0;color:#7d899b;font-size:11px}
     .gd-status{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:7px 10px;font-size:10px;font-weight:850;background:#f3f5f8;color:#657286;white-space:nowrap}.gd-status i{width:7px;height:7px;border-radius:50%;background:#9ba5b3}.gd-status.assigned{background:#fff7e8;color:#9c6a12}.gd-status.assigned i{background:#efa520}.gd-status.moving{background:#eef4ff;color:#3e62b1}.gd-status.moving i{background:#4a74d8}.gd-status.arrived{background:#f1edff;color:#7655b4}.gd-status.arrived i{background:#8a69cf}.gd-status.done{background:#eaf8f2;color:#197c5d}.gd-status.done i{background:#1ea77b}.gd-status.cancelled{background:#fff0f1;color:#ac4550}.gd-status.cancelled i{background:#dc5965}
     .gd-route{display:grid;grid-template-columns:24px 1fr;gap:8px;margin:18px 0 15px;padding:15px;border-radius:16px;background:#f7f9fc}.gd-route-line{display:grid;grid-template-rows:12px 1fr 12px;justify-items:center;min-height:84px}.gd-route .dot{width:10px;height:10px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #f26a21;background:#f26a21}.gd-route .dot.end{box-shadow:0 0 0 2px #2f6ee5;background:#2f6ee5}.gd-route .rail{width:2px;background:repeating-linear-gradient(to bottom,#bbc5d3 0 4px,transparent 4px 8px)}.gd-route-text{display:flex;flex-direction:column;justify-content:space-between;gap:15px}.gd-route-text small{display:block;color:#97a1b0;font-size:8px;font-weight:850;letter-spacing:.08em}.gd-route-text b{display:block;margin-top:3px;color:#35445a;font-size:11px;line-height:1.4}
@@ -460,8 +625,8 @@
     .gd-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}.gd-actions button,.gd-actions .gd-button{min-height:38px;padding:0 11px;font-size:10px}.gd .track{background:#0f9d68;color:#fff}.gd-track{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-top:12px;padding:11px 12px;border:1px solid #dcece5;background:#f3faf7;border-radius:13px}.gd-track div{min-width:0}.gd-track small{display:block;font-size:8px;font-weight:900;letter-spacing:.08em;color:#2d7d60}.gd-track b{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px;font-size:16px;letter-spacing:.12em;color:#263a31}.gd-track em{display:block;margin-top:3px;font-size:8px;font-style:normal;color:#7a8d84}.gd-track a{flex:0 0 auto;text-decoration:none;color:#0e855b;font-size:10px;font-weight:900}.gd-note{margin:12px 0 0;padding:10px 12px;border-radius:10px;background:#fff9f5;color:#7a5a48;font-size:10px;line-height:1.5}.gd-live{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 12px;border-radius:13px;background:#f0f8f5}.gd-live .pulse{width:9px;height:9px;border-radius:50%;background:#19a575;box-shadow:0 0 0 4px rgba(25,165,117,.12)}.gd-live div{flex:1}.gd-live b,.gd-live small{display:block}.gd-live b{font-size:10px}.gd-live small{font-size:8px;color:#7c8b84}.gd-live a{font-size:9px;font-weight:850;color:#18815e;text-decoration:none}
     .gd-empty,.gd-loading,.gd-error{grid-column:1/-1;padding:42px;border:1px dashed #d8dee8;border-radius:20px;text-align:center;background:#fff;color:#7b8798}.gd-empty b,.gd-empty span{display:block}.gd-empty span{font-size:11px;margin-top:7px}.gd-error{color:#b42318}
     .gd-modal{position:fixed;inset:0;z-index:500;display:grid;place-items:center;padding:18px;background:rgba(7,13,23,.62);backdrop-filter:blur(8px)}.gd-dialog{width:min(620px,100%);max-height:92dvh;overflow:auto;background:#f7f9fb;border-radius:24px;box-shadow:0 30px 90px rgba(0,0,0,.30)}.gd-dialog-head{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:18px 21px;background:#fff;border-bottom:1px solid #e6eaf0}.gd-dialog-head small{font-size:8px;letter-spacing:.12em;color:#f26a21;font-weight:900}.gd-dialog-head h3{margin:3px 0 0;font-size:18px}.gd-dialog-head>button{width:38px;height:38px;padding:0;border-radius:50%;background:#f1f3f6;color:#334056;font-size:20px}.gd-form{padding:20px}.gd-form label{display:block;margin-bottom:13px;font-size:10px;color:#5c687a;font-weight:800}.gd-form input,.gd-form select,.gd-form textarea{display:block;width:100%;margin-top:6px;border:1px solid #d9dfe8;border-radius:12px;background:#fff;padding:11px 12px;font:inherit;font-size:12px;color:#25334a;outline:none}.gd-form textarea{min-height:88px;resize:vertical}.gd-master-warning{margin:-2px 0 14px;padding:11px 12px;border-radius:12px;background:#fff6ed;color:#9a5a2a;font-size:10px;line-height:1.45}.gd-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.gd-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
-    @media(max-width:900px){.gd-list{grid-template-columns:1fr}.gd-hero{align-items:flex-start;flex-direction:column}.gd-stats{grid-template-columns:1fr 1fr}}
-    @media(max-width:620px){.gd-hero{padding:20px;border-radius:19px}.gd-hero h2{font-size:24px}.gd-hero-actions{width:100%}.gd-hero-actions button{flex:1}.gd-stats{gap:8px}.gd-stats button{min-height:78px;padding:13px;border-radius:15px}.gd-stats strong{font-size:23px}.gd-toolbar{align-items:stretch;flex-direction:column}.gd-toolbar input{min-width:0;width:100%}.gd-job{padding:15px;border-radius:18px}.gd-jobtop{flex-direction:column}.gd-two{grid-template-columns:1fr}.gd-actions>*{flex:1 1 calc(50% - 8px)}}
+    @media(max-width:900px){.gd-list{grid-template-columns:1fr}.gd-hero{align-items:flex-start;flex-direction:column}.gd-stats{grid-template-columns:1fr 1fr}.gd-dist-body{grid-template-columns:1fr}.gd-route-groups{border-left:0;border-top:1px solid #edf0f4;max-height:none}.gd-dispatch-map{min-height:360px}}
+    @media(max-width:620px){.gd-dist-head{align-items:flex-start;flex-direction:column}.gd-dist-head button{width:100%}.gd-dispatch-map{min-height:300px}.gd-hero{padding:20px;border-radius:19px}.gd-hero h2{font-size:24px}.gd-hero-actions{width:100%}.gd-hero-actions button{flex:1}.gd-stats{gap:8px}.gd-stats button{min-height:78px;padding:13px;border-radius:15px}.gd-stats strong{font-size:23px}.gd-toolbar{align-items:stretch;flex-direction:column}.gd-toolbar input{min-width:0;width:100%}.gd-job{padding:15px;border-radius:18px}.gd-jobtop{flex-direction:column}.gd-two{grid-template-columns:1fr}.gd-actions>*{flex:1 1 calc(50% - 8px)}}
     `;document.head.appendChild(s);
   }
 
@@ -478,6 +643,8 @@
     if(a==='office'){modal={type:'office'};render();return}
     if(a==='new'){modal={type:'new'};render();return}
     if(a==='refresh'){await refresh();return}
+    if(a==='rebuild-routes'){await initDistribution();return}
+    if(a==='assign-route-group'){modal={type:'route-group',groupIndex:Number(b.dataset.group)};render();return}
     if(a==='assign'){modal={type:'assign',id:b.dataset.id,kind:b.dataset.kind};render();return}
     if(a==='edit-destination'){modal={type:'destination',id:b.dataset.id,kind:b.dataset.kind};render();return}
     if(a==='next'){
@@ -510,6 +677,7 @@
     try{
       if(f.dataset.gdForm==='office')await saveOffice(f);
       if(f.dataset.gdForm==='destination')await saveDestination(f);
+      if(f.dataset.gdForm==='route-group')await assignRouteGroup(f);
       if(f.dataset.gdForm==='assign')await assign(f);
       if(f.dataset.gdForm==='new')await createTask(f);
     }catch(err){alert(err.message)}finally{if(submit)submit.disabled=false}
