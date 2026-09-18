@@ -249,15 +249,33 @@
     const lat=Number(m[1]),lng=Number(m[2]);
     return Number.isFinite(lat)&&Number.isFinite(lng)?{lat,lng}:null;
   }
+  async function resolveMapsLink(raw){
+    const url=String(raw||'').trim();if(!url)return null;
+    const direct=parseCoordsFromMapsUrl(url);
+    if(direct)return{...direct,final_url:url};
+    try{
+      const r=await fetch('/api/maps-resolve?url='+encodeURIComponent(url),{cache:'no-store'});
+      const j=await r.json();
+      const lat=Number(j?.lat),lng=Number(j?.lng);
+      if(j?.ok)return{
+        final_url:j.final_url||url,
+        lat:Number.isFinite(lat)?lat:null,
+        lng:Number.isFinite(lng)?lng:null
+      };
+    }catch(_){}
+    return{final_url:url,lat:null,lng:null};
+  }
   async function saveOffice(form){
     const fd=Object.fromEntries(new FormData(form));
-    const fromUrl=parseCoordsFromMapsUrl(fd.office_maps_url);
-    const lat=fd.office_lat!==''?Number(fd.office_lat):(fromUrl?.lat??null);
-    const lng=fd.office_lng!==''?Number(fd.office_lng):(fromUrl?.lng??null);
+    const resolved=await resolveMapsLink(fd.office_maps_url);
+    const manualLat=fd.office_lat!==''?Number(fd.office_lat):null;
+    const manualLng=fd.office_lng!==''?Number(fd.office_lng):null;
+    const lat=Number.isFinite(manualLat)?manualLat:(resolved?.lat??null);
+    const lng=Number.isFinite(manualLng)?manualLng:(resolved?.lng??null);
     const d=await adminRpc('rentcam_admin_dispatch_settings_save',{
       p_office_name:String(fd.office_name||'').trim(),
       p_office_address:String(fd.office_address||'').trim(),
-      p_office_maps_url:String(fd.office_maps_url||'').trim(),
+      p_office_maps_url:String(resolved?.final_url||fd.office_maps_url||'').trim(),
       p_office_lat:Number.isFinite(lat)?lat:null,
       p_office_lng:Number.isFinite(lng)?lng:null
     });
@@ -269,6 +287,7 @@
     const fd=Object.fromEntries(new FormData(form));
     const id=modal.id, kind=modal.kind;
     if(!fd.driver_id)throw new Error('Pilih driver dari Master Driver');
+    const resolvedMap=await resolveMapsLink(fd.maps_url);
     const data=await adminRpc('rentcam_admin_assign_driver',{
       p_order:id,
       p_kind:kind,
@@ -281,7 +300,13 @@
     if(!data?.ok)throw new Error(data?.message||'Gagal menugaskan driver');
     const o=getOrder(id);
     if(o&&data.delivery)o.delivery=data.delivery;
-    await updateDelivery(id,d=>{d.maps_url=String(fd.maps_url||'').trim()});
+    await updateDelivery(id,d=>{
+      d.maps_url=String(resolvedMap?.final_url||fd.maps_url||'').trim();
+      if(Number.isFinite(resolvedMap?.lat)&&Number.isFinite(resolvedMap?.lng)){
+        d.latitude=resolvedMap.lat;
+        d.longitude=resolvedMap.lng;
+      }
+    });
     modal=null;render();
   }
   async function createTask(form){
