@@ -1,16 +1,34 @@
 /* Rental operations CMS */
 (()=>{if(!location.pathname.startsWith('/cms'))return;const SB='https://xleceiffuopioeguniwj.supabase.co',KEY='sb_publishable_POksYryhG_mkFbs7N0fjKQ_4dUim7Ex';let page='',orders=[],proofs=[],finance=[],events=[],busy=false,focusId='';const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),M=n=>'Rp'+Number(n||0).toLocaleString('id-ID'),D=s=>s?new Date(s).toLocaleString('id-ID',{timeZone:'Asia/Jakarta'}):'—',S=s=>({unpaid:'Belum bayar',pending:'Menunggu verifikasi',partial:'Sebagian',paid:'Lunas',rejected:'Ditolak',requested:'Order masuk',approved:'Siap disewa',rented:'Sedang disewa',returned:'Selesai',cancelled:'Dibatalkan',completed:'Selesai'})[s]||s;async function req(path,data){return window.RentcamRentalDesk.request(path,data)}const action=(id,a,d={})=>req('rpc/rentcam_admin_action',{p_order:id||null,p_action:a,p_data:d});
+async function geocodePlaceBrowser(query){
+  const q=String(query||'').trim();if(!q)return null;
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),5000);
+  try{
+    const r=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=id&q='+encodeURIComponent(q),{
+      headers:{Accept:'application/json'},signal:controller.signal
+    });
+    if(!r.ok)return null;
+    const j=await r.json(),x=j?.[0];
+    const lat=Number(x?.lat),lng=Number(x?.lon);
+    return Number.isFinite(lat)&&Number.isFinite(lng)?{lat,lng}:null;
+  }catch(_){return null}finally{clearTimeout(timer)}
+}
 async function resolveGoogleMapsLink(raw){
   const url=String(raw||'').trim();if(!url)return null;
   try{
     const r=await fetch('/api/maps-resolve?url='+encodeURIComponent(url),{cache:'no-store'});
     const j=await r.json();
     const lat=Number(j?.lat),lng=Number(j?.lng);
-    if(j?.ok)return{
-      final_url:j.final_url||url,
-      lat:Number.isFinite(lat)?lat:null,
-      lng:Number.isFinite(lng)?lng:null
-    };
+    if(j?.ok){
+      if(Number.isFinite(lat)&&Number.isFinite(lng)){
+        return{final_url:j.final_url||url,lat,lng};
+      }
+      if(j?.place_query){
+        const g=await geocodePlaceBrowser(j.place_query);
+        if(g)return{final_url:j.final_url||url,lat:g.lat,lng:g.lng};
+      }
+      return{final_url:j.final_url||url,lat:null,lng:null};
+    }
   }catch(_){}
   return{final_url:url,lat:null,lng:null};
 }
