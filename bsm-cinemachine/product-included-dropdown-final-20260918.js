@@ -19,6 +19,14 @@
 
   function upgrade(){
     if(!location.pathname.startsWith('/produk/'))return;
+    const accessoryHeadings=[...document.querySelectorAll('#app h2,#app h3')];
+    accessoryHeadings.forEach(h=>{
+      const t=clean(h.textContent).toLowerCase();
+      if(t==='extra package'||t==='accessories'||t==='aksesori dalam paket'){
+        const sec=h.closest('section,.cms-detail-block,.detail-section')||h.parentElement;
+        if(sec)sec.remove();
+      }
+    });
     const headings=[...document.querySelectorAll('#app h2,#app h3')];
     for(const h of headings){
       const title=clean(h.textContent).toLowerCase();
