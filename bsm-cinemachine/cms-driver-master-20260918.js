@@ -4,7 +4,7 @@
   const SB='https://xleceiffuopioeguniwj.supabase.co';
   const KEY='sb_publishable_POksYryhG_mkFbs7N0fjKQ_4dUim7Ex';
   const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  let active='',drivers=[],vehicles=[],modal=null;
+  let active='',drivers=[],vehicles=[],activity={active:[],recent:[],fuel:[]},modal=null;
 
   async function decode(r){
     const t=await r.text();let d=null;
@@ -19,12 +19,14 @@
     return decode(r);
   }
   async function load(){
-    [drivers,vehicles]=await Promise.all([
+    const [d,v,a]=await Promise.all([
       rpc('rentcam_admin_driver_list'),
-      rpc('rentcam_admin_vehicle_list')
+      rpc('rentcam_admin_vehicle_list'),
+      rpc('rentcam_admin_vehicle_activity')
     ]);
-    drivers=Array.isArray(drivers)?drivers:[];
-    vehicles=Array.isArray(vehicles)?vehicles:[];
+    drivers=Array.isArray(d)?d:[];
+    vehicles=Array.isArray(v)?v:[];
+    activity=a?.ok?a:{active:[],recent:[],fuel:[]};
   }
   function navInject(){
     const nav=document.querySelector('.v5-nav');if(!nav)return;
@@ -60,12 +62,25 @@
   }
   function vehicleRows(){
     if(!vehicles.length)return '<div class="dm-empty">Belum ada kendaraan. Klik <b>+ Tambah Kendaraan</b>.</div>';
-    return '<div class="dm-grid">'+vehicles.map(v=>'<article class="dm-card">'+
-      '<div class="dm-cardtop"><div class="dm-avatar vehicle">🚘</div><div><h3>'+E(v.plate)+'</h3><p>'+E(v.name)+'</p></div><span class="dm-badge '+(v.active?'on':'off')+'">'+(v.active?'Aktif':'Nonaktif')+'</span></div>'+
+    const activeKeys=Array.isArray(activity.active)?activity.active:[];
+    return '<div class="dm-grid">'+vehicles.map(v=>{
+      const k=activeKeys.find(x=>String(x.vehicle_id)===String(v.id));
+      return '<article class="dm-card">'+
+      '<div class="dm-cardtop"><div class="dm-avatar vehicle">🚘</div><div><h3>'+E(v.plate)+'</h3><p>'+E(v.name)+'</p></div><span class="dm-badge '+(k?'busy':v.active?'on':'off')+'">'+(k?'Kunci keluar':v.active?'Tersedia':'Nonaktif')+'</span></div>'+
       '<div class="dm-info"><span>Tipe</span><b>'+E(v.vehicle_type||'-')+'</b></div>'+
+      (k?'<div class="dm-keyholder"><small>DIBAWA DRIVER</small><b>'+E(k.driver)+'</b><span>'+E(new Date(k.checked_out_at).toLocaleString('id-ID',{timeZone:'Asia/Jakarta'}))+' · '+E(k.odometer)+' km · BBM '+E(k.fuel_level)+'%</span><div><a href="'+E(k.condition_photo)+'" target="_blank" rel="noopener">Foto kondisi</a><a href="'+E(k.odometer_photo)+'" target="_blank" rel="noopener">Foto spidometer</a></div></div>':'')+
       (v.notes?'<div class="dm-note">'+E(v.notes)+'</div>':'')+
       '<div class="dm-actions"><button data-dm-action="edit-vehicle" data-id="'+E(v.id)+'">Edit kendaraan</button></div>'+
-    '</article>').join('')+'</div>';
+    '</article>'}).join('')+'</div>';
+  }
+  function vehicleOps(){
+    const fuel=Array.isArray(activity.fuel)?activity.fuel:[];
+    const recent=Array.isArray(activity.recent)?activity.recent:[];
+    return '<section class="dm-ops"><div class="dm-section-head"><div><small>LOG OPERASIONAL</small><h3>Riwayat Kendaraan & BBM</h3></div><span>'+fuel.length+' catatan BBM</span></div>'+
+      '<div class="dm-op-grid">'+
+        '<div class="dm-op-card"><h4>Pengembalian Terbaru</h4>'+(recent.slice(0,8).map(x=>'<div class="dm-log-row"><div><b>'+E(x.plate)+' · '+E(x.driver)+'</b><span>'+E(new Date(x.checked_out_at).toLocaleString('id-ID',{timeZone:'Asia/Jakarta'}))+(x.returned_at?' → '+E(new Date(x.returned_at).toLocaleString('id-ID',{timeZone:'Asia/Jakarta'})):' · masih dipakai')+'</span></div><div class="dm-photo-links">'+(x.checkout_condition_photo?'<a href="'+E(x.checkout_condition_photo)+'" target="_blank" rel="noopener">Keluar</a>':'')+(x.return_condition_photo?'<a href="'+E(x.return_condition_photo)+'" target="_blank" rel="noopener">Pulang</a>':'')+'</div></div>').join('')||'<p>Belum ada log kendaraan.</p>')+'</div>'+
+        '<div class="dm-op-card"><h4>Isi BBM Terbaru</h4>'+(fuel.slice(0,8).map(x=>'<div class="dm-log-row"><div><b>'+E(x.plate)+' · Rp'+Number(x.amount||0).toLocaleString('id-ID')+'</b><span>'+E(x.driver)+' · '+E(x.odometer)+' km · BBM '+E(x.fuel_level_after)+'%</span></div><div class="dm-photo-links"><a href="'+E(x.receipt_photo)+'" target="_blank" rel="noopener">Struk</a><a href="'+E(x.odometer_photo)+'" target="_blank" rel="noopener">Spidometer</a></div></div>').join('')||'<p>Belum ada catatan BBM.</p>')+'</div>'+
+      '</div></section>';
   }
   function modalHtml(){
     if(!modal)return '';
@@ -107,7 +122,7 @@
       '<section class="dm-hero"><div><span>OPERASIONAL ANTAR–JEMPUT</span><h2>'+(isDriver?'Master Driver':'Master Kendaraan')+'</h2><p>'+(isDriver?'Kelola akun driver yang bisa login ke portal driver dan menerima jadwal tugas.':'Kelola data kendaraan dan plat yang dipakai untuk tugas antar–jemput.')+'</p></div>'+
       '<div class="dm-hero-actions"><a href="/driver" target="_blank" rel="noopener">Portal Driver ↗</a><button data-dm-action="'+(isDriver?'new-driver':'new-vehicle')+'">+ '+(isDriver?'Tambah Driver':'Tambah Kendaraan')+'</button></div></section>'+
       stats()+
-      (isDriver?driverRows():vehicleRows())+
+      (isDriver?driverRows():(vehicleRows()+vehicleOps()))+
       modalHtml()+
     '</div>';
   }
@@ -146,9 +161,9 @@
     .dm{max-width:1280px;margin:0 auto}.dm *{box-sizing:border-box}.dm button,.dm input,.dm select,.dm textarea{font:inherit}
     .dm-hero{display:flex;justify-content:space-between;gap:20px;align-items:flex-end;padding:25px 27px;border-radius:24px;background:linear-gradient(135deg,#101927,#1a2a41);color:#fff;margin-bottom:16px;box-shadow:0 18px 45px rgba(13,25,43,.13)}.dm-hero span{font-size:9px;letter-spacing:.15em;font-weight:900;color:#ff9c68}.dm-hero h2{margin:5px 0 6px;font-size:29px;letter-spacing:-.04em}.dm-hero p{margin:0;color:#aab7ca;font-size:12px;line-height:1.55}.dm-hero-actions{display:flex;gap:8px}.dm-hero-actions a,.dm-hero-actions button{height:42px;padding:0 14px;border-radius:12px;border:1px solid rgba(255,255,255,.14);display:inline-flex;align-items:center;text-decoration:none;font-size:10px;font-weight:900}.dm-hero-actions a{color:#fff;background:rgba(255,255,255,.06)}.dm-hero-actions button{border:0;background:#f26a21;color:#fff}
     .dm-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:15px}.dm-stats div{background:#fff;border:1px solid #e2e7ef;border-radius:17px;padding:15px}.dm-stats small{display:block;color:#8390a2;font-size:9px}.dm-stats b{display:block;margin-top:5px;font-size:22px;color:#1c2a40}
-    .dm-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.dm-card{background:#fff;border:1px solid #e2e7ef;border-radius:20px;padding:17px;box-shadow:0 6px 20px rgba(25,39,58,.04)}.dm-cardtop{display:flex;align-items:center;gap:10px}.dm-avatar{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#17243a;color:#fff;font-weight:900;font-size:16px}.dm-avatar.vehicle{border-radius:14px;background:#eef4ff}.dm-cardtop>div:nth-child(2){min-width:0;flex:1}.dm-card h3{margin:0;font-size:14px;color:#243149}.dm-card p{margin:3px 0 0;color:#8793a4;font-size:9px}.dm-badge{padding:6px 8px;border-radius:999px;font-size:8px;font-weight:900}.dm-badge.on{background:#eaf8f2;color:#187d5d}.dm-badge.off{background:#f1f3f6;color:#7e8998}.dm-info{display:flex;justify-content:space-between;gap:10px;padding:13px 0;margin-top:12px;border-top:1px solid #edf0f4;border-bottom:1px solid #edf0f4;font-size:9px}.dm-info span{color:#8b96a6}.dm-info b{color:#37455a}.dm-note{margin-top:10px;padding:9px 10px;border-radius:10px;background:#f7f9fb;color:#6e7a8c;font-size:9px}.dm-actions{margin-top:12px}.dm-actions button{width:100%;height:38px;border:1px solid #dfe4eb;border-radius:11px;background:#fff;color:#314057;font-size:10px;font-weight:900}.dm-empty,.dm-loading,.dm-error{padding:38px;border:1px dashed #d8dee7;border-radius:19px;background:#fff;text-align:center;color:#7e8999}.dm-error{color:#b13f4a}
+    .dm-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.dm-card{background:#fff;border:1px solid #e2e7ef;border-radius:20px;padding:17px;box-shadow:0 6px 20px rgba(25,39,58,.04)}.dm-cardtop{display:flex;align-items:center;gap:10px}.dm-avatar{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#17243a;color:#fff;font-weight:900;font-size:16px}.dm-avatar.vehicle{border-radius:14px;background:#eef4ff}.dm-cardtop>div:nth-child(2){min-width:0;flex:1}.dm-card h3{margin:0;font-size:14px;color:#243149}.dm-card p{margin:3px 0 0;color:#8793a4;font-size:9px}.dm-badge{padding:6px 8px;border-radius:999px;font-size:8px;font-weight:900}.dm-badge.on{background:#eaf8f2;color:#187d5d}.dm-badge.off{background:#f1f3f6;color:#7e8998}.dm-badge.busy{background:#fff0e8;color:#b35a22}.dm-info{display:flex;justify-content:space-between;gap:10px;padding:13px 0;margin-top:12px;border-top:1px solid #edf0f4;border-bottom:1px solid #edf0f4;font-size:9px}.dm-info span{color:#8b96a6}.dm-info b{color:#37455a}.dm-note{margin-top:10px;padding:9px 10px;border-radius:10px;background:#f7f9fb;color:#6e7a8c;font-size:9px}.dm-keyholder{margin-top:10px;padding:11px;border-radius:12px;background:#fff7f1;border:1px solid #f7e3d6}.dm-keyholder small{display:block;font-size:7px;font-weight:900;letter-spacing:.1em;color:#f26a21}.dm-keyholder b{display:block;margin-top:3px;font-size:11px}.dm-keyholder span{display:block;margin-top:3px;font-size:8px;color:#7e8998}.dm-keyholder div{display:flex;gap:7px;margin-top:8px}.dm-keyholder a,.dm-photo-links a{font-size:8px;font-weight:900;color:#4265ae;text-decoration:none}.dm-ops{margin-top:18px}.dm-section-head{display:flex;justify-content:space-between;align-items:end;margin-bottom:10px}.dm-section-head small{display:block;font-size:8px;letter-spacing:.12em;color:#f26a21;font-weight:900}.dm-section-head h3{margin:3px 0 0}.dm-section-head>span{font-size:9px;color:#8793a4}.dm-op-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.dm-op-card{background:#fff;border:1px solid #e2e7ef;border-radius:18px;padding:15px}.dm-op-card h4{margin:0 0 8px;font-size:12px}.dm-op-card>p{font-size:9px;color:#8a95a5}.dm-log-row{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid #edf0f4}.dm-log-row:first-of-type{border-top:0}.dm-log-row b,.dm-log-row span{display:block}.dm-log-row b{font-size:9px}.dm-log-row span{margin-top:2px;font-size:8px;color:#8a95a5}.dm-photo-links{display:flex;gap:7px;align-items:center}.dm-actions{margin-top:12px}.dm-actions button{width:100%;height:38px;border:1px solid #dfe4eb;border-radius:11px;background:#fff;color:#314057;font-size:10px;font-weight:900}.dm-empty,.dm-loading,.dm-error{padding:38px;border:1px dashed #d8dee7;border-radius:19px;background:#fff;text-align:center;color:#7e8999}.dm-error{color:#b13f4a}
     .dm-modal{position:fixed;inset:0;z-index:650;display:grid;place-items:center;padding:16px;background:rgba(7,13,23,.62);backdrop-filter:blur(7px)}.dm-dialog{width:min(560px,100%);max-height:92dvh;overflow:auto;background:#f7f9fb;border-radius:23px;box-shadow:0 28px 90px rgba(0,0,0,.30)}.dm-head{display:flex;justify-content:space-between;align-items:center;padding:17px 19px;background:#fff;border-bottom:1px solid #e6eaf0}.dm-head small{font-size:8px;letter-spacing:.12em;font-weight:900;color:#f26a21}.dm-head h3{margin:3px 0 0;font-size:17px}.dm-head button{width:38px;height:38px;border:0;border-radius:50%;background:#f1f3f6;font-size:20px}.dm-form{padding:18px}.dm-form label{display:block;margin-bottom:12px;font-size:10px;font-weight:800;color:#5e6a7c}.dm-form label small{font-weight:500;color:#9aa4b1}.dm-form input,.dm-form select,.dm-form textarea{display:block;width:100%;margin-top:6px;border:1px solid #d9dfe8;border-radius:12px;background:#fff;padding:11px 12px;font-size:12px;color:#25334a;outline:none}.dm-form textarea{min-height:80px;resize:vertical}.dm-switch{display:flex!important;align-items:center;gap:8px}.dm-switch input{width:18px!important;margin:0!important}.dm-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}.dm-dialog-actions button{height:41px;padding:0 14px;border-radius:11px;font-size:10px;font-weight:900}.dm-dialog-actions .ghost{border:1px solid #dce2ea;background:#fff;color:#3a485c}.dm-dialog-actions .primary{border:0;background:#f26a21;color:#fff}
-    @media(max-width:1000px){.dm-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:700px){.dm-hero{align-items:flex-start;flex-direction:column}.dm-hero-actions{width:100%}.dm-hero-actions>*{flex:1;justify-content:center}.dm-stats{grid-template-columns:1fr 1fr}.dm-grid{grid-template-columns:1fr}}
+    @media(max-width:1000px){.dm-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dm-op-grid{grid-template-columns:1fr}}@media(max-width:700px){.dm-hero{align-items:flex-start;flex-direction:column}.dm-hero-actions{width:100%}.dm-hero-actions>*{flex:1;justify-content:center}.dm-stats{grid-template-columns:1fr 1fr}.dm-grid{grid-template-columns:1fr}}
     `;document.head.appendChild(s);
   }
 
