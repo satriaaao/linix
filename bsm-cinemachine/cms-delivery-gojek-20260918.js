@@ -138,17 +138,55 @@
   function angleDiff(a,b){
     const d=Math.abs(a-b)%360;return d>180?360-d:d;
   }
+  async function currentAdminGps(){
+    if(!navigator.geolocation)return null;
+    try{
+      const pos=await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(
+        resolve,reject,{enableHighAccuracy:true,timeout:9000,maximumAge:5000}
+      ));
+      const lat=Number(pos.coords.latitude),lng=Number(pos.coords.longitude);
+      if(!Number.isFinite(lat)||!Number.isFinite(lng))return null;
+      return{lat,lng,accuracy:Number(pos.coords.accuracy||0)};
+    }catch(_){return null}
+  }
+  async function persistCurrentStart(p){
+    try{
+      const s=dispatchSettings||{};
+      const rawLat=s.office_lat,rawLng=s.office_lng;
+      if(rawLat!==null&&rawLat!==undefined&&rawLat!==''&&rawLng!==null&&rawLng!==undefined&&rawLng!==''){
+        const oldLat=Number(rawLat),oldLng=Number(rawLng);
+        if(Number.isFinite(oldLat)&&Number.isFinite(oldLng)&&!(Math.abs(oldLat)<0.000001&&Math.abs(oldLng)<0.000001)){
+          if(haversineKm({lat:oldLat,lng:oldLng},p)<0.05)return;
+        }
+      }
+      const address=await reverseDriverLabel(p.lat,p.lng);
+      const maps='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(p.lat+','+p.lng);
+      const d=await adminRpc('rentcam_admin_dispatch_settings_save',{
+        p_office_name:'Lokasi Saat Ini',
+        p_office_address:address,
+        p_office_maps_url:maps,
+        p_office_lat:Number(p.lat.toFixed(6)),
+        p_office_lng:Number(p.lng.toFixed(6))
+      });
+      if(d?.ok)dispatchSettings=d.settings||dispatchSettings;
+    }catch(_){}
+  }
   async function officePoint(){
+    const gps=await currentAdminGps();
+    if(gps){
+      persistCurrentStart(gps);
+      return{lat:gps.lat,lng:gps.lng,name:'Lokasi Saat Ini',accuracy:gps.accuracy};
+    }
     const s=dispatchSettings||{};
     const rawLat=s.office_lat,rawLng=s.office_lng;
     if(rawLat!==null&&rawLat!==undefined&&rawLat!==''&&rawLng!==null&&rawLng!==undefined&&rawLng!==''){
       const lat=Number(rawLat),lng=Number(rawLng);
-      if(Number.isFinite(lat)&&Number.isFinite(lng))return{lat,lng,name:s.office_name||'Lokasi Saat Ini'};
+      if(Number.isFinite(lat)&&Number.isFinite(lng)&&!(Math.abs(lat)<0.000001&&Math.abs(lng)<0.000001))return{lat,lng,name:s.office_name||'Lokasi Saat Ini'};
     }
     const fromUrl=parseCoordsFromMapsUrl(s.office_maps_url);
-    if(fromUrl)return{...fromUrl,name:s.office_name||'Kantor Rentcam'};
+    if(fromUrl&&!(Math.abs(fromUrl.lat)<0.000001&&Math.abs(fromUrl.lng)<0.000001))return{...fromUrl,name:s.office_name||'Lokasi Saat Ini'};
     const g=await geocodePlaceBrowser(s.office_address||'');
-    return g?{...g,name:s.office_name||'Kantor Rentcam'}:null;
+    return g?{...g,name:s.office_name||'Lokasi Saat Ini'}:null;
   }
   function buildRouteGroups(base){
     const candidates=jobs().filter(j=>j.status==='waiting').map(j=>({job:j,coords:coordFromJob(j)})).filter(x=>x.coords);
