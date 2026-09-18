@@ -469,7 +469,7 @@
     }else if(assignedNames.length>1){
       action='<div class="gd-route-assigned">Rute ini sedang ditangani beberapa driver.</div>';
     }
-    return '<article class="gd-group-card gd-trip-card" style="--route-color:'+color+'"><div class="gd-group-top"><span class="gd-route-letter">'+letter+'</span><div><small>RUTE '+letter+' · '+E(directionLabel(g.meanBearing))+'</small><h4>'+count+' customer'+(suitable?' · Cocok 1 driver':'')+'</h4><p><b>'+((g.roadKm||0).toFixed(1))+' km</b>'+(g.roadMin?' · ±'+fmtMinutes(g.roadMin):'')+'</p></div></div><div class="gd-trip-timeline">'+timeline+'</div>'+driverHint+action+'</article>';
+    return '<article class="gd-group-card gd-trip-card" style="--route-color:'+color+'"><div class="gd-group-top"><span class="gd-route-letter">'+letter+'</span><div><small>RUTE '+letter+' · '+E(zoneLabel)+'</small><h4>'+E(zoneLabel)+' · '+count+' customer'+(suitable?' · Cocok 1 driver':'')+'</h4><p><b>'+((g.roadKm||0).toFixed(1))+' km</b>'+(g.roadMin?' · ±'+fmtMinutes(g.roadMin):'')+(g.estimated?' · estimasi cepat':'')+'</p></div></div><div class="gd-trip-timeline">'+timeline+'</div>'+driverHint+action+'</article>';
   }
   async function initDistribution(){
     const mapEl=document.getElementById('gdDispatchMap'),groupEl=document.getElementById('gdRouteGroups');
