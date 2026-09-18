@@ -63,7 +63,7 @@ function patchPublicHtml(html,seo){
   },true);
 })();
 </script>`;
-  const checkoutWizard='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@b0fc2fba7b06427ee36ac912c8c60ecdaea2f26b/bsm-cinemachine/checkout-step-wizard-20260918.js"><\/script>';
+  const checkoutWizard='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@57a19710d8690fcfc3949e696d51771e3f03e11d/bsm-cinemachine/checkout-step-wizard-20260918.js"><\/script>';
   out=out.replace('</body>',cartHardening+checkoutWizard+'</body>');
   const ssr=`<main id="app"><section data-seo-ssr="1" style="max-width:1180px;margin:0 auto;padding:28px 20px;font-family:Arial,sans-serif"><h1>${esc(seo.h1)}</h1><p>${esc(seo.summary)}</p></section></main>`;
   out=out.replace(/<main\s+id=["']app["']\s*><\/main>/i,ssr);
