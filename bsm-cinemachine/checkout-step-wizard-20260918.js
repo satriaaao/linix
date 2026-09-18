@@ -1,0 +1,251 @@
+/* Rentcam checkout step wizard — presentation only, preserves existing checkout logic. */
+(()=>{
+  if(window.__rentcamCheckoutWizard)return;
+  window.__rentcamCheckoutWizard=true;
+
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  function cleanPhone(v){
+    let p=String(v||'').replace(/\D/g,'');
+    if(p.startsWith('0'))p='62'+p.slice(1);
+    else if(p.startsWith('8'))p='62'+p;
+    return p;
+  }
+
+  function validStep(form,step){
+    if(step===1){
+      const member=form.elements.customer_type?.value==='member';
+      if(member){
+        const p=cleanPhone(form.elements.member_phone?.value);
+        if(!/^62[0-9]{7,14}$/.test(p)){
+          alert('Isi nomor WhatsApp member yang valid dulu.');
+          form.elements.member_phone?.focus();
+          return false;
+        }
+      }else{
+        const name=String(form.elements.guest_name?.value||'').trim();
+        const p=cleanPhone(form.elements.guest_phone?.value);
+        if(name.length<2){
+          alert('Isi nama customer dulu.');
+          form.elements.guest_name?.focus();
+          return false;
+        }
+        if(!/^62[0-9]{7,14}$/.test(p)){
+          alert('Isi nomor WhatsApp yang valid dulu.');
+          form.elements.guest_phone?.focus();
+          return false;
+        }
+      }
+    }
+    if(step===2){
+      const start=form.elements.start?.value,end=form.elements.end?.value;
+      if(!start||!end){
+        alert('Isi tanggal mulai dan selesai rental.');
+        return false;
+      }
+      if(end<start){
+        alert('Tanggal selesai tidak boleh sebelum tanggal mulai.');
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function review(form){
+    const box=form.querySelector('[data-wizard-review]');
+    if(!box)return;
+    const member=form.elements.customer_type?.value==='member';
+    const customer=member
+      ? (form.elements.member_phone?.value||'Belum diisi')
+      : ((form.elements.guest_name?.value||'Customer')+' · '+(form.elements.guest_phone?.value||''));
+    const start=form.elements.start?.value||'-',end=form.elements.end?.value||'-';
+    const mode=form.elements.mode?.selectedOptions?.[0]?.textContent||'-';
+    const back=form.elements.return_mode?.selectedOptions?.[0]?.textContent||'-';
+    box.innerHTML=
+      '<div><span>Customer</span><b>'+esc(customer)+'</b></div>'+
+      '<div><span>Periode</span><b>'+esc(start)+' → '+esc(end)+'</b></div>'+
+      '<div><span>Terima alat</span><b>'+esc(mode)+'</b></div>'+
+      '<div><span>Pengembalian</span><b>'+esc(back)+'</b></div>';
+  }
+
+  function setStep(form,step,scroll=true){
+    step=Math.max(1,Math.min(4,Number(step)||1));
+    form.dataset.wizardStep=String(step);
+    form.querySelectorAll('[data-wizard-panel]').forEach(p=>{
+      p.hidden=Number(p.dataset.wizardPanel)!==step;
+    });
+    form.querySelectorAll('[data-wizard-dot]').forEach(dot=>{
+      const n=Number(dot.dataset.wizardDot);
+      dot.classList.toggle('active',n===step);
+      dot.classList.toggle('done',n<step);
+    });
+    const label=form.querySelector('[data-wizard-current]');
+    if(label)label.textContent='Langkah '+step+' dari 4';
+    const back=form.querySelector('[data-wizard-back]');
+    const next=form.querySelector('[data-wizard-next]');
+    if(back)back.hidden=step===1;
+    if(next){
+      next.hidden=step===4;
+      next.textContent=step===3?'Lihat ringkasan':'Lanjut';
+    }
+    if(step===4)review(form);
+    if(scroll){
+      const rect=form.getBoundingClientRect();
+      if(rect.top<12||rect.top>innerHeight*.35){
+        form.scrollIntoView({behavior:'smooth',block:'start'});
+      }
+    }
+  }
+
+  function panel(title,sub,node,step){
+    const p=document.createElement('section');
+    p.className='rc-wizard-panel';
+    p.dataset.wizardPanel=String(step);
+    p.innerHTML='<div class="rc-wizard-panel-head"><small>LANGKAH '+step+'</small><h4>'+title+'</h4><p>'+sub+'</p></div>';
+    if(node)p.appendChild(node);
+    return p;
+  }
+
+  function mount(form){
+    if(!form||form.dataset.wizardMounted==='1')return;
+    const customer=form.querySelector('.rc-member-box');
+    const sections=[...form.querySelectorAll(':scope > .rc-compact-section')];
+    const schedule=sections[0],delivery=sections[1];
+    const disclosures=[...form.querySelectorAll(':scope > .rc-disclosure')];
+    const payment=disclosures[0],notes=disclosures[1];
+    const submit=form.querySelector(':scope > .rc-submit');
+    const msg=form.querySelector(':scope > [data-msg]');
+    if(!customer||!schedule||!delivery||!submit)return;
+
+    form.dataset.wizardMounted='1';
+
+    const head=form.querySelector('.rc-form-head');
+    if(head){
+      head.innerHTML='<div><small>CHECKOUT</small><h3>Selesaikan pesanan</h3></div><span data-wizard-current>Langkah 1 dari 4</span>';
+      head.insertAdjacentHTML('afterend',
+        '<div class="rc-wizard-progress" aria-label="Progress checkout">'+
+        '<span data-wizard-dot="1"><b>1</b><em>Customer</em></span>'+
+        '<i></i><span data-wizard-dot="2"><b>2</b><em>Jadwal</em></span>'+
+        '<i></i><span data-wizard-dot="3"><b>3</b><em>Pengiriman</em></span>'+
+        '<i></i><span data-wizard-dot="4"><b>4</b><em>Kirim</em></span>'+
+        '</div>');
+    }
+
+    const p1=panel('Data customer','Isi singkat. Member cukup nomor WhatsApp.',customer,1);
+    const p2=panel('Jadwal rental','Pilih tanggal mulai dan selesai rental.',schedule,2);
+    const p3=panel('Pengambilan & pengembalian','Pilih cara alat diterima dan dikembalikan.',delivery,3);
+
+    const finalWrap=document.createElement('div');
+    finalWrap.className='rc-wizard-final';
+    finalWrap.innerHTML='<div class="rc-wizard-review" data-wizard-review></div>';
+    if(payment)finalWrap.appendChild(payment);
+    if(notes)finalWrap.appendChild(notes);
+    finalWrap.appendChild(submit);
+    if(msg)finalWrap.appendChild(msg);
+    const p4=panel('Ringkasan & kirim','Periksa sebentar, lalu kirim pesanan.',finalWrap,4);
+
+    const progress=form.querySelector('.rc-wizard-progress');
+    [p1,p2,p3,p4].forEach(p=>form.insertBefore(p,progress?.nextSibling||null));
+
+    const nav=document.createElement('div');
+    nav.className='rc-wizard-nav';
+    nav.innerHTML='<button type="button" class="rc-wizard-back" data-wizard-back>← Kembali</button><button type="button" class="rc-wizard-next" data-wizard-next>Lanjut</button>';
+    form.appendChild(nav);
+
+    setStep(form,1,false);
+  }
+
+  function scan(){
+    if(location.pathname!=='/cart')return;
+    mount(document.getElementById('rentcamOrderForm'));
+  }
+
+  document.addEventListener('click',e=>{
+    const next=e.target.closest?.('[data-wizard-next]');
+    if(next){
+      const f=next.closest('#rentcamOrderForm');
+      const s=Number(f?.dataset.wizardStep||1);
+      if(f&&validStep(f,s))setStep(f,s+1);
+      return;
+    }
+    const back=e.target.closest?.('[data-wizard-back]');
+    if(back){
+      const f=back.closest('#rentcamOrderForm');
+      if(f)setStep(f,Number(f.dataset.wizardStep||1)-1);
+      return;
+    }
+    const dot=e.target.closest?.('[data-wizard-dot]');
+    if(dot){
+      const f=dot.closest('#rentcamOrderForm');
+      const target=Number(dot.dataset.wizardDot),current=Number(f?.dataset.wizardStep||1);
+      if(f&&target<current)setStep(f,target);
+    }
+  },true);
+
+  document.addEventListener('change',e=>{
+    const f=e.target.closest?.('#rentcamOrderForm');
+    if(f&&Number(f.dataset.wizardStep)===4)review(f);
+  },true);
+  document.addEventListener('input',e=>{
+    const f=e.target.closest?.('#rentcamOrderForm');
+    if(f&&Number(f.dataset.wizardStep)===4)review(f);
+  },true);
+
+  const st=document.createElement('style');
+  st.id='rc-checkout-wizard-style';
+  st.textContent=`
+    #rentcamOrderForm.rc-checkout{margin-top:14px!important;padding-top:14px!important}
+    #rentcamOrderForm .rc-form-head{margin-bottom:12px!important;align-items:center!important}
+    #rentcamOrderForm .rc-form-head h3{font-size:20px!important;line-height:1.1!important}
+    .rc-wizard-progress{display:grid;grid-template-columns:auto 1fr auto 1fr auto 1fr auto;align-items:center;gap:8px;margin:0 0 14px;padding:10px 12px;border-radius:14px;background:#f7f8fa}
+    .rc-wizard-progress>span{display:flex;align-items:center;gap:6px;color:#a0a7b0;min-width:0;cursor:pointer}
+    .rc-wizard-progress b{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:#e9ecf0;color:#707985;font-size:11px}
+    .rc-wizard-progress em{font-style:normal;font-size:10px;font-weight:800;white-space:nowrap}
+    .rc-wizard-progress i{height:2px;background:#e2e6eb;border-radius:99px}
+    .rc-wizard-progress>span.active b{background:#111;color:#fff}
+    .rc-wizard-progress>span.active em{color:#111}
+    .rc-wizard-progress>span.done b{background:#f26a21;color:#fff}
+    .rc-wizard-progress>span.done em{color:#687386}
+    .rc-wizard-panel{border:1px solid #e5e8ed;border-radius:16px;padding:15px;background:#fff;margin:0}
+    .rc-wizard-panel[hidden]{display:none!important}
+    .rc-wizard-panel-head{margin-bottom:10px}
+    .rc-wizard-panel-head small{display:block;color:#f26a21;font-weight:900;letter-spacing:.1em;font-size:9px}
+    .rc-wizard-panel-head h4{margin:4px 0 2px;font-size:18px}
+    .rc-wizard-panel-head p{margin:0;color:#7d8694;font-size:11px;line-height:1.4}
+    .rc-wizard-panel .rc-member-box,.rc-wizard-panel .rc-compact-section,.rc-wizard-panel .rc-disclosure{margin:8px 0!important}
+    .rc-wizard-review{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+    .rc-wizard-review>div{padding:10px 11px;background:#f7f8fa;border-radius:11px}
+    .rc-wizard-review span,.rc-wizard-review b{display:block}
+    .rc-wizard-review span{font-size:8px;color:#8b94a1;text-transform:uppercase;letter-spacing:.06em}
+    .rc-wizard-review b{margin-top:3px;font-size:10px;color:#28384e;line-height:1.35}
+    .rc-wizard-nav{display:flex;gap:10px;justify-content:space-between;margin-top:12px;position:sticky;bottom:max(10px,env(safe-area-inset-bottom));z-index:8;padding-top:8px;background:linear-gradient(to bottom,rgba(255,255,255,0),#fff 28%)}
+    .rc-wizard-nav button{min-height:46px!important;border-radius:12px!important;padding:0 18px!important}
+    .rc-wizard-back{background:#fff!important;color:#26364d!important;border:1px solid #dfe4ea!important}
+    .rc-wizard-next{margin-left:auto;background:#f26a21!important;color:#fff!important;min-width:130px}
+    #rentcamOrderForm .rc-submit{position:static!important;margin-top:10px!important;box-shadow:none!important}
+    @media(min-width:901px){
+      #app .cartLayout{align-items:start!important}
+      #app .summary{max-height:none!important}
+      #rentcamOrderForm{max-width:620px;margin-left:auto;margin-right:auto}
+      .rc-wizard-panel{padding:18px}
+      .rc-wizard-nav{position:static;background:none;padding-top:0}
+    }
+    @media(max-width:620px){
+      #app .summary{padding:12px!important}
+      #rentcamOrderForm .rc-form-head>span{font-size:9px!important;padding:6px 8px!important}
+      .rc-wizard-progress{gap:4px;padding:8px}
+      .rc-wizard-progress em{display:none}
+      .rc-wizard-progress b{width:24px;height:24px}
+      .rc-wizard-panel{padding:12px;border-radius:14px}
+      .rc-wizard-review{grid-template-columns:1fr}
+      .rc-wizard-nav button{flex:1}
+      .rc-wizard-next{min-width:0}
+    }
+  `;
+  document.head.appendChild(st);
+
+  const obs=new MutationObserver(scan);
+  obs.observe(document.getElementById('app')||document.body,{childList:true,subtree:true});
+  document.addEventListener('rentcam-route-change',()=>setTimeout(scan,0));
+  scan();
+})();
