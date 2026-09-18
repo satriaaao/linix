@@ -16,7 +16,8 @@
 .routebox{display:grid;grid-template-columns:24px 1fr;gap:9px;margin-top:16px;padding:15px;border-radius:16px;background:#f7f9fc}.route-line{display:grid;grid-template-rows:12px 1fr 12px;justify-items:center;min-height:92px}.dot{width:10px;height:10px;border-radius:50%;background:#f26a21;box-shadow:0 0 0 3px #fff,0 0 0 5px rgba(242,106,33,.18)}.dot.end{background:#2f6fe5;box-shadow:0 0 0 3px #fff,0 0 0 5px rgba(47,111,229,.15)}.rail{width:2px;background:repeating-linear-gradient(to bottom,#bcc5d2 0 4px,transparent 4px 8px)}.route-text{display:flex;flex-direction:column;justify-content:space-between;gap:16px}.route-text small{display:block;font-size:8px;letter-spacing:.1em;font-weight:900;color:#96a1b0}.route-text b{display:block;margin-top:3px;font-size:11px;line-height:1.45;color:#35445b}
 .driver{display:flex;align-items:center;gap:11px;margin-top:15px;padding:14px 0;border-top:1px solid #edf0f4;border-bottom:1px solid #edf0f4}.avatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:#17243a;color:#fff;font-size:17px;font-weight:900;flex:0 0 auto}.driverinfo{min-width:0;flex:1}.driverinfo b{display:block;font-size:13px}.driverinfo small{display:block;margin-top:3px;font-size:9px;color:#8995a6}.action{height:39px;border-radius:12px;padding:0 12px;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border:1px solid #dfe5ec;background:#fff;color:#344258;font-size:10px;font-weight:900}.action.wa{background:#eaf8f1;border-color:#d5eee2;color:#148059}.meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:13px}.meta span{padding:7px 9px;border:1px solid #e7ebf0;border-radius:10px;background:#f8fafb;font-size:9px;color:#68758a}
 .timeline{position:relative;display:grid;margin-top:17px;padding:2px 0 0}.step{position:relative;display:grid;grid-template-columns:36px 42px minmax(0,1fr);gap:10px;align-items:center;min-height:64px;color:#9aa4b3}.step:before{content:"";position:absolute;left:17px;top:35px;bottom:-29px;width:2px;background:repeating-linear-gradient(to bottom,#d5dce6 0 5px,transparent 5px 9px);z-index:0}.step:last-child:before{display:none}.step-marker{position:relative;z-index:2;width:30px;height:30px;margin-left:2px;border-radius:50%;display:grid;place-items:center;border:2px solid #cfd7e3;background:#fff;color:#a5afbd;font-size:13px;font-weight:950;box-shadow:0 0 0 5px #fff}.step.completed .step-marker,.step.current .step-marker{border-color:#ff6c1a;background:#ff6c1a;color:#fff;box-shadow:0 0 0 5px #fff3ec}.step.completed:before{background:#ff7d35}.step.current:before{background:linear-gradient(to bottom,#ff7d35 0 18px,#d5dce6 18px 100%)}.step-icon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:#f3f5f8;color:#748197;font-size:18px}.step.completed .step-icon,.step.current .step-icon{background:#fff4ed;color:#f26a21}.step-copy{min-width:0}.step-title{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:900;color:#738095}.step-sub{margin-top:3px;font-size:9px;line-height:1.45;color:#a0a9b7}.step.completed .step-title,.step.current .step-title{color:#1e2d44}.step.completed .step-sub,.step.current .step-sub{color:#8290a5}.step-current{display:none;padding:4px 7px;border-radius:999px;background:#fff0e8;color:#d95f1d;font-size:7px;font-weight:950;letter-spacing:.06em}.step.current .step-current{display:inline-flex}.step.completed .step-marker:after{content:"✓";font-size:14px}.step.current .step-marker:after{content:"";width:8px;height:8px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.28)}.step.upcoming .step-marker:after{content:""}
-.mapcard{padding:0;overflow:hidden}.maphead{padding:17px 18px 13px}.maptitle{font-size:14px;font-weight:950}.mapsub{margin-top:3px;font-size:9px;color:#8793a3}.mapstats{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}.mapstats span{padding:7px 9px;border-radius:10px;background:#f5f7fa;font-size:9px;color:#627086}.mapwrap{position:relative;height:430px;border-top:1px solid #e8ecf1;background:#eef2f6}.map{height:100%;width:100%}.mapempty{position:absolute;inset:0;z-index:400;display:grid;place-items:center;padding:28px;text-align:center;background:linear-gradient(180deg,#eef3f8,#f7f9fb);color:#738096}.mapempty b{display:block;color:#344258;font-size:13px;margin-bottom:5px}.mapempty span{font-size:10px;line-height:1.55}.maplegend{position:absolute;left:12px;right:12px;bottom:12px;z-index:500;display:flex;gap:8px;pointer-events:none}.legend{background:rgba(255,255,255,.95);box-shadow:0 8px 25px rgba(18,31,48,.14);border:1px solid #e1e6ed;border-radius:12px;padding:8px 10px;font-size:9px;font-weight:800;color:#526075}.legend.orange:before,.legend.blue:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}.legend.orange:before{background:#f26a21}.legend.blue:before{background:#2f6fe5}.refresh{width:100%;margin-top:14px;border:1px solid #e0e5ec;background:#fff;color:#5d6b80;border-radius:14px;min-height:44px;font-size:10px;font-weight:900}.foot{text-align:center;color:#98a3b1;font-size:9px;padding:16px 0 2px}.loading,.error{margin-top:14px;background:#fff;border:1px solid #e1e6ed;border-radius:22px;padding:34px;text-align:center;color:#798698}.error{color:#aa4652}
+.mapcard{padding:0;overflow:hidden}.maphead{padding:17px 18px 13px}.maptitle{font-size:14px;font-weight:950}.mapsub{margin-top:3px;font-size:9px;color:#8793a3}.mapstats{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}.mapstats span{padding:7px 9px;border-radius:10px;background:#f5f7fa;font-size:9px;color:#627086}.mapwrap{position:relative;height:430px;border-top:1px solid #e8ecf1;background:#e8eef4}.map{height:100%;width:100%;background:#e8eef4}.mapempty{position:absolute;left:14px;right:14px;top:14px;z-index:600;display:none;align-items:flex-start;gap:10px;padding:11px 12px;text-align:left;background:rgba(255,255,255,.96);border:1px solid rgba(218,225,234,.95);border-radius:14px;box-shadow:0 10px 30px rgba(21,34,52,.13);color:#738096;pointer-events:none;backdrop-filter:blur(8px)}.mapempty:before{content:"i";width:24px;height:24px;border-radius:50%;display:grid;place-items:center;flex:0 0 24px;background:#eef4ff;color:#3569d4;font-size:11px;font-weight:950}.mapempty b{display:block;color:#26364e;font-size:10px;margin-bottom:2px}.mapempty span{display:block;font-size:9px;line-height:1.45}.maplegend{position:absolute;left:12px;right:12px;bottom:12px;z-index:500;display:flex;gap:8px;pointer-events:none}.legend{background:rgba(255,255,255,.95);box-shadow:0 8px 25px rgba(18,31,48,.14);border:1px solid #e1e6ed;border-radius:12px;padding:8px 10px;font-size:9px;font-weight:800;color:#526075}.legend.orange:before,.legend.blue:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}.legend.orange:before{background:#f26a21}.legend.blue:before{background:#2f6fe5}
+.rt-pin{position:relative;width:36px;height:36px;border-radius:50% 50% 50% 10%;transform:rotate(-45deg);display:grid;place-items:center;border:3px solid #fff;box-shadow:0 7px 18px rgba(26,45,72,.28)}.rt-pin:after{content:"";width:10px;height:10px;border-radius:50%;background:#fff}.rt-pin.destination{background:#2f6fe5}.rt-driver{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#f26a21;border:3px solid #fff;box-shadow:0 0 0 7px rgba(242,106,33,.16),0 7px 18px rgba(26,45,72,.28);font-size:17px}.rt-driver:after{content:"🚚";filter:saturate(.9)}.leaflet-marker-icon.rt-div-icon{background:transparent;border:0}.refresh{width:100%;margin-top:14px;border:1px solid #e0e5ec;background:#fff;color:#5d6b80;border-radius:14px;min-height:44px;font-size:10px;font-weight:900}.foot{text-align:center;color:#98a3b1;font-size:9px;padding:16px 0 2px}.loading,.error{margin-top:14px;background:#fff;border:1px solid #e1e6ed;border-radius:22px;padding:34px;text-align:center;color:#798698}.error{color:#aa4652}
 .leaflet-control-attribution{font-size:8px!important}.leaflet-popup-content-wrapper{border-radius:13px}.leaflet-popup-content{font-size:11px}
 .access{margin-top:14px;background:#fff;border:1px solid #e1e6ed;border-radius:22px;padding:24px;box-shadow:0 8px 24px rgba(27,42,62,.045);text-align:center}.access-icon{width:58px;height:58px;margin:0 auto 14px;border-radius:18px;background:#fff3ec;color:#f26a21;display:grid;place-items:center;font-size:24px;font-weight:950}.access h2{margin:0;font-size:20px;letter-spacing:-.03em}.access p{max-width:460px;margin:7px auto 18px;color:#7d8999;font-size:11px;line-height:1.6}.codeform{display:flex;gap:8px;max-width:480px;margin:0 auto}.codeinput{min-width:0;flex:1;height:50px;border:1px solid #d8dfe8;border-radius:14px;padding:0 15px;text-align:center;text-transform:uppercase;letter-spacing:.18em;font-size:16px;font-weight:900;color:#1f2d42;outline:none;background:#fbfcfd}.codeinput:focus{border-color:#f28a53;box-shadow:0 0 0 4px rgba(242,106,33,.10)}.codebtn{height:50px;border:0;border-radius:14px;padding:0 18px;background:linear-gradient(145deg,#ff8240,#f26a21);color:#fff;font-size:11px;font-weight:900;cursor:pointer}.access-error{min-height:17px;margin-top:10px;color:#b54752;font-size:10px;font-weight:700}.access-help{margin-top:12px;color:#9aa4b2;font-size:9px}
 @media(max-width:760px){.wrap{padding:10px}.hero{border-radius:21px;padding:19px}.hero h1{font-size:24px}.main{grid-template-columns:1fr}.card{border-radius:19px;padding:15px}.mapcard{padding:0}.maphead{padding:15px}.mapwrap{height:360px}.queue{gap:7px}.metric{padding:11px 7px}.metric strong{font-size:20px}.step{grid-template-columns:34px 40px minmax(0,1fr);gap:8px;min-height:62px}.step-icon{width:40px;height:40px}.step-title{font-size:11px}.step-sub{font-size:8.5px}}
@@ -125,19 +126,62 @@ function render(data){
 function initMap(driver,dest,d){
  if(map){map.remove();map=null}
  const mapEmpty=document.getElementById('mapEmpty');
- if(!dest){mapEmpty.style.display='grid';mapEmpty.querySelector('b').textContent='Lokasi tujuan belum tersedia';mapEmpty.querySelector('span').textContent='Koordinat customer belum tersimpan pada order ini.';return}
- map=L.map('map',{zoomControl:true,attributionControl:true});
- L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
- destMarker=L.marker([dest.lat,dest.lng]).addTo(map).bindPopup('Lokasi Anda');
+ if(!dest){
+   mapEmpty.style.display='flex';
+   mapEmpty.querySelector('b').textContent='Lokasi tujuan belum tersedia';
+   mapEmpty.querySelector('span').textContent='Koordinat customer belum tersimpan pada order ini.';
+   return;
+ }
+ map=L.map('map',{zoomControl:true,attributionControl:true,preferCanvas:true});
+ const primary=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
+   maxZoom:19,
+   attribution:'© OpenStreetMap',
+   crossOrigin:true
+ }).addTo(map);
+ let fallbackAdded=false;
+ primary.on('tileerror',()=>{
+   if(fallbackAdded)return;
+   fallbackAdded=true;
+   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+     maxZoom:20,
+     attribution:'© OpenStreetMap © CARTO'
+   }).addTo(map);
+ });
+ const destIcon=L.divIcon({
+   className:'rt-div-icon',
+   html:'<div class="rt-pin destination"></div>',
+   iconSize:[40,46],
+   iconAnchor:[20,42],
+   popupAnchor:[0,-38]
+ });
+ destMarker=L.marker([dest.lat,dest.lng],{icon:destIcon})
+   .addTo(map)
+   .bindPopup('<b>Lokasi Anda</b><br>'+E(d.address||'Tujuan customer'));
  if(!driver){
-   map.setView([dest.lat,dest.lng],15);
-   mapEmpty.style.display='grid';
+   map.setView([dest.lat,dest.lng],16);
+   destMarker.openPopup();
+   mapEmpty.style.display='flex';
+   mapEmpty.querySelector('b').textContent='Lokasi tujuan sudah tampil';
+   mapEmpty.querySelector('span').textContent='Posisi driver akan muncul otomatis setelah driver memperbarui lokasinya.';
+   requestAnimationFrame(()=>map.invalidateSize());
+   setTimeout(()=>map&&map.invalidateSize(),300);
    return;
  }
  mapEmpty.style.display='none';
- driverMarker=L.marker([driver.lat,driver.lng]).addTo(map).bindPopup('Posisi driver');
+ const driverIcon=L.divIcon({
+   className:'rt-div-icon',
+   html:'<div class="rt-driver"></div>',
+   iconSize:[42,42],
+   iconAnchor:[21,21],
+   popupAnchor:[0,-18]
+ });
+ driverMarker=L.marker([driver.lat,driver.lng],{icon:driverIcon})
+   .addTo(map)
+   .bindPopup('<b>Driver</b><br>Posisi terakhir '+E(fmt(driver.updated_at)));
  const bounds=L.latLngBounds([[driver.lat,driver.lng],[dest.lat,dest.lng]]);
- map.fitBounds(bounds,{padding:[42,42],maxZoom:16});
+ map.fitBounds(bounds,{padding:[48,48],maxZoom:16});
+ requestAnimationFrame(()=>map.invalidateSize());
+ setTimeout(()=>map&&map.invalidateSize(),300);
  drawRoute(driver,dest);
 }
 async function drawRoute(driver,dest){
@@ -148,7 +192,7 @@ async function drawRoute(driver,dest){
    const route=j?.routes?.[0];
    if(!route)throw new Error('route unavailable');
    const coords=route.geometry.coordinates.map(p=>[p[1],p[0]]);
-   routeLayer=L.polyline(coords,{weight:5,opacity:.88,color:'#f26a21'}).addTo(map);
+   routeLayer=L.polyline(coords,{weight:6,opacity:.92,color:'#2f6fe5',lineCap:'round',lineJoin:'round'}).addTo(map);
    const km=route.distance/1000,mins=Math.max(1,Math.round(route.duration/60));
    document.getElementById('mapDistance').textContent='Jarak: '+km.toFixed(1)+' km';
    document.getElementById('mapEta').textContent='ETA: ±'+mins+' mnt';
@@ -156,7 +200,7 @@ async function drawRoute(driver,dest){
    document.getElementById('etaValue').textContent='±'+mins+' mnt';
    map.fitBounds(routeLayer.getBounds(),{padding:[38,38]});
  }catch(_){
-   routeLayer=L.polyline([[driver.lat,driver.lng],[dest.lat,dest.lng]],{weight:4,opacity:.7,color:'#f26a21',dashArray:'8 8'}).addTo(map);
+   routeLayer=L.polyline([[driver.lat,driver.lng],[dest.lat,dest.lng]],{weight:5,opacity:.78,color:'#2f6fe5',dashArray:'8 8',lineCap:'round'}).addTo(map);
  }
 }
 async function load(code=trackingCode){
