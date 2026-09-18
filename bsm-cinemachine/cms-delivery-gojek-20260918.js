@@ -52,7 +52,10 @@
     return data.delivery||delivery;
   }
   function trackingUrl(o){
-    return o?.customer_token?location.origin+'/pantau?token='+encodeURIComponent(o.customer_token):'';
+    return o?.tracking_code?location.origin+'/pantau':'';
+  }
+  function trackingCode(o){
+    return String(o?.tracking_code||'').toUpperCase();
   }
   function jobs(){
     const out=[];
@@ -132,6 +135,7 @@
     const customerPhone=cleanPhone(j.order.phone);
     const mapDest=encodeURIComponent(j.destination||j.address||'');
     const trackUrl=trackingUrl(j.order);
+    const trackCode=trackingCode(j.order);
     return '<article class="gd-job" data-job="'+E(j.id)+'" data-kind="'+E(j.kind)+'">'+
       '<div class="gd-jobtop"><div><span class="gd-kind '+j.kind+'">'+(j.kind==='deliver'?'ANTAR':'JEMPUT')+'</span><h3>'+E(j.order.order_number||j.id)+'</h3><p>'+E(j.order.customer_name||'-')+' · '+E(j.order.phone||'-')+'</p></div>'+badge(j.status)+'</div>'+
       '<div class="gd-route"><div class="gd-route-line"><span class="dot start"></span><span class="rail"></span><span class="dot end"></span></div><div class="gd-route-text"><div><small>DARI</small><b>'+E(j.origin||'-')+'</b></div><div><small>TUJUAN</small><b>'+E(j.destination||j.address||'-')+'</b></div></div></div>'+
@@ -144,9 +148,9 @@
         '<button data-gd-action="location" data-id="'+E(j.id)+'" data-kind="'+j.kind+'" class="secondary">Update lokasi</button>'+
         (mapDest?'<a class="gd-button ghost" href="https://www.google.com/maps/dir/?api=1&destination='+mapDest+'" target="_blank" rel="noopener">Navigasi</a>':'')+
         (customerPhone?'<a class="gd-button ghost" href="https://wa.me/'+E(customerPhone)+'" target="_blank" rel="noopener">Customer</a>':'')+
-        (trackUrl?'<button data-gd-action="share-track" data-url="'+E(trackUrl)+'" class="track">Bagikan link pantau</button>':'')+
+        (trackUrl&&trackCode?'<button data-gd-action="share-track" data-url="'+E(trackUrl)+'" data-code="'+E(trackCode)+'" class="track">Bagikan kode pantau</button>':'')+
       '</div>'+
-      (trackUrl?'<div class="gd-track"><div><small>LINK PANTAU CUSTOMER</small><b>'+E(trackUrl.replace(/^https?:\/\//,''))+'</b></div><a href="'+E(trackUrl)+'" target="_blank" rel="noopener">Buka</a></div>':'')+
+      (trackUrl&&trackCode?'<div class="gd-track"><div><small>KODE PANTAU CUSTOMER</small><b>'+E(trackCode)+'</b><em>'+E(trackUrl.replace(/^https?:\/\//,''))+'</em></div><a href="'+E(trackUrl)+'" target="_blank" rel="noopener">Buka</a></div>':'')+
       (j.note?'<p class="gd-note">'+E(j.note)+'</p>':'')+
     '</article>';
   }
@@ -265,7 +269,7 @@
     .gd-route{display:grid;grid-template-columns:24px 1fr;gap:8px;margin:18px 0 15px;padding:15px;border-radius:16px;background:#f7f9fc}.gd-route-line{display:grid;grid-template-rows:12px 1fr 12px;justify-items:center;min-height:84px}.gd-route .dot{width:10px;height:10px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #f26a21;background:#f26a21}.gd-route .dot.end{box-shadow:0 0 0 2px #2f6ee5;background:#2f6ee5}.gd-route .rail{width:2px;background:repeating-linear-gradient(to bottom,#bbc5d3 0 4px,transparent 4px 8px)}.gd-route-text{display:flex;flex-direction:column;justify-content:space-between;gap:15px}.gd-route-text small{display:block;color:#97a1b0;font-size:8px;font-weight:850;letter-spacing:.08em}.gd-route-text b{display:block;margin-top:3px;color:#35445a;font-size:11px;line-height:1.4}
     .gd-meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}.gd-meta span{padding:7px 9px;background:#f7f9fb;border:1px solid #e9edf2;border-radius:10px;font-size:9px;color:#627087}
     .gd-driver{display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid #edf0f4;border-bottom:1px solid #edf0f4}.gd-avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:#17243a;color:#fff;font-weight:900}.gd-driver>div:nth-child(2){min-width:0;flex:1}.gd-driver b{display:block;font-size:12px;color:#25334a}.gd-driver small{display:block;font-size:9px;color:#8894a6;margin-top:2px}.gd-driver.empty .gd-avatar{background:#eef1f5;color:#7d8998}.gd-round{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#eaf8f0;color:#1b8b5e;text-decoration:none;font-size:10px;font-weight:900}
-    .gd-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}.gd-actions button,.gd-actions .gd-button{min-height:38px;padding:0 11px;font-size:10px}.gd .track{background:#0f9d68;color:#fff}.gd-track{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-top:12px;padding:11px 12px;border:1px solid #dcece5;background:#f3faf7;border-radius:13px}.gd-track div{min-width:0}.gd-track small{display:block;font-size:8px;font-weight:900;letter-spacing:.08em;color:#2d7d60}.gd-track b{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px;font-size:9px;color:#455b51}.gd-track a{flex:0 0 auto;text-decoration:none;color:#0e855b;font-size:10px;font-weight:900}.gd-note{margin:12px 0 0;padding:10px 12px;border-radius:10px;background:#fff9f5;color:#7a5a48;font-size:10px;line-height:1.5}.gd-live{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 12px;border-radius:13px;background:#f0f8f5}.gd-live .pulse{width:9px;height:9px;border-radius:50%;background:#19a575;box-shadow:0 0 0 4px rgba(25,165,117,.12)}.gd-live div{flex:1}.gd-live b,.gd-live small{display:block}.gd-live b{font-size:10px}.gd-live small{font-size:8px;color:#7c8b84}.gd-live a{font-size:9px;font-weight:850;color:#18815e;text-decoration:none}
+    .gd-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}.gd-actions button,.gd-actions .gd-button{min-height:38px;padding:0 11px;font-size:10px}.gd .track{background:#0f9d68;color:#fff}.gd-track{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-top:12px;padding:11px 12px;border:1px solid #dcece5;background:#f3faf7;border-radius:13px}.gd-track div{min-width:0}.gd-track small{display:block;font-size:8px;font-weight:900;letter-spacing:.08em;color:#2d7d60}.gd-track b{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px;font-size:16px;letter-spacing:.12em;color:#263a31}.gd-track em{display:block;margin-top:3px;font-size:8px;font-style:normal;color:#7a8d84}.gd-track a{flex:0 0 auto;text-decoration:none;color:#0e855b;font-size:10px;font-weight:900}.gd-note{margin:12px 0 0;padding:10px 12px;border-radius:10px;background:#fff9f5;color:#7a5a48;font-size:10px;line-height:1.5}.gd-live{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 12px;border-radius:13px;background:#f0f8f5}.gd-live .pulse{width:9px;height:9px;border-radius:50%;background:#19a575;box-shadow:0 0 0 4px rgba(25,165,117,.12)}.gd-live div{flex:1}.gd-live b,.gd-live small{display:block}.gd-live b{font-size:10px}.gd-live small{font-size:8px;color:#7c8b84}.gd-live a{font-size:9px;font-weight:850;color:#18815e;text-decoration:none}
     .gd-empty,.gd-loading,.gd-error{grid-column:1/-1;padding:42px;border:1px dashed #d8dee8;border-radius:20px;text-align:center;background:#fff;color:#7b8798}.gd-empty b,.gd-empty span{display:block}.gd-empty span{font-size:11px;margin-top:7px}.gd-error{color:#b42318}
     .gd-modal{position:fixed;inset:0;z-index:500;display:grid;place-items:center;padding:18px;background:rgba(7,13,23,.62);backdrop-filter:blur(8px)}.gd-dialog{width:min(620px,100%);max-height:92dvh;overflow:auto;background:#f7f9fb;border-radius:24px;box-shadow:0 30px 90px rgba(0,0,0,.30)}.gd-dialog-head{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:18px 21px;background:#fff;border-bottom:1px solid #e6eaf0}.gd-dialog-head small{font-size:8px;letter-spacing:.12em;color:#f26a21;font-weight:900}.gd-dialog-head h3{margin:3px 0 0;font-size:18px}.gd-dialog-head>button{width:38px;height:38px;padding:0;border-radius:50%;background:#f1f3f6;color:#334056;font-size:20px}.gd-form{padding:20px}.gd-form label{display:block;margin-bottom:13px;font-size:10px;color:#5c687a;font-weight:800}.gd-form input,.gd-form select,.gd-form textarea{display:block;width:100%;margin-top:6px;border:1px solid #d9dfe8;border-radius:12px;background:#fff;padding:11px 12px;font:inherit;font-size:12px;color:#25334a;outline:none}.gd-form textarea{min-height:88px;resize:vertical}.gd-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.gd-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
     @media(max-width:900px){.gd-list{grid-template-columns:1fr}.gd-hero{align-items:flex-start;flex-direction:column}.gd-stats{grid-template-columns:1fr 1fr}}
@@ -293,11 +297,13 @@
     }
     if(a==='share-track'){
       const url=b.dataset.url||'';
+      const code=b.dataset.code||'';
+      const shareText='Pantau antar–jemput Rentcam\n\nBuka: '+url+'\nKode Pantau: '+code;
       try{
-        if(navigator.share)await navigator.share({title:'Pantau Antar–Jemput Rentcam',text:'Pantau perjalanan order Rentcam di sini:',url});
-        else if(navigator.clipboard){await navigator.clipboard.writeText(url);const old=b.textContent;b.textContent='Link disalin ✓';setTimeout(()=>b.textContent=old,1500)}
-        else prompt('Salin link pantau customer:',url);
-      }catch(err){if(err?.name!=='AbortError')prompt('Salin link pantau customer:',url)}
+        if(navigator.share)await navigator.share({title:'Pantau Antar–Jemput Rentcam',text:shareText});
+        else if(navigator.clipboard){await navigator.clipboard.writeText(shareText);const old=b.textContent;b.textContent='Kode disalin ✓';setTimeout(()=>b.textContent=old,1500)}
+        else prompt('Salin kode pantau customer:',shareText);
+      }catch(err){if(err?.name!=='AbortError')prompt('Salin kode pantau customer:',shareText)}
       return;
     }
     if(a==='location'){
