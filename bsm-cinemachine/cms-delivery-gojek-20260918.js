@@ -67,8 +67,9 @@
     masterDrivers=Array.isArray(drivers)?drivers:[];
     masterVehicles=Array.isArray(vehicles)?vehicles:[];
   }
+  const PUBLIC_ORIGIN='https://rentalcamera.aiorbitlab.me';
   function trackingUrl(o){
-    return o?.tracking_code?location.origin+'/pantau':'';
+    return o?.tracking_code?PUBLIC_ORIGIN+'/pantau':'';
   }
   function trackingCode(o){
     return String(o?.tracking_code||'').toUpperCase();
