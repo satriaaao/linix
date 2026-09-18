@@ -310,11 +310,27 @@ async function geocodeOfficeAddress(address){
    return Number.isFinite(lat)&&Number.isFinite(lng)?{lat,lng}:null;
  }catch(_){return null}finally{clearTimeout(timer)}
 }
+async function resolveGoogleShortUrl(url){
+ const raw=String(url||'').trim();if(!raw)return null;
+ const direct=parseMapsCoords(raw);if(direct)return{...direct,final_url:raw};
+ try{
+   const r=await fetch('/api/maps-resolve?url='+encodeURIComponent(raw),{cache:'no-store'});
+   const j=await r.json();
+   const lat=Number(j?.lat),lng=Number(j?.lng);
+   if(j?.ok&&Number.isFinite(lat)&&Number.isFinite(lng))return{lat,lng,final_url:j.final_url||raw};
+ }catch(_){}
+ return null;
+}
 async function resolveOfficeStart(fallbackPos){
  const o=officeData||{};
- const lat=Number(o.lat),lng=Number(o.lng);
- if(Number.isFinite(lat)&&Number.isFinite(lng))return{lat,lng,name:o.name||'Kantor Rentcam',address:o.address||''};
- const fromUrl=parseMapsCoords(o.maps_url);
+ const rawLat=o.lat,rawLng=o.lng;
+ if(rawLat!==null&&rawLat!==undefined&&rawLat!==''&&rawLng!==null&&rawLng!==undefined&&rawLng!==''){
+   const lat=Number(rawLat),lng=Number(rawLng);
+   if(Number.isFinite(lat)&&Number.isFinite(lng)&&lat>=-90&&lat<=90&&lng>=-180&&lng<=180){
+     return{lat,lng,name:o.name||'Kantor Rentcam',address:o.address||''};
+   }
+ }
+ const fromUrl=await resolveGoogleShortUrl(o.maps_url);
  if(fromUrl)return{...fromUrl,name:o.name||'Kantor Rentcam',address:o.address||''};
  const fromAddress=await geocodeOfficeAddress(o.address);
  if(fromAddress)return{...fromAddress,name:o.name||'Kantor Rentcam',address:o.address||''};
@@ -331,8 +347,11 @@ function parseMapsCoords(url){
 }
 function jobCoords(j){
  const d=j?.delivery||{};
- const lat=Number(d.latitude),lng=Number(d.longitude);
- if(Number.isFinite(lat)&&Number.isFinite(lng))return{lat,lng};
+ const rawLat=d.latitude,rawLng=d.longitude;
+ if(rawLat!==null&&rawLat!==undefined&&rawLat!==''&&rawLng!==null&&rawLng!==undefined&&rawLng!==''){
+   const lat=Number(rawLat),lng=Number(rawLng);
+   if(Number.isFinite(lat)&&Number.isFinite(lng)&&lat>=-90&&lat<=90&&lng>=-180&&lng<=180)return{lat,lng};
+ }
  return parseMapsCoords(d.maps_url);
 }
 function routeStops(jobs){
