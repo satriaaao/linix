@@ -29,7 +29,7 @@
     on_the_way:['arrived','Sudah tiba'],
     arrived:['completed','Selesaikan tugas']
   };
-  let active=false, orders=[], filter='all', modal=null, loading=false, masterDrivers=[], masterVehicles=[], dispatchSettings={},livePollBusy=false,geoLabelCache=new Map(),dispatchMap=null,dispatchRouteLayers=[],routeGroupsCache=[];
+  let active=false, orders=[], filter='all', modal=null, loading=false, masterDrivers=[], masterVehicles=[], dispatchSettings={},livePollBusy=false,geoLabelCache=new Map(),routeCalcCache=new Map(),dispatchMap=null,dispatchRouteLayers=[],routeGroupsCache=[];
 
   async function decode(r){
     const text=await r.text(); let data=null;
@@ -330,32 +330,69 @@
     const h=Math.floor(m/60),r=m%60;
     return h+' jam'+(r?' '+r+' menit':'');
   }
+  function applyFastEstimate(base,g){
+    const pts=[base,...g.items.map(x=>x.coords)];
+    g.legs=pts.slice(1).map((p,i)=>{
+      const straight=haversineKm(pts[i],p);
+      const km=Math.max(.1,straight*1.28);
+      return{
+        distanceKm:km,
+        minutes:Math.max(1,Math.round((km/24)*60)),
+        from:i===0?'Start':('Stop '+i),
+        to:'Stop '+(i+1),
+        estimated:true
+      };
+    });
+    g.roadKm=g.legs.reduce((n,x)=>n+x.distanceKm,0);
+    g.roadMin=g.legs.reduce((n,x)=>n+x.minutes,0);
+    g.estimated=true;
+  }
+  function routeCacheKey(base,g){
+    return [base,...g.items.map(x=>x.coords)]
+      .map(x=>Number(x.lat).toFixed(5)+','+Number(x.lng).toFixed(5)).join('|');
+  }
   async function drawRoadGroup(L,map,base,g,color){
     const pts=[base,...g.items.map(x=>x.coords)];
+    applyFastEstimate(base,g);
+    const key=routeCacheKey(base,g);
     try{
-      const path=pts.map(x=>x.lng+','+x.lat).join(';');
-      const r=await fetch('https://router.project-osrm.org/route/v1/driving/'+path+'?overview=full&geometries=geojson&steps=false');
-      const j=await r.json(),route=j?.routes?.[0];
+      let route=routeCalcCache.get(key)||null;
+      if(!route){
+        const path=pts.map(x=>x.lng+','+x.lat).join(';');
+        const controller=new AbortController();
+        const timer=setTimeout(()=>controller.abort(),3500);
+        try{
+          const r=await fetch('https://router.project-osrm.org/route/v1/driving/'+path+'?overview=full&geometries=geojson&steps=false',{
+            signal:controller.signal,
+            cache:'no-store'
+          });
+          const j=await r.json();
+          route=j?.routes?.[0]||null;
+          if(route)routeCalcCache.set(key,route);
+        }finally{clearTimeout(timer)}
+      }
       if(!route)throw new Error('route');
       const latlngs=route.geometry.coordinates.map(x=>[x[1],x[0]]);
       const casing=L.polyline(latlngs,{weight:9,opacity:.95,color:'#fff',lineCap:'round',lineJoin:'round'});
       const main=L.polyline(latlngs,{weight:5,opacity:.95,color,lineCap:'round',lineJoin:'round'});
       const layer=L.layerGroup([casing,main]).addTo(map);dispatchRouteLayers.push(layer);
-      g.roadKm=route.distance/1000;g.roadMin=Math.max(1,Math.round(route.duration/60));
+      g.roadKm=route.distance/1000;
+      g.roadMin=Math.max(1,Math.round(route.duration/60));
       g.legs=(route.legs||[]).map((leg,idx)=>({
         distanceKm:Number(leg.distance||0)/1000,
         minutes:Math.max(1,Math.round(Number(leg.duration||0)/60)),
         from:idx===0?'Start':('Stop '+idx),
-        to:'Stop '+(idx+1)
+        to:'Stop '+(idx+1),
+        estimated:false
       }));
+      g.estimated=false;
     }catch(_){
       const latlngs=pts.map(x=>[x.lat,x.lng]);
-      const main=L.polyline(latlngs,{weight:4,opacity:.8,color,dashArray:'7 7'}).addTo(map);dispatchRouteLayers.push(main);
-      g.legs=pts.slice(1).map((p,i)=>({distanceKm:haversineKm(pts[i],p),minutes:null,from:i===0?'Start':('Stop '+i),to:'Stop '+(i+1)}));
-      g.roadKm=g.legs.reduce((n,x)=>n+x.distanceKm,0);
-      g.roadMin=null;
+      const main=L.polyline(latlngs,{weight:4,opacity:.65,color,dashArray:'7 7'}).addTo(map);
+      dispatchRouteLayers.push(main);
     }
   }
+
   function activeDriverPoints(){
     const seen=new Set(),out=[];
     for(const j of jobs()){
@@ -455,14 +492,16 @@
     const bounds=[[base.lat,base.lng]];
     const officeIcon=L.divIcon({className:'gd-map-div',html:'<div class="gd-map-pin office">S</div>',iconSize:[34,34],iconAnchor:[17,17]});
     L.marker([base.lat,base.lng],{icon:officeIcon}).addTo(dispatchMap).bindPopup('<b>'+E(base.name||'Lokasi Saat Ini')+'</b>');
+    const routeTasks=[];
     for(let i=0;i<routeGroupsCache.length;i++){
       const g=routeGroupsCache[i],color=colors[i%colors.length],letter=String.fromCharCode(65+i);
+      applyFastEstimate(base,g);
       g.items.forEach((x,idx)=>{
         bounds.push([x.coords.lat,x.coords.lng]);
         const icon=L.divIcon({className:'gd-map-div',html:'<div class="gd-map-pin" style="background:'+color+'">'+letter+(idx+1)+'</div>',iconSize:[34,34],iconAnchor:[17,17]});
         L.marker([x.coords.lat,x.coords.lng],{icon}).addTo(dispatchMap).bindPopup('<b>'+E(x.job.order.customer_name||'Customer')+'</b><br>'+E(x.areaLabel||x.job.destination||x.job.address||'')+'<br>'+E(x.job.order.order_number||'')+(x.job.driver?'<br>Driver: '+E(x.job.driver):''));
       });
-      await drawRoadGroup(L,dispatchMap,base,g,color);
+      routeTasks.push(drawRoadGroup(L,dispatchMap,base,g,color));
     }
     const driverPoints=activeDriverPoints();
     const driverBuckets=new Map();
@@ -497,7 +536,10 @@
     });
     dispatchMap.fitBounds(bounds,{padding:[35,35],maxZoom:13});
     groupEl.innerHTML=routeGroupsCache.length?routeGroupsCache.map((g,i)=>groupCard(g,i,colors[i%colors.length])).join(''):'';
-    setTimeout(()=>dispatchMap&&dispatchMap.invalidateSize(),150);
+    setTimeout(()=>dispatchMap&&dispatchMap.invalidateSize(),100);
+    Promise.allSettled(routeTasks).then(()=>{
+      if(groupEl.isConnected)groupEl.innerHTML=routeGroupsCache.length?routeGroupsCache.map((g,i)=>groupCard(g,i,colors[i%colors.length])).join(''):'';
+    });
     enrichAreaLabels(routeGroupsCache).then(()=>{
       if(groupEl.isConnected)groupEl.innerHTML=routeGroupsCache.length?routeGroupsCache.map((g,i)=>groupCard(g,i,colors[i%colors.length])).join(''):'';
     }).catch(()=>{});
@@ -937,7 +979,11 @@
     if(a==='office'){modal={type:'office'};render();return}
     if(a==='new'){modal={type:'new'};render();return}
     if(a==='refresh'){await refresh();return}
-    if(a==='rebuild-routes'){await initDistribution();return}
+    if(a==='rebuild-routes'){
+      const old=b.textContent;b.disabled=true;b.textContent='Menghitung…';
+      try{await initDistribution()}finally{if(b.isConnected){b.disabled=false;b.textContent=old}}
+      return
+    }
     if(a==='assign-route-group'){modal={type:'route-group',groupIndex:Number(b.dataset.group)};render();return}
     if(a==='assign'){modal={type:'assign',id:b.dataset.id,kind:b.dataset.kind};render();return}
     if(a==='edit-destination'){modal={type:'destination',id:b.dataset.id,kind:b.dataset.kind};render();return}
