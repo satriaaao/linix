@@ -35,6 +35,7 @@ const SB='https://xleceiffuopioeguniwj.supabase.co';
 const KEY='sb_publishable_POksYryhG_mkFbs7N0fjKQ_4dUim7Ex';
 const STORE='rentcam_driver_token_v1';
 const LIVE_STORE='rentcam_driver_live_always_v1';
+const OPS_DRAFT='rentcam_driver_ops_draft_v1';
 let token=localStorage.getItem(STORE)||'',data=null,vehicleData=null,opsModal=null,watchId=null,lastSent=0,knownJobs=new Set(),wakeLock=null,autoLiveStarting=false;
 const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=v=>{if(!v)return'Belum dijadwalkan';const d=new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString('id-ID',{timeZone:'Asia/Jakarta',weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
@@ -47,6 +48,32 @@ async function rpc(name,payload={}){
  if(!r.ok)throw new Error(d?.message||d||'Permintaan gagal');
  return d;
 }
+function opsEditing(){return !!document.querySelector('[data-ops-form]')}
+function readOpsDraft(){
+ try{return JSON.parse(sessionStorage.getItem(OPS_DRAFT)||'null')}catch(_){return null}
+}
+function saveOpsDraft(form){
+ if(!form)return;
+ const values={};
+ for(const el of form.elements){
+   if(!el.name||el.type==='file'||el.type==='submit'||el.type==='button')continue;
+   values[el.name]=el.type==='checkbox'?!!el.checked:el.value;
+ }
+ sessionStorage.setItem(OPS_DRAFT,JSON.stringify({kind:form.dataset.opsForm||'',values,updated_at:Date.now()}));
+}
+function restoreOpsDraft(form){
+ if(!form)return;
+ const draft=readOpsDraft();
+ if(!draft||draft.kind!==form.dataset.opsForm)return;
+ for(const [name,value] of Object.entries(draft.values||{})){
+   const el=form.elements.namedItem(name);
+   if(!el)continue;
+   if(el.type==='checkbox')el.checked=!!value;
+   else if(value!==undefined&&value!==null)el.value=String(value);
+ }
+}
+function clearOpsDraft(){sessionStorage.removeItem(OPS_DRAFT)}
+
 function statusClass(s){if(s==='completed')return'done';if(['to_pickup','picked_up','on_the_way','arrived'].includes(s))return'moving';return''}
 function fuelText(v){const n=Number(v);if(!Number.isFinite(n))return'—';return n+'%'}
 function getCurrentPositionStrict(){
@@ -277,6 +304,7 @@ function render(){
   '<div class="sectionTitle"><h2>Jadwal Saya</h2><span>'+jobs.length+' tugas</span></div>'+
   '<section class="jobs">'+(jobs.map(jobCard).join('')||'<div class="empty"><b>Belum ada tugas.</b><br><small>Jadwal dari CMS akan muncul otomatis.</small></div>')+'</section>'+
   opsModalHtml();
+ if(opsModal)requestAnimationFrame(()=>restoreOpsDraft(document.querySelector('[data-ops-form]')));
 }
 async function load(silent=false){
  if(!token){renderLogin();return}
@@ -293,6 +321,7 @@ async function load(silent=false){
   }
   data=d;
   knownJobs=new Set((d.jobs||[]).map(j=>j.id));
+  if(opsEditing()||opsModal)return;
   render();
  }catch(e){if(!silent)document.getElementById('app').innerHTML='<div class="error">'+E(e.message)+'</div>'}
 }
@@ -374,7 +403,7 @@ async function startLive(showHelp=true){
    if(liveAlwaysWanted())showGpsHelp(err.code===1?'Akses lokasi ditolak oleh Safari. Izinkan lokasi untuk domain ini.':'Lokasi berhenti: '+err.message);
  },{enableHighAccuracy:true,maximumAge:1000,timeout:12000});
  const bar=document.getElementById('livebar');if(bar)bar.classList.add('on');
- render();
+ if(!opsEditing()&&!opsModal)render();
  return true;
 }
 async function stopLive(clearIntent=false){
@@ -383,7 +412,7 @@ async function stopLive(clearIntent=false){
  if(clearIntent)localStorage.removeItem(LIVE_STORE);
  await releaseWakeLock();
  const bar=document.getElementById('livebar');if(bar)bar.classList.remove('on');
- if(data?.ok)render();
+ if(data?.ok&&!opsEditing()&&!opsModal)render();
 }
 async function updateStatus(id,status,button){
  button.disabled=true;
@@ -446,9 +475,18 @@ async function saveOps(form){
      });
      if(!d?.ok)throw new Error(d?.message||'Pengembalian kendaraan gagal');
    }
+   clearOpsDraft();
    opsModal=null;await load(true);
  }catch(err){if(progress)progress.textContent='';alert(err.message)}finally{if(btn)btn.disabled=false}
 }
+document.addEventListener('input',e=>{
+ const form=e.target.closest?.('[data-ops-form]');
+ if(form)saveOpsDraft(form);
+},true);
+document.addEventListener('change',e=>{
+ const form=e.target.closest?.('[data-ops-form]');
+ if(form&&e.target.type!=='file')saveOpsDraft(form);
+},true);
 document.addEventListener('submit',async e=>{
  if(e.target.matches('[data-ops-form]')){e.preventDefault();await saveOps(e.target);return}
  if(e.target.id!=='loginForm')return;
@@ -472,7 +510,7 @@ document.addEventListener('click',async e=>{
  if(a==='open-checkout'){opsModal='checkout';render();return}
  if(a==='open-fuel'){if(!vehicleData?.active_shift){alert('Ambil kunci kendaraan dulu.');return}opsModal='fuel';render();return}
  if(a==='open-return'){if(!vehicleData?.active_shift){alert('Tidak ada kendaraan yang sedang dibawa.');return}opsModal='return';render();return}
- if(a==='close-ops'){opsModal=null;render();return}
+ if(a==='close-ops'){const form=document.querySelector('[data-ops-form]');if(form)saveOpsDraft(form);opsModal=null;render();return}
  if(a==='logout'){
   try{
    const out=await rpc('rentcam_driver_logout',{p_token:token});
@@ -502,7 +540,7 @@ window.addEventListener('pageshow',()=>ensureLiveLocation(false));
 window.addEventListener('online',()=>ensureLiveLocation(false));
 setInterval(()=>{
  if(token&&!document.hidden){
-   load(true);
+   if(!opsEditing()&&!opsModal)load(true);
    ensureLiveLocation(false);
  }
 },10000);
