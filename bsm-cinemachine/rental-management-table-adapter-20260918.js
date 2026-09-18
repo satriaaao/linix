@@ -17,7 +17,8 @@ async function openDriverPicker(id,kind='deliver'){
     '<div class="rc-driver-body">'+
       '<label>Driver<select name="driver_id" required><option value="">Pilih dari Master Driver…</option>'+drivers.filter(x=>x.active).map(x=>'<option value="'+E(x.id)+'" '+(String(x.id)===String(d.driver_id)?'selected':'')+'>'+E(x.name)+' · @'+E(x.username)+'</option>').join('')+'</select></label>'+
       '<label>Kendaraan / Plat<select name="vehicle_id"><option value="">Driver pilih saat ambil kunci</option>'+vehicles.filter(x=>x.active).map(x=>'<option value="'+E(x.id)+'" '+(String(x.id)===String(d.vehicle_id)?'selected':'')+'>'+E(x.plate)+' · '+E(x.name)+'</option>').join('')+'</select></label>'+
-      '<div class="rc-grid"><label>Jarak (km)<input name="distance_km" type="number" min="0" step="0.1" value="'+E(d[kind+'_distance_km']||'')+'"></label><label>Biaya<input name="fee" type="number" min="0" step="1000" value="'+E(d[kind+'_fee']||'')+'"></label></div>'+
+      '<div class="rc-grid"><label>Jarak (km)<input name="distance_km" type="number" min="0" step="0.1" value="'+E(d[kind+'_distance_km']||'')+'"></label><label>Biaya (opsional)<input name="fee" type="number" min="0" step="1000" value="'+E(d[kind+'_fee']||'')+'" placeholder="Boleh dikosongkan"></label></div>'+
+      '<label>Link Google Maps<input name="maps_url" type="url" value="'+E(d.maps_url||'')+'" placeholder="https://maps.google.com/..."></label>'+
       '<label>Catatan<input name="note" value="'+E(d[kind+'_note']||'')+'" placeholder="Catatan untuk driver"></label>'+
       '<p class="rc-driver-hint">Driver login di <b>/driver</b>. Jika kendaraan tidak dipilih, driver wajib memilih plat saat mengambil kunci.</p>'+
       '<div class="rc-driver-actions"><button type="button" data-close>Batal</button><button type="submit">Tugaskan Driver</button></div>'+
@@ -31,9 +32,10 @@ async function openDriverPicker(id,kind='deliver'){
       const fd=Object.fromEntries(new FormData(e.target));
       const data=await req('rpc/rentcam_admin_assign_driver',{
         p_order:id,p_kind:kind,p_driver:fd.driver_id,p_vehicle:fd.vehicle_id||null,
-        p_distance_km:Number(fd.distance_km||0),p_fee:Number(fd.fee||0),p_note:String(fd.note||'').trim()
+        p_distance_km:Number(fd.distance_km||0),p_fee:fd.fee===''?0:Number(fd.fee||0),p_note:String(fd.note||'').trim()
       });
       if(!data?.ok)throw new Error(data?.message||'Gagal menugaskan driver');
+      await req('rpc/rentcam_admin_delivery_patch',{p_order:id,p_patch:{maps_url:String(fd.maps_url||'').trim()}});
       modal.remove();await open(page);
     }catch(err){alert(err.message)}finally{if(btn)btn.disabled=false}
   });
