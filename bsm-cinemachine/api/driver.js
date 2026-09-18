@@ -1,4 +1,4 @@
-const SOURCE='https://cdn.jsdelivr.net/gh/satriaaao/linix@1c7255a982c7af026b59d272d92c1d0db96002b1/bsm-cinemachine/driver-portal-20260918.html';
+const SOURCE='https://cdn.jsdelivr.net/gh/satriaaao/linix@49e66eb35367d14b4c61d86a4d4c54d091fda0d4/bsm-cinemachine/driver-portal-20260918.html';
 
 module.exports=async function handler(req,res){
   if(req.method!=='GET'&&req.method!=='HEAD'){
