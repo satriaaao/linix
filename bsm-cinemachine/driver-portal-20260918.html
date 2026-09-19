@@ -27,6 +27,29 @@
 .routePlan{background:#fff;border:1px solid #e1e6ee;border-radius:21px;overflow:hidden;margin-bottom:13px;box-shadow:0 7px 24px rgba(25,39,58,.045)}.routePlanHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:16px 17px 13px}.routePlanHead small{display:block;color:#f26a21;font-size:8px;letter-spacing:.12em;font-weight:950}.routePlanHead h2{margin:4px 0 3px;font-size:17px}.routePlanHead p{margin:0;color:#8491a2;font-size:9px;line-height:1.45}.routePlanHead a{flex:0 0 auto;min-height:38px;padding:0 12px;border-radius:11px;background:#17243a;color:#fff;text-decoration:none;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900}.routePlanStats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 17px 13px}.routePlanStats div{padding:10px 11px;border-radius:12px;background:#f7f9fb}.routePlanStats small{display:block;color:#8c97a7;font-size:7px}.routePlanStats b{display:block;margin-top:4px;color:#26354a;font-size:11px}.routeMap{height:330px;border-top:1px solid #e6eaf0;border-bottom:1px solid #e6eaf0;background:#e9eef4}.routeLegs{padding:12px 17px 16px;display:grid;gap:8px}.routeLeg{display:grid;grid-template-columns:34px 1fr auto;gap:9px;align-items:center;padding:10px 11px;border-radius:13px;background:#f8fafc;border:1px solid #edf0f4}.routeLetter{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#f26a21;color:#fff;font-size:11px;font-weight:950}.routeLeg:first-child .routeLetter{background:#17243a}.routeLeg b,.routeLeg small{display:block}.routeLeg b{font-size:10px;color:#304057}.routeLeg small{margin-top:2px;color:#8a95a5;font-size:8px}.routeLeg strong{font-size:10px;color:#23344c;white-space:nowrap}.routeLoading{padding:16px;text-align:center;color:#7d8999;font-size:9px}.route-pin{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#f26a21;color:#fff;border:3px solid #fff;box-shadow:0 5px 16px rgba(29,42,61,.28);font-weight:950}.route-pin.start{background:#17243a}.route-pin.live{background:#16a36f;font-size:15px}.leaflet-marker-icon.route-div-icon{background:transparent;border:0}.routeLegend{display:flex;gap:12px;align-items:center;padding:10px 17px;background:#fff;border-bottom:1px solid #edf0f4;font-size:8px;color:#6f7c90}.routeLegend span{display:flex;align-items:center;gap:5px}.routeLegend i{width:20px;height:5px;border-radius:999px;background:#2f6fe5;box-shadow:0 0 0 2px #fff,0 0 0 3px rgba(47,111,229,.18)}.routeLegend em{width:9px;height:9px;border-radius:50%;background:#16a36f}
 
 @media(max-width:540px){.summary{grid-template-columns:1fr 1fr 1fr}.summary>div{padding:11px 9px}.summary b{font-size:18px}.job{padding:15px}.hero{padding:19px}.hero h1{font-size:24px}}
+
+/* Driver sidebar navigation */
+.wrap{width:min(1280px,100%);padding:12px 14px 30px}
+.topin{max-width:1280px}.driverMenuBtn{display:none!important;width:40px;height:40px!important;padding:0!important;border-radius:12px!important;font-size:18px!important}
+.driverShell{display:grid;grid-template-columns:250px minmax(0,1fr);gap:18px;align-items:start}
+.driverSidebar{position:sticky;top:82px;max-height:calc(100dvh - 96px);overflow:auto;border-radius:24px;background:linear-gradient(180deg,#0e1828,#111f33);color:#fff;padding:17px;box-shadow:0 18px 48px rgba(13,25,43,.18)}
+.driverSideBrand{display:flex;align-items:center;gap:11px;padding:3px 3px 15px;border-bottom:1px solid rgba(255,255,255,.09)}
+.driverSideAvatar{width:46px;height:46px;border-radius:15px;display:grid;place-items:center;background:linear-gradient(145deg,#ff8240,#f26a21);font-size:17px;font-weight:950;box-shadow:0 8px 22px rgba(242,106,33,.28)}
+.driverSideIdentity{min-width:0;flex:1}.driverSideIdentity b,.driverSideIdentity small{display:block}.driverSideIdentity b{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.driverSideIdentity small{margin-top:3px;color:#8797ae;font-size:8px}
+.driverSideLive{display:flex;align-items:center;gap:7px;margin:13px 2px 4px;padding:9px 10px;border-radius:11px;background:rgba(255,255,255,.055);color:#aab7ca;font-size:8px;font-weight:850}.driverSideLive i{width:8px;height:8px;border-radius:50%;background:#8c99aa}.driverSideLive.on{background:rgba(28,159,111,.14);color:#8de0bd}.driverSideLive.on i{background:#2bd493;box-shadow:0 0 0 5px rgba(43,212,147,.10)}
+.driverSideGroup{margin-top:17px}.driverSideGroup>small{display:block;padding:0 9px 7px;color:#687990;font-size:7px;font-weight:950;letter-spacing:.14em}
+.driverNav{display:grid;gap:5px}.driverNav button{width:100%;min-height:45px;border:0;border-radius:12px;background:transparent;color:#aab7ca;display:grid;grid-template-columns:30px 1fr auto;gap:8px;align-items:center;padding:7px 9px;text-align:left;font-size:9px;font-weight:850;cursor:pointer}.driverNav button:hover{background:rgba(255,255,255,.055);color:#fff}.driverNav button.active{background:linear-gradient(90deg,rgba(242,106,33,.24),rgba(242,106,33,.08));color:#fff;box-shadow:inset 3px 0 #f26a21}.driverNavIcon{width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.06);display:grid;place-items:center;font-size:13px}.driverNav button.active .driverNavIcon{background:rgba(242,106,33,.18);color:#ff9a62}.driverNavBadge{min-width:22px;height:20px;padding:0 6px;border-radius:999px;background:rgba(255,255,255,.07);display:grid;place-items:center;color:#91a1b6;font-size:7px}.driverNav button.active .driverNavBadge{background:#f26a21;color:#fff}
+.driverSideActions{display:grid;gap:7px;margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.09)}.driverSideActions button{width:100%;min-height:40px;border-radius:11px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.055);color:#c3cede;font-size:8px;font-weight:900}.driverSideActions .sideLive{background:#177f5c;border-color:#177f5c;color:#fff}.driverSideActions .sideLive.on{background:#a94332;border-color:#a94332}.driverSideActions .sideLogout{color:#ffb3aa;background:rgba(207,83,50,.10);border-color:rgba(207,83,50,.18)}
+.driverMain{min-width:0}.driverSection{scroll-margin-top:88px}.driverBackdrop{display:none}
+.historyJobs{display:grid;gap:12px}.historyEmpty{background:#fff;border:1px dashed #d8dee8;border-radius:18px;padding:26px;text-align:center;color:#8491a2;font-size:9px}
+@media(max-width:860px){
+ .wrap{width:100%;padding:12px 12px 28px}.top{margin:-12px -12px 12px}.driverMenuBtn{display:grid!important;place-items:center;order:-1}.top .logo{display:none}
+ .driverShell{display:block}.driverSidebar{position:fixed;z-index:140;left:0;top:0;bottom:0;width:min(315px,86vw);max-height:none;border-radius:0 24px 24px 0;padding:calc(18px + env(safe-area-inset-top)) 17px calc(18px + env(safe-area-inset-bottom));transform:translateX(-105%);transition:transform .24s ease;box-shadow:20px 0 55px rgba(7,16,29,.34)}
+ body.driverSidebarOpen{overflow:hidden}.driverSidebarOpen .driverSidebar{transform:translateX(0)}
+ .driverBackdrop{display:block;position:fixed;z-index:130;inset:0;border:0;background:rgba(5,12,22,.52);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .2s ease}.driverSidebarOpen .driverBackdrop{opacity:1;pointer-events:auto}
+ .driverMain{width:100%}.driverSideGroup{margin-top:15px}.driverNav button{min-height:48px;font-size:10px}
+}
+
 </style>
 </head>
 <body>
@@ -498,20 +521,43 @@ function jobCard(j){
   '</div>'+
  '</article>';
 }
+function driverSidebarHtml(jobs,open,todayCount){
+ const done=jobs.filter(x=>x.status==='completed');
+ const initial=E(String(data?.driver?.name||'D').trim().charAt(0).toUpperCase()||'D');
+ const live=watchId!==null;
+ return '<aside class="driverSidebar" aria-label="Menu driver">'+
+  '<div class="driverSideBrand"><div class="driverSideAvatar">'+initial+'</div><div class="driverSideIdentity"><b>'+E(data?.driver?.name||'Driver')+'</b><small>@'+E(data?.driver?.username||'driver')+' · Portal Driver</small></div></div>'+
+  '<div class="driverSideLive '+(live?'on':'')+'"><i></i>'+(live?'GPS realtime aktif':'GPS belum aktif')+'</div>'+
+  '<div class="driverSideGroup"><small>MENU UTAMA</small><nav class="driverNav">'+
+   '<button class="active" data-driver-nav="driverDashboard"><span class="driverNavIcon">⌂</span><span>Dashboard</span><span class="driverNavBadge">'+open.length+'</span></button>'+
+   '<button data-driver-nav="jobsSection"><span class="driverNavIcon">☷</span><span>Tugas Hari Ini</span><span class="driverNavBadge">'+todayCount+'</span></button>'+
+   '<button data-driver-nav="routeSection"><span class="driverNavIcon">⌖</span><span>Peta & Rute</span><span></span></button>'+
+   '<button data-driver-nav="vehicleSection"><span class="driverNavIcon">▣</span><span>Kendaraan</span><span></span></button>'+
+   '<button data-driver-nav="vehicleSection"><span class="driverNavIcon">⛽</span><span>BBM & Struk</span><span></span></button>'+
+   '<button data-driver-nav="historySection"><span class="driverNavIcon">↺</span><span>Riwayat</span><span class="driverNavBadge">'+done.length+'</span></button>'+
+  '</nav></div>'+
+  '<div class="driverSideActions"><button data-action="live" class="sideLive '+(live?'on':'')+'">'+(live?'● Matikan / Atur GPS':'● Aktifkan Lokasi')+'</button><button data-action="refresh">↻ Perbarui Data</button><button data-action="logout" class="sideLogout">Keluar</button></div>'+
+ '</aside><button class="driverBackdrop" data-sidebar-close aria-label="Tutup menu"></button>';
+}
 function render(){
  if(!data?.ok){renderLogin(data?.message||'Sesi berakhir');return}
+ document.body.classList.remove('driverSidebarOpen');
  const jobs=Array.isArray(data.jobs)?data.jobs:[];
  const open=jobs.filter(x=>x.status!=='completed');
+ const done=jobs.filter(x=>x.status==='completed');
  const today=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Jakarta'});
  const todayCount=open.filter(x=>String(x.scheduled_at||'').slice(0,10)===today).length;
  document.getElementById('app').innerHTML=
-  '<div class="top"><div class="topin"><div class="logo">R</div><div class="toptext"><b>'+E(data.driver?.name||'Driver')+'</b><small>@'+E(data.driver?.username||'')+'</small></div><button data-action="logout">Keluar</button></div></div>'+
-  '<section class="hero"><small>PORTAL DRIVER RENTCAM</small><h1>Halo, '+E((data.driver?.name||'Driver').split(' ')[0])+'</h1><p>Live Lokasi aktif otomatis selama Anda login supaya customer bisa mengikuti perjalanan secara realtime.</p><div class="heroActions"><button data-action="live" class="live '+(watchId!==null?'on':'')+'">'+(watchId!==null?'● Live Lokasi Aktif':'Aktifkan Lokasi Sekarang')+'</button><button data-action="notify">Aktifkan Notifikasi</button><button data-action="refresh">Perbarui</button></div></section>'+
-  vehiclePanel()+
-  routePlannerCard(open)+
-  '<div class="summary"><div><small>TUGAS AKTIF</small><b>'+open.length+'</b></div><div><small>HARI INI</small><b>'+todayCount+'</b></div><div><small>SELESAI</small><b>'+jobs.filter(x=>x.status==='completed').length+'</b></div></div>'+
-  '<div class="sectionTitle"><h2>Jadwal Saya</h2><span>'+jobs.length+' tugas</span></div>'+
-  '<section class="jobs">'+(jobs.map(jobCard).join('')||'<div class="empty"><b>Belum ada tugas.</b><br><small>Jadwal dari CMS akan muncul otomatis.</small></div>')+'</section>'+
+  '<div class="top"><div class="topin"><button class="driverMenuBtn" data-sidebar-toggle aria-label="Buka menu">☰</button><div class="logo">R</div><div class="toptext"><b>'+E(data.driver?.name||'Driver')+'</b><small>@'+E(data.driver?.username||'')+' · Portal Operasional</small></div><button data-action="refresh">Perbarui</button></div></div>'+
+  '<div class="driverShell">'+driverSidebarHtml(jobs,open,todayCount)+
+   '<main class="driverMain">'+
+    '<section class="driverSection" id="driverDashboard"><section class="hero"><small>PORTAL DRIVER RENTCAM</small><h1>Halo, '+E((data.driver?.name||'Driver').split(' ')[0])+'</h1><p>Live Lokasi aktif otomatis selama Anda login supaya customer bisa mengikuti perjalanan secara realtime.</p><div class="heroActions"><button data-action="live" class="live '+(watchId!==null?'on':'')+'">'+(watchId!==null?'● Live Lokasi Aktif':'Aktifkan Lokasi Sekarang')+'</button><button data-action="notify">Aktifkan Notifikasi</button><button data-action="refresh">Perbarui</button></div></section>'+
+    '<div class="summary"><div><small>TUGAS AKTIF</small><b>'+open.length+'</b></div><div><small>HARI INI</small><b>'+todayCount+'</b></div><div><small>SELESAI</small><b>'+done.length+'</b></div></div></section>'+
+    '<section class="driverSection" id="vehicleSection">'+vehiclePanel()+'</section>'+
+    '<section class="driverSection" id="routeSection">'+routePlannerCard(open)+'</section>'+
+    '<section class="driverSection" id="jobsSection"><div class="sectionTitle"><h2>Tugas Aktif</h2><span>'+open.length+' tugas</span></div><section class="jobs">'+(open.map(jobCard).join('')||'<div class="empty"><b>Belum ada tugas aktif.</b><br><small>Tugas baru dari CMS akan muncul otomatis.</small></div>')+'</section></section>'+
+    '<section class="driverSection" id="historySection"><div class="sectionTitle"><h2>Riwayat Selesai</h2><span>'+done.length+' tugas</span></div><section class="historyJobs">'+(done.map(jobCard).join('')||'<div class="historyEmpty">Belum ada riwayat tugas selesai.</div>')+'</section></section>'+
+   '</main></div>'+
   opsModalHtml();
  if(opsModal)requestAnimationFrame(()=>restoreOpsDraft(document.querySelector('[data-ops-form]')));
  if(!opsModal)requestAnimationFrame(()=>initRoutePlanner(open));
@@ -793,6 +839,17 @@ document.addEventListener('submit',async e=>{
  }catch(err){renderLogin(err.message)}finally{btn.disabled=false}
 });
 document.addEventListener('click',async e=>{
+ const toggle=e.target.closest('[data-sidebar-toggle]');
+ if(toggle){document.body.classList.toggle('driverSidebarOpen');return}
+ if(e.target.closest('[data-sidebar-close]')){document.body.classList.remove('driverSidebarOpen');return}
+ const nav=e.target.closest('[data-driver-nav]');
+ if(nav){
+  document.querySelectorAll('[data-driver-nav]').forEach(x=>x.classList.toggle('active',x===nav));
+  document.body.classList.remove('driverSidebarOpen');
+  const target=document.getElementById(nav.dataset.driverNav);
+  if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
+  return;
+ }
  const b=e.target.closest('[data-action]');if(!b)return;
  const a=b.dataset.action;
  if(a==='refresh'){await load();return}
