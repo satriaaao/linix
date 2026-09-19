@@ -588,35 +588,20 @@
     return '<div class="gd-driver"><div class="gd-avatar">'+E(j.driver.slice(0,1).toUpperCase())+'</div><div><b>'+E(j.driver)+'</b><small>'+E([j.vehicle,j.plate].filter(Boolean).join(' · ')||'Driver antar–jemput')+'</small></div>'+(j.driver_phone?'<a class="gd-round" href="https://wa.me/'+E(cleanPhone(j.driver_phone))+'" target="_blank" rel="noopener" title="WhatsApp driver">WA</a>':'')+'</div>';
   }
   function jobCard(j){
-    const nxt=nextStatus[j.status];
-    const customerPhone=cleanPhone(j.order.phone);
-    const mapDest=encodeURIComponent(j.destination||j.address||'');
-    const trackUrl=trackingUrl(j.order);
-    const trackCode=trackingCode(j.order);
     const info=statusInfo[j.status]||[j.status,'waiting'];
-    const liveText=j.location
-      ? '<span class="gd-table-live"><i></i><b>GPS aktif</b><small data-live-detail="'+E(j.id)+'">'+E(fmtDate(j.location.updated_at))+' · ±'+E(j.location.accuracy||0)+' m</small></span>'
-      : '<span class="gd-table-live off"><i></i><b>Belum GPS</b><small>Menunggu lokasi driver</small></span>';
+    const gps=j.location
+      ? '<span class="gd-row-gps on"><i></i>GPS aktif<small data-live-detail="'+E(j.id)+'">'+E(fmtDate(j.location.updated_at))+'</small></span>'
+      : '<span class="gd-row-gps"><i></i>Belum GPS</span>';
     const driver=j.driver
-      ? '<span class="gd-table-driver assigned"><b>'+E(j.driver)+'</b><small>'+E([j.vehicle,j.plate].filter(Boolean).join(' · ')||'Driver antar–jemput')+'</small></span>'
-      : '<span class="gd-table-driver waiting"><b>Belum ada</b><small>Perlu ditugaskan</small></span>';
-    const actionButtons=
-      '<div class="gd-table-actions">'+
-        '<button data-gd-action="assign" data-id="'+E(j.id)+'" data-kind="'+j.kind+'" class="secondary">'+(j.driver?'Edit driver':'Tugaskan')+'</button>'+
-        (nxt?'<button data-gd-action="next" data-id="'+E(j.id)+'" data-kind="'+j.kind+'" data-next="'+E(nxt[0])+'" class="primary">'+E(nxt[1])+'</button>':'')+
-        '<button data-gd-action="location" data-id="'+E(j.id)+'" data-kind="'+j.kind+'" class="secondary">Update GPS</button>'+
-        (mapDest?'<a class="gd-button ghost" href="https://www.google.com/maps/dir/?api=1&destination='+mapDest+'" target="_blank" rel="noopener">Navigasi</a>':'')+
-        (customerPhone?'<a class="gd-button ghost" href="https://wa.me/'+E(customerPhone)+'" target="_blank" rel="noopener">WA</a>':'')+
-        (trackUrl&&trackCode?'<button data-gd-action="share-track" data-url="'+E(trackUrl)+'" data-code="'+E(trackCode)+'" class="track">Pantau</button>':'')+
-      '</div>';
-    return '<tr class="gd-job" data-job="'+E(j.id)+'" data-kind="'+E(j.kind)+'">'+
-      '<td class="gd-col-order"><span class="gd-kind '+j.kind+'">'+(j.kind==='deliver'?'ANTAR':'JEMPUT')+'</span><b>'+E(j.order.order_number||j.id)+'</b><small>'+E(j.order.customer_name||'-')+'</small></td>'+
+      ? '<b>'+E(j.driver)+'</b><small>'+E([j.vehicle,j.plate].filter(Boolean).join(' · ')||'Driver')+'</small>'
+      : '<b>Belum ada</b><small>Perlu ditugaskan</small>';
+    return '<tr class="gd-job gd-summary-row" tabindex="0" role="button" aria-label="Buka detail '+E(j.order.order_number||j.id)+'" data-gd-action="job-detail" data-id="'+E(j.id)+'" data-kind="'+E(j.kind)+'">'+
+      '<td class="gd-col-order"><span class="gd-kind '+j.kind+'">'+(j.kind==='deliver'?'ANTAR':'JEMPUT')+'</span><b>'+E(j.order.order_number||j.id)+'</b></td>'+
       '<td class="gd-col-customer"><b>'+E(j.order.customer_name||'-')+'</b><small>'+E(j.order.phone||'-')+'</small></td>'+
-      '<td class="gd-col-schedule"><b>'+E(fmtDate(j.time))+'</b><small>'+(j.distance_km?E(j.distance_km)+' km':'Jarak belum diisi')+(j.fee?' · '+E(money(j.fee)):'')+'</small></td>'+
-      '<td class="gd-col-location"><b data-live-origin="'+E(j.id)+'" data-kind="'+E(j.kind)+'">'+E(j.location?('GPS '+Number(j.location.lat).toFixed(6)+', '+Number(j.location.lng).toFixed(6)):(j.origin||'-'))+'</b><small data-live-time="'+E(j.id)+'">'+(j.location?('Update '+E(fmtDate(j.location.updated_at))):'Menunggu GPS driver')+'</small><em>→ <span data-destination-label="'+E(j.id)+'">'+E(j.destination||j.address||'-')+'</span></em><button type="button" class="gd-edit-dest gd-table-edit" data-gd-action="edit-destination" data-id="'+E(j.id)+'" data-kind="'+E(j.kind)+'">Edit tujuan</button></td>'+
+      '<td class="gd-col-schedule"><b>'+E(fmtDate(j.time))+'</b><small>'+(j.distance_km?E(j.distance_km)+' km':'Jarak belum diisi')+'</small></td>'+
       '<td class="gd-col-driver">'+driver+'</td>'+
-      '<td class="gd-col-status"><span class="gd-status '+E(info[1])+'"><i></i>'+E(info[0])+'</span>'+liveText+(j.location?'<a class="gd-table-map" data-live-map="'+E(j.id)+'" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(j.location.lat+','+j.location.lng)+'" target="_blank" rel="noopener">Lihat GPS</a>':'')+'</td>'+
-      '<td class="gd-col-actions">'+actionButtons+(trackUrl&&trackCode?'<small class="gd-table-code">Kode: '+E(trackCode)+'</small>':'')+'</td>'+
+      '<td class="gd-col-status"><span class="gd-status '+E(info[1])+'"><i></i>'+E(info[0])+'</span>'+gps+'</td>'+
+      '<td class="gd-col-detail"><button type="button" class="gd-detail-btn" data-gd-action="job-detail" data-id="'+E(j.id)+'" data-kind="'+E(j.kind)+'">Detail ›</button></td>'+
     '</tr>';
   }
   function render(){
@@ -629,13 +614,45 @@
       '<section class="gd-stats"><button data-gd-filter="all" class="'+(filter==='all'?'on':'')+'"><small>Semua tugas</small><strong>'+c.total+'</strong></button><button data-gd-filter="unassigned" class="'+(filter==='unassigned'?'on':'')+'"><small>Perlu driver</small><strong>'+c.unassigned+'</strong></button><button data-gd-filter="moving" class="'+(filter==='moving'?'on':'')+'"><small>Dalam perjalanan</small><strong>'+c.moving+'</strong></button><button data-gd-filter="done" class="'+(filter==='done'?'on':'')+'"><small>Selesai</small><strong>'+c.done+'</strong></button></section>'+
       routeGroupPanel()+
       '<div class="gd-toolbar"><input data-gd-search placeholder="Cari order / customer / driver..." autocomplete="off"><span>'+list.length+' tugas</span></div>'+
-      '<section class="gd-list gd-job-table-shell" data-gd-list>'+ (list.length?('<div class="gd-job-table-scroll"><table class="gd-job-table"><thead><tr><th class="gd-col-order">Order</th><th class="gd-col-customer">Customer</th><th class="gd-col-schedule">Jadwal</th><th class="gd-col-location">Lokasi / Tujuan</th><th class="gd-col-driver">Driver</th><th class="gd-col-status">Status / GPS</th><th class="gd-col-actions">Aksi</th></tr></thead><tbody>'+list.map(jobCard).join('')+'</tbody></table></div>'):'<div class="gd-empty"><b>Belum ada tugas antar–jemput.</b><span>Klik “Buat tugas” atau aktifkan opsi antar/jemput pada order rental.</span></div>') +'</section>'+
+      '<section class="gd-list gd-job-table-shell" data-gd-list>'+ (list.length?('<div class="gd-job-table-scroll"><table class="gd-job-table"><thead><tr><th class="gd-col-order">Order</th><th class="gd-col-customer">Customer</th><th class="gd-col-schedule">Jadwal</th><th class="gd-col-driver">Driver</th><th class="gd-col-status">Status / GPS</th><th class="gd-col-detail">Detail</th></tr></thead><tbody>'+list.map(jobCard).join('')+'</tbody></table></div>'):'<div class="gd-empty"><b>Belum ada tugas antar–jemput.</b><span>Klik “Buat tugas” atau aktifkan opsi antar/jemput pada order rental.</span></div>') +'</section>'+
       modalHtml()+
     '</div>';
     requestAnimationFrame(()=>{const scroller=document.querySelector('.gd-job-table-scroll');if(scroller)scroller.scrollLeft=0;if(!modal)initDistribution();});
   }
   function modalHtml(){
     if(!modal)return '';
+    if(modal.type==='job-detail'){
+      const order=orders.find(o=>String(o.id)===String(modal.id));
+      if(!order)return '';
+      const j=makeJob(order,modal.kind);
+      const nxt=nextStatus[j.status];
+      const info=statusInfo[j.status]||[j.status,'waiting'];
+      const customerPhone=cleanPhone(j.order.phone);
+      const mapDest=encodeURIComponent(j.destination||j.address||'');
+      const trackUrl=trackingUrl(j.order),trackCode=trackingCode(j.order);
+      const currentLocation=j.location
+        ? ('GPS '+Number(j.location.lat).toFixed(6)+', '+Number(j.location.lng).toFixed(6))
+        : (j.origin||'-');
+      return '<div class="gd-modal gd-detail-modal"><div class="gd-dialog gd-detail-dialog">'+
+        '<div class="gd-dialog-head"><div><small>'+(j.kind==='deliver'?'ANTAR':'JEMPUT')+' · DETAIL TUGAS</small><h3>'+E(j.order.order_number||j.id)+'</h3></div><button type="button" data-gd-action="close">×</button></div>'+
+        '<div class="gd-detail-body">'+
+          '<div class="gd-detail-summary"><div><small>CUSTOMER</small><b>'+E(j.order.customer_name||'-')+'</b><span>'+E(j.order.phone||'-')+'</span></div><div><small>JADWAL</small><b>'+E(fmtDate(j.time))+'</b><span>'+(j.distance_km?E(j.distance_km)+' km':'Jarak belum diisi')+(j.fee?' · '+E(money(j.fee)):'')+'</span></div><div><small>STATUS</small><span class="gd-status '+E(info[1])+'"><i></i>'+E(info[0])+'</span></div></div>'+
+          '<div class="gd-detail-route"><div><small>LOKASI SAAT INI</small><b data-live-origin="'+E(j.id)+'" data-kind="'+E(j.kind)+'">'+E(currentLocation)+'</b><span data-live-time="'+E(j.id)+'">'+(j.location?('Update '+E(fmtDate(j.location.updated_at))):'Menunggu GPS driver')+'</span></div><div class="gd-detail-arrow">↓</div><div><small>TUJUAN</small><b data-destination-label="'+E(j.id)+'">'+E(j.destination||j.address||'-')+'</b><button type="button" class="gd-edit-dest" data-gd-action="edit-destination" data-id="'+E(j.id)+'" data-kind="'+E(j.kind)+'">Edit tujuan</button></div></div>'+
+          '<div class="gd-detail-grid"><div><small>DRIVER</small><b>'+E(j.driver||'Belum ada driver')+'</b><span>'+E([j.vehicle,j.plate].filter(Boolean).join(' · ')||'Belum ada kendaraan')+'</span></div><div><small>GPS</small><b>'+(j.location?'Aktif':'Belum aktif')+'</b><span data-live-detail="'+E(j.id)+'">'+(j.location?(E(fmtDate(j.location.updated_at))+' · akurasi ±'+E(j.location.accuracy||0)+' m'):'Menunggu lokasi driver')+'</span></div></div>'+
+          (j.note?'<div class="gd-detail-note"><small>CATATAN</small><p>'+E(j.note)+'</p></div>':'')+
+          '<div class="gd-detail-actions">'+
+            '<button data-gd-action="assign" data-id="'+E(j.id)+'" data-kind="'+E(j.kind)+'" class="secondary">'+(j.driver?'Edit driver':'Tugaskan driver')+'</button>'+
+            (nxt?'<button data-gd-action="next" data-id="'+E(j.id)+'" data-kind="'+E(j.kind)+'" data-next="'+E(nxt[0])+'" class="primary">'+E(nxt[1])+'</button>':'')+
+            '<button data-gd-action="location" data-id="'+E(j.id)+'" data-kind="'+E(j.kind)+'" class="secondary">Update GPS</button>'+
+            (mapDest?'<a class="gd-button ghost" href="https://www.google.com/maps/dir/?api=1&destination='+mapDest+'" target="_blank" rel="noopener">Navigasi</a>':'')+
+            (customerPhone?'<a class="gd-button ghost" href="https://wa.me/'+E(customerPhone)+'" target="_blank" rel="noopener">WhatsApp</a>':'')+
+            (j.location?'<a class="gd-button ghost" data-live-map="'+E(j.id)+'" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(j.location.lat+','+j.location.lng)+'" target="_blank" rel="noopener">Lihat GPS</a>':'')+
+            (trackUrl&&trackCode?'<button data-gd-action="share-track" data-url="'+E(trackUrl)+'" data-code="'+E(trackCode)+'" class="track">Bagikan Pantau</button>':'')+
+          '</div>'+
+          (trackUrl&&trackCode?'<div class="gd-detail-track"><small>KODE PANTAU</small><b>'+E(trackCode)+'</b></div>':'')+
+        '</div>'+
+      '</div></div>';
+    }
     if(modal.type==='route-group'){
       const g=routeGroupsCache[Number(modal.groupIndex)];
       if(!g)return '';
@@ -1110,6 +1127,67 @@
       .gd-hero p{font-size:10px!important;line-height:1.5!important}
     }
 
+
+    /* Final compact dispatch table: keep real rows on phones; details open on tap. */
+    .gd-job-table-shell{display:block!important}
+    .gd-job-table-scroll{display:block!important;width:100%!important;overflow-x:auto!important;overflow-y:hidden!important;-webkit-overflow-scrolling:touch!important;border:1px solid #e2e7ef!important;border-radius:16px!important;background:#fff!important}
+    .gd-job-table{display:table!important;width:960px!important;min-width:960px!important;max-width:none!important;border-collapse:separate!important;border-spacing:0!important;table-layout:fixed!important}
+    .gd-job-table thead{display:table-header-group!important}
+    .gd-job-table tbody{display:table-row-group!important}
+    .gd-job-table tr.gd-job,.gd-job-table tr.gd-summary-row{display:table-row!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:#fff!important;cursor:pointer!important}
+    .gd-job-table tr.gd-summary-row:active td{background:#f7f9fc!important}
+    .gd-job-table tr.gd-job td{display:table-cell!important;grid-column:auto!important;width:auto!important;padding:12px 10px!important;border:0!important;border-bottom:1px solid #edf0f4!important;vertical-align:middle!important;background:#fff!important}
+    .gd-job-table th{display:table-cell!important;padding:11px 10px!important;background:#f6f8fb!important;border-bottom:1px solid #e2e7ef!important;font-size:9px!important;white-space:nowrap!important}
+    .gd-job-table th:first-child,.gd-job-table td:first-child,.gd-job-table th:nth-child(2),.gd-job-table td:nth-child(2){position:static!important;left:auto!important;box-shadow:none!important}
+    .gd-job-table .gd-col-order{width:190px!important}
+    .gd-job-table .gd-col-customer{width:170px!important}
+    .gd-job-table .gd-col-schedule{width:155px!important}
+    .gd-job-table .gd-col-driver{width:165px!important}
+    .gd-job-table .gd-col-status{width:190px!important}
+    .gd-job-table .gd-col-detail{width:90px!important;text-align:center!important}
+    .gd-summary-row .gd-kind{margin:0 0 6px!important}
+    .gd-summary-row td>b{display:block!important;font-size:10px!important;color:#26364d!important;line-height:1.35!important}
+    .gd-summary-row td>small{display:block!important;margin-top:3px!important;font-size:8px!important;color:#8491a3!important;line-height:1.35!important}
+    .gd-row-gps{display:block!important;margin-top:7px!important;font-size:8px!important;font-weight:850!important;color:#8793a3!important;white-space:nowrap!important}
+    .gd-row-gps.on{color:#2d8064!important}
+    .gd-row-gps i{display:inline-block!important;width:7px!important;height:7px!important;margin-right:5px!important;border-radius:50%!important;background:currentColor!important}
+    .gd-row-gps small{display:block!important;margin:2px 0 0 12px!important;font-size:7px!important;font-weight:500!important;color:inherit!important}
+    .gd-detail-btn{width:72px!important;min-height:34px!important;border:1px solid #dbe2eb!important;border-radius:10px!important;background:#fff!important;color:#2d64c8!important;font-size:8px!important;font-weight:900!important}
+    .gd-detail-btn:active{background:#eef4ff!important}
+    .gd-detail-dialog{width:min(680px,100%)!important;max-height:92dvh!important}
+    .gd-detail-body{padding:16px!important;display:grid!important;gap:12px!important}
+    .gd-detail-summary{display:grid!important;grid-template-columns:1.1fr 1fr .9fr!important;gap:9px!important}
+    .gd-detail-summary>div,.gd-detail-grid>div{padding:12px!important;border:1px solid #e7ebf1!important;border-radius:13px!important;background:#f8fafc!important;min-width:0!important}
+    .gd-detail-summary small,.gd-detail-grid small,.gd-detail-route small,.gd-detail-note small,.gd-detail-track small{display:block!important;color:#909bad!important;font-size:7px!important;font-weight:950!important;letter-spacing:.1em!important}
+    .gd-detail-summary b,.gd-detail-grid b,.gd-detail-route b{display:block!important;margin-top:5px!important;color:#26364d!important;font-size:11px!important;line-height:1.4!important;word-break:break-word!important}
+    .gd-detail-summary span,.gd-detail-grid span,.gd-detail-route span{display:block!important;margin-top:3px!important;color:#7c899b!important;font-size:8px!important;line-height:1.4!important}
+    .gd-detail-route{padding:13px!important;border:1px solid #e6eaf0!important;border-radius:15px!important;background:#fff!important}
+    .gd-detail-route>div:not(.gd-detail-arrow){padding:4px 0!important}
+    .gd-detail-arrow{text-align:center!important;color:#a4afbd!important;font-size:15px!important;line-height:1!important;padding:4px 0!important}
+    .gd-detail-route .gd-edit-dest{margin-top:8px!important;min-height:32px!important;padding:0 10px!important}
+    .gd-detail-grid{display:grid!important;grid-template-columns:1fr 1fr!important;gap:9px!important}
+    .gd-detail-note{padding:12px!important;border-radius:13px!important;background:#fff7f2!important;color:#654f42!important}
+    .gd-detail-note p{margin:6px 0 0!important;font-size:9px!important;line-height:1.5!important}
+    .gd-detail-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}
+    .gd-detail-actions button,.gd-detail-actions a{min-height:42px!important;padding:8px 10px!important;border-radius:11px!important;display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;text-decoration:none!important;font-size:9px!important;font-weight:900!important}
+    .gd-detail-actions .primary{grid-column:1/-1!important;background:#f26a21!important;color:#fff!important;border-color:#f26a21!important}
+    .gd-detail-track{padding:11px 12px!important;border-radius:12px!important;background:#eef8f3!important}
+    .gd-detail-track b{display:block!important;margin-top:4px!important;font-size:12px!important;color:#25725a!important;letter-spacing:.08em!important}
+    @media(max-width:540px){
+      .gd-job-table{width:900px!important;min-width:900px!important}
+      .gd-job-table tr.gd-job,.gd-job-table tr.gd-summary-row{display:table-row!important;grid-template-columns:none!important}
+      .gd-job-table tr.gd-job td{display:table-cell!important;grid-column:auto!important;padding:10px 8px!important}
+      .gd-job-table .gd-col-order{width:175px!important}
+      .gd-job-table .gd-col-customer{width:155px!important}
+      .gd-job-table .gd-col-schedule{width:145px!important}
+      .gd-job-table .gd-col-driver{width:150px!important}
+      .gd-job-table .gd-col-status{width:185px!important}
+      .gd-job-table .gd-col-detail{width:90px!important}
+      .gd-detail-summary{grid-template-columns:1fr 1fr!important}
+      .gd-detail-summary>div:last-child{grid-column:1/-1!important}
+      .gd-detail-grid{grid-template-columns:1fr!important}
+      .gd-detail-actions{grid-template-columns:1fr 1fr!important}
+    }
     `;document.head.appendChild(s);
   }
 
@@ -1123,6 +1201,7 @@
     const b=e.target.closest('[data-gd-action]'); if(!b)return;
     const a=b.dataset.gdAction;
     if(a==='close'){modal=null;render();return}
+    if(a==='job-detail'){modal={type:'job-detail',id:b.dataset.id,kind:b.dataset.kind};render();return}
     if(a==='office'){modal={type:'office'};render();return}
     if(a==='new'){modal={type:'new'};render();return}
     if(a==='refresh'){await refresh();return}
@@ -1154,6 +1233,14 @@
       b.disabled=true;b.textContent='Mengambil lokasi…';
       try{await updateLocation(b.dataset.id,b.dataset.kind)}catch(err){alert(err.message||'Gagal mengambil lokasi')}finally{b.disabled=false}
     }
+  },true);
+
+  document.addEventListener('keydown',e=>{
+    if(!active||!['Enter',' '].includes(e.key))return;
+    const row=e.target.closest?.('.gd-summary-row[data-gd-action="job-detail"]');
+    if(!row)return;
+    e.preventDefault();
+    modal={type:'job-detail',id:row.dataset.id,kind:row.dataset.kind};render();
   },true);
 
   document.addEventListener('submit',async e=>{
