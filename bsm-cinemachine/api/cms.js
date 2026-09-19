@@ -1,4 +1,4 @@
-const SOURCE='https://cdn.jsdelivr.net/gh/satriaaao/linix@07283d7f722d759b2c07c62fafbb1e2cc099037d/bsm-cinemachine/cms-v15-20260918.html';
+const SOURCE='https://cdn.jsdelivr.net/gh/satriaaao/linix@c01e6533b8888dbefb1061b0c91a9810c1aa8838/bsm-cinemachine/cms-v15-20260918.html';
 
 function sanitizeCmsHtml(html){
   return String(html||'')
