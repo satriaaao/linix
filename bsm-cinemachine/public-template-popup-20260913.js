@@ -91,7 +91,13 @@
     btn.addEventListener('pointermove',e=>{if(!dragging)return;const dy=e.clientY-startY;if(Math.abs(dy)>7)moved=true;if(!moved)return;const y=Math.min(Math.max(76,startTop+dy),innerHeight-76);wrap.style.top=y+'px';try{localStorage.setItem('rentcam_promo_y',String(y))}catch(_){}});
     const endDrag=()=>{dragging=false;wrap.classList.remove('dragging');setTimeout(()=>{moved=false},0)};
     btn.addEventListener('pointerup',endDrag);btn.addEventListener('pointercancel',endDrag);
-    btn.addEventListener('click',e=>{if(moved){e.preventDefault();return}toggle(panel.hidden)});
+    btn.addEventListener('click',e=>{
+      if(moved){e.preventDefault();return}
+      e.preventDefault();
+      const directPath=(p.productId?'/produk/'+encodeURIComponent(p.productId):(list[0]?.path||primaryPath||'/produk'));
+      toggle(false);
+      if(typeof go==='function')go(directPath);else location.href=directPath;
+    });
     wrap.querySelector('.rc-promo-close').addEventListener('click',()=>toggle(false));
     wrap.addEventListener('click',e=>{
       const goTo=e.target.closest('[data-popup-go]');
