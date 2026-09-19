@@ -127,7 +127,10 @@ function rp(n){try{return new Intl.NumberFormat('id-ID',{style:'currency',curren
 function notifySupport(){return 'Notification' in window&&'serviceWorker' in navigator&&'PushManager' in window}
 
 async function api(path){
-  var r=await fetch(SB+path,{headers:{apikey:KEY},cache:'no-store'});
+  var headers={apikey:KEY};
+  var authToken=token();
+  if(authToken)headers.Authorization='Bearer '+authToken;
+  var r=await fetch(SB+path,{headers:headers,cache:'no-store'});
   if(!r.ok)throw new Error('Gagal membaca order');
   return r.json();
 }
@@ -308,8 +311,6 @@ function startPolling(){
 document.addEventListener('visibilitychange',function(){if(!document.hidden)pollOrders()});
 window.addEventListener('focus',pollOrders);
 window.addEventListener('storage',function(e){if(e.key===AUTH&&logged())startPolling()});
-new MutationObserver(ensureDock).observe(document.documentElement,{childList:true,subtree:true});
-
 registerSW().finally(async function(){
   ensureDock();
   if(logged()&&notifySupport()&&window.Notification.permission==='granted'){
