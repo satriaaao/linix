@@ -33,37 +33,11 @@ function patchPublicHtml(html,seo){
   out=out.replace(/<script\s+src=["']\/cart-click-fix-20260914\.js(?:\?[^"']*)?["']><\\/script>/i,'');
   const cartHardening=`
 <style id="rc-cart-direct-fix">
-.rc-cart-button,[data-go="/cart"]{pointer-events:auto!important;cursor:pointer!important}
+.rc-cart-button,[data-go="/cart"]{pointer-events:auto!important;cursor:pointer!important;touch-action:manipulation}
 .header .actions{position:relative!important;z-index:40!important}
-.header .rc-cart-button{position:relative!important;z-index:41!important;touch-action:manipulation}
+.header .rc-cart-button{position:relative!important;z-index:41!important}
 .rc-cart-button::before{content:"";position:absolute;inset:-10px;z-index:-1}
-</style>
-<script id="rc-cart-direct-handler">
-(function(){
-  if(window.__rcCartDirectFix)return;
-  window.__rcCartDirectFix=true;
-  function target(el){
-    return el&&el.closest?el.closest('.rc-cart-button,[data-go="/cart"],[aria-label*="Keranjang"],[aria-label*="keranjang"]'):null;
-  }
-  function openCart(e){
-    if(!target(e.target))return;
-    e.preventDefault();
-    e.stopPropagation();
-    if(e.stopImmediatePropagation)e.stopImmediatePropagation();
-    try{document.getElementById('drawer')?.classList.remove('open')}catch(_){}
-    try{document.body.classList.remove('menu-open')}catch(_){}
-    if(location.pathname==='/cart'){
-      try{scrollTo(0,0)}catch(_){}
-      return;
-    }
-    location.assign('/cart');
-  }
-  document.addEventListener('click',openCart,true);
-  document.addEventListener('keydown',function(e){
-    if((e.key==='Enter'||e.key===' ')&&target(e.target))openCart(e);
-  },true);
-})();
-</script>`;
+</style>`;
   const checkoutWizard='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@57a19710d8690fcfc3949e696d51771e3f03e11d/bsm-cinemachine/checkout-step-wizard-20260918.js"><\/script>';
   const includedDropdown='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@a1a4ff9dd2bbf75c41c76d06a91dee6beaf98087/bsm-cinemachine/product-included-dropdown-final-20260918.js"><\/script>';
   const productWatermark='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@dedf6e149007aabed6338eeba6aac59fe545fec6/bsm-cinemachine/product-watermark-runtime-20260919.js"><\/script>';
