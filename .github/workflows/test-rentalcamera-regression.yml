@@ -6,6 +6,7 @@ on:
     paths:
       - 'bsm-cinemachine/api/site.js'
       - 'bsm-cinemachine/api/cms.js'
+      - 'bsm-cinemachine/api/cms-ui.js'
       - 'bsm-cinemachine/cms-kernel-20260918.js'
       - 'bsm-cinemachine/cms-v15-20260918.html'
       - 'bsm-cinemachine/index.html'
