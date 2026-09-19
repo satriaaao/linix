@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - 'bsm-cinemachine/api/site.js'
+      - 'bsm-cinemachine/api/cms.js'
+      - 'bsm-cinemachine/cms-kernel-20260918.js'
+      - 'bsm-cinemachine/cms-v15-20260918.html'
       - 'bsm-cinemachine/index.html'
       - 'bsm-cinemachine/public-template-popup-20260913.js'
       - 'bsm-cinemachine/tests/**'
@@ -28,3 +31,4 @@ jobs:
         run: |
           node tests/cart-navigation-20260919.test.js
           node tests/promo-asset-routing-20260919.test.js
+          node tests/cms-runtime-guard-20260919.test.js
