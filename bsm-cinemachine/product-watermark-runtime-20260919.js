@@ -1,5 +1,5 @@
-/* Rentcam product watermark runtime — visible + baked into downloadable images */
-/* deploy-trigger: watermark-baked-download */
+/* Rentcam product watermark runtime — baked once, no duplicate overlay */
+/* deploy-trigger: watermark-no-double */
 (()=>{
   if(window.__rentcamProductWatermarkRuntime)return;
   window.__rentcamProductWatermarkRuntime=true;
@@ -33,15 +33,12 @@
     return !!img.closest('.pcard,.product-card,.home-category-card,[data-product-card],[data-go^="/produk/"],a[href^="/produk/"]');
   }
 
-  function posStyle(p,o){
-    const v=o+'%';
-    if(p==='top-right')return 'right:'+v+';top:'+v+';';
-    if(p==='bottom-left')return 'left:'+v+';bottom:'+v+';';
-    if(p==='bottom-right')return 'right:'+v+';bottom:'+v+';';
-    return 'left:'+v+';top:'+v+';';
+  function removeOverlay(host){
+    if(!host)return;
+    host.querySelectorAll(':scope > .rc-product-watermark').forEach(x=>x.remove());
   }
 
-  function drawRect(canvas,ctx,imgW,imgH){
+  function drawRect(canvas,imgW,imgH){
     const cW=canvas.width,cH=canvas.height;
     const scale=Math.min(cW/imgW,cH/imgH);
     const w=imgW*scale,h=imgH*scale;
@@ -94,7 +91,7 @@
     const ctx=canvas.getContext('2d');
     ctx.fillStyle='#fff';
     ctx.fillRect(0,0,canvas.width,canvas.height);
-    const base=drawRect(canvas,ctx,iw,ih);
+    const base=drawRect(canvas,iw,ih);
     ctx.drawImage(baseImg,base.x,base.y,base.w,base.h);
     const r=wmRect(base,logo,w);
     ctx.globalAlpha=w.opacity;
@@ -126,8 +123,10 @@
     cancelAnimationFrame(raf);
     raf=requestAnimationFrame(()=>{
       const w=cfg();
-      document.querySelectorAll('.rc-product-watermark').forEach(x=>{if(!w.enabled||!w.logoUrl)x.remove();});
-      if(!w.enabled||!w.logoUrl)return;
+      if(!w.enabled||!w.logoUrl){
+        document.querySelectorAll('.rc-product-watermark').forEach(x=>x.remove());
+        return;
+      }
       [...document.querySelectorAll('#app img')].filter(productImage).forEach(img=>{
         const host=img.parentElement;
         if(!host)return;
@@ -135,21 +134,25 @@
         if(cs.position==='static')host.style.position='relative';
         if(!originalSrc.has(img))originalSrc.set(img,img.currentSrc||img.src);
 
-        let mark=[...host.children].find(x=>x.classList?.contains('rc-product-watermark'));
-        if(!mark){
-          mark=document.createElement('img');
-          mark.className='rc-product-watermark';
-          mark.alt='';
-          mark.setAttribute('aria-hidden','true');
-          host.appendChild(mark);
+        // If this image is already baked, keep only the baked image and never add another overlay.
+        if(img.dataset.rcWatermarked==='1'){
+          removeOverlay(host);
+          addDownloadHelper(img);
+          return;
         }
-        mark.src=w.logoUrl;
-        mark.style.cssText='position:absolute;z-index:9;pointer-events:none;user-select:none;object-fit:contain;width:'+w.size+'%;max-width:'+w.size+'%;max-height:'+Math.max(16,w.size)+'%;opacity:'+w.opacity+';filter:none;'+posStyle(w.position,w.offset);
 
-        // Make native save/download include watermark too by replacing visible product image with a baked version.
+        removeOverlay(host);
+
         if(!processed.has(img)){
           processed.add(img);
-          const bake=()=>makeWatermarkedSrc(img,w).then(src=>{if(src&&img.isConnected){img.dataset.rcWatermarked='1';img.src=src;}}).catch(()=>{});
+          const bake=()=>makeWatermarkedSrc(img,w).then(src=>{
+            if(src&&img.isConnected){
+              img.dataset.rcWatermarked='1';
+              img.src=src;
+              removeOverlay(img.parentElement);
+              addDownloadHelper(img);
+            }
+          }).catch(()=>{});
           if(img.complete&&img.naturalWidth)bake(); else img.addEventListener('load',bake,{once:true});
         }
         addDownloadHelper(img);
@@ -170,9 +173,9 @@
 
   const style=document.createElement('style');
   style.id='rc-product-watermark-style';
-  style.textContent='.rc-product-watermark{display:block!important}.pcard,.product-card,.home-category-card{overflow:hidden}.rc-wm-download{position:absolute;right:10px;top:10px;z-index:11;width:30px;height:30px;border:0;border-radius:999px;background:rgba(255,255,255,.88);box-shadow:0 6px 18px rgba(0,0,0,.14);font-size:14px;line-height:30px;padding:0;display:none}.pcard:hover .rc-wm-download,.product-card:hover .rc-wm-download,.home-category-card:hover .rc-wm-download{display:block}@media(max-width:760px){.rc-wm-download{display:none!important}}';
+  style.textContent='.rc-product-watermark{display:none!important}.pcard,.product-card,.home-category-card{overflow:hidden}.rc-wm-download{position:absolute;right:10px;top:10px;z-index:11;width:30px;height:30px;border:0;border-radius:999px;background:rgba(255,255,255,.88);box-shadow:0 6px 18px rgba(0,0,0,.14);font-size:14px;line-height:30px;padding:0;display:none}.pcard:hover .rc-wm-download,.product-card:hover .rc-wm-download,.home-category-card:hover .rc-wm-download{display:block}@media(max-width:760px){.rc-wm-download{display:none!important}}';
   document.head.appendChild(style);
-  document.addEventListener('rentcam-cms-updated',e=>{current=e.detail?.watermark||null;processed.clear?.();apply()});
+  document.addEventListener('rentcam-cms-updated',e=>{current=e.detail?.watermark||null;apply()});
   document.addEventListener('rentcam-route-change',()=>setTimeout(apply,0));
   new MutationObserver(apply).observe(document.getElementById('app')||document.body,{childList:true,subtree:true});
   pull();
