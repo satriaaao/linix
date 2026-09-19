@@ -49,7 +49,7 @@ module.exports=function handler(req,res){
   res.statusCode=200;
   res.setHeader('content-type','application/javascript; charset=utf-8');
   res.setHeader('cache-control','no-cache, no-store, must-revalidate');
-  res.setHeader('service-worker-allowed','/cms');
+  res.setHeader('service-worker-allowed','/');
   if(req.method==='HEAD')return res.end();
   return res.end(SCRIPT);
 };
