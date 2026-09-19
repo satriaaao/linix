@@ -28,8 +28,6 @@ function patchPublicHtml(html,seo){
   const schema=(seo.schema||[]).map(x=>`<script type="application/ld+json">${safeJson({'@context':'https://schema.org',...x})}</script>`).join('');
   const meta=`\n<link rel="canonical" href="${esc(seo.canonical)}">\n<link rel="alternate" hreflang="id-ID" href="${esc(seo.canonical)}">\n<link rel="alternate" hreflang="x-default" href="${esc(seo.canonical)}">\n<meta name="robots" content="${esc(seo.robots)}">\n<meta property="og:locale" content="id_ID">\n<meta property="og:type" content="website">\n<meta property="og:site_name" content="Rentcam">\n<meta property="og:title" content="${esc(seo.title)}">\n<meta property="og:description" content="${esc(seo.description)}">\n<meta property="og:url" content="${esc(seo.canonical)}">\n<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:title" content="${esc(seo.title)}">\n<meta name="twitter:description" content="${esc(seo.description)}">\n${schema}`;
   out=out.replace('</head>',meta+'</head>');
-  // Keep exactly one cart navigation handler. The source HTML also loads an older
-  // cart hardening script; remove it here so touch/pointer/click events cannot race.
   out=out.replace(/<script\s+src=["']\/cart-click-fix-20260914\.js(?:\?[^"']*)?["']><\/script>/i,'');
   const cartHardening=`
 <style id="rc-cart-direct-fix">
@@ -46,7 +44,7 @@ function patchPublicHtml(html,seo){
   out=out.replace(/<main\s+id=["']app["']\s*><\/main>/i,ssr);
   out=out.replace(/src="\/product-search-20260912\.js(?:\?[^\"]*)?"/,'src="/product-search-20260912.js?v=geo4"');
   out=out.replace(/src="\/general-products-20260913\.js(?:\?[^\"]*)?"/,'src="/general-products-20260913.js?v=pcfix1"');
-  out=out.replace(/src=["']\/public-template-popup-20260913\.js(?:\?[^"']*)?["']/i,'src="https://cdn.jsdelivr.net/gh/satriaaao/linix@0d6c9d45dabe4e8d5fcad237dd546e188cddcf85/bsm-cinemachine/public-template-popup-20260913.js"');
+  out=out.replace(/src=["']\/public-template-popup-20260913\.js(?:\?[^"']*)?["']/i,'src="https://cdn.jsdelivr.net/gh/satriaaao/linix@2fb716ff6f62a15cbd2cd35b0f5a9f8287e9ab94/bsm-cinemachine/public-template-popup-20260913.js"');
   out=out.replace(/src="\/cart-click-fix-20260914\.js(?:\?[^\"]*)?"/,'src="/cart-click-fix-20260914.js?v=pcfix1"');
   return out;
 }
