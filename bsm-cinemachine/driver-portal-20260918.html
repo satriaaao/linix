@@ -104,6 +104,18 @@ let driverPage=readDriverPage();
 const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=v=>{if(!v)return'Belum dijadwalkan';const d=new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString('id-ID',{timeZone:'Asia/Jakarta',weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
 const clean=v=>String(v||'').replace(/\D/g,'').replace(/^0/,'62');
+function jakartaDayKey(value=new Date()){
+ const d=value instanceof Date?value:new Date(value);
+ if(Number.isNaN(d.getTime()))return'';
+ const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(d);
+ const get=type=>parts.find(p=>p.type===type)?.value||'';
+ return get('year')+'-'+get('month')+'-'+get('day');
+}
+function isJobToday(job){
+ const raw=String(job?.scheduled_at||job?.start_date||'').trim();
+ const direct=raw.match(/^(\d{4}-\d{2}-\d{2})/);
+ return direct?direct[1]===jakartaDayKey():jakartaDayKey(raw)===jakartaDayKey();
+}
 const labels={assigned:'Driver ditugaskan',to_pickup:'Menuju lokasi',picked_up:'Barang diambil',on_the_way:'Dalam perjalanan',arrived:'Sudah tiba',completed:'Selesai',cancelled:'Dibatalkan'};
 const next={assigned:['to_pickup','Berangkat ke lokasi'],to_pickup:['picked_up','Barang sudah diambil'],picked_up:['on_the_way','Mulai mengantar'],on_the_way:['arrived','Sudah tiba'],arrived:['completed','Selesaikan tugas']};
 async function rpc(name,payload={}){
@@ -439,7 +451,7 @@ function jobCoords(j){
 }
 function routeStops(jobs){
  return (jobs||[])
-  .filter(j=>j.status!=='completed'&&j.status!=='cancelled')
+  .filter(j=>j.status!=='completed'&&j.status!=='cancelled'&&isJobToday(j))
   .map(j=>({job:j,coords:jobCoords(j)}))
   .filter(x=>x.coords)
   .sort((a,b)=>String(a.job.scheduled_at||'').localeCompare(String(b.job.scheduled_at||'')));
@@ -587,7 +599,7 @@ function driverSidebarHtml(jobs,open,todayCount){
   '<div class="driverSideLive '+(live?'on':'')+'"><i></i>'+(live?'GPS realtime aktif':'GPS belum aktif')+'</div>'+
   '<div class="driverSideGroup"><small>MENU UTAMA</small><nav class="driverNav">'+
    nav('dashboard','⌂','Dashboard',open.length)+
-   nav('tasks','☷','Tugas Hari Ini',todayCount)+
+   nav('tasks','☷','Tugas Antar-Jemput',open.length)+
    nav('route','⌖','Peta & Rute')+
    nav('vehicle','▣','Kendaraan')+
    nav('fuel','⛽','BBM & Struk')+
@@ -612,11 +624,11 @@ function driverPageHeader(kicker,title,desc){
  return '<div class="driverPageHead"><div><small>'+E(kicker)+'</small><h1>'+E(title)+'</h1><p>'+E(desc)+'</p></div><button data-action="refresh">Perbarui Data</button></div>';
 }
 function dashboardPage(jobs,open,todayCount){
- const done=jobs.filter(x=>x.status==='completed'),moving=open.filter(x=>['to_pickup','picked_up','on_the_way','arrived'].includes(x.status)),assigned=open.filter(x=>x.status==='assigned');
+ const chartJobs=jobs.filter(x=>x.status!=='cancelled'),done=chartJobs.filter(x=>x.status==='completed'),moving=open.filter(x=>['to_pickup','picked_up','on_the_way','arrived'].includes(x.status)),assigned=open.filter(x=>x.status==='assigned');
  const deliver=open.filter(x=>x.kind==='deliver').length,collect=open.filter(x=>x.kind==='collect').length;
  return '<section class="driverPage">'+driverPageHeader('DRIVER ANALYTICS','Dashboard Driver','Ringkasan tugas, GPS, kendaraan dan aktivitas operasional hari ini.')+
  driverKpis([['Tugas Aktif',open.length,'Belum selesai'],['Hari Ini',todayCount,'Jadwal hari ini'],['Dalam Perjalanan',moving.length,'Sedang bergerak'],['Selesai',done.length,'Riwayat selesai']])+
- '<div class="driverAnalyticsGrid">'+driverDonutChart('Status Tugas','Komposisi tugas aktif dan selesai.',jobs.length,[['Ditugaskan',assigned.length],['Berjalan',moving.length],['Selesai',done.length]])+
+ '<div class="driverAnalyticsGrid">'+driverDonutChart('Status Tugas','Komposisi tugas aktif dan selesai.',chartJobs.length,[['Ditugaskan',assigned.length],['Berjalan',moving.length],['Selesai',done.length]])+
  '<article class="driverInfoCard"><small>STATUS OPERASIONAL</small><h3>'+(watchId!==null?'GPS Realtime Aktif':'GPS Belum Aktif')+'</h3><p>Lokasi digunakan untuk ETA, tracking customer dan pembaruan rute driver.</p><div class="driverInfoRows"><div><span>Pengantaran aktif</span><b>'+deliver+'</b></div><div><span>Penjemputan aktif</span><b>'+collect+'</b></div><div><span>Kendaraan</span><b>'+E(vehicleData?.active_shift?.plate||'Belum diambil')+'</b></div></div></article></div>'+
  '<div class="sectionTitle"><h2>Tugas Terdekat</h2><span>'+Math.min(open.length,3)+' ditampilkan</span></div><section class="jobs">'+(open.slice(0,3).map(jobCard).join('')||'<div class="driverPageEmpty">Belum ada tugas aktif.</div>')+'</section></section>';
 }
@@ -713,9 +725,8 @@ function render(){
  document.body.classList.remove('driverSidebarOpen');
  const jobs=Array.isArray(data.jobs)?data.jobs:[];
  const open=jobs.filter(x=>x.status!=='completed'&&x.status!=='cancelled');
- const today=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Jakarta'});
- const todayCount=open.filter(x=>String(x.scheduled_at||'').slice(0,10)===today).length;
- const titles={dashboard:'Dashboard',tasks:'Tugas Hari Ini',route:'Peta & Rute',vehicle:'Kendaraan',fuel:'BBM & Struk',history:'Riwayat'};
+ const todayCount=open.filter(isJobToday).length;
+ const titles={dashboard:'Dashboard',tasks:'Tugas Antar-Jemput',route:'Peta & Rute',vehicle:'Kendaraan',fuel:'BBM & Struk',history:'Riwayat'};
  document.getElementById('app').innerHTML=
   '<div class="top"><div class="topin"><button class="driverMenuBtn" data-sidebar-toggle aria-label="Buka menu">☰</button><div class="logo">R</div><div class="toptext"><b>'+E(titles[driverPage]||'Portal Driver')+'</b><small>'+E(data.driver?.name||'Driver')+' · @'+E(data.driver?.username||'')+'</small></div><button data-action="refresh">Perbarui</button></div></div>'+
   '<div class="driverShell">'+driverSidebarHtml(jobs,open,todayCount)+'<main class="driverMain">'+driverPageContent(jobs,open,todayCount)+'</main></div>'+
@@ -766,9 +777,8 @@ function showGpsHelp(message='Izin lokasi belum aktif.'){
      const b=e.target.closest('button');b.disabled=true;
      try{
        const pos=await getCurrentPositionStrict();
+       lastLivePosition={pos,at:Date.now()};
        el.remove();
-       localStorage.setItem(LIVE_STORE,'1');
-       await sendLocation(pos);
        await startLive(false);
      }catch(err){el.querySelector('p').textContent=err.message;b.disabled=false}
    }
@@ -796,7 +806,6 @@ async function ensureLiveLocation(showHelp=true){
 }
 async function startLive(showHelp=true){
  if(!token)return false;
- localStorage.setItem(LIVE_STORE,'1');
  if(!navigator.geolocation){
    if(showHelp)showGpsHelp('Browser ini tidak mendukung GPS.');
    return false;
@@ -804,8 +813,11 @@ async function startLive(showHelp=true){
  if(watchId!==null)return true;
  try{
    const first=await getCurrentPositionStrict();
+   lastLivePosition={pos:first,at:Date.now()};
    await sendLocation(first);
+   localStorage.setItem(LIVE_STORE,'1');
  }catch(err){
+   localStorage.removeItem(LIVE_STORE);
    if(showHelp)showGpsHelp(err.message);
    return false;
  }
@@ -820,8 +832,9 @@ async function startLive(showHelp=true){
     if(el)el.textContent='Live • akurasi ±'+Math.round(pos.coords.accuracy||0)+' m • '+new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   }catch(_){}
  },async err=>{
-   await stopLive(false);
-   if(liveAlwaysWanted())showGpsHelp(err.code===1?'Akses lokasi ditolak oleh Safari. Izinkan lokasi untuk domain ini.':'Lokasi berhenti: '+err.message);
+   const denied=err.code===1;
+   await stopLive(denied);
+   if(denied||liveAlwaysWanted())showGpsHelp(denied?'Akses lokasi ditolak oleh Safari. Izinkan lokasi untuk domain ini.':'Lokasi berhenti: '+err.message);
  },{enableHighAccuracy:true,maximumAge:1000,timeout:12000});
  const bar=document.getElementById('livebar');if(bar)bar.classList.add('on');
  if(!opsEditing()&&!opsModal)render();
@@ -1009,10 +1022,9 @@ document.addEventListener('submit',async e=>{
   if(!d?.ok){renderLogin(d?.message||'Login gagal');return}
   token=d.token;
   localStorage.setItem(STORE,token);
-  localStorage.setItem(LIVE_STORE,'1');
   knownJobs.clear();
   await load();
-  await ensureLiveLocation(true);
+  await startLive(true);
  }catch(err){renderLogin(err.message)}finally{btn.disabled=false}
 });
 document.addEventListener('click',async e=>{
@@ -1050,14 +1062,13 @@ document.addEventListener('click',async e=>{
   localStorage.removeItem(LIVE_STORE);
   token='';data=null;vehicleData=null;renderLogin();return
  }
- if(a==='live'){localStorage.setItem(LIVE_STORE,'1');await ensureLiveLocation(true);return}
+ if(a==='live'){await startLive(true);return}
  if(a==='notify'){
   if(!('Notification'in window)){alert('Browser ini belum mendukung notifikasi web.');return}
   const p=await Notification.requestPermission();alert(p==='granted'?'Notifikasi aktif.':'Notifikasi belum diizinkan.');return;
  }
  if(a==='next'){await updateStatus(b.dataset.id,b.dataset.status,b)}
 });
-if(token&&localStorage.getItem(LIVE_STORE)!=='1')localStorage.setItem(LIVE_STORE,'1');
 load().then(()=>ensureLiveLocation(true));
 document.addEventListener('visibilitychange',async()=>{
  if(document.hidden)return;
