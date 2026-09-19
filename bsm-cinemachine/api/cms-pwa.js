@@ -4,21 +4,26 @@ if(!location.pathname.startsWith('/cms'))return;
 
 var SB='https://xleceiffuopioeguniwj.supabase.co';
 var KEY='sb_publishable_POksYryhG_mkFbs7N0fjKQ_4dUim7Ex';
+var PUSH_URL='https://xleceiffuopioeguniwj.supabase.co/functions/v1/rentcam-order-push';
 var AUTH='rentcam_cms_auth';
 var SEEN='rentcam_cms_last_order_seen_v1';
 var NOTIFY='rentcam_cms_notifications_v1';
+var PUSHED='rentcam_cms_push_registered_v1';
 var POLL_MS=10000;
 var pollTimer=null;
 var polling=false;
 var swReg=null;
 
-function logged(){
-  try{return !!JSON.parse(localStorage.getItem(AUTH)||'null')?.access_token}catch(_){return false}
+function session(){
+  try{return JSON.parse(localStorage.getItem(AUTH)||'null')||null}catch(_){return null}
 }
-function isIOS(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1}
+function logged(){return !!session()?.access_token}
+function token(){return session()?.access_token||''}
+function isIOS(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)}
 function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function rp(n){try{return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(n)||0)}catch(_){return 'Rp'+(Number(n)||0)}}
+function notifySupport(){return 'Notification' in window&&'serviceWorker' in navigator&&'PushManager' in window}
 
 async function api(path){
   var r=await fetch(SB+path,{headers:{apikey:KEY},cache:'no-store'});
@@ -33,6 +38,55 @@ async function registerSW(){
     return swReg;
   }catch(e){console.warn('CMS service worker gagal',e);return null}
 }
+function b64ToU8(base64String){
+  var padding='='.repeat((4-base64String.length%4)%4);
+  var base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+  var rawData=atob(base64);
+  var outputArray=new Uint8Array(rawData.length);
+  for(var i=0;i<rawData.length;i++)outputArray[i]=rawData.charCodeAt(i);
+  return outputArray;
+}
+async function publicPushKey(){
+  var r=await fetch(PUSH_URL,{cache:'no-store'});
+  if(!r.ok)throw new Error('Gagal mengambil push key');
+  var j=await r.json();
+  if(!j?.publicKey)throw new Error('Push key belum tersedia');
+  return j.publicKey;
+}
+async function syncPushSubscription(){
+  if(!logged()||!notifySupport()||window.Notification.permission!=='granted')return false;
+  var reg=swReg||await registerSW();
+  if(!reg||!reg.pushManager)return false;
+  var sub=await reg.pushManager.getSubscription();
+  if(!sub){
+    var publicKey=await publicPushKey();
+    sub=await reg.pushManager.subscribe({
+      userVisibleOnly:true,
+      applicationServerKey:b64ToU8(publicKey)
+    });
+  }
+  var j=sub.toJSON();
+  var authToken=token();
+  if(!authToken)throw new Error('Sesi admin belum aktif');
+  var r=await fetch(SB+'/rest/v1/rpc/rentcam_push_subscribe',{
+    method:'POST',
+    headers:{
+      apikey:KEY,
+      Authorization:'Bearer '+authToken,
+      'Content-Type':'application/json'
+    },
+    body:JSON.stringify({
+      p_endpoint:j.endpoint,
+      p_p256dh:j.keys?.p256dh||'',
+      p_auth:j.keys?.auth||'',
+      p_user_agent:navigator.userAgent
+    })
+  });
+  if(!r.ok)throw new Error('Gagal mendaftarkan push iPhone');
+  localStorage.setItem(PUSHED,'1');
+  return true;
+}
+
 function css(){
   if(document.getElementById('cms-pwa-style'))return;
   var s=document.createElement('style');s.id='cms-pwa-style';
@@ -40,19 +94,16 @@ function css(){
   document.head.appendChild(s);
 }
 function modal(title,text,steps){
-  document.querySelector('.cmsPwaModal')?.remove();
+  var old=document.querySelector('.cmsPwaModal');if(old)old.remove();
   var el=document.createElement('div');el.className='cmsPwaModal';
   el.innerHTML='<div class="cmsPwaCard"><h3>'+esc(title)+'</h3><p>'+esc(text)+'</p><div class="cmsPwaSteps">'+steps+'</div><button data-cms-pwa-close>Tutup</button></div>';
   document.body.appendChild(el);
   el.addEventListener('click',function(e){if(e.target===el||e.target.closest('[data-cms-pwa-close]'))el.remove()});
 }
-function notifySupport(){
-  return 'Notification' in window&&'serviceWorker' in navigator;
-}
 function notifyButtonLabel(){
   if(!notifySupport())return 'Notifikasi tidak didukung';
-  if(Notification.permission==='granted')return '✓ Notifikasi Aktif';
-  if(Notification.permission==='denied')return 'Notifikasi Diblokir';
+  if(window.Notification.permission==='granted')return '✓ Notifikasi Aktif';
+  if(window.Notification.permission==='denied')return 'Notifikasi Diblokir';
   return 'Aktifkan Notifikasi';
 }
 function ensureDock(){
@@ -71,8 +122,11 @@ function ensureDock(){
     if(isIOS())modal('Pasang Rentcam CMS','Jadikan CMS seperti aplikasi iPhone tanpa App Store.','1. Buka halaman ini di <b>Safari</b><br>2. Tekan tombol <b>Bagikan</b><br>3. Pilih <b>Tambahkan ke Layar Utama</b><br>4. Tekan <b>Tambah</b>');
     else modal('Pasang Rentcam CMS','Pasang CMS sebagai aplikasi dari browser.','Gunakan menu browser lalu pilih <b>Install app</b> / <b>Add to Home Screen</b>.');
   };
-  dock.querySelector('#cmsPwaNotify').onclick=enableNotifications;
-  if(standalone()&&notifySupport()&&window.Notification.permission==='granted')setTimeout(function(){var d=document.getElementById('cmsPwaDock');if(d)d.style.display='none'},1800);
+  var notifyBtn=dock.querySelector('#cmsPwaNotify');
+  if(notifyBtn)notifyBtn.onclick=enableNotifications;
+  if(standalone()&&notifySupport()&&window.Notification.permission==='granted'){
+    setTimeout(function(){var d=document.getElementById('cmsPwaDock');if(d)d.style.display='none'},1800);
+  }
 }
 async function enableNotifications(){
   if(!notifySupport()){
@@ -80,25 +134,28 @@ async function enableNotifications(){
     return;
   }
   if(isIOS()&&!standalone()){
-    modal('Pasang App dulu','Di iPhone, notifikasi Web Push dipakai melalui web app yang sudah dipasang ke Home Screen.','Safari → <b>Bagikan</b> → <b>Tambahkan ke Layar Utama</b>. Setelah membuka app dari Home Screen, tekan Aktifkan Notifikasi.');
+    modal('Pasang App dulu','Di iPhone, push notification digunakan melalui web app yang sudah dipasang ke Home Screen.','Safari → <b>Bagikan</b> → <b>Tambahkan ke Layar Utama</b>. Setelah membuka app dari Home Screen, tekan Aktifkan Notifikasi.');
     return;
   }
-  if(Notification.permission==='denied'){
+  if(window.Notification.permission==='denied'){
     modal('Notifikasi diblokir','Izinkan notifikasi Rentcam CMS dari Settings iPhone.','Settings → Notifications → <b>Rentcam CMS</b> → Allow Notifications.');
     return;
   }
   try{
-    var p=await Notification.requestPermission();
+    var p=await window.Notification.requestPermission();
     if(p==='granted'){
       localStorage.setItem(NOTIFY,'1');
       await registerSW();
+      var pushed=false;
+      try{pushed=await syncPushSubscription()}catch(e){console.warn('background push:',e)}
       await showSystemNotification({order_number:'TEST',customer_name:'Notifikasi order aktif',total:0,items:[]},true);
+      modal('Notifikasi aktif',pushed?'Push order baru sudah terhubung ke iPhone.':'Notifikasi aktif, tetapi background push belum terdaftar.','Kalau belum terhubung penuh, tutup lalu buka kembali app CMS dan tekan Aktifkan Notifikasi sekali lagi.');
     }
   }catch(e){console.warn(e)}
   ensureDock();
 }
 async function showSystemNotification(order,test){
-  if(Notification.permission!=='granted')return;
+  if(!notifySupport()||window.Notification.permission!=='granted')return;
   var reg=swReg||await navigator.serviceWorker.ready;
   var items=Array.isArray(order.items)?order.items:[];
   var title=test?'Rentcam CMS':'Order Baru • '+String(order.order_number||'Rentcam');
@@ -127,7 +184,14 @@ async function pollOrders(){
       localStorage.setItem(SEEN,JSON.stringify({id:latest.id,created_at:latest.created_at}));
     }else if(String(seen.id)!==String(latest.id)&&String(latest.created_at)>=String(seen.created_at||'')){
       localStorage.setItem(SEEN,JSON.stringify({id:latest.id,created_at:latest.created_at}));
-      if(Notification.permission==='granted'&&localStorage.getItem(NOTIFY)==='1')await showSystemNotification(latest,false);
+      if(
+        notifySupport()&&
+        window.Notification.permission==='granted'&&
+        localStorage.getItem(NOTIFY)==='1'&&
+        localStorage.getItem(PUSHED)!=='1'
+      ){
+        await showSystemNotification(latest,false);
+      }
       try{window.dispatchEvent(new CustomEvent('rentcam:new-order',{detail:latest}))}catch(_){}
     }
     await updateBadge();
@@ -139,16 +203,22 @@ function startPolling(){
   pollOrders();
   pollTimer=setInterval(pollOrders,POLL_MS);
 }
+
 document.addEventListener('visibilitychange',function(){if(!document.hidden)pollOrders()});
 window.addEventListener('focus',pollOrders);
 window.addEventListener('storage',function(e){if(e.key===AUTH&&logged())startPolling()});
 new MutationObserver(ensureDock).observe(document.documentElement,{childList:true,subtree:true});
 
-registerSW().finally(function(){
+registerSW().finally(async function(){
   ensureDock();
+  if(logged()&&notifySupport()&&window.Notification.permission==='granted'){
+    localStorage.setItem(NOTIFY,'1');
+    try{await syncPushSubscription()}catch(e){console.warn('push resync:',e)}
+  }
   startPolling();
 });
 })();`;
+
 module.exports=function handler(req,res){
   if(req.method!=='GET'&&req.method!=='HEAD'){
     res.statusCode=405;res.setHeader('content-type','text/plain; charset=utf-8');return res.end('Method not allowed');
