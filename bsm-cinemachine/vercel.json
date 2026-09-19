@@ -79,10 +79,6 @@
       "destination": "https://cdn.jsdelivr.net/gh/satriaaao/linix@4a9ec6a4e3eae797b28fb97afd5c4fd274efe35b/bsm-cinemachine/general-products-20260913.js"
     },
     {
-      "source": "/public-template-popup-20260913.js",
-      "destination": "https://cdn.jsdelivr.net/gh/satriaaao/linix@0d6c9d45dabe4e8d5fcad237dd546e188cddcf85/bsm-cinemachine/public-template-popup-20260913.js"
-    },
-    {
       "source": "/robots.txt",
       "destination": "/api/robots"
     },
