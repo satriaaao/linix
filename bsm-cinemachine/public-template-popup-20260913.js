@@ -12,13 +12,14 @@
     const c=cfg().copy||{}, h=cfg().homepage||{};
     if(location.pathname==='/produk'){
       const u=new URLSearchParams(location.search);
-      const selected=!!u.get('cat')||!!u.get('brand')||!!u.get('q');
+      const selected=!!u.get('cat')||!!u.get('brand')||!!u.get('q')||!!u.get('label')||!!u.get('promo')||!!u.get('new');
       const title=document.querySelector('.product-meta h1');
       const info=document.querySelector('#catalogResultCount');
       const input=document.querySelector('#productSearchInput');
       const label=document.querySelector('.catalog-filter-field > span');
       const trigger=document.querySelector('#catalogCategory > span');
-      if(title&&!selected&&c.catalogTitle) title.textContent=c.catalogTitle;
+      if(title&&(u.get('label')||u.get('promo')||u.get('new'))) title.textContent='Produk Promo & Baru';
+      else if(title&&!selected&&c.catalogTitle) title.textContent=c.catalogTitle;
       if(info&&c.catalogSubtitle){const count=(info.textContent.match(/^\d+\s+produk/)||[''])[0];info.textContent=(count?count+' · ':'')+c.catalogSubtitle;}
       if(input&&c.catalogSearchPlaceholder) input.placeholder=c.catalogSearchPlaceholder;
       if(label&&c.catalogFilterLabel) label.textContent=c.catalogFilterLabel;
@@ -42,13 +43,13 @@
     const label=p.floatLabel||(chosenLabels.length?chosenLabels.map(x=>x.toUpperCase()).join(' / '):(isNew?'BARANG BARU':'PROMO'));
     const list=promoItems(p,isNew,label,chosenLabels);
     const labelQuery=chosenLabels.length?'/produk?label='+encodeURIComponent(chosenLabels.join(',')):'';
-    const primaryPath=p.productId?'/produk/'+encodeURIComponent(p.productId):(p.buttonLink&&p.buttonLink!=='/produk'?p.buttonLink:(labelQuery||'/produk?'+(isNew?'new=1':'promo=1')));
-    const directPath=()=>p.productId?'/produk/'+encodeURIComponent(p.productId):(list[0]?.path||primaryPath||'/produk');
-    const navigateDirect=()=>{const path=directPath(); if(typeof go==='function')go(path); else location.href=path; requestAnimationFrame(()=>scrollTo(0,0));};
+    const primaryPath=p.buttonLink&&p.buttonLink!=='/produk'?p.buttonLink:(labelQuery||'/produk?'+(isNew?'new=1':'promo=1'));
+    const listPath=()=>primaryPath||'/produk?label=promo%2Cnew%2Cdiskon';
+    const navigateList=()=>{const path=listPath(); if(typeof go==='function')go(path); else location.href=path; requestAnimationFrame(()=>scrollTo(0,0));};
     const wrap=document.createElement('div');
     wrap.className='rc-promo-widget';
     wrap.innerHTML=`<button class="rc-promo-hide" type="button" aria-label="Sembunyikan promo sementara">&times;</button>
-    <button class="rc-promo-float" type="button" aria-label="Buka produk promo atau barang baru"><span>${E(label)}</span><b>${list.length}</b></button>`;
+    <button class="rc-promo-float" type="button" aria-label="Buka daftar produk promo atau barang baru"><span>${E(label)}</span><b>${list.length}</b></button>`;
     const btn=wrap.querySelector('.rc-promo-float'),hide=wrap.querySelector('.rc-promo-hide');
     const savedY=Number(localStorage.getItem('rentcam_promo_y')||0);
     if(savedY){wrap.style.top=Math.min(Math.max(76,savedY),innerHeight-76)+'px'}
@@ -60,7 +61,7 @@
     btn.addEventListener('pointermove',e=>{if(!dragging)return;const dy=e.clientY-startY;if(Math.abs(dy)>7)moved=true;if(!moved)return;const y=Math.min(Math.max(76,startTop+dy),innerHeight-76);wrap.style.top=y+'px';try{localStorage.setItem('rentcam_promo_y',String(y))}catch(_){}});
     const endDrag=()=>{dragging=false;wrap.classList.remove('dragging');setTimeout(()=>{moved=false},0)};
     btn.addEventListener('pointerup',endDrag);btn.addEventListener('pointercancel',endDrag);
-    btn.addEventListener('click',e=>{if(moved){e.preventDefault();return}e.preventDefault();e.stopPropagation();navigateDirect()});
+    btn.addEventListener('click',e=>{if(moved){e.preventDefault();return}e.preventDefault();e.stopPropagation();navigateList()});
     document.body.append(wrap);
   }
   function promoItems(p,isNew,label,chosenLabels=[]){
