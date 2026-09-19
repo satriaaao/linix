@@ -65,6 +65,24 @@
 @media(max-width:860px){.driverPageHead h1{font-size:22px}.driverKpis{grid-template-columns:1fr 1fr}.driverAnalyticsGrid{grid-template-columns:1fr}.driverDonutLayout{grid-template-columns:105px minmax(0,1fr)}.driverDonut{width:96px;height:96px}.driverDonutHole{width:62px;height:62px}.driverDonutHole strong{font-size:19px}}
 @media(max-width:430px){.driverPageHead{align-items:stretch;flex-direction:column}.driverPageHead button{width:100%}.driverKpi{padding:13px}.driverKpi strong{font-size:22px}.driverDonutLayout{grid-template-columns:1fr}.driverDonut{margin:auto}.driverBar{grid-template-columns:75px 1fr 24px}.driverMiniRow{grid-template-columns:72px 1fr 44px}}
 
+
+/* Driver task operation table + photo proof */
+.driverTaskTableWrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #e1e6ee;border-radius:18px;background:#fff;box-shadow:0 6px 20px rgba(25,39,58,.04)}
+.driverTaskTable{width:1180px;min-width:1180px;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.driverTaskTable th{position:sticky;top:0;z-index:2;padding:11px 10px;background:#f6f8fb;border-bottom:1px solid #e1e6ee;color:#7b8798;font-size:8px;font-weight:950;letter-spacing:.06em;text-align:left;white-space:nowrap}
+.driverTaskTable td{padding:11px 10px;border-bottom:1px solid #edf0f4;vertical-align:top;background:#fff;color:#34445a;font-size:9px;line-height:1.4}
+.driverTaskTable tbody tr:last-child td{border-bottom:0}.driverTaskTable tbody tr:hover td{background:#fbfcfe}
+.taskColOrder{width:165px}.taskColCustomer{width:165px}.taskColType{width:85px}.taskColSchedule{width:135px}.taskColStatus{width:150px}.taskColProducts{width:245px}.taskColActions{width:235px}
+.taskOrder b,.taskCustomer b,.taskSchedule b{display:block;color:#223149;font-size:10px}.taskOrder small,.taskCustomer small,.taskSchedule small{display:block;margin-top:3px;color:#8b97a7;font-size:8px}
+.taskKind{display:inline-flex;padding:5px 7px;border-radius:999px;font-size:7px;font-weight:950;letter-spacing:.06em}.taskKind.deliver{background:#fff2e9;color:#bd5e28}.taskKind.collect{background:#eef4ff;color:#4167b7}
+.taskStatusWrap{display:grid;gap:6px}.taskStatusWrap .status{width:max-content}.taskProofs{display:flex;flex-wrap:wrap;gap:5px}.taskProof{padding:4px 6px;border-radius:999px;background:#f3f5f8;color:#7b8798;font-size:7px;font-weight:850}.taskProof.ok{background:#eaf8f2;color:#22795d}
+.taskProducts{display:grid;gap:5px}.taskProduct{display:flex;justify-content:space-between;gap:8px;padding:6px 7px;border-radius:9px;background:#f7f9fb}.taskProduct b{min-width:0;color:#35455c;font-size:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.taskProduct span{flex:0 0 auto;color:#6f7d90;font-size:8px;font-weight:900}.taskMore{color:#7d8999;font-size:7px;font-weight:800}
+.taskActions{display:grid;grid-template-columns:1fr 1fr;gap:6px}.taskActions button,.taskActions a{min-height:34px;padding:6px 7px;border-radius:9px;border:1px solid #dce3eb;background:#fff;color:#3b4a60;text-decoration:none;display:flex;align-items:center;justify-content:center;text-align:center;font-size:7.5px;font-weight:900;line-height:1.2}.taskActions .primary{grid-column:1/-1;background:linear-gradient(145deg,#ff8240,#f26a21);border-color:#f26a21;color:#fff}.taskActions .proofAction{grid-column:1/-1;background:#17243a;border-color:#17243a;color:#fff}.taskActions .receiveAction{grid-column:1/-1;background:#207b5c;border-color:#207b5c;color:#fff}.taskActions .wa{background:#eaf8f1;color:#16805b;border-color:#d8eee4}
+.proofProducts{margin:0 0 13px;padding:11px;border:1px solid #e4e9ef;border-radius:12px;background:#fff}.proofProducts>small{display:block;color:#f26a21;font-size:7px;font-weight:950;letter-spacing:.09em}.proofProductRows{display:grid;gap:6px;margin-top:8px}.proofProductRow{display:flex;justify-content:space-between;gap:10px;padding:7px 8px;border-radius:9px;background:#f7f9fb}.proofProductRow b{font-size:9px;color:#324259}.proofProductRow span{font-size:8px;color:#7c8999;font-weight:900}
+.proofStep{display:flex;gap:7px;margin:0 0 13px}.proofStep span{flex:1;padding:8px 7px;border-radius:10px;background:#eef1f5;color:#7d899a;text-align:center;font-size:7px;font-weight:900}.proofStep span.on{background:#fff1e8;color:#bf5a25}.proofStep span.done{background:#eaf8f2;color:#21785c}
+.proofPreview{margin-top:7px;padding:9px 10px;border-radius:10px;background:#eef4ff;color:#506a91;font-size:8px;line-height:1.45}
+@media(max-width:860px){.driverTaskTable{width:1080px;min-width:1080px}.taskColProducts{width:220px}.taskColActions{width:210px}}
+
 </style>
 </head>
 <body>
@@ -304,6 +322,25 @@ function fuelOptions(selected=''){
 }
 function opsModalHtml(){
  if(!opsModal)return'';
+ if(typeof opsModal==='object'&&opsModal.type==='proof'){
+   const j=(data?.jobs||[]).find(x=>String(x.id)===String(opsModal.id));
+   if(!j)return'';
+   const stage=opsModal.stage==='received'?'received':'dispatch';
+   const receive=stage==='received';
+   const title=receive?(j.kind==='deliver'?'Proses Terima Customer':'Proses Terima Gudang'):(j.kind==='deliver'?'Proses Antar':'Proses Jemput');
+   const photoLabel=receive?'Foto bukti penerimaan':'Foto barang saat mulai proses';
+   const proof=j.proofs?.[stage];
+   return '<div class="opsModal"><form class="opsDialog" data-ops-form="proof"><div class="opsHead"><div><small>'+E(j.kind==='deliver'?'TUGAS ANTAR':'TUGAS JEMPUT')+'</small><h3>'+E(title)+' · '+E(j.order_number)+'</h3></div><button type="button" data-action="close-ops">×</button></div><div class="opsBody">'+
+    '<input type="hidden" name="assignment_id" value="'+E(j.id)+'"><input type="hidden" name="stage" value="'+E(stage)+'">'+
+    '<div class="proofStep"><span class="'+(!receive?'on':'done')+'">1. Proses '+(j.kind==='deliver'?'Antar':'Jemput')+'</span><span class="'+(receive?'on':'')+'">2. Terima</span></div>'+
+    proofProductsHtml(j)+
+    '<div class="photoField"><label>'+E(photoLabel)+'<input name="proof_photo" type="file" accept="image/*" capture="environment" required></label><small>Foto wajib. Watermark GPS, alamat, waktu, driver, plat dan nomor order ditambahkan otomatis.</small>'+(proof?.photo?'<div class="proofPreview">Bukti sebelumnya sudah tersimpan.</div>':'')+'</div>'+
+    (receive?'<label>Nama penerima<input name="recipient" required maxlength="120" placeholder="'+(j.kind==='deliver'?'Nama customer / penerima':'Nama petugas gudang')+'"></label>':'<input type="hidden" name="recipient" value="">')+
+    '<label>Catatan<textarea name="notes" maxlength="1000" placeholder="Kondisi barang / keterangan serah terima"></textarea></label>'+
+    '<div class="opsHint">'+(receive?'Setelah bukti penerimaan disimpan, tugas akan ditandai selesai.':'Setelah foto proses disimpan, status berubah menjadi Dalam perjalanan.')+'</div>'+
+    '<div class="opsActions"><button type="button" class="cancel" data-action="close-ops">Batal</button><button type="submit" class="save">Simpan Bukti & Lanjut</button></div><div class="opsProgress"></div>'+
+   '</div></form></div>';
+ }
  if(opsModal==='checkout'){
    return '<div class="opsModal"><form class="opsDialog" data-ops-form="checkout"><div class="opsHead"><div><small>CHECKOUT KENDARAAN</small><h3>Ambil Kunci Mobil</h3></div><button type="button" data-action="close-ops">×</button></div><div class="opsBody">'+
     '<label>Plat / Kendaraan<select name="vehicle_id" required><option value="">Pilih kendaraan tersedia…</option>'+availableVehicleOptions()+'</select></label>'+
@@ -583,15 +620,52 @@ function dashboardPage(jobs,open,todayCount){
  '<article class="driverInfoCard"><small>STATUS OPERASIONAL</small><h3>'+(watchId!==null?'GPS Realtime Aktif':'GPS Belum Aktif')+'</h3><p>Lokasi digunakan untuk ETA, tracking customer dan pembaruan rute driver.</p><div class="driverInfoRows"><div><span>Pengantaran aktif</span><b>'+deliver+'</b></div><div><span>Penjemputan aktif</span><b>'+collect+'</b></div><div><span>Kendaraan</span><b>'+E(vehicleData?.active_shift?.plate||'Belum diambil')+'</b></div></div></article></div>'+
  '<div class="sectionTitle"><h2>Tugas Terdekat</h2><span>'+Math.min(open.length,3)+' ditampilkan</span></div><section class="jobs">'+(open.slice(0,3).map(jobCard).join('')||'<div class="driverPageEmpty">Belum ada tugas aktif.</div>')+'</section></section>';
 }
+function taskProductsHtml(j){
+ const items=Array.isArray(j.items)?j.items:[];
+ if(!items.length)return '<span class="taskMore">Belum ada produk</span>';
+ const rows=items.slice(0,4).map(x=>'<div class="taskProduct"><b>'+E(x?.name||x?.product_name||x?.id||'Produk')+'</b><span>×'+Math.max(1,Number(x?.quantity||x?.qty||1))+'</span></div>').join('');
+ return '<div class="taskProducts">'+rows+(items.length>4?'<div class="taskMore">+'+(items.length-4)+' produk lainnya</div>':'')+'</div>';
+}
+function proofProductsHtml(j){
+ const items=Array.isArray(j?.items)?j.items:[];
+ return '<div class="proofProducts"><small>DAFTAR PRODUK / BARANG</small><div class="proofProductRows">'+(items.map(x=>'<div class="proofProductRow"><b>'+E(x?.name||x?.product_name||x?.id||'Produk')+'</b><span>×'+Math.max(1,Number(x?.quantity||x?.qty||1))+'</span></div>').join('')||'<div class="taskMore">Belum ada produk</div>')+'</div></div>';
+}
+function taskActionHtml(j){
+ const d=j.delivery||{},phone=clean(j.customer_phone),coords=jobCoords(j);
+ const address=j.kind==='deliver'?(d.address||''):(d.return_address||d.address||'');
+ const nav=coords?('https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(coords.lat+','+coords.lng)):(d.maps_url||('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(address||'')));
+ const parts=[];
+ if(j.status==='assigned')parts.push('<button class="primary" data-action="next" data-id="'+E(j.id)+'" data-status="to_pickup">Berangkat ke lokasi</button>');
+ else if(j.status==='to_pickup')parts.push('<button class="primary" data-action="next" data-id="'+E(j.id)+'" data-status="picked_up">Barang sudah diambil</button>');
+ else if(j.status==='picked_up')parts.push('<button class="proofAction" data-action="open-proof" data-id="'+E(j.id)+'" data-stage="dispatch">'+(j.kind==='deliver'?'Proses Antar + Foto':'Proses Jemput + Foto')+'</button>');
+ else if(j.status==='on_the_way')parts.push('<button class="primary" data-action="next" data-id="'+E(j.id)+'" data-status="arrived">Sudah tiba</button>');
+ else if(j.status==='arrived')parts.push('<button class="receiveAction" data-action="open-proof" data-id="'+E(j.id)+'" data-stage="received">'+(j.kind==='deliver'?'Proses Terima Customer + Foto':'Proses Terima Gudang + Foto')+'</button>');
+ if(nav)parts.push('<a href="'+E(nav)+'" target="_blank" rel="noopener">Navigasi</a>');
+ if(phone)parts.push('<a class="wa" href="https://wa.me/'+E(phone)+'" target="_blank" rel="noopener">WhatsApp</a>');
+ return '<div class="taskActions">'+parts.join('')+'</div>';
+}
+function taskTableHtml(open){
+ return '<div class="driverTaskTableWrap"><table class="driverTaskTable"><thead><tr><th class="taskColOrder">Order</th><th class="taskColCustomer">Customer</th><th class="taskColType">Jenis</th><th class="taskColSchedule">Jadwal</th><th class="taskColStatus">Status / Bukti</th><th class="taskColProducts">Produk</th><th class="taskColActions">Proses</th></tr></thead><tbody>'+
+ (open.map(j=>{
+   const p=j.proofs||{};
+   return '<tr><td class="taskOrder"><b>'+E(j.order_number||j.id)+'</b><small>'+E(j.queue_position?'Antrian '+j.queue_position:'Tugas driver')+'</small></td>'+
+    '<td class="taskCustomer"><b>'+E(j.customer_name||'-')+'</b><small>'+E(j.customer_phone||'-')+'</small></td>'+
+    '<td><span class="taskKind '+E(j.kind)+'">'+(j.kind==='deliver'?'ANTAR':'JEMPUT')+'</span></td>'+
+    '<td class="taskSchedule"><b>'+E(fmt(j.scheduled_at))+'</b><small>'+E(j.start_date||'')+(j.end_date?' → '+E(j.end_date):'')+'</small></td>'+
+    '<td><div class="taskStatusWrap"><span class="status '+statusClass(j.status)+'"><i></i>'+E(labels[j.status]||j.status)+'</span><div class="taskProofs"><span class="taskProof '+(p.dispatch?'ok':'')+'">Foto proses '+(p.dispatch?'✓':'—')+'</span><span class="taskProof '+(p.received?'ok':'')+'">Foto terima '+(p.received?'✓':'—')+'</span></div></div></td>'+
+    '<td>'+taskProductsHtml(j)+'</td><td>'+taskActionHtml(j)+'</td></tr>';
+ }).join('')||'<tr><td colspan="7"><div class="driverPageEmpty">Belum ada tugas antar–jemput aktif.</div></td></tr>')+
+ '</tbody></table></div>';
+}
+
 function tasksPage(jobs,open,todayCount){
- const today=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Jakarta'});
- const todayJobs=open.filter(x=>String(x.scheduled_at||'').slice(0,10)===today);
- const deliver=todayJobs.filter(x=>x.kind==='deliver'),collect=todayJobs.filter(x=>x.kind==='collect'),moving=todayJobs.filter(x=>['to_pickup','picked_up','on_the_way','arrived'].includes(x.status));
- return '<section class="driverPage">'+driverPageHeader('TUGAS HARI INI','Tugas Hari Ini','Fokus pada order yang harus dikerjakan hari ini.')+
- driverKpis([['Total Hari Ini',todayJobs.length,'Semua jadwal'],['Antar',deliver.length,'Pengantaran'],['Jemput',collect.length,'Penjemputan'],['Berjalan',moving.length,'Sedang dikerjakan']])+
- '<div class="driverAnalyticsGrid">'+driverDonutChart('Komposisi Tugas','Perbandingan antar dan jemput hari ini.',todayJobs.length,[['Antar',deliver.length],['Jemput',collect.length]])+
- driverDonutChart('Status Hari Ini','Progres pelaksanaan tugas hari ini.',todayJobs.length,[['Menunggu',todayJobs.filter(x=>x.status==='assigned').length],['Berjalan',moving.length],['Selesai',0]])+'</div>'+
- '<div class="sectionTitle"><h2>Daftar Tugas</h2><span>'+todayJobs.length+' tugas</span></div><section class="jobs">'+(todayJobs.map(jobCard).join('')||'<div class="driverPageEmpty">Tidak ada tugas untuk hari ini.</div>')+'</section></section>';
+ const deliver=open.filter(x=>x.kind==='deliver'),collect=open.filter(x=>x.kind==='collect'),moving=open.filter(x=>['to_pickup','picked_up','on_the_way','arrived'].includes(x.status));
+ const proofStarted=open.filter(x=>x.proofs?.dispatch).length;
+ return '<section class="driverPage">'+driverPageHeader('TUGAS ANTAR–JEMPUT','Tugas Antar–Jemput','Semua tugas aktif driver, daftar produk dan proses serah-terima dengan bukti foto.')+
+ driverKpis([['Tugas Aktif',open.length,'Semua jadwal aktif'],['Antar',deliver.length,'Pengantaran'],['Jemput',collect.length,'Penjemputan'],['Sudah Ada Bukti',proofStarted,'Foto proses tersimpan']])+
+ '<div class="driverAnalyticsGrid">'+driverDonutChart('Jenis Tugas','Perbandingan pengantaran dan penjemputan aktif.',Math.max(1,open.length),[['Antar',deliver.length],['Jemput',collect.length]])+
+ driverDonutChart('Progres Tugas','Status operasional semua tugas aktif.',Math.max(1,open.length),[['Ditugaskan',open.filter(x=>x.status==='assigned').length],['Berjalan',moving.length],['Tiba',open.filter(x=>x.status==='arrived').length]])+'</div>'+
+ '<div class="sectionTitle"><h2>Daftar Tugas Aktif</h2><span>'+open.length+' tugas</span></div>'+taskTableHtml(open)+'</section>';
 }
 function routePage(jobs,open){
  const stops=routeStops(open),deliver=stops.filter(x=>x.job.kind==='deliver').length,collect=stops.filter(x=>x.job.kind==='collect').length,mapped=stops.length;
@@ -854,7 +928,23 @@ async function saveOps(form){
    const orderNumber=activeJob?.order_number||'OPERASIONAL';
    if(progress)progress.textContent='Menyiapkan lokasi & alamat…';
    const photoCtx=await getOperationalPhotoContext();
-   if(kind==='checkout'){
+   if(kind==='proof'){
+     const assignmentId=String(fd.get('assignment_id')||'');
+     const stage=String(fd.get('stage')||'dispatch');
+     const job=(data?.jobs||[]).find(j=>String(j.id)===assignmentId);
+     if(!job)throw new Error('Tugas tidak ditemukan');
+     const plate=vehicleData?.active_shift?.plate||job.vehicle?.plate||'-';
+     const label=stage==='received'?(job.kind==='deliver'?'BUKTI TERIMA CUSTOMER':'BUKTI TERIMA GUDANG'):(job.kind==='deliver'?'BUKTI PROSES ANTAR':'BUKTI PROSES JEMPUT');
+     if(progress)progress.textContent='Memberi watermark & upload foto bukti…';
+     const photo=await processOperationalPhotoWithContext(fd.get('proof_photo'),label,plate,job.order_number||orderNumber,photoCtx);
+     if(progress)progress.textContent='Menyimpan bukti dan status tugas…';
+     const d=await rpc('rentcam_driver_submit_proof',{
+       p_token:token,p_assignment:assignmentId,p_stage:stage,p_photo:photo,
+       p_recipient:String(fd.get('recipient')||'').trim(),p_notes:String(fd.get('notes')||'').trim(),
+       p_lat:photoCtx.lat,p_lng:photoCtx.lng,p_accuracy:Math.round(photoCtx.accuracy||0),p_address:photoCtx.address
+     });
+     if(!d?.ok)throw new Error(d?.message||'Gagal menyimpan bukti tugas');
+   }else if(kind==='checkout'){
      const selected=(vehicleData?.vehicles||[]).find(v=>String(v.id)===String(fd.get('vehicle_id')));
      const plate=selected?.plate||'-';
      if(progress)progress.textContent='Memproses & upload 2 foto sekaligus…';
@@ -945,6 +1035,7 @@ document.addEventListener('click',async e=>{
  const b=e.target.closest('[data-action]');if(!b)return;
  const a=b.dataset.action;
  if(a==='refresh'){await load();return}
+ if(a==='open-proof'){opsModal={type:'proof',id:b.dataset.id,stage:b.dataset.stage};render();return}
  if(a==='open-checkout'){opsModal='checkout';render();return}
  if(a==='open-fuel'){if(!vehicleData?.active_shift){alert('Ambil kunci kendaraan dulu.');return}opsModal='fuel';render();return}
  if(a==='open-return'){if(!vehicleData?.active_shift){alert('Tidak ada kendaraan yang sedang dibawa.');return}opsModal='return';render();return}
