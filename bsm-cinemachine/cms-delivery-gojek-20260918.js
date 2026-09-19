@@ -1036,6 +1036,80 @@
     .gd-modal{position:fixed;inset:0;z-index:500;display:grid;place-items:center;padding:18px;background:rgba(7,13,23,.62);backdrop-filter:blur(8px)}.gd-dialog{width:min(620px,100%);max-height:92dvh;overflow:auto;background:#f7f9fb;border-radius:24px;box-shadow:0 30px 90px rgba(0,0,0,.30)}.gd-dialog-head{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:18px 21px;background:#fff;border-bottom:1px solid #e6eaf0}.gd-dialog-head small{font-size:8px;letter-spacing:.12em;color:#f26a21;font-weight:900}.gd-dialog-head h3{margin:3px 0 0;font-size:18px}.gd-dialog-head>button{width:38px;height:38px;padding:0;border-radius:50%;background:#f1f3f6;color:#334056;font-size:20px}.gd-form{padding:20px}.gd-form label{display:block;margin-bottom:13px;font-size:10px;color:#5c687a;font-weight:800}.gd-form input,.gd-form select,.gd-form textarea{display:block;width:100%;margin-top:6px;border:1px solid #d9dfe8;border-radius:12px;background:#fff;padding:11px 12px;font:inherit;font-size:12px;color:#25334a;outline:none}.gd-form textarea{min-height:88px;resize:vertical}.gd-master-warning{margin:-2px 0 14px;padding:11px 12px;border-radius:12px;background:#fff6ed;color:#9a5a2a;font-size:10px;line-height:1.45}.gd-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.gd-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
     @media(max-width:900px){.gd-list{grid-template-columns:1fr}.gd-hero{align-items:flex-start;flex-direction:column}.gd-stats{grid-template-columns:1fr 1fr}.gd-dist-body{grid-template-columns:1fr}.gd-route-groups{border-left:0;border-top:1px solid #edf0f4;max-height:none}.gd-dispatch-map{min-height:360px}}
     @media(max-width:620px){.gd-dist-head{align-items:flex-start;flex-direction:column}.gd-dist-head button{width:100%}.gd-dispatch-map{min-height:300px}.gd-hero{padding:20px;border-radius:19px}.gd-hero h2{font-size:24px}.gd-hero-actions{width:100%}.gd-hero-actions button{flex:1}.gd-stats{gap:8px}.gd-stats button{min-height:78px;padding:13px;border-radius:15px}.gd-stats strong{font-size:23px}.gd-toolbar{align-items:stretch;flex-direction:column}.gd-toolbar input{min-width:0;width:100%}.gd-job{padding:15px;border-radius:18px}.gd-jobtop{flex-direction:column}.gd-two{grid-template-columns:1fr}.gd-actions>*{flex:1 1 calc(50% - 8px)}}
+
+    /* Mobile task cards: keep desktop table, switch to readable cards on phones */
+    @media(max-width:760px){
+      .gd-toolbar{align-items:stretch!important;flex-direction:column!important;gap:8px!important}
+      .gd-toolbar input{min-width:0!important;width:100%!important}
+      .gd-job-table-shell{display:block!important;overflow:visible!important}
+      .gd-job-table-scroll{
+        width:100%!important;max-width:100%!important;overflow:visible!important;
+        border:0!important;border-radius:0!important;background:transparent!important;
+        box-shadow:none!important;scrollbar-gutter:auto!important
+      }
+      .gd-job-table{
+        display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;
+        table-layout:auto!important;background:transparent!important;border-collapse:separate!important
+      }
+      .gd-job-table thead{display:none!important}
+      .gd-job-table tbody{display:grid!important;grid-template-columns:1fr!important;gap:12px!important;width:100%!important}
+      .gd-job-table tr.gd-job{
+        display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+        width:100%!important;min-width:0!important;padding:0!important;margin:0!important;
+        overflow:hidden!important;background:#fff!important;border:1px solid #e2e7ef!important;
+        border-radius:18px!important;box-shadow:0 7px 24px rgba(18,32,56,.055)!important
+      }
+      .gd-job-table tr.gd-job td{
+        display:block!important;position:static!important;left:auto!important;width:auto!important;min-width:0!important;
+        padding:12px 14px!important;border:0!important;background:#fff!important;box-shadow:none!important;
+        overflow-wrap:anywhere!important;word-break:break-word!important
+      }
+      .gd-job-table tr.gd-job td::before{
+        display:block!important;margin:0 0 6px!important;color:#98a3b3!important;
+        font-size:7.5px!important;font-weight:950!important;letter-spacing:.11em!important;line-height:1!important
+      }
+      .gd-job-table tr.gd-job td:nth-child(1){grid-column:1/-1!important;padding-top:14px!important;padding-bottom:13px!important;border-bottom:1px solid #edf1f6!important}
+      .gd-job-table tr.gd-job td:nth-child(1)::before{content:"ORDER"}
+      .gd-job-table tr.gd-job td:nth-child(2)::before{content:"CUSTOMER"}
+      .gd-job-table tr.gd-job td:nth-child(3)::before{content:"JADWAL"}
+      .gd-job-table tr.gd-job td:nth-child(4){grid-column:1/-1!important;border-top:1px solid #f1f3f6!important;border-bottom:1px solid #f1f3f6!important}
+      .gd-job-table tr.gd-job td:nth-child(4)::before{content:"LOKASI / TUJUAN"}
+      .gd-job-table tr.gd-job td:nth-child(5)::before{content:"DRIVER"}
+      .gd-job-table tr.gd-job td:nth-child(6)::before{content:"STATUS / GPS"}
+      .gd-job-table tr.gd-job td:nth-child(7){grid-column:1/-1!important;padding-top:11px!important;border-top:1px solid #edf1f6!important}
+      .gd-job-table tr.gd-job td:nth-child(7)::before{content:"AKSI"}
+      .gd-job-table .gd-col-order>small{display:none!important}
+      .gd-job-table .gd-col-order>b{font-size:13px!important;line-height:1.3!important}
+      .gd-job-table .gd-kind{margin:0 0 8px!important}
+      .gd-job-table td>b{font-size:11px!important;line-height:1.35!important}
+      .gd-job-table td>small{font-size:9px!important;line-height:1.4!important}
+      .gd-job-table td>em{font-size:9px!important;line-height:1.5!important}
+      .gd-table-driver{padding:9px 10px!important;border-radius:11px!important}
+      .gd-table-driver b{font-size:10px!important}
+      .gd-table-driver small{font-size:8px!important}
+      .gd-table-live{margin-top:7px!important;padding:8px 9px!important;border-radius:10px!important}
+      .gd-table-map{margin-top:7px!important}
+      .gd-table-edit{width:100%!important;min-height:38px!important;margin-top:9px!important}
+      .gd-table-actions{grid-template-columns:1fr 1fr!important;gap:7px!important}
+      .gd-table-actions button,.gd-table-actions a{
+        min-height:42px!important;padding:8px 9px!important;font-size:9px!important;border-radius:10px!important
+      }
+      .gd-table-actions .primary{grid-column:1/-1!important}
+      .gd-table-code{margin-top:9px!important;font-size:8px!important}
+    }
+    @media(max-width:430px){
+      .gd-job-table tr.gd-job{grid-template-columns:1fr!important}
+      .gd-job-table tr.gd-job td{grid-column:1/-1!important;padding:11px 13px!important}
+      .gd-job-table tr.gd-job td:nth-child(2),
+      .gd-job-table tr.gd-job td:nth-child(3),
+      .gd-job-table tr.gd-job td:nth-child(5),
+      .gd-job-table tr.gd-job td:nth-child(6){border-top:1px solid #f4f5f7!important}
+      .gd-table-actions{grid-template-columns:1fr 1fr!important}
+      .gd-hero{padding:16px!important}
+      .gd-hero h2{font-size:22px!important}
+      .gd-hero p{font-size:10px!important;line-height:1.5!important}
+    }
+
     `;document.head.appendChild(s);
   }
 
