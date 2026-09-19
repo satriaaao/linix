@@ -1,0 +1,30 @@
+name: Test Rentalcamera Regression
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'bsm-cinemachine/api/site.js'
+      - 'bsm-cinemachine/index.html'
+      - 'bsm-cinemachine/public-template-popup-20260913.js'
+      - 'bsm-cinemachine/tests/**'
+      - '.github/workflows/test-rentalcamera-regression.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bsm-cinemachine
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run regression tests
+        run: |
+          node tests/cart-navigation-20260919.test.js
+          node tests/promo-asset-routing-20260919.test.js
