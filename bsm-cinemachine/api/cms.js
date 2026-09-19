@@ -1,4 +1,10 @@
-const SOURCE='https://cdn.jsdelivr.net/gh/satriaaao/linix@d82904a6846dfb5d1d7b230a4f8ede5c1e869689/bsm-cinemachine/cms-v15-20260918.html';
+const SOURCE='https://cdn.jsdelivr.net/gh/satriaaao/linix@17dc79ad47da96beabf09c50ad03f8cf9b89be0c/bsm-cinemachine/cms-v15-20260918.html';
+
+function sanitizeCmsHtml(html){
+  return String(html||'')
+    .replace(/<link\b[^>]*href=["'][^"']*cart-mobile-layout-fix-20260919\.css[^"']*["'][^>]*>/gi,'')
+    .replace(/<link\b[^>]*href=["'][^"']*cart[^"']*\.css[^"']*["'][^>]*data-public-only[^>]*>/gi,'');
+}
 
 async function handler(req,res){
   if(req.method!=='GET'&&req.method!=='HEAD'){
@@ -7,7 +13,7 @@ async function handler(req,res){
   try{
     const r=await fetch(SOURCE,{cache:'no-store'});
     if(!r.ok)throw new Error('cms source '+r.status);
-    const html=await r.text();
+    const html=sanitizeCmsHtml(await r.text());
     res.statusCode=200;
     res.setHeader('content-type','text/html; charset=utf-8');
     res.setHeader('cache-control','no-store, max-age=0');
@@ -19,3 +25,5 @@ async function handler(req,res){
   }
 }
 module.exports=handler;
+module.exports._sanitizeCmsHtml=sanitizeCmsHtml;
+module.exports._source=SOURCE;
