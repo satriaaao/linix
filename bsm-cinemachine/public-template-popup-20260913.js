@@ -42,10 +42,14 @@
     const isNew=type.includes('new')||type.includes('baru');
     const label=p.floatLabel||(chosenLabels.length?chosenLabels.map(x=>x.toUpperCase()).join(' / '):(isNew?'BARANG BARU':'PROMO'));
     const list=promoItems(p,isNew,label,chosenLabels);
-    const labelQuery=chosenLabels.length?'/produk?label='+encodeURIComponent(chosenLabels.join(',')):'';
-    const primaryPath=p.buttonLink&&p.buttonLink!=='/produk'?p.buttonLink:(labelQuery||'/produk?'+(isNew?'new=1':'promo=1'));
+    const labelQuery=chosenLabels.length?'/produk?label='+encodeURIComponent(chosenLabels.join(',')):'/produk?label=promo%2Cnew%2Cdiskon';
+    const primaryPath=p.buttonLink&&p.buttonLink!=='/produk'?p.buttonLink:labelQuery;
     const listPath=()=>primaryPath||'/produk?label=promo%2Cnew%2Cdiskon';
-    const navigateList=()=>{const path=listPath(); if(typeof go==='function')go(path); else location.href=path; requestAnimationFrame(()=>scrollTo(0,0));};
+    const navigateList=()=>{
+      const path=listPath();
+      try{sessionStorage.setItem('rentcam_force_promo_list','1')}catch(_){ }
+      location.assign(path);
+    };
     const wrap=document.createElement('div');
     wrap.className='rc-promo-widget';
     wrap.innerHTML=`<button class="rc-promo-hide" type="button" aria-label="Sembunyikan promo sementara">&times;</button>
@@ -62,6 +66,7 @@
     const endDrag=()=>{dragging=false;wrap.classList.remove('dragging');setTimeout(()=>{moved=false},0)};
     btn.addEventListener('pointerup',endDrag);btn.addEventListener('pointercancel',endDrag);
     btn.addEventListener('click',e=>{if(moved){e.preventDefault();return}e.preventDefault();e.stopPropagation();navigateList()});
+    btn.addEventListener('touchend',e=>{if(moved)return;e.preventDefault();e.stopPropagation();navigateList()},{passive:false});
     document.body.append(wrap);
   }
   function promoItems(p,isNew,label,chosenLabels=[]){
