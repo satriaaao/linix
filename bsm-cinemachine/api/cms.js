@@ -13,7 +13,7 @@ async function handler(req,res){
   try{
     const r=await fetch(SOURCE,{cache:'no-store'});
     if(!r.ok)throw new Error('cms source '+r.status);
-    const html=sanitizeCmsHtml(await r.text());
+    const html=injectCmsPwa(sanitizeCmsHtml(await r.text()));
     res.statusCode=200;
     res.setHeader('content-type','text/html; charset=utf-8');
     res.setHeader('cache-control','no-store, max-age=0');
@@ -26,4 +26,5 @@ async function handler(req,res){
 }
 module.exports=handler;
 module.exports._sanitizeCmsHtml=sanitizeCmsHtml;
+module.exports._injectCmsPwa=injectCmsPwa;
 module.exports._source=SOURCE;
