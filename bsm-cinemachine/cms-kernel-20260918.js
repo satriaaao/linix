@@ -6,6 +6,8 @@
     root.RentcamCmsKernel=lib.install(root);
   }
 })(typeof window!=='undefined'?window:null,function(){
+  const CDN_BASE='https://cdn.jsdelivr.net/gh/'+'satriaaao/linix@';
+  const ADVANCED_UI_SRC=CDN_BASE+'81eb7a8963c3ad50dd93daded6003f3825bb1739/bsm-cinemachine/cms-admin-all-tables-adapter-20260918.js';
   const MANIFEST=[
     {id:'app',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@8d9f04d1b7649dec4f515338bbe01e9ed48947d8/bsm-cinemachine/app.js'},
     {id:'live-base',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@003200da1b76e901196fd1a56eacebadfab3a89c/bsm-cinemachine/rentcam-live-v2.js',after:['app']},
@@ -14,7 +16,7 @@
     {id:'media',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@5594ada689dba66ac285d271f4bfd383c58dd4e8/bsm-cinemachine/cms-media-20260918.js',after:['admin-client','config-store']},
     {id:'data-tables',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@cf75d3e38eda2ca803f7ee55e2617a019f29db1c/bsm-cinemachine/cms-data-tables-20260918.js',after:['admin-client']},
     {id:'publishing',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@0a88133a8e4fe4852a54cf4a9edfa9c6e57c29c4/bsm-cinemachine/cms-publishing-20260918.js',after:['config-store']},
-    {id:'cms-ui',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@81eb7a8963c3ad50dd93daded6003f3825bb1739/bsm-cinemachine/cms-admin-all-tables-adapter-20260918.js',after:['config-store','media','data-tables']},
+    {id:'cms-ui',src:ADVANCED_UI_SRC,after:['config-store','media','data-tables']},
     {id:'promo-schedule',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@509c90dfb8cfaa3c0f6564cafdd27555dad2388e/bsm-cinemachine/cms-promo-publishing-adapter-20260918.js',after:['cms-ui','publishing']},
     {id:'global-status',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@2d79b380805c155f0bf7b6f8a63480729c0e4e0c/bsm-cinemachine/cms-global-status-publishing-adapter-20260918.js',after:['cms-ui','publishing']},
     {id:'product-sync',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@9e74e816c0c8887553503244ec7e87c04fcfa347/bsm-cinemachine/cms-product-publishing-adapter-20260918.js',after:['cms-ui','publishing']},
