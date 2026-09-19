@@ -6,7 +6,7 @@ const cmsUi = require('../api/cms-ui.js');
 const ui = kernel.MANIFEST.find(x => x.id === 'cms-ui');
 assert.ok(ui, 'cms-ui manifest entry must exist');
 assert.strictEqual(ui.src, '/api/cms-ui', 'cms-ui must load through the local stable CMS UI endpoint');
-assert.ok(String(cmsUi._source||'').includes('81eb7a8963c3ad50dd93daded6003f3825bb1739'), 'CMS UI endpoint must proxy the known-good advanced UI commit');
+assert.ok(String(cmsUi._source||'').includes('382fd05f462d3cd97f38e3773826c1cc9ae305a7'), 'CMS UI endpoint must proxy the known-good advanced UI commit');
 
 assert.strictEqual(typeof cms._sanitizeCmsHtml, 'function', 'CMS HTML sanitizer must be exported for regression testing');
 const dirty = '<!doctype html><head><link rel="stylesheet" href="/assets/vendor/f4c7a2d91b-cart-mobile-layout-fix-20260919.css"><link rel="stylesheet" href="/cms.css"></head><body></body>';
