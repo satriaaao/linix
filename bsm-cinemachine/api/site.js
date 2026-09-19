@@ -44,6 +44,7 @@ function patchPublicHtml(html,seo){
   out=out.replace(/<main\s+id=["']app["']\s*><\/main>/i,ssr);
   out=out.replace(/src="\/product-search-20260912\.js(?:\?[^\"]*)?"/,'src="/product-search-20260912.js?v=geo4"');
   out=out.replace(/src="\/general-products-20260913\.js(?:\?[^\"]*)?"/,'src="/general-products-20260913.js?v=pcfix1"');
+  // Promo tab: direct-to-product runtime. Do not point this back to panel/list build.
   out=out.replace(/src=["']\/public-template-popup-20260913\.js(?:\?[^"']*)?["']/i,'src="https://cdn.jsdelivr.net/gh/satriaaao/linix@2fb716ff6f62a15cbd2cd35b0f5a9f8287e9ab94/bsm-cinemachine/public-template-popup-20260913.js"');
   out=out.replace(/src="\/cart-click-fix-20260914\.js(?:\?[^\"]*)?"/,'src="/cart-click-fix-20260914.js?v=pcfix1"');
   return out;
