@@ -4,7 +4,7 @@
   const SB='https://xleceiffuopioeguniwj.supabase.co';
   const KEY='sb_publishable_POksYryhG_mkFbs7N0fjKQ_4dUim7Ex';
   const AUTH='rentcam_cms_auth';
-  let cfg={},page='products',modal=null,dirty=false,q='',masterTab='mainCategories';
+  let cfg={},page='products',modal=null,dirty=false,q='',masterTab='mainCategories',orderSearch='',orderStatusFilter='all',orderCache=[];
   const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   const clone=v=>JSON.parse(JSON.stringify(v));
   const slug=s=>String(s||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
@@ -187,40 +187,98 @@
   function orderTotal(o){const d=orderDetails(o);return Number(d.total_with_tax||d.grand_total||o.total)||0}
   function orderPhone(o){return String(o.phone||'').replace(/^0/,'62').replace(/[^0-9]/g,'')}
   function orderDate(v){if(!v)return '-';const d=new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString('id-ID')}
-  function ordersPage(){return `<div class="v5-card"><div class="v5-head"><div><h2>Order Masuk</h2><p>Semua order ditampilkan dalam tabel operasional.</p></div><button class="v5-btn" data-orders-refresh>Muat ulang</button></div><div id="v5orders">Memuat pesanan...</div></div>`}
+  function orderDashboardStyle(){
+    if(document.getElementById('rc-order-dashboard-style'))return;
+    const s=document.createElement('style');s.id='rc-order-dashboard-style';s.textContent=`
+      .rc-order-page{display:grid;gap:16px}
+      .rc-order-hero{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;padding:22px;border:1px solid #e2e7ef;border-radius:22px;background:linear-gradient(135deg,#111b2b,#192942);color:#fff;box-shadow:0 12px 34px rgba(17,28,46,.10)}
+      .rc-order-hero small{display:block;color:#ff9b65;font-size:9px;font-weight:950;letter-spacing:.14em}.rc-order-hero h2{margin:5px 0 4px;font-size:24px;letter-spacing:-.035em}.rc-order-hero p{margin:0;color:#aebace;font-size:11px;line-height:1.5}
+      .rc-order-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}.rc-order-kpi{padding:17px;border:1px solid #e2e7ef;border-radius:17px;background:#fff;box-shadow:0 5px 18px rgba(25,39,58,.035)}.rc-order-kpi span{display:block;color:#7d899a;font-size:10px;font-weight:800}.rc-order-kpi strong{display:block;margin-top:7px;color:#1d2c43;font-size:27px;line-height:1;letter-spacing:-.04em}.rc-order-kpi small{display:block;margin-top:6px;color:#99a3b1;font-size:8px;line-height:1.35}
+      .rc-order-chart{display:grid;grid-template-columns:190px minmax(0,1fr);gap:22px;align-items:center;padding:20px;border:1px solid #e2e7ef;border-radius:20px;background:#fff}.rc-order-donut-wrap{display:grid;place-items:center}.rc-order-donut{width:150px;height:150px;border-radius:50%;display:grid;place-items:center}.rc-order-donut-hole{width:96px;height:96px;border-radius:50%;display:grid;place-content:center;text-align:center;background:#fff;box-shadow:0 6px 22px rgba(20,34,55,.08)}.rc-order-donut-hole strong{font-size:28px;color:#1c2c43;line-height:1}.rc-order-donut-hole span{margin-top:5px;color:#8a96a8;font-size:8px;font-weight:800}
+      .rc-order-chart-info>small{display:block;color:#f26a21;font-size:9px;font-weight:950;letter-spacing:.13em}.rc-order-chart-info h3{margin:5px 0 13px;color:#223149;font-size:18px}.rc-order-bars{display:grid;gap:8px}.rc-order-bar{display:grid;grid-template-columns:105px 1fr 34px;gap:9px;align-items:center}.rc-order-bar label{font-size:9px;color:#59687d;font-weight:850}.rc-order-track{height:8px;border-radius:999px;background:#edf1f5;overflow:hidden}.rc-order-track i{display:block;height:100%;border-radius:999px}.rc-order-track i.new{background:#f0a22e}.rc-order-track i.confirmed{background:#3e74dc}.rc-order-track i.completed{background:#27a678}.rc-order-track i.cancelled{background:#df6870}.rc-order-bar b{text-align:right;font-size:10px;color:#304158}
+      .rc-order-toolbar{display:grid;grid-template-columns:minmax(0,1fr) 190px auto;gap:9px;align-items:center;padding:13px;border:1px solid #e2e7ef;border-radius:16px;background:#fff}.rc-order-toolbar input,.rc-order-toolbar select{width:100%;height:44px;border:1px solid #dce2eb;border-radius:11px;background:#fff;padding:0 12px;color:#26364d;font-size:12px;outline:none}.rc-order-toolbar input:focus,.rc-order-toolbar select:focus{border-color:#f58a50;box-shadow:0 0 0 3px rgba(242,106,33,.1)}
+      .rc-order-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.rc-order-card{min-width:0;padding:17px;border:1px solid #e2e7ef;border-radius:18px;background:#fff;box-shadow:0 5px 18px rgba(25,39,58,.035)}.rc-order-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding-bottom:12px;border-bottom:1px solid #edf0f4}.rc-order-card-head h3{margin:5px 0 2px;color:#203047;font-size:16px;line-height:1.25;word-break:break-word}.rc-order-card-head p{margin:0;color:#8a96a7;font-size:9px}.rc-order-status-tag{display:inline-flex;padding:5px 7px;border-radius:999px;background:#fff3e9;color:#b55e26;font-size:7px;font-weight:950;letter-spacing:.07em;white-space:nowrap}.rc-order-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.rc-order-cell{min-width:0;padding:10px;border-radius:11px;background:#f7f9fb}.rc-order-cell small{display:block;color:#929dac;font-size:7px;font-weight:900;letter-spacing:.07em}.rc-order-cell b{display:block;margin-top:4px;color:#2c3c53;font-size:10px;line-height:1.35;word-break:break-word}.rc-order-card-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}.rc-order-card-meta .v5-pill{font-size:8px!important}.rc-order-card-actions{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin-top:12px}.rc-order-card-actions select{width:100%;min-width:0;height:38px;border:1px solid #dce2eb;border-radius:10px;background:#fff;padding:0 9px;font-size:9px}.rc-order-wa{height:38px;padding:0 11px;border-radius:10px;background:#edf8f3;color:#21775c;text-decoration:none;display:inline-flex;align-items:center;font-size:9px;font-weight:900}.rc-order-details{margin-top:11px;border-top:1px solid #edf0f4;padding-top:10px}.rc-order-details summary{cursor:pointer;color:#2f6fd1;font-size:9px;font-weight:900}.rc-order-details-body{display:grid;gap:7px;margin-top:9px;color:#67758a;font-size:8px;line-height:1.45}.rc-order-details ul{margin:0;padding-left:16px}.rc-order-empty{grid-column:1/-1;padding:28px;text-align:center;color:#8793a4;border:1px dashed #d9e0e8;border-radius:17px;background:#fff}
+      @media(max-width:760px){.rc-order-hero{align-items:stretch;flex-direction:column}.rc-order-kpis{grid-template-columns:1fr 1fr}.rc-order-kpi{padding:14px}.rc-order-kpi strong{font-size:24px}.rc-order-chart{grid-template-columns:120px minmax(0,1fr);gap:13px;padding:15px}.rc-order-donut{width:106px;height:106px}.rc-order-donut-hole{width:68px;height:68px}.rc-order-donut-hole strong{font-size:21px}.rc-order-bar{grid-template-columns:76px 1fr 24px;gap:6px}.rc-order-bar label{font-size:7.5px}.rc-order-toolbar{grid-template-columns:1fr 140px}.rc-order-toolbar [data-orders-refresh]{grid-column:1/-1}.rc-order-list{grid-template-columns:1fr}.rc-order-card{padding:14px}}
+      @media(max-width:430px){.rc-order-chart{grid-template-columns:1fr}.rc-order-donut-wrap{padding-bottom:3px}.rc-order-toolbar{grid-template-columns:1fr}.rc-order-toolbar select,.rc-order-toolbar [data-orders-refresh]{grid-column:1}.rc-order-card-grid{grid-template-columns:1fr 1fr}}
+    `;document.head.appendChild(s);
+  }
+  function ordersPage(){orderDashboardStyle();return '<div class="rc-order-page"><div id="v5orders">Memuat pesanan...</div></div>'}
+  function renderOrdersDashboard(){
+    const host=document.getElementById('v5orders');if(!host||page!=='orders')return;
+    const orders=Array.isArray(orderCache)?orderCache:[];
+    const total=orders.length;
+    const fresh=orders.filter(o=>String(o.status||'new')==='new').length;
+    const confirmed=orders.filter(o=>String(o.status||'')==='confirmed').length;
+    const completed=orders.filter(o=>String(o.status||'')==='completed').length;
+    const cancelled=orders.filter(o=>String(o.status||'')==='cancelled').length;
+    const paid=orders.filter(o=>String(o.payment_status||'').toLowerCase()==='paid').length;
+    const unpaid=orders.filter(o=>String(o.payment_status||'').toLowerCase()!=='paid').length;
+    const pct=n=>total?Math.max(0,Math.min(100,n/total*100)):0;
+    const pNew=pct(fresh),pConfirmed=pct(confirmed),pCompleted=pct(completed),pCancelled=pct(cancelled);
+    const stop1=pNew,stop2=pNew+pConfirmed,stop3=pNew+pConfirmed+pCompleted;
+    const donut='conic-gradient(#f0a22e 0 '+stop1.toFixed(2)+'%,#3e74dc '+stop1.toFixed(2)+'% '+stop2.toFixed(2)+'%,#27a678 '+stop2.toFixed(2)+'% '+stop3.toFixed(2)+'%,#df6870 '+stop3.toFixed(2)+'% 100%)';
+    const needle=String(orderSearch||'').trim().toLowerCase();
+    const visible=orders.filter(o=>{
+      const status=String(o.status||'new');
+      if(orderStatusFilter!=='all'&&status!==orderStatusFilter)return false;
+      if(!needle)return true;
+      return [o.order_number,o.id,o.customer_name,o.phone,o.email].some(v=>String(v||'').toLowerCase().includes(needle));
+    });
+    const cards=visible.map(o=>{
+      const items=orderItems(o),payment=paymentStatuses[o.payment_status]||o.payment_status||'Belum Bayar',rental=rentalStatuses[o.rental_status]||o.rental_status||'-';
+      const statusLabel=orderStatuses[o.status]||o.status||'Baru';
+      const wa=orderPhone(o);
+      return '<article class="rc-order-card">'+
+        '<div class="rc-order-card-head"><div><span class="rc-order-status-tag">'+esc(statusLabel)+'</span><h3>'+esc(o.order_number||o.id||'-')+'</h3><p>'+esc(orderDate(o.created_at))+'</p></div><span class="v5-pill '+(String(o.payment_status||'').toLowerCase()==='paid'?'on':'')+'">'+esc(payment)+'</span></div>'+
+        '<div class="rc-order-card-grid">'+
+          '<div class="rc-order-cell"><small>CUSTOMER</small><b>'+esc(o.customer_name||'-')+'</b></div>'+
+          '<div class="rc-order-cell"><small>PERIODE</small><b>'+esc(o.start_date||'-')+' → '+esc(o.end_date||'-')+'</b></div>'+
+          '<div class="rc-order-cell"><small>TOTAL</small><b>'+rp(orderTotal(o))+'</b></div>'+
+          '<div class="rc-order-cell"><small>ITEM</small><b>'+items.length+' item</b></div>'+
+        '</div>'+
+        '<div class="rc-order-card-meta"><span class="v5-pill '+(['rented','active','completed'].includes(String(o.rental_status||'').toLowerCase())?'on':'')+'">'+esc(rental)+'</span><span class="v5-pill">Dibayar '+rp(o.paid_amount||0)+'</span></div>'+
+        '<div class="rc-order-card-actions"><select data-order-status="'+esc(o.id)+'" aria-label="Status pesanan '+esc(o.order_number||'')+'">'+Object.entries(orderStatuses).map(([key,label])=>'<option value="'+key+'" '+(o.status===key?'selected':'')+'>'+esc(label)+'</option>').join('')+'</select>'+(wa?'<a class="rc-order-wa" href="https://wa.me/'+esc(wa)+'" target="_blank" rel="noopener">WhatsApp</a>':'')+'</div>'+
+        '<details class="rc-order-details"><summary>Lihat detail order</summary><div class="rc-order-details-body"><div><b>Email:</b> '+esc(o.email||'-')+'</div><div><b>WhatsApp:</b> '+esc(o.phone||'-')+'</div><div><b>Catatan:</b> '+esc(o.notes||'-')+'</div>'+(items.length?'<div><b>Item:</b><ul>'+items.map(p=>'<li>'+esc(p.name||p.product_name||p.id||'Produk')+' · '+Number(p.quantity||p.qty||1)+' unit × '+Number(p.days||1)+' hari'+(p.amount!=null?' · '+rp(p.amount):'')+'</li>').join('')+'</ul></div>':'')+'</div></details>'+
+      '</article>';
+    }).join('');
+    host.innerHTML=
+      '<section class="rc-order-hero"><div><small>ORDER CENTER</small><h2>Order Masuk</h2><p>Pantau order, pembayaran, status sewa dan customer dalam satu dashboard.</p></div><button class="v5-btn" data-orders-refresh>Perbarui</button></section>'+
+      '<section class="rc-order-kpis"><div class="rc-order-kpi"><span>Total Order</span><strong>'+total+'</strong><small>Semua order tercatat</small></div><div class="rc-order-kpi"><span>Order Baru</span><strong>'+fresh+'</strong><small>Menunggu tindak lanjut</small></div><div class="rc-order-kpi"><span>Lunas</span><strong>'+paid+'</strong><small>Pembayaran selesai</small></div><div class="rc-order-kpi"><span>Belum Lunas</span><strong>'+unpaid+'</strong><small>Belum/parsial/menunggu</small></div></section>'+
+      '<section class="rc-order-chart"><div class="rc-order-donut-wrap"><div class="rc-order-donut" style="background:'+donut+'"><div class="rc-order-donut-hole"><strong>'+total+'</strong><span>Total order</span></div></div></div><div class="rc-order-chart-info"><small>GRAFIK STATUS ORDER</small><h3>Distribusi Order</h3><div class="rc-order-bars">'+
+        '<div class="rc-order-bar"><label>Baru</label><div class="rc-order-track"><i class="new" style="width:'+pNew.toFixed(1)+'%"></i></div><b>'+fresh+'</b></div>'+
+        '<div class="rc-order-bar"><label>Dikonfirmasi</label><div class="rc-order-track"><i class="confirmed" style="width:'+pConfirmed.toFixed(1)+'%"></i></div><b>'+confirmed+'</b></div>'+
+        '<div class="rc-order-bar"><label>Selesai</label><div class="rc-order-track"><i class="completed" style="width:'+pCompleted.toFixed(1)+'%"></i></div><b>'+completed+'</b></div>'+
+        '<div class="rc-order-bar"><label>Dibatalkan</label><div class="rc-order-track"><i class="cancelled" style="width:'+pCancelled.toFixed(1)+'%"></i></div><b>'+cancelled+'</b></div>'+
+      '</div></div></section>'+
+      '<section class="rc-order-toolbar"><input data-order-search value="'+esc(orderSearch)+'" placeholder="Cari nomor, nama atau WhatsApp…"><select data-order-filter><option value="all" '+(orderStatusFilter==='all'?'selected':'')+'>Semua status</option>'+Object.entries(orderStatuses).map(([key,label])=>'<option value="'+key+'" '+(orderStatusFilter===key?'selected':'')+'>'+esc(label)+'</option>').join('')+'</select><button class="v5-btn" data-orders-refresh>Perbarui</button></section>'+
+      '<section class="rc-order-list">'+(cards||'<div class="rc-order-empty">Tidak ada order yang cocok dengan filter.</div>')+'</section>';
+  }
   async function loadOrders(){
     if(page!=='orders'||!logged())return;
     const host=document.getElementById('v5orders');if(!host)return;
     try{
       const orders=await req('/rest/v1/rentcam_orders?select=*&order=created_at.desc&limit=200');
       if(!host.isConnected)return;
-      const fresh=orders.filter(o=>o.status==='new').length;
-      host.innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 12px"><span style="font-size:12px;color:#667085"><b>${orders.length}</b> order · <b>${fresh}</b> baru</span></div>
-      <div class="v5-tablewrap"><table class="v5-table" style="min-width:1500px">
-      <thead><tr><th>No. Order</th><th>Pelanggan</th><th>WhatsApp</th><th>Tanggal Sewa</th><th>Item</th><th>Total</th><th>Pembayaran</th><th>Status Sewa</th><th>Status Order</th><th>Dibuat</th><th>Catatan / Aksi</th></tr></thead>
-      <tbody>${orders.map(o=>{const items=orderItems(o);const payment=paymentStatuses[o.payment_status]||o.payment_status||'Belum Bayar';const rental=rentalStatuses[o.rental_status]||o.rental_status||'-';return `
-        <tr>
-          <td><b>${esc(o.order_number||o.id||'-')}</b><small style="display:block;color:#8a95a5">${esc(String(o.id||'').slice(0,8))}</small></td>
-          <td><b>${esc(o.customer_name||'-')}</b><small style="display:block;color:#8a95a5">${esc(o.email||'-')}</small></td>
-          <td>${orderPhone(o)?`<a href="https://wa.me/${esc(orderPhone(o))}" target="_blank" rel="noopener">${esc(o.phone||'-')}</a>`:esc(o.phone||'-')}</td>
-          <td>${esc(o.start_date||'-')}<br><small>s/d ${esc(o.end_date||'-')}</small></td>
-          <td><b>${items.length} item</b>${items.length?`<details><summary>Lihat item</summary><ul style="padding-left:16px;margin:8px 0">${items.map(p=>`<li>${esc(p.name||p.product_name||p.id||'Produk')} · ${Number(p.quantity||p.qty||1)} unit × ${Number(p.days||1)} hari${p.amount!=null?' · '+rp(p.amount):''}</li>`).join('')}</ul></details>`:''}</td>
-          <td><b>${rp(orderTotal(o))}</b><small style="display:block;color:#8a95a5">Dibayar: ${rp(o.paid_amount||0)}</small></td>
-          <td><span class="v5-pill ${String(o.payment_status||'').toLowerCase()==='paid'?'on':''}">${esc(payment)}</span></td>
-          <td><span class="v5-pill ${['rented','active','completed'].includes(String(o.rental_status||'').toLowerCase())?'on':''}">${esc(rental)}</span></td>
-          <td><select class="v5-select" data-order-status="${esc(o.id)}" aria-label="Status pesanan ${esc(o.order_number||'')}">${Object.entries(orderStatuses).map(([key,label])=>`<option value="${key}" ${o.status===key?'selected':''}>${label}</option>`).join('')}</select></td>
-          <td>${esc(orderDate(o.created_at))}</td>
-          <td><span style="display:block;max-width:240px;white-space:normal">${esc(o.notes||'-')}</span></td>
-        </tr>`}).join('')||tableEmpty(11)}</tbody></table></div>`;
-    }catch(error){host.innerHTML='<div style="padding:18px;color:#b42318">Gagal memuat tabel order: '+esc(error.message||'Permintaan gagal')+'</div>'}
+      orderCache=Array.isArray(orders)?orders:[];
+      renderOrdersDashboard();
+    }catch(error){host.innerHTML='<div style="padding:18px;color:#b42318">Gagal memuat order: '+esc(error.message||'Permintaan gagal')+'</div>'}
   }
   document.addEventListener('click',event=>{if(event.target.closest?.('[data-orders-refresh]'))loadOrders()});
+  document.addEventListener('input',event=>{
+    const input=event.target;if(!input.matches?.('[data-order-search]'))return;
+    orderSearch=input.value||'';renderOrdersDashboard();
+    requestAnimationFrame(()=>{const el=document.querySelector('[data-order-search]');if(el){el.focus();try{el.setSelectionRange(orderSearch.length,orderSearch.length)}catch(_){}}});
+  });
   document.addEventListener('change',async event=>{
-    const select=event.target;if(!select.matches?.('[data-order-status]'))return;
+    const select=event.target;
+    if(select.matches?.('[data-order-filter]')){orderStatusFilter=select.value||'all';renderOrdersDashboard();return}
+    if(!select.matches?.('[data-order-status]'))return;
     select.disabled=true;
     try{
       await req('/rest/v1/rentcam_orders?id=eq.'+encodeURIComponent(select.dataset.orderStatus),{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({status:select.value})}).then(rows=>{if(!rows?.length)throw new Error('Tidak berizin')});
-      toast('Status pesanan diperbarui');loadOrders();
+      toast('Status pesanan diperbarui');
+      const row=orderCache.find(o=>String(o.id)===String(select.dataset.orderStatus));if(row)row.status=select.value;
+      renderOrdersDashboard();
     }catch(error){toast('Gagal memperbarui status','bad');loadOrders()}
     finally{select.disabled=false}
   });
