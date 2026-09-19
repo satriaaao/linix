@@ -33,8 +33,10 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      - name: Run cart regression test
-        run: node tests/cart-navigation-20260919.test.js
+      - name: Run regression tests
+        run: |
+          node tests/cart-navigation-20260919.test.js
+          node tests/promo-asset-routing-20260919.test.js
 
       - name: Pull Vercel project settings
         run: vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
