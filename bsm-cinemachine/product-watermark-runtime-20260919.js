@@ -1,4 +1,5 @@
 /* Rentcam product watermark runtime — live CMS controlled */
+/* deploy-trigger: watermark-cms */
 (()=>{
   if(window.__rentcamProductWatermarkRuntime)return;
   window.__rentcamProductWatermarkRuntime=true;
