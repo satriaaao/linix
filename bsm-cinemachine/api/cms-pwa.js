@@ -59,21 +59,20 @@ function ensureDock(){
   if(!document.body)return;
   css();
   var needInstall=!standalone();
-  var needNotify=Notification?.permission!=='granted';
   var dock=document.getElementById('cmsPwaDock');
   if(!dock){
     dock=document.createElement('div');dock.id='cmsPwaDock';
     document.body.appendChild(dock);
   }
   dock.innerHTML=(needInstall?'<button id="cmsPwaInstall">Pasang App iPhone</button>':'')+
-    '<button id="cmsPwaNotify" class="'+(Notification?.permission==='granted'?'on':'')+'">'+esc(notifyButtonLabel())+'</button>';
+    '<button id="cmsPwaNotify" class="'+(notifySupport()&&window.Notification.permission==='granted'?'on':'')+'">'+esc(notifyButtonLabel())+'</button>';
   var install=dock.querySelector('#cmsPwaInstall');
   if(install)install.onclick=function(){
     if(isIOS())modal('Pasang Rentcam CMS','Jadikan CMS seperti aplikasi iPhone tanpa App Store.','1. Buka halaman ini di <b>Safari</b><br>2. Tekan tombol <b>Bagikan</b><br>3. Pilih <b>Tambahkan ke Layar Utama</b><br>4. Tekan <b>Tambah</b>');
     else modal('Pasang Rentcam CMS','Pasang CMS sebagai aplikasi dari browser.','Gunakan menu browser lalu pilih <b>Install app</b> / <b>Add to Home Screen</b>.');
   };
   dock.querySelector('#cmsPwaNotify').onclick=enableNotifications;
-  if(standalone()&&Notification?.permission==='granted')setTimeout(function(){var d=document.getElementById('cmsPwaDock');if(d)d.style.display='none'},1800);
+  if(standalone()&&notifySupport()&&window.Notification.permission==='granted')setTimeout(function(){var d=document.getElementById('cmsPwaDock');if(d)d.style.display='none'},1800);
 }
 async function enableNotifications(){
   if(!notifySupport()){
