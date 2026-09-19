@@ -13,10 +13,10 @@ const seo = {
 };
 
 const out = site._patchPublicHtml(fixture, seo);
-const expected = 'https://cdn.jsdelivr.net/gh/satriaaao/linix@2fb716ff6f62a15cbd2cd35b0f5a9f8287e9ab94/bsm-cinemachine/public-template-popup-20260913.js';
+const expected = 'https://cdn.jsdelivr.net/gh/satriaaao/linix@984c64e5b20d1baea95099bb14c564ad3587894f/bsm-cinemachine/public-template-popup-20260913.js';
 
 assert.ok(out.includes(expected), 'promo runtime must use immutable direct CDN asset');
 assert.ok(!out.includes('src="/public-template-popup-20260913.js"'), 'promo runtime must not depend on a Vercel rewrite that can 404');
-assert.ok(out.includes('2fb716ff6f62a15cbd2cd35b0f5a9f8287e9ab94'), 'promo runtime must use direct-product navigation build');
+assert.ok(out.includes('984c64e5b20d1baea95099bb14c564ad3587894f'), 'promo runtime must open promo/new listing build');
 
 console.log('promo asset routing regression tests passed');
