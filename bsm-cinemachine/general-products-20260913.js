@@ -50,9 +50,15 @@
     return livePromise;
   }
   function ensureProducts(){
-    const list=currentProducts();if(!list)return false;const cms=window.RENTCAM_CMS_CONFIG;let added=0;
-    if(cms?.generalProductsEnabled){const ids=new Set(list.map(p=>String(p.id)));products.forEach(p=>{if(!ids.has(p.id)){list.push({...p});ids.add(p.id);added++}})}
-    return mergeLiveRows()||added>0;
+    const list=currentProducts();if(!list)return false;const cms=window.RENTCAM_CMS_CONFIG;let added=0,repaired=0;
+    if(cms?.generalProductsEnabled){
+      products.forEach(p=>{
+        const existing=list.find(x=>String(x.id)===String(p.id));
+        if(!existing){list.push({...p});added++;return}
+        if(!(Number(existing.price)>0)){existing.price=p.price;existing.priceAud=p.price;repaired++}
+      });
+    }
+    return mergeLiveRows()||added>0||repaired>0;
   }
   const originalGroup=window.rentcamCatalogGroup;
   window.rentcamCatalogGroup=function(p){const c=String(p?.mainCategory||p?.cat||p?.category||'').toLowerCase();for(const [key,vals] of Object.entries(aliases)){if(vals.includes(c))return key}return originalGroup?originalGroup(p):'accessories'};
@@ -77,9 +83,9 @@
   function hardenHeaderCart(){const b=document.querySelector('.rc-cart-button');if(!b)return;b.disabled=false;b.style.pointerEvents='auto';b.onclick=e=>{e.preventDefault();e.stopPropagation();if(typeof window.go==='function')window.go('/cart');else location.assign('/cart')}}
   function addStyle(){
     if(document.getElementById('rentcam-general-products-style'))return;
-    const s=document.createElement('style');s.id='rentcam-general-products-style';s.textContent=`#app .general-rental-section{border-top:1px solid #e6e6e3!important;margin-top:24px!important;padding-top:24px!important}#app .general-rental-section .home-product-head p{max-width:520px!important}.rc-cart-button{pointer-events:auto!important}@media(max-width:620px){#app .general-rental-section{margin-top:18px!important;padding-top:20px!important}}`;document.head.appendChild(s);
+    const s=document.createElement('style');s.id='rentcam-general-products-style';s.textContent=`#app .general-rental-section{border-top:1px solid #e6e6e3!important;margin-top:24px!important;padding-top:24px!important}#app .general-rental-section .home-product-head p{max-width:520px!important}#app .home-category-price{display:flex!important;align-items:baseline!important;gap:7px!important;margin-top:16px!important;color:#111!important}#app .home-category-price b{font-size:20px!important;line-height:1!important}#app .home-category-price small{font-size:11px!important;color:#8a8a8a!important}.rc-cart-button{pointer-events:auto!important}@media(max-width:620px){#app .general-rental-section{margin-top:18px!important;padding-top:20px!important}#app .home-category-price{margin-top:13px!important}#app .home-category-price b{font-size:17px!important}#app .home-category-price small{font-size:10px!important}}`;document.head.appendChild(s);
   }
-  function card(p){return `<article class="home-category-card" data-product-id="${esc(p.id)}" role="link" tabindex="0" onclick="go('/produk/${esc(p.id)}')" onkeydown="if(event.key==='Enter'){go('/produk/${esc(p.id)}')}"><div class="home-category-image"><span class="home-category-badge">${esc(p.brand)}</span><img src="${esc(p.img)}" alt="${esc(p.name)}" loading="lazy"></div><div class="home-category-body"><div class="home-category-brand">${esc(p.brand)} · ${esc(p.cat)}</div><div class="home-category-name">${esc(p.name)}</div><div class="home-category-actions"><button type="button" class="home-add-cart" onclick="event.stopPropagation();rentcamAddToCart('${esc(p.id)}')">${cartIcon}<span>Tambah</span></button><button type="button" class="home-open-cart" aria-label="Buka keranjang" onclick="event.stopPropagation();go('/cart')">${cartIcon}</button></div></div></article>`}
+  function card(p){const price=Number(p.price)>0?Number(p.price):1;return `<article class="home-category-card" data-product-id="${esc(p.id)}" role="link" tabindex="0" onclick="go('/produk/${esc(p.id)}')" onkeydown="if(event.key==='Enter'){go('/produk/${esc(p.id)}')}"><div class="home-category-image"><span class="home-category-badge">${esc(p.brand)}</span><img src="${esc(p.img)}" alt="${esc(p.name)}" loading="lazy"></div><div class="home-category-body"><div class="home-category-brand">${esc(p.brand)} · ${esc(p.cat)}</div><div class="home-category-name">${esc(p.name)}</div><div class="home-category-price"><b>${rupiah(price)}</b><small>/ day</small></div><div class="home-category-actions"><button type="button" class="home-add-cart" onclick="event.stopPropagation();rentcamAddToCart('${esc(p.id)}')">${cartIcon}<span>Tambah</span></button><button type="button" class="home-open-cart" aria-label="Buka keranjang" onclick="event.stopPropagation();go('/cart')">${cartIcon}</button></div></div></article>`}
   function mountHome(){
     if(location.pathname!=='/'||!document.querySelector('#app .home-product-sections'))return;addStyle();const host=document.querySelector('#rentcam-home-product-sections .container,#app .home-product-sections .container');if(!host)return;let section=document.getElementById('rentcam-general-rental-section');const html=`<div class="home-product-head"><div><h2>Rental Lainnya</h2><p>Produk tambahan untuk kebutuhan event, perjalanan, outdoor, gadget dan UMKM.</p></div><button class="home-product-view" onclick="go('/produk')">Lihat semua →</button></div><div class="home-product-grid">${products.map(card).join('')}</div>`;if(!section){section=document.createElement('section');section.id='rentcam-general-rental-section';section.className='home-product-section general-rental-section';section.innerHTML=html;const article=host.querySelector('.home-journal');if(article)article.insertAdjacentElement('beforebegin',section);else host.appendChild(section)}else if(section.innerHTML!==html)section.innerHTML=html;
   }
