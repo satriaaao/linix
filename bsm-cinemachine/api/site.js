@@ -30,7 +30,7 @@ function patchPublicHtml(html,seo){
   out=out.replace('</head>',meta+'</head>');
   // Keep exactly one cart navigation handler. The source HTML also loads an older
   // cart hardening script; remove it here so touch/pointer/click events cannot race.
-  out=out.replace(/<script\s+src=["']\/cart-click-fix-20260914\.js(?:\?[^"']*)?["']><\\/script>/i,'');
+  out=out.replace(/<script\s+src=["']\/cart-click-fix-20260914\.js(?:\?[^"']*)?["']><\/script>/i,'');
   const cartHardening=`
 <style id="rc-cart-direct-fix">
 .rc-cart-button,[data-go="/cart"]{pointer-events:auto!important;cursor:pointer!important;touch-action:manipulation}
