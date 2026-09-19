@@ -43,7 +43,7 @@ function icon(req,res){
   return res.end(svg);
 };
 
-const SCRIPT=String.raw`'use strict';
+const SW_SCRIPT=String.raw`'use strict';
 self.addEventListener('install',function(){self.skipWaiting()});
 self.addEventListener('activate',function(event){event.waitUntil(self.clients.claim())});
 self.addEventListener('message',function(event){
@@ -96,10 +96,10 @@ function sw(req,res){
   res.setHeader('cache-control','no-cache, no-store, must-revalidate');
   res.setHeader('service-worker-allowed','/');
   if(req.method==='HEAD')return res.end();
-  return res.end(SCRIPT);
+  return res.end(SW_SCRIPT);
 };
 
-const SCRIPT=String.raw`(function(){
+const PWA_SCRIPT=String.raw`(function(){
 'use strict';
 if(!location.pathname.startsWith('/cms'))return;
 
@@ -328,7 +328,7 @@ function pwa(req,res){
   res.setHeader('content-type','application/javascript; charset=utf-8');
   res.setHeader('cache-control','no-cache, no-store, must-revalidate');
   if(req.method==='HEAD')return res.end();
-  return res.end(SCRIPT);
+  return res.end(PWA_SCRIPT);
 };
 
 module.exports={manifest,icon,sw,pwa};
