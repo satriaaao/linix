@@ -50,6 +50,21 @@
  .driverMain{width:100%}.driverSideGroup{margin-top:15px}.driverNav button{min-height:48px;font-size:10px}
 }
 
+
+/* Driver multi-page analytics */
+.driverPageHead{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin:2px 2px 13px}.driverPageHead small{display:block;color:#f26a21;font-size:8px;font-weight:950;letter-spacing:.13em}.driverPageHead h1{margin:4px 0 2px;font-size:24px;letter-spacing:-.035em;color:#1d2c43}.driverPageHead p{margin:0;color:#8491a3;font-size:9px;line-height:1.5}.driverPageHead button{height:38px;border:1px solid #dce3eb;border-radius:11px;background:#fff;color:#405069;padding:0 12px;font-size:9px;font-weight:900}
+.driverKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:13px}.driverKpi{padding:15px;border:1px solid #e1e6ee;border-radius:17px;background:#fff;box-shadow:0 5px 18px rgba(25,39,58,.035)}.driverKpi span{display:block;color:#8895a6;font-size:8px;font-weight:850}.driverKpi strong{display:block;margin-top:6px;color:#1e2d43;font-size:24px;line-height:1;letter-spacing:-.04em}.driverKpi small{display:block;margin-top:6px;color:#a0a9b5;font-size:7px;line-height:1.35}
+.driverAnalyticsGrid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:12px;margin-bottom:13px}.driverChartCard{padding:17px;border:1px solid #e1e6ee;border-radius:19px;background:#fff;box-shadow:0 6px 20px rgba(25,39,58,.04)}.driverChartTitle small{display:block;color:#f26a21;font-size:8px;font-weight:950;letter-spacing:.11em}.driverChartTitle h3{margin:4px 0 2px;font-size:16px;color:#23334a}.driverChartTitle p{margin:0;color:#8995a5;font-size:8px;line-height:1.45}
+.driverDonutLayout{display:grid;grid-template-columns:120px minmax(0,1fr);gap:14px;align-items:center;margin-top:13px}.driverDonut{width:112px;height:112px;border-radius:50%;display:grid;place-items:center}.driverDonutHole{width:70px;height:70px;border-radius:50%;display:grid;place-content:center;text-align:center;background:#fff;box-shadow:0 5px 18px rgba(20,34,55,.08)}.driverDonutHole strong{font-size:22px;line-height:1;color:#203047}.driverDonutHole span{margin-top:4px;color:#8d99aa;font-size:7px;font-weight:800}
+.driverBars{display:grid;gap:9px}.driverBar{display:grid;grid-template-columns:90px 1fr 30px;gap:7px;align-items:center}.driverBar label{font-size:8px;color:#657388;font-weight:850;white-space:nowrap}.driverTrack{height:7px;border-radius:999px;background:#edf1f5;overflow:hidden}.driverTrack i{display:block;height:100%;border-radius:999px}.driverTrack i.orange{background:#f0a22e}.driverTrack i.blue{background:#3f76df}.driverTrack i.green{background:#27a678}.driverTrack i.red{background:#df6870}.driverTrack i.purple{background:#8669d8}.driverBar b{text-align:right;font-size:9px;color:#34455c}
+.driverMiniChart{display:grid;gap:8px;margin-top:13px}.driverMiniRow{display:grid;grid-template-columns:85px 1fr 48px;gap:8px;align-items:center}.driverMiniRow span{font-size:8px;color:#657388;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.driverMiniRow em{height:8px;border-radius:999px;background:#edf1f5;overflow:hidden;font-style:normal}.driverMiniRow em i{display:block;height:100%;border-radius:999px;background:#3f76df}.driverMiniRow b{text-align:right;font-size:8px;color:#35465c}
+.driverInfoCard{padding:17px;border:1px solid #e1e6ee;border-radius:19px;background:linear-gradient(145deg,#101927,#1b2b43);color:#fff;box-shadow:0 10px 28px rgba(13,25,43,.12)}.driverInfoCard small{display:block;color:#ff9b65;font-size:8px;font-weight:950;letter-spacing:.11em}.driverInfoCard h3{margin:5px 0 4px;font-size:18px}.driverInfoCard p{margin:0;color:#aab8ca;font-size:9px;line-height:1.55}.driverInfoRows{display:grid;gap:8px;margin-top:13px}.driverInfoRows div{display:flex;justify-content:space-between;gap:12px;padding:9px 10px;border-radius:10px;background:rgba(255,255,255,.055);font-size:8px}.driverInfoRows span{color:#9fb0c5}.driverInfoRows b{color:#fff}
+.driverFuelList{display:grid;gap:9px;margin-top:12px}.driverFuelEntry{padding:11px;border:1px solid #e6eaf0;border-radius:12px;background:#fbfcfd}.driverFuelEntryTop{display:flex;justify-content:space-between;gap:10px;align-items:center}.driverFuelEntryTop span{font-size:8px;color:#738197}.driverFuelEntryTop b{font-size:10px;color:#26364d}.driverFuelAmount{height:7px;margin-top:8px;border-radius:999px;background:#edf1f5;overflow:hidden}.driverFuelAmount i{display:block;height:100%;border-radius:999px;background:#f26a21}
+.driverPageEmpty{padding:28px;border:1px dashed #d8dee8;border-radius:18px;background:#fff;text-align:center;color:#8491a2;font-size:9px}
+.driverPage .jobs,.driverPage .historyJobs{margin-top:0}
+@media(max-width:860px){.driverPageHead h1{font-size:22px}.driverKpis{grid-template-columns:1fr 1fr}.driverAnalyticsGrid{grid-template-columns:1fr}.driverDonutLayout{grid-template-columns:105px minmax(0,1fr)}.driverDonut{width:96px;height:96px}.driverDonutHole{width:62px;height:62px}.driverDonutHole strong{font-size:19px}}
+@media(max-width:430px){.driverPageHead{align-items:stretch;flex-direction:column}.driverPageHead button{width:100%}.driverKpi{padding:13px}.driverKpi strong{font-size:22px}.driverDonutLayout{grid-template-columns:1fr}.driverDonut{margin:auto}.driverBar{grid-template-columns:75px 1fr 24px}.driverMiniRow{grid-template-columns:72px 1fr 44px}}
+
 </style>
 </head>
 <body>
@@ -64,6 +79,10 @@ const STORE='rentcam_driver_token_v1';
 const LIVE_STORE='rentcam_driver_live_always_v1';
 const OPS_DRAFT='rentcam_driver_ops_draft_v1';
 let token=localStorage.getItem(STORE)||'',data=null,vehicleData=null,officeData=null,opsModal=null,watchId=null,lastSent=0,knownJobs=new Set(),wakeLock=null,autoLiveStarting=false,lastLivePosition=null,addressCache=null,routePlannerMap=null,routePlannerLine=null,routePlannerLiveMarker=null,routePlannerMarkers=[],routePlannerLastAt=0;
+const DRIVER_PAGES=['dashboard','tasks','route','vehicle','fuel','history'];
+function readDriverPage(){const p=new URLSearchParams(location.search).get('page')||'dashboard';return DRIVER_PAGES.includes(p)?p:'dashboard'}
+let driverPage=readDriverPage();
+
 const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=v=>{if(!v)return'Belum dijadwalkan';const d=new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString('id-ID',{timeZone:'Asia/Jakarta',weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
 const clean=v=>String(v||'').replace(/\D/g,'').replace(/^0/,'62');
@@ -525,42 +544,110 @@ function driverSidebarHtml(jobs,open,todayCount){
  const done=jobs.filter(x=>x.status==='completed');
  const initial=E(String(data?.driver?.name||'D').trim().charAt(0).toUpperCase()||'D');
  const live=watchId!==null;
+ const nav=(page,icon,label,badge='')=>'<button class="'+(driverPage===page?'active':'')+'" data-driver-page="'+page+'"><span class="driverNavIcon">'+icon+'</span><span>'+label+'</span>'+(badge!==''?'<span class="driverNavBadge">'+badge+'</span>':'<span></span>')+'</button>';
  return '<aside class="driverSidebar" aria-label="Menu driver">'+
   '<div class="driverSideBrand"><div class="driverSideAvatar">'+initial+'</div><div class="driverSideIdentity"><b>'+E(data?.driver?.name||'Driver')+'</b><small>@'+E(data?.driver?.username||'driver')+' · Portal Driver</small></div></div>'+
   '<div class="driverSideLive '+(live?'on':'')+'"><i></i>'+(live?'GPS realtime aktif':'GPS belum aktif')+'</div>'+
   '<div class="driverSideGroup"><small>MENU UTAMA</small><nav class="driverNav">'+
-   '<button class="active" data-driver-nav="driverDashboard"><span class="driverNavIcon">⌂</span><span>Dashboard</span><span class="driverNavBadge">'+open.length+'</span></button>'+
-   '<button data-driver-nav="jobsSection"><span class="driverNavIcon">☷</span><span>Tugas Hari Ini</span><span class="driverNavBadge">'+todayCount+'</span></button>'+
-   '<button data-driver-nav="routeSection"><span class="driverNavIcon">⌖</span><span>Peta & Rute</span><span></span></button>'+
-   '<button data-driver-nav="vehicleSection"><span class="driverNavIcon">▣</span><span>Kendaraan</span><span></span></button>'+
-   '<button data-driver-nav="vehicleSection"><span class="driverNavIcon">⛽</span><span>BBM & Struk</span><span></span></button>'+
-   '<button data-driver-nav="historySection"><span class="driverNavIcon">↺</span><span>Riwayat</span><span class="driverNavBadge">'+done.length+'</span></button>'+
+   nav('dashboard','⌂','Dashboard',open.length)+
+   nav('tasks','☷','Tugas Hari Ini',todayCount)+
+   nav('route','⌖','Peta & Rute')+
+   nav('vehicle','▣','Kendaraan')+
+   nav('fuel','⛽','BBM & Struk')+
+   nav('history','↺','Riwayat',done.length)+
   '</nav></div>'+
-  '<div class="driverSideActions"><button data-action="live" class="sideLive '+(live?'on':'')+'">'+(live?'● Matikan / Atur GPS':'● Aktifkan Lokasi')+'</button><button data-action="refresh">↻ Perbarui Data</button><button data-action="logout" class="sideLogout">Keluar</button></div>'+
+  '<div class="driverSideActions"><button data-action="live" class="sideLive '+(live?'on':'')+'">'+(live?'● GPS Aktif':'● Aktifkan Lokasi')+'</button><button data-action="refresh">↻ Perbarui Data</button><button data-action="logout" class="sideLogout">Keluar</button></div>'+
  '</aside><button class="driverBackdrop" data-sidebar-close aria-label="Tutup menu"></button>';
+}
+
+function driverKpis(items){
+ return '<section class="driverKpis">'+items.map(x=>'<article class="driverKpi"><span>'+E(x[0])+'</span><strong>'+E(x[1])+'</strong><small>'+E(x[2]||'')+'</small></article>').join('')+'</section>';
+}
+function driverDonutChart(title,desc,total,segments){
+ let acc=0,parts=[];
+ const cls=['orange','blue','green','red','purple'];
+ const colors=['#f0a22e','#3f76df','#27a678','#df6870','#8669d8'];
+ segments.forEach((s,i)=>{const pct=total?Math.max(0,Math.min(100,Number(s[1]||0)/total*100)):0;parts.push({label:s[0],count:Number(s[1]||0),pct,color:colors[i%colors.length],cls:cls[i%cls.length],start:acc,end:acc+pct});acc+=pct});
+ const gradient=parts.length?'conic-gradient('+parts.map(p=>p.color+' '+p.start.toFixed(2)+'% '+p.end.toFixed(2)+'%').join(',')+')':'conic-gradient(#e9edf3 0 100%)';
+ return '<article class="driverChartCard"><div class="driverChartTitle"><small>ANALITIK</small><h3>'+E(title)+'</h3><p>'+E(desc)+'</p></div><div class="driverDonutLayout"><div class="driverDonut" style="background:'+gradient+'"><div class="driverDonutHole"><strong>'+E(total)+'</strong><span>Total</span></div></div><div class="driverBars">'+parts.map(p=>'<div class="driverBar"><label>'+E(p.label)+'</label><div class="driverTrack"><i class="'+p.cls+'" style="width:'+p.pct.toFixed(1)+'%"></i></div><b>'+p.count+'</b></div>').join('')+'</div></div></article>';
+}
+function driverPageHeader(kicker,title,desc){
+ return '<div class="driverPageHead"><div><small>'+E(kicker)+'</small><h1>'+E(title)+'</h1><p>'+E(desc)+'</p></div><button data-action="refresh">Perbarui Data</button></div>';
+}
+function dashboardPage(jobs,open,todayCount){
+ const done=jobs.filter(x=>x.status==='completed'),moving=open.filter(x=>['to_pickup','picked_up','on_the_way','arrived'].includes(x.status)),assigned=open.filter(x=>x.status==='assigned');
+ const deliver=open.filter(x=>x.kind==='deliver').length,collect=open.filter(x=>x.kind==='collect').length;
+ return '<section class="driverPage">'+driverPageHeader('DRIVER ANALYTICS','Dashboard Driver','Ringkasan tugas, GPS, kendaraan dan aktivitas operasional hari ini.')+
+ driverKpis([['Tugas Aktif',open.length,'Belum selesai'],['Hari Ini',todayCount,'Jadwal hari ini'],['Dalam Perjalanan',moving.length,'Sedang bergerak'],['Selesai',done.length,'Riwayat selesai']])+
+ '<div class="driverAnalyticsGrid">'+driverDonutChart('Status Tugas','Komposisi tugas aktif dan selesai.',jobs.length,[['Ditugaskan',assigned.length],['Berjalan',moving.length],['Selesai',done.length]])+
+ '<article class="driverInfoCard"><small>STATUS OPERASIONAL</small><h3>'+(watchId!==null?'GPS Realtime Aktif':'GPS Belum Aktif')+'</h3><p>Lokasi digunakan untuk ETA, tracking customer dan pembaruan rute driver.</p><div class="driverInfoRows"><div><span>Pengantaran aktif</span><b>'+deliver+'</b></div><div><span>Penjemputan aktif</span><b>'+collect+'</b></div><div><span>Kendaraan</span><b>'+E(vehicleData?.active_shift?.plate||'Belum diambil')+'</b></div></div></article></div>'+
+ '<div class="sectionTitle"><h2>Tugas Terdekat</h2><span>'+Math.min(open.length,3)+' ditampilkan</span></div><section class="jobs">'+(open.slice(0,3).map(jobCard).join('')||'<div class="driverPageEmpty">Belum ada tugas aktif.</div>')+'</section></section>';
+}
+function tasksPage(jobs,open,todayCount){
+ const today=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Jakarta'});
+ const todayJobs=open.filter(x=>String(x.scheduled_at||'').slice(0,10)===today);
+ const deliver=todayJobs.filter(x=>x.kind==='deliver'),collect=todayJobs.filter(x=>x.kind==='collect'),moving=todayJobs.filter(x=>['to_pickup','picked_up','on_the_way','arrived'].includes(x.status));
+ return '<section class="driverPage">'+driverPageHeader('TUGAS HARI INI','Tugas Hari Ini','Fokus pada order yang harus dikerjakan hari ini.')+
+ driverKpis([['Total Hari Ini',todayJobs.length,'Semua jadwal'],['Antar',deliver.length,'Pengantaran'],['Jemput',collect.length,'Penjemputan'],['Berjalan',moving.length,'Sedang dikerjakan']])+
+ '<div class="driverAnalyticsGrid">'+driverDonutChart('Komposisi Tugas','Perbandingan antar dan jemput hari ini.',todayJobs.length,[['Antar',deliver.length],['Jemput',collect.length]])+
+ driverDonutChart('Status Hari Ini','Progres pelaksanaan tugas hari ini.',todayJobs.length,[['Menunggu',todayJobs.filter(x=>x.status==='assigned').length],['Berjalan',moving.length],['Selesai',0]])+'</div>'+
+ '<div class="sectionTitle"><h2>Daftar Tugas</h2><span>'+todayJobs.length+' tugas</span></div><section class="jobs">'+(todayJobs.map(jobCard).join('')||'<div class="driverPageEmpty">Tidak ada tugas untuk hari ini.</div>')+'</section></section>';
+}
+function routePage(jobs,open){
+ const stops=routeStops(open),deliver=stops.filter(x=>x.job.kind==='deliver').length,collect=stops.filter(x=>x.job.kind==='collect').length,mapped=stops.length;
+ return '<section class="driverPage">'+driverPageHeader('ROUTE CENTER','Peta & Rute','Rute perjalanan driver dari kantor ke semua stop customer.')+
+ driverKpis([['Total Stop',stops.length,'Stop aktif'],['Antar',deliver,'Stop pengantaran'],['Jemput',collect,'Stop penjemputan'],['GPS',watchId!==null?'Aktif':'Off','Lokasi realtime']])+
+ '<div class="driverAnalyticsGrid">'+driverDonutChart('Komposisi Stop','Distribusi stop antar dan jemput.',Math.max(1,mapped),[['Antar',deliver],['Jemput',collect]])+
+ '<article class="driverInfoCard"><small>RUTE REALTIME</small><h3>'+(stops.length?stops.length+' stop siap dirutekan':'Belum ada stop')+'</h3><p>Peta menghitung urutan perjalanan, jarak dan ETA dari titik awal kantor.</p><div class="driverInfoRows"><div><span>Lokasi GPS</span><b>'+(watchId!==null?'Aktif':'Belum aktif')+'</b></div><div><span>Stop terpetakan</span><b>'+mapped+'</b></div></div></article></div>'+
+ (routePlannerCard(open)||'<div class="driverPageEmpty">Belum ada rute aktif.</div>')+'</section>';
+}
+function vehiclePage(){
+ const s=vehicleData?.active_shift,vehicles=Array.isArray(vehicleData?.vehicles)?vehicleData.vehicles:[],available=vehicles.filter(v=>v.available).length,busy=Math.max(0,vehicles.length-available);
+ const fuel=s?fuelText(s.checkout_fuel_level):'—';
+ return '<section class="driverPage">'+driverPageHeader('VEHICLE CENTER','Kendaraan','Status kendaraan, kunci, odometer dan kondisi awal.')+
+ driverKpis([['Kendaraan Aktif',s?1:0,s?'Sedang dibawa':'Belum ambil kunci'],['Tersedia',available,'Siap dipakai'],['Sedang Dipakai',busy,'Driver lain / aktif'],['BBM Awal',fuel,'Saat checkout']])+
+ '<div class="driverAnalyticsGrid">'+driverDonutChart('Ketersediaan Kendaraan','Komposisi armada tersedia dan dipakai.',Math.max(1,vehicles.length),[['Tersedia',available],['Dipakai',busy]])+
+ '<article class="driverInfoCard"><small>KENDARAAN DRIVER</small><h3>'+E(s?(s.plate+' · '+s.vehicle_name):'Belum ada kendaraan')+'</h3><p>'+(s?'Kunci kendaraan sudah tercatat atas nama driver.':'Ambil kunci sebelum memulai perjalanan.')+'</p><div class="driverInfoRows"><div><span>Odometer awal</span><b>'+E(s?(s.checkout_odometer+' km'):'—')+'</b></div><div><span>BBM awal</span><b>'+E(fuel)+'</b></div><div><span>Tipe</span><b>'+E(s?.vehicle_type||'—')+'</b></div></div></article></div>'+
+ vehiclePanel()+'</section>';
+}
+function fuelPage(){
+ const s=vehicleData?.active_shift,fuels=Array.isArray(vehicleData?.recent_fuel)?vehicleData.recent_fuel:[],total=fuels.reduce((n,x)=>n+Number(x.amount||0),0),avg=fuels.length?Math.round(total/fuels.length):0,max=Math.max(1,...fuels.map(x=>Number(x.amount||0)));
+ return '<section class="driverPage">'+driverPageHeader('FUEL & RECEIPT','BBM & Struk','Catat isi BBM, nominal struk, watermark GPS dan riwayat pengeluaran.')+
+ driverKpis([['Transaksi BBM',fuels.length,'Riwayat terbaru'],['Total BBM','Rp'+total.toLocaleString('id-ID'),'Total nominal'],['Rata-rata','Rp'+avg.toLocaleString('id-ID'),'Per transaksi'],['Plat Aktif',s?.plate||'—','Kendaraan saat ini']])+
+ '<div class="driverAnalyticsGrid"><article class="driverChartCard"><div class="driverChartTitle"><small>GRAFIK BBM</small><h3>Nominal Struk Terbaru</h3><p>Perbandingan nominal pengisian BBM terbaru.</p></div><div class="driverFuelList">'+(fuels.slice(0,6).map((x,i)=>'<div class="driverFuelEntry"><div class="driverFuelEntryTop"><span>'+E(fmt(x.filled_at))+'</span><b>Rp'+Number(x.amount||0).toLocaleString('id-ID')+'</b></div><div class="driverFuelAmount"><i style="width:'+Math.max(3,Number(x.amount||0)/max*100).toFixed(1)+'%"></i></div></div>').join('')||'<div class="driverPageEmpty">Belum ada transaksi BBM.</div>')+'</div></article>'+
+ '<article class="driverInfoCard"><small>OPERASIONAL BBM</small><h3>'+E(s?s.plate:'Ambil kendaraan dulu')+'</h3><p>Foto struk dibaca OCR dan disimpan dengan watermark GPS, alamat, waktu, driver dan plat.</p><div class="driverInfoRows"><div><span>Status kunci</span><b>'+(s?'Keluar':'Belum diambil')+'</b></div><div><span>BBM awal</span><b>'+E(s?fuelText(s.checkout_fuel_level):'—')+'</b></div></div>'+(s?'<div class="heroActions"><button data-action="open-fuel">+ Isi BBM</button></div>':'')+'</article></div></section>';
+}
+function historyPage(jobs){
+ const done=jobs.filter(x=>x.status==='completed'),deliver=done.filter(x=>x.kind==='deliver').length,collect=done.filter(x=>x.kind==='collect').length;
+ const recent=done.slice(0,20);
+ return '<section class="driverPage">'+driverPageHeader('HISTORY','Riwayat Tugas','Daftar tugas yang sudah selesai dikerjakan driver.')+
+ driverKpis([['Selesai',done.length,'Total selesai'],['Antar Selesai',deliver,'Pengantaran'],['Jemput Selesai',collect,'Penjemputan'],['Ditampilkan',recent.length,'Riwayat terbaru']])+
+ '<div class="driverAnalyticsGrid">'+driverDonutChart('Jenis Tugas Selesai','Komposisi antar dan jemput yang selesai.',Math.max(1,done.length),[['Antar',deliver],['Jemput',collect]])+
+ '<article class="driverInfoCard"><small>REKAP DRIVER</small><h3>'+done.length+' tugas selesai</h3><p>Riwayat ini mengikuti data assignment driver dari CMS.</p><div class="driverInfoRows"><div><span>Antar</span><b>'+deliver+'</b></div><div><span>Jemput</span><b>'+collect+'</b></div></div></article></div>'+
+ '<div class="sectionTitle"><h2>Riwayat Terbaru</h2><span>'+recent.length+' tugas</span></div><section class="historyJobs">'+(recent.map(jobCard).join('')||'<div class="driverPageEmpty">Belum ada riwayat tugas selesai.</div>')+'</section></section>';
+}
+function driverPageContent(jobs,open,todayCount){
+ if(driverPage==='tasks')return tasksPage(jobs,open,todayCount);
+ if(driverPage==='route')return routePage(jobs,open);
+ if(driverPage==='vehicle')return vehiclePage();
+ if(driverPage==='fuel')return fuelPage();
+ if(driverPage==='history')return historyPage(jobs);
+ return dashboardPage(jobs,open,todayCount);
 }
 function render(){
  if(!data?.ok){renderLogin(data?.message||'Sesi berakhir');return}
  document.body.classList.remove('driverSidebarOpen');
  const jobs=Array.isArray(data.jobs)?data.jobs:[];
- const open=jobs.filter(x=>x.status!=='completed');
- const done=jobs.filter(x=>x.status==='completed');
+ const open=jobs.filter(x=>x.status!=='completed'&&x.status!=='cancelled');
  const today=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Jakarta'});
  const todayCount=open.filter(x=>String(x.scheduled_at||'').slice(0,10)===today).length;
+ const titles={dashboard:'Dashboard',tasks:'Tugas Hari Ini',route:'Peta & Rute',vehicle:'Kendaraan',fuel:'BBM & Struk',history:'Riwayat'};
  document.getElementById('app').innerHTML=
-  '<div class="top"><div class="topin"><button class="driverMenuBtn" data-sidebar-toggle aria-label="Buka menu">☰</button><div class="logo">R</div><div class="toptext"><b>'+E(data.driver?.name||'Driver')+'</b><small>@'+E(data.driver?.username||'')+' · Portal Operasional</small></div><button data-action="refresh">Perbarui</button></div></div>'+
-  '<div class="driverShell">'+driverSidebarHtml(jobs,open,todayCount)+
-   '<main class="driverMain">'+
-    '<section class="driverSection" id="driverDashboard"><section class="hero"><small>PORTAL DRIVER RENTCAM</small><h1>Halo, '+E((data.driver?.name||'Driver').split(' ')[0])+'</h1><p>Live Lokasi aktif otomatis selama Anda login supaya customer bisa mengikuti perjalanan secara realtime.</p><div class="heroActions"><button data-action="live" class="live '+(watchId!==null?'on':'')+'">'+(watchId!==null?'● Live Lokasi Aktif':'Aktifkan Lokasi Sekarang')+'</button><button data-action="notify">Aktifkan Notifikasi</button><button data-action="refresh">Perbarui</button></div></section>'+
-    '<div class="summary"><div><small>TUGAS AKTIF</small><b>'+open.length+'</b></div><div><small>HARI INI</small><b>'+todayCount+'</b></div><div><small>SELESAI</small><b>'+done.length+'</b></div></div></section>'+
-    '<section class="driverSection" id="vehicleSection">'+vehiclePanel()+'</section>'+
-    '<section class="driverSection" id="routeSection">'+routePlannerCard(open)+'</section>'+
-    '<section class="driverSection" id="jobsSection"><div class="sectionTitle"><h2>Tugas Aktif</h2><span>'+open.length+' tugas</span></div><section class="jobs">'+(open.map(jobCard).join('')||'<div class="empty"><b>Belum ada tugas aktif.</b><br><small>Tugas baru dari CMS akan muncul otomatis.</small></div>')+'</section></section>'+
-    '<section class="driverSection" id="historySection"><div class="sectionTitle"><h2>Riwayat Selesai</h2><span>'+done.length+' tugas</span></div><section class="historyJobs">'+(done.map(jobCard).join('')||'<div class="historyEmpty">Belum ada riwayat tugas selesai.</div>')+'</section></section>'+
-   '</main></div>'+
+  '<div class="top"><div class="topin"><button class="driverMenuBtn" data-sidebar-toggle aria-label="Buka menu">☰</button><div class="logo">R</div><div class="toptext"><b>'+E(titles[driverPage]||'Portal Driver')+'</b><small>'+E(data.driver?.name||'Driver')+' · @'+E(data.driver?.username||'')+'</small></div><button data-action="refresh">Perbarui</button></div></div>'+
+  '<div class="driverShell">'+driverSidebarHtml(jobs,open,todayCount)+'<main class="driverMain">'+driverPageContent(jobs,open,todayCount)+'</main></div>'+
   opsModalHtml();
  if(opsModal)requestAnimationFrame(()=>restoreOpsDraft(document.querySelector('[data-ops-form]')));
- if(!opsModal)requestAnimationFrame(()=>initRoutePlanner(open));
+ if(!opsModal&&driverPage==='route')requestAnimationFrame(()=>initRoutePlanner(open));
 }
 async function load(silent=false){
  if(!token){renderLogin();return}
@@ -654,7 +741,7 @@ async function startLive(showHelp=true){
   const now=Date.now();if(now-lastSent<5000)return;lastSent=now;
   try{
     await sendLocation(pos);
-    if(document.getElementById('driverRouteMap')&&Date.now()-routePlannerLastAt>15000)initRoutePlanner(data?.jobs||[],pos);
+    if(driverPage==='route'&&document.getElementById('driverRouteMap')&&Date.now()-routePlannerLastAt>15000)initRoutePlanner(data?.jobs||[],pos);
     const el=document.getElementById('liveText');
     if(el)el.textContent='Live • akurasi ±'+Math.round(pos.coords.accuracy||0)+' m • '+new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   }catch(_){}
@@ -842,12 +929,17 @@ document.addEventListener('click',async e=>{
  const toggle=e.target.closest('[data-sidebar-toggle]');
  if(toggle){document.body.classList.toggle('driverSidebarOpen');return}
  if(e.target.closest('[data-sidebar-close]')){document.body.classList.remove('driverSidebarOpen');return}
- const nav=e.target.closest('[data-driver-nav]');
+ const nav=e.target.closest('[data-driver-page]');
  if(nav){
-  document.querySelectorAll('[data-driver-nav]').forEach(x=>x.classList.toggle('active',x===nav));
-  document.body.classList.remove('driverSidebarOpen');
-  const target=document.getElementById(nav.dataset.driverNav);
-  if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
+  const nextPage=nav.dataset.driverPage;
+  if(DRIVER_PAGES.includes(nextPage)){
+    driverPage=nextPage;
+    const url=new URL(location.href);url.searchParams.set('page',driverPage);
+    history.pushState({driverPage},'',url.pathname+'?'+url.searchParams.toString());
+    document.body.classList.remove('driverSidebarOpen');
+    render();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
   return;
  }
  const b=e.target.closest('[data-action]');if(!b)return;
@@ -882,6 +974,7 @@ document.addEventListener('visibilitychange',async()=>{
  await ensureLiveLocation(false);
 });
 window.addEventListener('focus',()=>ensureLiveLocation(false));
+window.addEventListener('popstate',()=>{driverPage=readDriverPage();if(data?.ok&&!opsEditing()&&!opsModal)render()});
 window.addEventListener('pageshow',()=>ensureLiveLocation(false));
 window.addEventListener('online',()=>ensureLiveLocation(false));
 setInterval(()=>{
