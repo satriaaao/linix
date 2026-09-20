@@ -126,7 +126,7 @@
           <path d="M5 4h14v16H5zM8 8h8M8 12h5M8 16h4M16 15l2 2 3-4"/>
         </svg>
       </span>
-      <span><b>Cek Order / Antar Jemput</b><small>Cek pakai kode</small></span>
+      <span><b>Cek Order / Antar Jemput</b><small>Pakai nomor order</small></span>
       <svg class="drawer-arrow" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
     </a>`;
   }
@@ -146,14 +146,14 @@
         <div class="track-head">
           <small>Customer Tracking</small>
           <h1>Cek Order & Antar Jemput</h1>
-          <p>Masukkan kode tracking pesanan untuk melihat status rental dan perjalanan driver.</p>
+          <p>Masukkan nomor order. Nomor ini sama dengan nomor antar/jemput.</p>
         </div>
         <form class="track-search" id="rentcamTrackForm">
-          <input id="rentcamTrackCode" name="code" inputmode="text" autocomplete="off" maxlength="10" placeholder="KODE 10 KARAKTER" aria-label="Kode tracking pesanan">
+          <input id="rentcamTrackCode" name="code" inputmode="text" autocomplete="off" maxlength="40" placeholder="CONTOH: RC-XXXXXXXXXXXX" aria-label="Nomor order">
           <button type="submit">Cek Status</button>
         </form>
-        <div class="track-hint">Kode tracking terdapat pada konfirmasi pesanan kamu.</div>
-        <div id="rentcamTrackResult" class="track-empty">Masukkan kode untuk mulai mengecek.</div>
+        <div class="track-hint">Gunakan nomor order yang sama dengan nomor antar/jemput.</div>
+        <div id="rentcamTrackResult" class="track-empty">Masukkan nomor order untuk mulai mengecek.</div>
       </div>
     </section>`;
   }
@@ -211,7 +211,7 @@
 
       <div class="track-card">
         <div class="track-card-head">
-          <div><h2>${tripTitle}</h2><p>Update perjalanan driver untuk pesanan ini.</p></div>
+          <div><h2>${tripTitle}</h2><p>No. Order / Antar Jemput: <b>${esc(d.number||o.order_number||'-')}</b></p></div>
           <span class="track-badge">${esc(label(tripStatus,tripRaw,'Menunggu driver'))}</span>
         </div>
         ${d.queue_position?`<div class="track-info" style="margin-bottom:13px"><span>Antrean Driver</span><b>Urutan #${esc(d.queue_position)}</b></div>`:''}
@@ -225,9 +225,9 @@
     const result=document.getElementById('rentcamTrackResult');
     if(!result)return;
     const normalized=String(code||'').trim().toUpperCase();
-    if(!/^[A-F0-9]{10}$/.test(normalized)){
+    if(!/^[A-Z0-9-]{5,40}$/.test(normalized)){
       result.className='track-error';
-      result.textContent='Kode harus 10 karakter. Periksa kembali kode tracking kamu.';
+      result.textContent='Nomor order tidak valid. Gunakan nomor order seperti RC-XXXXXXXXXXXX.';
       return;
     }
 
@@ -244,7 +244,7 @@
       const data=await r.json();
       if(!data?.found){
         result.className='track-error';
-        result.textContent='Kode tidak ditemukan. Pastikan kode tracking sudah benar.';
+        result.textContent='Nomor order tidak ditemukan. Pastikan nomor order sudah benar.';
         return;
       }
       result.className='';
@@ -266,10 +266,10 @@
     if(!form||form.dataset.bound==='1')return;
     form.dataset.bound='1';
     const input=document.getElementById('rentcamTrackCode');
-    input?.addEventListener('input',()=>{input.value=input.value.toUpperCase().replace(/[^A-F0-9]/g,'').slice(0,10)});
+    input?.addEventListener('input',()=>{input.value=input.value.toUpperCase().replace(/[^A-Z0-9-]/g,'').slice(0,40)});
     form.addEventListener('submit',e=>{e.preventDefault();lookup(input?.value||'')});
     const code=new URLSearchParams(location.search).get('code');
-    if(code&&input){input.value=code.toUpperCase().slice(0,10);lookup(input.value)}
+    if(code&&input){input.value=code.toUpperCase().replace(/[^A-Z0-9-]/g,'').slice(0,40);lookup(input.value)}
   }
 
   function renderTracking(){
