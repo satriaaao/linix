@@ -1,0 +1,331 @@
+/* Rentcam public order + delivery tracking */
+(function(){
+  'use strict';
+
+  const SB='https://xleceiffuopioeguniwj.supabase.co';
+  const KEY='sb_publishable_POksYryhG_mkFbs7N0fjKQ_4dUim7Ex';
+  const PATH='/cek-order';
+
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fmtDate=v=>{
+    if(!v)return '-';
+    try{return new Intl.DateTimeFormat('id-ID',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(String(v).length===10?v+'T00:00:00':v))}
+    catch(_){return String(v)}
+  };
+  const fmtDateTime=v=>{
+    if(!v)return '-';
+    try{return new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}).format(new Date(v))}
+    catch(_){return String(v)}
+  };
+
+  const orderStatus={
+    new:'Pesanan masuk',
+    requested:'Menunggu konfirmasi',
+    approved:'Disetujui',
+    confirmed:'Dikonfirmasi',
+    active:'Sedang berjalan',
+    ongoing:'Sedang disewa',
+    completed:'Selesai',
+    cancelled:'Dibatalkan'
+  };
+  const paymentStatus={
+    paid:'Lunas',lunas:'Lunas',
+    unpaid:'Belum bayar','belum bayar':'Belum bayar','belum_bayar':'Belum bayar',
+    partial:'Cicilan',cicilan:'Cicilan'
+  };
+  const tripStatus={
+    waiting:'Menunggu driver',
+    waiting_driver:'Menunggu driver',
+    assigned:'Driver ditugaskan',
+    to_pickup:'Menuju lokasi jemput',
+    picked_up:'Barang sudah diambil',
+    on_the_way:'Dalam perjalanan',
+    arrived:'Driver sudah tiba',
+    completed:'Selesai',
+    cancelled:'Dibatalkan'
+  };
+  const tripRank={
+    waiting:0,waiting_driver:0,
+    assigned:1,
+    to_pickup:2,
+    picked_up:3,
+    on_the_way:4,
+    arrived:5,
+    completed:6
+  };
+
+  function label(map,v,fallback='-'){
+    const key=String(v||'').trim().toLowerCase();
+    return map[key]||v||fallback;
+  }
+
+  function style(){
+    if(document.getElementById('rentcam-public-track-style'))return;
+    const st=document.createElement('style');
+    st.id='rentcam-public-track-style';
+    st.textContent=`
+      #app .track-page{padding:38px 0 70px;background:#fff;min-height:72vh}
+      #app .track-shell{max-width:760px;margin:0 auto}
+      #app .track-head{margin-bottom:22px}
+      #app .track-head small{display:block;color:#f26a21;font-size:11px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;margin-bottom:7px}
+      #app .track-head h1{font-size:34px;line-height:1.08;margin:0 0 9px;color:#111}
+      #app .track-head p{margin:0;color:#68717e;font-size:14px;line-height:1.55}
+      #app .track-search{display:flex;gap:9px;padding:10px;background:#f5f6f8;border:1px solid #e6e8eb;border-radius:17px;margin:22px 0}
+      #app .track-search input{flex:1;min-width:0;height:48px;border:1px solid #dfe2e6;border-radius:12px;background:#fff;padding:0 15px;font-size:16px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;outline:none}
+      #app .track-search input:focus{border-color:#111}
+      #app .track-search button{height:48px;border:0;border-radius:12px;background:#111;color:#fff;padding:0 20px;font-weight:850;font-size:13px;white-space:nowrap}
+      #app .track-hint{font-size:11px;color:#8a919b;margin-top:-12px;margin-bottom:19px}
+      #app .track-loading,#app .track-empty,#app .track-error{border:1px solid #e5e7eb;border-radius:17px;padding:22px;text-align:center;color:#68717e;background:#fff}
+      #app .track-result{display:grid;gap:14px}
+      #app .track-card{border:1px solid #e5e7eb;border-radius:18px;background:#fff;padding:18px;box-shadow:0 7px 22px rgba(18,27,40,.04)}
+      #app .track-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:15px}
+      #app .track-card-head h2{margin:0;font-size:18px;color:#111}
+      #app .track-card-head p{margin:4px 0 0;color:#818895;font-size:11px}
+      #app .track-badge{display:inline-flex;align-items:center;min-height:28px;padding:0 10px;border-radius:999px;background:#eef8f3;color:#167653;font-size:10px;font-weight:900;white-space:nowrap}
+      #app .track-badge.cancel{background:#fff0f0;color:#b3261e}
+      #app .track-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+      #app .track-info{padding:12px;background:#f7f8fa;border-radius:12px}
+      #app .track-info span{display:block;color:#8a919b;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+      #app .track-info b{display:block;color:#17191c;font-size:13px;line-height:1.35;overflow-wrap:anywhere}
+      #app .track-timeline{display:grid;gap:0;margin-top:4px}
+      #app .track-step{display:grid;grid-template-columns:28px 1fr;gap:10px;min-height:50px;position:relative}
+      #app .track-step:before{content:'';position:absolute;left:13px;top:25px;bottom:-4px;width:2px;background:#e6e8eb}
+      #app .track-step:last-child:before{display:none}
+      #app .track-dot{width:28px;height:28px;border-radius:50%;background:#f0f2f5;border:2px solid #d9dde2;display:grid;place-items:center;color:#929aa5;font-size:11px;font-weight:900;z-index:1}
+      #app .track-step.done .track-dot{background:#111;border-color:#111;color:#fff}
+      #app .track-step.current .track-dot{background:#f26a21;border-color:#f26a21;color:#fff;box-shadow:0 0 0 5px rgba(242,106,33,.11)}
+      #app .track-step.done:before{background:#111}
+      #app .track-step-body{padding:4px 0 14px}
+      #app .track-step-body b{display:block;font-size:12px;color:#17191c}
+      #app .track-step-body small{display:block;color:#8a919b;margin-top:3px;font-size:10px}
+      #app .track-driver{display:flex;gap:10px;align-items:center;padding:13px;border-radius:13px;background:#111;color:#fff;margin-top:14px}
+      #app .track-driver-icon{width:38px;height:38px;border-radius:11px;background:#fff1e9;color:#f26a21;display:grid;place-items:center;font-size:18px}
+      #app .track-driver b{display:block;font-size:13px}
+      #app .track-driver small{display:block;color:#aeb4bd;font-size:10px;margin-top:3px}
+      #app .track-back{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:0;margin-bottom:18px;color:#626a76;font-size:11px;font-weight:800;cursor:pointer}
+      #drawer .drawer-link[data-track-menu]{display:flex!important}
+      @media(max-width:620px){
+        #app .track-page{padding:24px 0 54px}
+        #app .track-shell{padding:0 18px}
+        #app .track-head h1{font-size:27px}
+        #app .track-search{gap:7px;padding:7px;border-radius:14px}
+        #app .track-search input{height:45px;font-size:15px;padding:0 12px}
+        #app .track-search button{height:45px;padding:0 14px}
+        #app .track-grid{grid-template-columns:1fr 1fr;gap:8px}
+        #app .track-card{padding:15px;border-radius:16px}
+        #app .track-card-head{flex-direction:column}
+      }
+    `;
+    document.head.appendChild(st);
+  }
+
+  function menuMarkup(){
+    return `<a class="drawer-link" data-go="${PATH}" data-track-menu>
+      <span class="drawer-link-icon">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 4h14v16H5zM8 8h8M8 12h5M8 16h4M16 15l2 2 3-4"/>
+        </svg>
+      </span>
+      <span><b>Cek Order / Antar Jemput</b><small>Cek pakai kode</small></span>
+      <svg class="drawer-arrow" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+    </a>`;
+  }
+
+  function ensureMenu(){
+    const nav=document.querySelector('#drawer .rc-drawer-nav');
+    if(!nav||nav.querySelector('[data-track-menu]'))return;
+    const cart=nav.querySelector('[data-go="/cart"]');
+    if(cart)cart.insertAdjacentHTML('beforebegin',menuMarkup());
+    else nav.insertAdjacentHTML('beforeend',menuMarkup());
+  }
+
+  function pageMarkup(){
+    return `<section class="track-page">
+      <div class="container track-shell">
+        <button class="track-back" type="button" data-go="/">← Kembali</button>
+        <div class="track-head">
+          <small>Customer Tracking</small>
+          <h1>Cek Order & Antar Jemput</h1>
+          <p>Masukkan kode tracking pesanan untuk melihat status rental dan perjalanan driver.</p>
+        </div>
+        <form class="track-search" id="rentcamTrackForm">
+          <input id="rentcamTrackCode" name="code" inputmode="text" autocomplete="off" maxlength="10" placeholder="KODE 10 KARAKTER" aria-label="Kode tracking pesanan">
+          <button type="submit">Cek Status</button>
+        </form>
+        <div class="track-hint">Kode tracking terdapat pada konfirmasi pesanan kamu.</div>
+        <div id="rentcamTrackResult" class="track-empty">Masukkan kode untuk mulai mengecek.</div>
+      </div>
+    </section>`;
+  }
+
+  function stages(delivery){
+    const raw=String(delivery?.status||delivery?.deliver_status||delivery?.collect_status||'waiting').toLowerCase();
+    const currentRank=tripRank[raw]??0;
+    const cancelled=raw==='cancelled';
+    const list=[
+      ['waiting','Menunggu driver'],
+      ['assigned','Driver ditugaskan'],
+      ['to_pickup','Menuju lokasi jemput'],
+      ['picked_up','Barang sudah diambil'],
+      ['on_the_way','Dalam perjalanan'],
+      ['arrived','Driver sudah tiba'],
+      ['completed','Selesai']
+    ];
+    if(cancelled)return `<div class="track-error">Antar-jemput dibatalkan.</div>`;
+    return `<div class="track-timeline">${list.map(([key,name])=>{
+      const rank=tripRank[key]??0;
+      const cls=rank<currentRank?'done':rank===currentRank?'current':'';
+      const detail=rank===currentRank?(delivery?.updated_at?'Update '+fmtDateTime(delivery.updated_at):'Status saat ini'):'';
+      return `<div class="track-step ${cls}">
+        <div class="track-dot">${rank<currentRank?'✓':rank+1}</div>
+        <div class="track-step-body"><b>${name}</b>${detail?`<small>${esc(detail)}</small>`:''}</div>
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  function resultMarkup(data){
+    const o=data.order||{},d=data.delivery||{};
+    const orderState=o.rental_status||o.status||'new';
+    const cancelled=String(orderState).toLowerCase()==='cancelled';
+    const tripRaw=d.status||d.deliver_status||d.collect_status||'waiting';
+    const mode=(d.kind||d.mode||'').toLowerCase();
+    const tripTitle=mode==='collect'?'Status Penjemputan':'Status Pengantaran';
+    const driver=(d.driver_name||d.plate)?`<div class="track-driver">
+      <div class="track-driver-icon">🚚</div>
+      <div><b>${esc(d.driver_name||'Driver ditugaskan')}</b><small>${d.plate?'Kendaraan '+esc(d.plate):'Driver sudah ditugaskan'}</small></div>
+    </div>`:'';
+
+    return `<div class="track-result">
+      <div class="track-card">
+        <div class="track-card-head">
+          <div><h2>Order ${esc(o.order_number||'-')}</h2><p>${o.customer_name?'Atas nama '+esc(o.customer_name):'Status pesanan rental'}</p></div>
+          <span class="track-badge ${cancelled?'cancel':''}">${esc(label(orderStatus,orderState))}</span>
+        </div>
+        <div class="track-grid">
+          <div class="track-info"><span>Mulai Rental</span><b>${esc(fmtDate(o.start_date))}</b></div>
+          <div class="track-info"><span>Selesai Rental</span><b>${esc(fmtDate(o.end_date))}</b></div>
+          <div class="track-info"><span>Status Order</span><b>${esc(label(orderStatus,o.status))}</b></div>
+          <div class="track-info"><span>Pembayaran</span><b>${esc(label(paymentStatus,o.payment_status,'Belum ada status'))}</b></div>
+        </div>
+      </div>
+
+      <div class="track-card">
+        <div class="track-card-head">
+          <div><h2>${tripTitle}</h2><p>Update perjalanan driver untuk pesanan ini.</p></div>
+          <span class="track-badge">${esc(label(tripStatus,tripRaw,'Menunggu driver'))}</span>
+        </div>
+        ${d.queue_position?`<div class="track-info" style="margin-bottom:13px"><span>Antrean Driver</span><b>Urutan #${esc(d.queue_position)}</b></div>`:''}
+        ${stages(d)}
+        ${driver}
+      </div>
+    </div>`;
+  }
+
+  async function lookup(code){
+    const result=document.getElementById('rentcamTrackResult');
+    if(!result)return;
+    const normalized=String(code||'').trim().toUpperCase();
+    if(!/^[A-F0-9]{10}$/.test(normalized)){
+      result.className='track-error';
+      result.textContent='Kode harus 10 karakter. Periksa kembali kode tracking kamu.';
+      return;
+    }
+
+    result.className='track-loading';
+    result.textContent='Mengecek status pesanan…';
+
+    try{
+      const r=await fetch(SB+'/rest/v1/rpc/rentcam_public_track_order',{
+        method:'POST',
+        headers:{apikey:KEY,'Content-Type':'application/json'},
+        body:JSON.stringify({p_code:normalized})
+      });
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      const data=await r.json();
+      if(!data?.found){
+        result.className='track-error';
+        result.textContent='Kode tidak ditemukan. Pastikan kode tracking sudah benar.';
+        return;
+      }
+      result.className='';
+      result.innerHTML=resultMarkup(data);
+      try{
+        const u=new URL(location.href);
+        u.searchParams.set('code',normalized);
+        history.replaceState({},'',u.pathname+u.search);
+      }catch(_){}
+    }catch(err){
+      console.warn('Rentcam tracking',err);
+      result.className='track-error';
+      result.textContent='Status belum bisa dimuat. Coba lagi beberapa saat.';
+    }
+  }
+
+  function bindPage(){
+    const form=document.getElementById('rentcamTrackForm');
+    if(!form||form.dataset.bound==='1')return;
+    form.dataset.bound='1';
+    const input=document.getElementById('rentcamTrackCode');
+    input?.addEventListener('input',()=>{input.value=input.value.toUpperCase().replace(/[^A-F0-9]/g,'').slice(0,10)});
+    form.addEventListener('submit',e=>{e.preventDefault();lookup(input?.value||'')});
+    const code=new URLSearchParams(location.search).get('code');
+    if(code&&input){input.value=code.toUpperCase().slice(0,10);lookup(input.value)}
+  }
+
+  function renderTracking(){
+    if(location.pathname!==PATH)return false;
+    const app=document.getElementById('app');
+    if(!app)return false;
+    if(app.dataset.trackPage!=='1'){
+      app.dataset.trackPage='1';
+      app.innerHTML=pageMarkup();
+      scrollTo(0,0);
+    }
+    bindPage();
+    return true;
+  }
+
+  function sync(){
+    style();
+    ensureMenu();
+    const app=document.getElementById('app');
+    if(location.pathname!==PATH&&app?.dataset.trackPage==='1')delete app.dataset.trackPage;
+    renderTracking();
+  }
+
+  const nativeGo=window.go;
+  if(typeof nativeGo==='function'){
+    window.go=function(path){
+      nativeGo(path);
+      setTimeout(sync,0);
+    };
+  }
+
+  const nativeRender=window.render;
+  if(typeof nativeRender==='function'){
+    window.render=function(){
+      nativeRender();
+      setTimeout(sync,0);
+    };
+  }
+
+  document.addEventListener('click',e=>{
+    const link=e.target.closest('[data-track-menu]');
+    if(!link)return;
+    setTimeout(sync,0);
+  },true);
+
+  addEventListener('popstate',()=>setTimeout(sync,0));
+  document.addEventListener('rentcam-route-change',()=>setTimeout(sync,0));
+
+  let queued=false;
+  const observer=new MutationObserver(()=>{
+    if(queued)return;
+    queued=true;
+    requestAnimationFrame(()=>{queued=false;sync()});
+  });
+  observer.observe(document.documentElement,{childList:true,subtree:true});
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sync);
+  else sync();
+})();
