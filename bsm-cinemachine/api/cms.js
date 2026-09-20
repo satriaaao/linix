@@ -3,8 +3,8 @@ const PWA=require('../cms-pwa-assets');
 
 function sanitizeCmsHtml(html){
   return String(html||'')
-    .replace(/<link\\b[^>]*href=["'][^"']*cart-mobile-layout-fix-20260919\\.css[^"']*["'][^>]*>/gi,'')
-    .replace(/<link\\b[^>]*href=["'][^"']*cart[^"']*\\.css[^"']*["'][^>]*data-public-only[^>]*>/gi,'');
+    .replace(/<link\b[^>]*href=["'][^"']*cart-mobile-layout-fix-20260919\.css[^"']*["'][^>]*>/gi,'')
+    .replace(/<link\b[^>]*href=["'][^"']*cart[^"']*\.css[^"']*["'][^>]*data-public-only[^>]*>/gi,'');
 }
 
 function injectCmsPwa(html){
