@@ -20,101 +20,84 @@
     const st=document.createElement('style');
     st.id='rentcam-brand-png-style';
     st.textContent=`
-      #app .brand-marquee-section{
-        margin:28px 0 4px!important;
-        padding:22px 0 8px!important;
+      html body #app .brand-marquee-section{
+        margin:20px 0 2px!important;
+        padding:18px 0 4px!important;
       }
-      #app .brand-marquee-title{
-        margin-bottom:12px!important;
+      html body #app .brand-marquee-title{
+        margin-bottom:8px!important;
       }
-      #app .brand-marquee-track{
-        gap:16px!important;
+      html body #app .brand-marquee-track{
+        gap:2px!important;
       }
-      #app .brand-logo{
-        flex:0 0 112px!important;
-        width:112px!important;
-        min-width:112px!important;
-        height:52px!important;
-        padding:4px 6px!important;
+      html body #app .brand-logo{
+        flex:0 0 82px!important;
+        width:82px!important;
+        min-width:82px!important;
+        height:46px!important;
+        padding:2px!important;
         display:flex!important;
         align-items:center!important;
         justify-content:center!important;
         box-sizing:border-box!important;
         font-size:0!important;
         line-height:0!important;
-        overflow:hidden!important;
+        overflow:visible!important;
         opacity:1!important;
         filter:none!important;
       }
-      #app .brand-logo .brand-logo-png{
+      html body #app .brand-logo .brand-logo-png{
         display:block!important;
-        width:96px!important;
-        height:30px!important;
-        max-width:96px!important;
-        max-height:30px!important;
+        width:70px!important;
+        height:26px!important;
+        max-width:70px!important;
+        max-height:26px!important;
         object-fit:contain!important;
         object-position:center!important;
         filter:none!important;
         opacity:1!important;
         mix-blend-mode:normal!important;
+        transform-origin:center center!important;
       }
 
-      /* Some official marks have different aspect ratios.
-         Keep the same visual box so no logo looks huge/tiny. */
-      #app .brand-logo[data-brand="ARRI"] .brand-logo-png,
-      #app .brand-logo[data-brand="SONY"] .brand-logo-png,
-      #app .brand-logo[data-brand="Canon"] .brand-logo-png,
-      #app .brand-logo[data-brand="RED"] .brand-logo-png,
-      #app .brand-logo[data-brand="ZEISS"] .brand-logo-png,
-      #app .brand-logo[data-brand="Cooke"] .brand-logo-png,
-      #app .brand-logo[data-brand="Blackmagic Design"] .brand-logo-png,
-      #app .brand-logo[data-brand="DJI"] .brand-logo-png,
-      #app .brand-logo[data-brand="Aputure"] .brand-logo-png,
-      #app .brand-logo[data-brand="Teradek"] .brand-logo-png,
-      #app .brand-logo[data-brand="SmallHD"] .brand-logo-png,
-      #app .brand-logo[data-brand="Sennheiser"] .brand-logo-png{
-        width:96px!important;
-        height:30px!important;
-        max-width:96px!important;
-        max-height:30px!important;
-      }
+      /* Normalize apparent size because source artwork canvases differ. */
+      html body #app .brand-logo[data-brand="ARRI"] .brand-logo-png{transform:scale(1.05)!important}
+      html body #app .brand-logo[data-brand="SONY"] .brand-logo-png{transform:scale(1.04)!important}
+      html body #app .brand-logo[data-brand="Canon"] .brand-logo-png{transform:scale(.98)!important}
+      html body #app .brand-logo[data-brand="RED"] .brand-logo-png{transform:scale(.98)!important}
+      html body #app .brand-logo[data-brand="ZEISS"] .brand-logo-png{transform:scale(.92)!important}
+      html body #app .brand-logo[data-brand="Cooke"] .brand-logo-png{transform:scale(1.05)!important}
+      html body #app .brand-logo[data-brand="Blackmagic Design"] .brand-logo-png{transform:scale(1.28)!important}
+      html body #app .brand-logo[data-brand="DJI"] .brand-logo-png{transform:scale(.96)!important}
+      html body #app .brand-logo[data-brand="Aputure"] .brand-logo-png{transform:scale(1.58)!important}
+      html body #app .brand-logo[data-brand="Teradek"] .brand-logo-png{transform:scale(1.38)!important}
+      html body #app .brand-logo[data-brand="SmallHD"] .brand-logo-png{transform:scale(1.48)!important}
+      html body #app .brand-logo[data-brand="Sennheiser"] .brand-logo-png{transform:scale(.82)!important}
 
       @media(max-width:620px){
-        #app .brand-marquee-section{
-          margin-top:20px!important;
-          padding-top:18px!important;
-          padding-bottom:4px!important;
+        html body #app .brand-marquee-section{
+          margin-top:16px!important;
+          padding-top:15px!important;
+          padding-bottom:2px!important;
         }
-        #app .brand-marquee-title{
-          margin-bottom:10px!important;
+        html body #app .brand-marquee-title{
+          margin-bottom:7px!important;
         }
-        #app .brand-marquee-track{
-          gap:8px!important;
+        html body #app .brand-marquee-track{
+          gap:0!important;
         }
-        #app .brand-logo{
-          flex:0 0 92px!important;
-          width:92px!important;
-          min-width:92px!important;
-          height:46px!important;
-          padding:3px 4px!important;
+        html body #app .brand-logo{
+          flex:0 0 74px!important;
+          width:74px!important;
+          min-width:74px!important;
+          height:42px!important;
+          padding:1px!important;
         }
-        #app .brand-logo .brand-logo-png,
-        #app .brand-logo[data-brand="ARRI"] .brand-logo-png,
-        #app .brand-logo[data-brand="SONY"] .brand-logo-png,
-        #app .brand-logo[data-brand="Canon"] .brand-logo-png,
-        #app .brand-logo[data-brand="RED"] .brand-logo-png,
-        #app .brand-logo[data-brand="ZEISS"] .brand-logo-png,
-        #app .brand-logo[data-brand="Cooke"] .brand-logo-png,
-        #app .brand-logo[data-brand="Blackmagic Design"] .brand-logo-png,
-        #app .brand-logo[data-brand="DJI"] .brand-logo-png,
-        #app .brand-logo[data-brand="Aputure"] .brand-logo-png,
-        #app .brand-logo[data-brand="Teradek"] .brand-logo-png,
-        #app .brand-logo[data-brand="SmallHD"] .brand-logo-png,
-        #app .brand-logo[data-brand="Sennheiser"] .brand-logo-png{
-          width:80px!important;
-          height:26px!important;
-          max-width:80px!important;
-          max-height:26px!important;
+        html body #app .brand-logo .brand-logo-png{
+          width:64px!important;
+          height:24px!important;
+          max-width:64px!important;
+          max-height:24px!important;
         }
       }
     `;
