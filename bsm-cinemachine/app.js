@@ -24,9 +24,9 @@ document.write('<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@eb571c2
       #app .brand-marquee-section{margin:34px 0 8px!important;padding:28px 0 12px!important;border-top:1px solid #ececec!important;overflow:hidden!important}
       #app .brand-marquee-title{margin:0 0 18px!important;font-size:12px!important;font-weight:800!important;letter-spacing:.12em!important;text-transform:uppercase!important;color:#8b8b8b!important}
       #app .brand-marquee-viewport{width:100%!important;overflow:hidden!important;position:relative!important;mask-image:linear-gradient(to right,transparent,#000 7%,#000 93%,transparent);-webkit-mask-image:linear-gradient(to right,transparent,#000 7%,#000 93%,transparent)}
-      #app .brand-marquee-track{display:flex!important;align-items:center!important;width:max-content!important;gap:54px!important;animation:rentcamBrandScroll 28s linear infinite!important;will-change:transform!important}
+      #app .brand-marquee-track{display:flex!important;align-items:center!important;width:max-content!important;gap:4px!important;animation:rentcamBrandScroll 28s linear infinite!important;will-change:transform!important}
       #app .brand-marquee-viewport:hover .brand-marquee-track{animation-play-state:paused!important}
-      #app .brand-logo{height:58px!important;min-width:118px!important;padding:0 10px!important;display:flex!important;align-items:center!important;justify-content:center!important;white-space:nowrap!important;color:#111!important;font-size:20px!important;font-weight:900!important;letter-spacing:-.035em!important;opacity:.78!important;filter:grayscale(1)!important;transition:opacity .18s ease,transform .18s ease!important}
+      #app .brand-logo{height:48px!important;width:84px!important;min-width:84px!important;flex:0 0 84px!important;padding:2px 3px!important;display:flex!important;align-items:center!important;justify-content:center!important;white-space:nowrap!important;color:#111!important;font-size:0!important;font-weight:900!important;letter-spacing:-.035em!important;opacity:1!important;filter:none!important;transition:opacity .18s ease,transform .18s ease!important}
       #app .brand-logo:hover{opacity:1!important;transform:scale(1.04)!important}
       #app .brand-logo[data-brand="Canon"]{font-family:Georgia,serif!important;font-style:italic!important;font-size:24px!important}
       #app .brand-logo[data-brand="RED"]{letter-spacing:.06em!important}
@@ -37,8 +37,8 @@ document.write('<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@eb571c2
       @media(max-width:620px){
         #app .brand-marquee-section{margin-top:24px!important;padding-top:20px!important}
         #app .brand-marquee-title{font-size:10px!important;margin-bottom:12px!important}
-        #app .brand-marquee-track{gap:28px!important;animation-duration:22s!important}
-        #app .brand-logo{height:46px!important;min-width:90px!important;font-size:16px!important;padding:0 5px!important}
+        #app .brand-marquee-track{gap:2px!important;animation-duration:22s!important}
+        #app .brand-logo{height:42px!important;width:76px!important;min-width:76px!important;flex:0 0 76px!important;font-size:0!important;padding:2px!important}
         #app .brand-logo[data-brand="Canon"]{font-size:19px!important}
         #app .brand-logo[data-brand="Blackmagic Design"]{font-size:12px!important;min-width:112px!important}
         #app .brand-logo[data-brand="SmallHD"]{font-size:14px!important}
