@@ -143,6 +143,10 @@
       "destination": "/api/site?kind=cart"
     },
     {
+      "source": "/cek-order",
+      "destination": "/api/site?kind=tracking"
+    },
+    {
       "source": "/pesanan",
       "destination": "/api/site?kind=order"
     }
