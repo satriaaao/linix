@@ -20,57 +20,101 @@
     const st=document.createElement('style');
     st.id='rentcam-brand-png-style';
     st.textContent=`
+      #app .brand-marquee-section{
+        margin:28px 0 4px!important;
+        padding:22px 0 8px!important;
+      }
+      #app .brand-marquee-title{
+        margin-bottom:12px!important;
+      }
+      #app .brand-marquee-track{
+        gap:16px!important;
+      }
       #app .brand-logo{
-        min-width:126px!important;
-        height:64px!important;
-        padding:8px 12px!important;
+        flex:0 0 112px!important;
+        width:112px!important;
+        min-width:112px!important;
+        height:52px!important;
+        padding:4px 6px!important;
         display:flex!important;
         align-items:center!important;
         justify-content:center!important;
         box-sizing:border-box!important;
         font-size:0!important;
         line-height:0!important;
-        overflow:visible!important;
+        overflow:hidden!important;
+        opacity:1!important;
+        filter:none!important;
       }
       #app .brand-logo .brand-logo-png{
         display:block!important;
-        width:auto!important;
-        max-width:138px!important;
-        height:auto!important;
-        max-height:42px!important;
+        width:96px!important;
+        height:30px!important;
+        max-width:96px!important;
+        max-height:30px!important;
         object-fit:contain!important;
+        object-position:center!important;
         filter:none!important;
         opacity:1!important;
         mix-blend-mode:normal!important;
       }
+
+      /* Some official marks have different aspect ratios.
+         Keep the same visual box so no logo looks huge/tiny. */
+      #app .brand-logo[data-brand="ARRI"] .brand-logo-png,
+      #app .brand-logo[data-brand="SONY"] .brand-logo-png,
+      #app .brand-logo[data-brand="Canon"] .brand-logo-png,
+      #app .brand-logo[data-brand="RED"] .brand-logo-png,
       #app .brand-logo[data-brand="ZEISS"] .brand-logo-png,
-      #app .brand-logo[data-brand="DJI"] .brand-logo-png{
-        max-height:46px!important;
-      }
-      #app .brand-logo[data-brand="Blackmagic Design"] .brand-logo-png{
-        max-height:48px!important;
-      }
+      #app .brand-logo[data-brand="Cooke"] .brand-logo-png,
+      #app .brand-logo[data-brand="Blackmagic Design"] .brand-logo-png,
+      #app .brand-logo[data-brand="DJI"] .brand-logo-png,
       #app .brand-logo[data-brand="Aputure"] .brand-logo-png,
       #app .brand-logo[data-brand="Teradek"] .brand-logo-png,
       #app .brand-logo[data-brand="SmallHD"] .brand-logo-png,
-      #app .brand-logo[data-brand="SONY"] .brand-logo-png,
       #app .brand-logo[data-brand="Sennheiser"] .brand-logo-png{
-        max-width:146px!important;
+        width:96px!important;
+        height:30px!important;
+        max-width:96px!important;
+        max-height:30px!important;
       }
+
       @media(max-width:620px){
+        #app .brand-marquee-section{
+          margin-top:20px!important;
+          padding-top:18px!important;
+          padding-bottom:4px!important;
+        }
+        #app .brand-marquee-title{
+          margin-bottom:10px!important;
+        }
+        #app .brand-marquee-track{
+          gap:8px!important;
+        }
         #app .brand-logo{
-          min-width:102px!important;
-          height:54px!important;
-          padding:6px 8px!important;
+          flex:0 0 92px!important;
+          width:92px!important;
+          min-width:92px!important;
+          height:46px!important;
+          padding:3px 4px!important;
         }
-        #app .brand-logo .brand-logo-png{
-          max-width:112px!important;
-          max-height:34px!important;
-        }
+        #app .brand-logo .brand-logo-png,
+        #app .brand-logo[data-brand="ARRI"] .brand-logo-png,
+        #app .brand-logo[data-brand="SONY"] .brand-logo-png,
+        #app .brand-logo[data-brand="Canon"] .brand-logo-png,
+        #app .brand-logo[data-brand="RED"] .brand-logo-png,
         #app .brand-logo[data-brand="ZEISS"] .brand-logo-png,
+        #app .brand-logo[data-brand="Cooke"] .brand-logo-png,
+        #app .brand-logo[data-brand="Blackmagic Design"] .brand-logo-png,
         #app .brand-logo[data-brand="DJI"] .brand-logo-png,
-        #app .brand-logo[data-brand="Blackmagic Design"] .brand-logo-png{
-          max-height:37px!important;
+        #app .brand-logo[data-brand="Aputure"] .brand-logo-png,
+        #app .brand-logo[data-brand="Teradek"] .brand-logo-png,
+        #app .brand-logo[data-brand="SmallHD"] .brand-logo-png,
+        #app .brand-logo[data-brand="Sennheiser"] .brand-logo-png{
+          width:80px!important;
+          height:26px!important;
+          max-width:80px!important;
+          max-height:26px!important;
         }
       }
     `;
