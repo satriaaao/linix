@@ -1,27 +1,18 @@
-/* Rentcam brand equipment — PNG logo runtime */
+/* Rentcam Brand Equipment — verified logo artwork */
 (function(){
-  const LOGOS={
-    'ARRI':'arri.com',
-    'SONY':'sony.com',
-    'Canon':'canon.com',
-    'RED':'red.com',
-    'ZEISS':'zeiss.com',
-    'Cooke':'cookeoptics.com',
-    'Blackmagic Design':'blackmagicdesign.com',
-    'DJI':'dji.com',
-    'Aputure':'aputure.com',
-    'Teradek':'teradek.com',
-    'SmallHD':'smallhd.com',
-    'Sennheiser':'sennheiser.com'
-  };
-
-  // Real brand artwork sourced from public brand/logo assets.
-  // These replace generic favicon/logo-service results for the brands
-  // currently shown in the Brand Equipment strip.
-  const EXACT_LOGOS={
+  const BRAND_LOGOS={
+    'ARRI':'https://commons.wikimedia.org/wiki/Special:Redirect/file/Arri_logo.svg',
+    'SONY':'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sony_logo.svg',
+    'Canon':'https://commons.wikimedia.org/wiki/Special:Redirect/file/Canon_logo.svg',
+    'RED':'https://logo-teka.com/wp-content/uploads/2025/10/red-digital-cinema-logo.svg',
+    'ZEISS':'https://commons.wikimedia.org/wiki/Special:Redirect/file/Zeiss_logo.svg',
+    'Cooke':'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cooke_Optics.svg',
+    'Blackmagic Design':'https://images.seeklogo.com/logo-png/33/1/blackmagic-design-logo-png_seeklogo-332440.png',
+    'DJI':'https://commons.wikimedia.org/wiki/Special:Redirect/file/DJI_Innovations_logo.svg',
     'Aputure':'https://images.seeklogo.com/logo-png/35/1/aputure-logo-png_seeklogo-352127.png',
-    'Teradek':'https://teradek.com/cdn/shop/files/teradek-logo-social.png?v=2615974949159750763',
-    'SmallHD':'https://images.seeklogo.com/logo-png/39/1/smallhd-logo-png_seeklogo-393918.png'
+    'Teradek':'https://images.seeklogo.com/logo-png/54/1/teradek-logo-png_seeklogo-549817.png',
+    'SmallHD':'https://images.seeklogo.com/logo-png/39/1/smallhd-logo-png_seeklogo-393918.png',
+    'Sennheiser':'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sennheiser_logo_(2019).svg'
   };
 
   function ensureStyle(){
@@ -30,81 +21,88 @@
     st.id='rentcam-brand-png-style';
     st.textContent=`
       #app .brand-logo{
-        min-width:118px!important;
-        height:58px!important;
-        padding:7px 12px!important;
+        min-width:126px!important;
+        height:64px!important;
+        padding:8px 12px!important;
         display:flex!important;
         align-items:center!important;
         justify-content:center!important;
         box-sizing:border-box!important;
         font-size:0!important;
         line-height:0!important;
-        overflow:hidden!important;
+        overflow:visible!important;
       }
       #app .brand-logo .brand-logo-png{
         display:block!important;
         width:auto!important;
-        max-width:128px!important;
+        max-width:138px!important;
         height:auto!important;
-        max-height:38px!important;
+        max-height:42px!important;
         object-fit:contain!important;
         filter:none!important;
-        opacity:.94!important;
+        opacity:1!important;
         mix-blend-mode:normal!important;
       }
-      #app .brand-logo:hover .brand-logo-png{
-        opacity:1!important;
+      #app .brand-logo[data-brand="ZEISS"] .brand-logo-png,
+      #app .brand-logo[data-brand="DJI"] .brand-logo-png{
+        max-height:46px!important;
+      }
+      #app .brand-logo[data-brand="Blackmagic Design"] .brand-logo-png{
+        max-height:48px!important;
+      }
+      #app .brand-logo[data-brand="Aputure"] .brand-logo-png,
+      #app .brand-logo[data-brand="Teradek"] .brand-logo-png,
+      #app .brand-logo[data-brand="SmallHD"] .brand-logo-png,
+      #app .brand-logo[data-brand="SONY"] .brand-logo-png,
+      #app .brand-logo[data-brand="Sennheiser"] .brand-logo-png{
+        max-width:146px!important;
       }
       @media(max-width:620px){
         #app .brand-logo{
-          min-width:96px!important;
-          height:50px!important;
+          min-width:102px!important;
+          height:54px!important;
           padding:6px 8px!important;
         }
         #app .brand-logo .brand-logo-png{
-          max-width:105px!important;
-          max-height:31px!important;
+          max-width:112px!important;
+          max-height:34px!important;
+        }
+        #app .brand-logo[data-brand="ZEISS"] .brand-logo-png,
+        #app .brand-logo[data-brand="DJI"] .brand-logo-png,
+        #app .brand-logo[data-brand="Blackmagic Design"] .brand-logo-png{
+          max-height:37px!important;
         }
       }
     `;
     document.head.appendChild(st);
   }
 
-  function logoUrl(domain){
-    return 'https://logo.clearbit.com/'+encodeURIComponent(domain)+'?size=256';
-  }
-
-  function fallbackUrl(domain){
-    return 'https://www.google.com/s2/favicons?sz=256&domain_url='+encodeURIComponent('https://'+domain);
-  }
-
   function upgrade(el){
     const name=el.getAttribute('data-brand')||'';
-    const domain=LOGOS[name];
-    if(!domain||el.querySelector('.brand-logo-png'))return;
+    const src=BRAND_LOGOS[name];
+    if(!src)return;
 
+    const current=el.querySelector('.brand-logo-png');
+    if(current && current.dataset.brandSource===src)return;
+
+    el.textContent='';
     const img=document.createElement('img');
     img.className='brand-logo-png';
     img.alt=name+' logo';
     img.loading='lazy';
     img.decoding='async';
-    img.src=EXACT_LOGOS[name]||logoUrl(domain);
-    img.dataset.fallback='0';
+    img.referrerPolicy='no-referrer';
+    img.dataset.brandSource=src;
+    img.src=src;
 
     img.onerror=function(){
-      if(this.dataset.fallback==='0'){
-        this.dataset.fallback='1';
-        this.src=fallbackUrl(domain);
-        return;
-      }
-      this.style.display='none';
+      this.remove();
       const fallback=document.createElement('span');
       fallback.textContent=name;
-      fallback.style.cssText='font-size:14px;font-weight:800;line-height:1;color:#111';
-      this.parentElement?.appendChild(fallback);
+      fallback.style.cssText='font-size:14px;font-weight:800;line-height:1;color:#111;white-space:nowrap';
+      el.appendChild(fallback);
     };
 
-    el.textContent='';
     el.appendChild(img);
   }
 
