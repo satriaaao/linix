@@ -15,6 +15,15 @@
     'Sennheiser':'sennheiser.com'
   };
 
+  // Real brand artwork sourced from public brand/logo assets.
+  // These replace generic favicon/logo-service results for the brands
+  // currently shown in the Brand Equipment strip.
+  const EXACT_LOGOS={
+    'Aputure':'https://images.seeklogo.com/logo-png/35/1/aputure-logo-png_seeklogo-352127.png',
+    'Teradek':'https://teradek.com/cdn/shop/files/teradek-logo-social.png?v=2615974949159750763',
+    'SmallHD':'https://images.seeklogo.com/logo-png/39/1/smallhd-logo-png_seeklogo-393918.png'
+  };
+
   function ensureStyle(){
     if(document.getElementById('rentcam-brand-png-style'))return;
     const st=document.createElement('style');
@@ -39,9 +48,9 @@
         height:auto!important;
         max-height:38px!important;
         object-fit:contain!important;
-        filter:grayscale(1)!important;
-        opacity:.82!important;
-        mix-blend-mode:multiply!important;
+        filter:none!important;
+        opacity:.94!important;
+        mix-blend-mode:normal!important;
       }
       #app .brand-logo:hover .brand-logo-png{
         opacity:1!important;
@@ -79,7 +88,7 @@
     img.alt=name+' logo';
     img.loading='lazy';
     img.decoding='async';
-    img.src=logoUrl(domain);
+    img.src=EXACT_LOGOS[name]||logoUrl(domain);
     img.dataset.fallback='0';
 
     img.onerror=function(){
