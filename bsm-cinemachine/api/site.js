@@ -39,7 +39,8 @@ function patchPublicHtml(html,seo){
   const checkoutWizard='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@57a19710d8690fcfc3949e696d51771e3f03e11d/bsm-cinemachine/checkout-step-wizard-20260918.js"><\/script>';
   const includedDropdown='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@a1a4ff9dd2bbf75c41c76d06a91dee6beaf98087/bsm-cinemachine/product-included-dropdown-final-20260918.js"><\/script>';
   const productWatermark='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@b7b69a43dee016d136ee76c07f96cab95e8c681e/bsm-cinemachine/product-watermark-runtime-20260919.js"><\/script>';
-  out=out.replace('</body>',cartHardening+checkoutWizard+includedDropdown+productWatermark+'</body>');
+  const brandLogoPng='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@aaa5ac390754ad26594e54402d452b295374a549/bsm-cinemachine/brand-logo-png-runtime-20260920.js"><\/script>';
+  out=out.replace('</body>',cartHardening+checkoutWizard+includedDropdown+productWatermark+brandLogoPng+'</body>');
   const ssr=`<main id="app"><section data-seo-ssr="1" style="max-width:1180px;margin:0 auto;padding:28px 20px;font-family:Arial,sans-serif"><h1>${esc(seo.h1)}</h1><p>${esc(seo.summary)}</p></section></main>`;
   out=out.replace(/<main\s+id=["']app["']\s*><\/main>/i,ssr);
   out=out.replace(/src="\/product-search-20260912\.js(?:\?[^\"]*)?"/,'src="/product-search-20260912.js?v=geo4"');
