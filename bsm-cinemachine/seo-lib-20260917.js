@@ -52,6 +52,7 @@ out={...out,title:`${p.title} | Portfolio Rentcam`,description:p.desc,canonical:
 }
 if(kind==='cart')out={...out,title:'Rental Cart | Rentcam',description:'Keranjang rental Rentcam.',canonical:base+'/cart',robots:'noindex,nofollow',h1:'Rental Cart',summary:'Keranjang rental pelanggan.',schema:[]};
 if(kind==='order')out={...out,title:'Pesanan Rental | Rentcam',description:'Halaman pesanan rental Rentcam.',canonical:base+'/pesanan',robots:'noindex,nofollow',h1:'Pesanan Rental',summary:'Halaman pesanan rental pelanggan.',schema:[]};
+if(kind==='tracking')out={...out,title:'Cek Order & Antar Jemput | Rentcam',description:'Cek status pesanan rental dan antar jemput Rentcam menggunakan kode tracking.',canonical:base+'/cek-order',robots:'noindex,nofollow',h1:'Cek Order & Antar Jemput',summary:'Masukkan kode tracking untuk melihat status pesanan dan perjalanan driver.',schema:[]};
 return out;
 }
 function xmlEsc(s){return String(s).replace(/[<>&'\"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;',"'":'&apos;','\"':'&quot;'}[c]))}
