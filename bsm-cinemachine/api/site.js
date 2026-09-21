@@ -38,7 +38,7 @@ function patchPublicHtml(html,seo){
 </style>`;
   const checkoutWizard='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@57a19710d8690fcfc3949e696d51771e3f03e11d/bsm-cinemachine/checkout-step-wizard-20260918.js"><\/script>';
   const includedDropdown='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@a1a4ff9dd2bbf75c41c76d06a91dee6beaf98087/bsm-cinemachine/product-included-dropdown-final-20260918.js"><\/script>';
-  const productWatermark='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@86ef1f7645dbd8ce961e45967cea5ce83ef6be24/bsm-cinemachine/product-watermark-runtime-20260919.js"><\/script>';
+  const productWatermark='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@e4f61b2c0ec25c6f4d1e7cdb0bad97a56f2a649e/bsm-cinemachine/product-watermark-runtime-20260919.js"><\/script>';
   const brandLogoPng='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@900a441a0120153f643ef391be1f0e9524d89c60/bsm-cinemachine/brand-logo-png-runtime-20260920.js"><\/script>';
   const orderTracking='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@ae3547118618d6a2cf007a073b9a8f6803ba4af4/bsm-cinemachine/public-order-tracking-20260920.js"><\/script>';
   const homeHero='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@c4cad3787118ab3698ca3bbaaeaa34f81e850062/bsm-cinemachine/home-hero-carousel-20260922.js"><\/script>';
