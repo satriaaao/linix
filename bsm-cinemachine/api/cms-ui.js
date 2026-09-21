@@ -1,4 +1,4 @@
-const SOURCE='https://raw.githubusercontent.com/satriaaao/linix/382fd05f462d3cd97f38e3773826c1cc9ae305a7/bsm-cinemachine/cms-admin-all-tables-adapter-20260918.js';
+const SOURCE='https://raw.githubusercontent.com/satriaaao/linix/41f889cf6e2372123f9873abb2c4b47508292454/bsm-cinemachine/cms-admin-all-tables-adapter-20260918.js';
 
 async function handler(req,res){
   if(req.method!=='GET'&&req.method!=='HEAD'){
