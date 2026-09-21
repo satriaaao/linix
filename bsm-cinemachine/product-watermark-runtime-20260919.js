@@ -100,23 +100,15 @@
     return canvas.toDataURL('image/jpeg',0.92);
   }
 
-  function addDownloadHelper(img){
-    const host=img.parentElement;
-    if(!host||host.querySelector(':scope > .rc-wm-download'))return;
-    const btn=document.createElement('button');
-    btn.type='button';
-    btn.className='rc-wm-download';
-    btn.title='Download foto dengan watermark';
-    btn.setAttribute('aria-label','Download foto dengan watermark');
-    btn.innerHTML='⬇';
-    btn.addEventListener('click',e=>{
-      e.preventDefault();e.stopPropagation();
-      const a=document.createElement('a');
-      a.download='rentcam-watermark.jpg';
-      a.href=img.src;
-      document.body.appendChild(a);a.click();a.remove();
-    });
-    host.appendChild(btn);
+
+  function protectImage(img){
+    if(!img||!productImage(img))return;
+    img.setAttribute('draggable','false');
+    img.setAttribute('data-rc-protected','1');
+    img.removeAttribute('download');
+    img.style.webkitUserDrag='none';
+    img.style.webkitTouchCallout='none';
+    img.style.userSelect='none';
   }
 
   function apply(){
@@ -128,6 +120,7 @@
         return;
       }
       [...document.querySelectorAll('#app img')].filter(productImage).forEach(img=>{
+        protectImage(img);
         const host=img.parentElement;
         if(!host)return;
         const cs=getComputedStyle(host);
@@ -137,7 +130,7 @@
         // If this image is already baked, keep only the baked image and never add another overlay.
         if(img.dataset.rcWatermarked==='1'){
           removeOverlay(host);
-          addDownloadHelper(img);
+          protectImage(img);
           return;
         }
 
@@ -150,12 +143,12 @@
               img.dataset.rcWatermarked='1';
               img.src=src;
               removeOverlay(img.parentElement);
-              addDownloadHelper(img);
+          protectImage(img);
             }
           }).catch(()=>{});
           if(img.complete&&img.naturalWidth)bake(); else img.addEventListener('load',bake,{once:true});
         }
-        addDownloadHelper(img);
+          protectImage(img);
       });
     });
   }
@@ -173,8 +166,24 @@
 
   const style=document.createElement('style');
   style.id='rc-product-watermark-style';
-  style.textContent='.rc-product-watermark{display:none!important}.pcard,.product-card,.home-category-card{overflow:hidden}.rc-wm-download{position:absolute;right:10px;top:10px;z-index:11;width:30px;height:30px;border:0;border-radius:999px;background:rgba(255,255,255,.88);box-shadow:0 6px 18px rgba(0,0,0,.14);font-size:14px;line-height:30px;padding:0;display:none}.pcard:hover .rc-wm-download,.product-card:hover .rc-wm-download,.home-category-card:hover .rc-wm-download{display:block}@media(max-width:760px){.rc-wm-download{display:none!important}}';
+  style.textContent='.rc-product-watermark{display:none!important}.pcard,.product-card,.home-category-card{overflow:hidden}#app img[data-rc-protected="1"]{-webkit-user-drag:none!important;-webkit-touch-callout:none!important;user-select:none!important;-webkit-user-select:none!important;pointer-events:none!important}';
   document.head.appendChild(style);
+  document.addEventListener('contextmenu',e=>{
+    const img=e.target?.closest?.('#app img');
+    if(img&&productImage(img)){e.preventDefault();e.stopPropagation();}
+  },true);
+  document.addEventListener('dragstart',e=>{
+    const img=e.target?.closest?.('#app img');
+    if(img&&productImage(img)){e.preventDefault();e.stopPropagation();}
+  },true);
+  document.addEventListener('mousedown',e=>{
+    const img=e.target?.closest?.('#app img');
+    if(img&&productImage(img)&&e.button===1){e.preventDefault();e.stopPropagation();}
+  },true);
+  document.addEventListener('selectstart',e=>{
+    const img=e.target?.closest?.('#app img');
+    if(img&&productImage(img)){e.preventDefault();}
+  },true);
   document.addEventListener('rentcam-cms-updated',e=>{current=e.detail?.watermark||null;apply()});
   document.addEventListener('rentcam-route-change',()=>setTimeout(apply,0));
   new MutationObserver(apply).observe(document.getElementById('app')||document.body,{childList:true,subtree:true});
