@@ -66,28 +66,32 @@ function css(){
   #app .rc-home-trust{position:absolute;z-index:4;left:50%;bottom:64px;width:min(1112px,calc(100% - 48px));transform:translateX(-50%);display:flex;gap:8px;flex-wrap:wrap}
   #app .rc-home-trust span{padding:7px 10px;border:1px solid rgba(255,255,255,.14);border-radius:999px;background:rgba(8,14,21,.35);backdrop-filter:blur(8px);font-size:9px;font-weight:800;color:rgba(255,255,255,.78)}
   @media(max-width:760px){
-    #app .rc-home-carousel{height:520px;min-height:520px}
+    #app .rc-home-carousel{height:390px;min-height:390px}
     #app .rc-home-slide{background-position:center}
-    #app .rc-home-slide:before{background:linear-gradient(90deg,rgba(5,9,14,.86),rgba(5,9,14,.45)),linear-gradient(0deg,rgba(5,9,14,.5),transparent 50%)}
-    #app .rc-home-slide-inner{padding:0 22px;align-items:flex-end;padding-bottom:128px}
-    #app .rc-home-slide-copy{padding:0}
-    #app .rc-home-eyebrow{font-size:9px;margin-bottom:14px;letter-spacing:.14em}
-    #app .rc-home-eyebrow:before{width:24px}
-    #app .rc-home-slide h1{font-size:clamp(38px,10vw,54px);line-height:1}
-    #app .rc-home-slide p{font-size:13px;line-height:1.55;margin-top:16px;max-width:94%}
-    #app .rc-home-actions{margin-top:20px}
-    #app .rc-home-actions button{min-height:44px;padding:0 15px;font-size:10px}
-    #app .rc-home-carousel-ui{bottom:18px;width:calc(100% - 36px)}
+    #app .rc-home-slide:before{background:linear-gradient(90deg,rgba(5,9,14,.88),rgba(5,9,14,.38)),linear-gradient(0deg,rgba(5,9,14,.46),transparent 55%)}
+    #app .rc-home-slide-inner{padding:0 22px 72px;align-items:center}
+    #app .rc-home-slide-copy{padding:8px 0 0;max-width:92%}
+    #app .rc-home-eyebrow{font-size:8px;margin-bottom:10px;letter-spacing:.13em}
+    #app .rc-home-eyebrow:before{width:22px}
+    #app .rc-home-slide h1{font-size:clamp(30px,8.5vw,40px);line-height:1.02}
+    #app .rc-home-slide p{font-size:11.5px;line-height:1.45;margin-top:11px;max-width:92%}
+    #app .rc-home-actions{margin-top:14px;gap:8px}
+    #app .rc-home-actions button{min-height:38px;padding:0 12px;font-size:9px;border-radius:10px}
+    #app .rc-home-carousel-ui{bottom:13px;width:calc(100% - 36px)}
     #app .rc-home-nav{display:none}
     #app .rc-home-slide-no{display:none}
-    #app .rc-home-trust{left:18px;right:18px;bottom:52px;width:auto;transform:none;gap:5px;overflow:hidden;flex-wrap:nowrap}
-    #app .rc-home-trust span{flex:0 0 auto;font-size:7.5px;padding:6px 8px}
+    #app .rc-home-trust{left:18px;right:18px;bottom:34px;width:auto;transform:none;gap:5px;overflow:hidden;flex-wrap:nowrap}
+    #app .rc-home-trust span{flex:0 0 auto;font-size:7px;padding:5px 7px}
   }
   @media(max-width:440px){
-    #app .rc-home-carousel{height:500px;min-height:500px}
-    #app .rc-home-slide-inner{padding-left:18px;padding-right:18px;padding-bottom:122px}
-    #app .rc-home-slide h1{font-size:40px}
-    #app .rc-home-slide p{font-size:12px}
+    #app .rc-home-carousel{height:360px;min-height:360px}
+    #app .rc-home-slide-inner{padding:0 18px 64px;align-items:center}
+    #app .rc-home-slide h1{font-size:32px}
+    #app .rc-home-slide p{font-size:10.5px;line-height:1.4;margin-top:10px}
+    #app .rc-home-actions{margin-top:12px}
+    #app .rc-home-actions button{min-height:36px;padding:0 11px;font-size:8.5px}
+    #app .rc-home-trust{bottom:31px}
+    #app .rc-home-trust span{font-size:6.5px;padding:4px 6px}
   }
   @media(prefers-reduced-motion:reduce){#app .rc-home-slide{transition:none}}
   `;document.head.appendChild(s);
