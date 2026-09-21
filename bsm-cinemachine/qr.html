@@ -422,7 +422,7 @@
   <style id="printStyle">@page{size:A4 portrait;margin:6mm}</style>
 </head>
 <body>
-<!-- qr-code polished ui v16 sticker-print-ready-copy -->
+<!-- qr-code polished ui v17 peel-sticker-kiss-cut -->
 <div class="app">
   <header class="topbar">
     <div class="topbar-inner">
@@ -502,8 +502,13 @@
           <div><label>Jarak Judul ke QR (mm)</label><input id="titleGap" type="number" min="0" max="10" step=".1" value="1"></div>
           <div><label>Jarak QR ke Nomor (mm)</label><input id="serialGap" type="number" min="0" max="10" step=".1" value="1"></div>
         </div>
+        <div class="toggle"><span>Mode Stiker Kupas / Kiss Cut</span><input id="stickerMode" type="checkbox" checked></div>
+        <div class="row" style="margin-top:8px">
+          <div><label>Sudut Stiker (mm)</label><input id="cornerRadius" type="number" min="0" max="8" step=".5" value="1.5"></div>
+          <div></div>
+        </div>
         <div class="toggle"><span>Tampilkan garis potong</span><input id="cutLine" type="checkbox" checked></div>
-        <p class="hint">Ukuran dicetak menggunakan satuan mm supaya hasil label lebih konsisten.</p>
+        <p class="hint">Mode Stiker Kupas membuat 1 QR = 1 stiker terpisah dengan garis kiss cut untuk percetakan.</p>
       </div>
 
       <div class="section">
@@ -513,7 +518,7 @@
           <button class="btn btn-primary" id="zipBtn">Download ZIP PNG</button>
           <button class="btn btn-soft" id="pressBtn">Download PDF Stiker Siap Cetak</button>
         </div>
-        <p class="hint">PDF Stiker dibuat dengan ukuran mm asli, resolusi tinggi, tanpa header/footer browser, dan siap dikirim ke percetakan stiker.</p>
+        <p class="hint">Aktifkan Mode Stiker Kupas agar setiap QR punya garis kiss cut sendiri dan bisa dikelupas satu-satu setelah dicetak.</p>
       </div>
     </aside>
 
@@ -539,7 +544,7 @@
     boxSize:$('boxSize'), cutW:$('cutW'), cutH:$('cutH'), contentScale:$('contentScale'), qrSize:$('qrSize'), columns:$('columns'), gap:$('gap'),
     paper:$('paper'), labelPadding:$('labelPadding'), autoText:$('autoText'),
     titleSize:$('titleSize'), serialSize:$('serialSize'), titleGap:$('titleGap'), serialGap:$('serialGap'),
-    cutLine:$('cutLine'), file:$('fileInput')
+    stickerMode:$('stickerMode'), cornerRadius:$('cornerRadius'), cutLine:$('cutLine'), file:$('fileInput')
   };
   let serials = [];
 
@@ -565,6 +570,8 @@
       serialFont:clamp(els.serialSize.value,1.5,12,3.1),
       titleGap:clamp(els.titleGap.value,0,10,1),
       serialGap:clamp(els.serialGap.value,0,10,1),
+      stickerMode:els.stickerMode.checked,
+      cornerRadius:clamp(els.cornerRadius.value,0,8,1.5),
       title:true,
       cut:els.cutLine.checked
     };
@@ -601,7 +608,7 @@
   }
 
   function enhanceSliders(){
-    const ids=['boxSize','contentScale','cutW','cutH','qrSize','gap','columns','labelPadding','titleSize','serialSize','titleGap','serialGap'];
+    const ids=['boxSize','contentScale','cutW','cutH','qrSize','gap','columns','labelPadding','titleSize','serialSize','titleGap','serialGap','cornerRadius'];
     ids.forEach(id=>{
       const number=$(id);
       if(!number || number.dataset.sliderReady==='1') return;
@@ -711,17 +718,18 @@
     });
   }
   function saveLocal(){
-    localStorage.setItem('qr_label_settings_v7',JSON.stringify(settings()));
+    localStorage.setItem('qr_label_settings_v8',JSON.stringify(settings()));
     localStorage.setItem('qr_label_input_v2',els.input.value);
   }
   function loadLocal(){
     try{
-      const s=JSON.parse(localStorage.getItem('qr_label_settings_v7')||'null');
+      const s=JSON.parse(localStorage.getItem('qr_label_settings_v8')||'null');
       if(s){
         els.boxSize.value=s.boxSize ?? s.cutW ?? 35;els.cutW.value=s.cutW;els.cutH.value=s.cutH;els.contentScale.value=s.contentScale ?? 100;els.qrSize.value=s.qr;els.columns.value=s.cols;els.gap.value=s.gap;els.paper.value=s.paper||'A4';
         els.labelPadding.value=s.padding ?? 1.5;els.autoText.checked=s.autoText!==false;
         els.titleSize.value=s.titleFont ?? 2.8;els.serialSize.value=s.serialFont ?? 3.1;
-        els.titleGap.value=s.titleGap ?? 1;els.serialGap.value=s.serialGap ?? 1;els.cutLine.checked=s.cut!==false;
+        els.titleGap.value=s.titleGap ?? 1;els.serialGap.value=s.serialGap ?? 1;
+        els.stickerMode.checked=s.stickerMode!==false;els.cornerRadius.value=s.cornerRadius ?? 1.5;els.cutLine.checked=s.cut!==false;
       }
       const input=localStorage.getItem('qr_label_input_v2'); if(input) els.input.value=input;
     }catch(e){}
@@ -742,6 +750,7 @@
       label.style.height=s.cutH+'mm';
       label.style.padding=m.padding+'mm';
       label.classList.toggle('no-cut',!s.cut);
+      label.style.borderRadius=s.stickerMode ? s.cornerRadius+'mm' : '0';
 
       const q=label.querySelector('.qr-box');
       if(q){q.style.width=m.qr+'mm';q.style.height=m.qr+'mm';}
@@ -869,7 +878,7 @@
     els.file.value='';
   }
 
-  function makeLabelCanvas(serial,s,m,scale=6){
+  function makeLabelCanvas(serial,s,m,scale=6,showCutBorder=true){
     const px=3.7795275591*scale;
     const w=Math.max(1,Math.round(s.cutW*px));
     const h=Math.max(1,Math.round(s.cutH*px));
@@ -899,7 +908,7 @@
     const baseline=Math.min(h-Math.round(m.padding*px),y+Math.round(m.serialFont*px));
     ctx.fillText(serial,w/2,baseline);
 
-    if(s.cut){
+    if(s.cut && showCutBorder){
       ctx.save();
       ctx.strokeStyle='#b9c4d3';
       ctx.setLineDash([Math.max(3,Math.round(px*.7)),Math.max(3,Math.round(px*.7))]);
@@ -944,9 +953,23 @@
         const x=startX+col*(s.cutW+s.gap);
         const y=startY+row*(s.cutH+s.gap);
 
-        const canvas=makeLabelCanvas(serials[i],s,m,6);
+        const canvas=makeLabelCanvas(serials[i],s,m,6,!s.stickerMode);
         const img=canvas.toDataURL('image/png');
         pdf.addImage(img,'PNG',x,y,s.cutW,s.cutH,undefined,'FAST');
+
+        if(s.stickerMode){
+          pdf.saveGraphicsState();
+          pdf.setDrawColor(150,150,150);
+          pdf.setLineWidth(0.12);
+          pdf.setLineDashPattern([1.2,1.2],0);
+          const r=Math.max(0,Math.min(s.cornerRadius,s.cutW/2,s.cutH/2));
+          if(r>0){
+            pdf.roundedRect(x,y,s.cutW,s.cutH,r,r,'S');
+          }else{
+            pdf.rect(x,y,s.cutW,s.cutH,'S');
+          }
+          pdf.restoreGraphicsState();
+        }
       }
 
       pdf.setProperties({
@@ -954,8 +977,11 @@
         subject:'QR sticker print-ready',
         author:'BSM Rental'
       });
-      pdf.save('BSM-Rental-QR-Stiker-Siap-Cetak-'+serials.length+'pcs.pdf');
-      setStatus('PDF stiker berhasil dibuat.');
+      const fileName=s.stickerMode
+        ? 'BSM-Rental-Stiker-Kupas-'+serials.length+'pcs.pdf'
+        : 'BSM-Rental-QR-Stiker-Siap-Cetak-'+serials.length+'pcs.pdf';
+      pdf.save(fileName);
+      setStatus(s.stickerMode ? 'PDF stiker kupas / kiss cut berhasil dibuat.' : 'PDF stiker berhasil dibuat.');
     }catch(e){
       console.error(e);
       setStatus('Gagal membuat PDF stiker. Coba lagi.');
@@ -1027,13 +1053,14 @@
     if(rh){rh.value=size;updateSliderFill(rh);}
     applyLayout();
   });
-  ['cutW','cutH','contentScale','qrSize','columns','gap','paper','labelPadding','titleSize','serialSize','titleGap','serialGap','cutLine'].forEach(id=>$(id).addEventListener('change',()=>{
+  ['cutW','cutH','contentScale','qrSize','columns','gap','paper','labelPadding','titleSize','serialSize','titleGap','serialGap','cornerRadius','cutLine'].forEach(id=>$(id).addEventListener('change',()=>{
     if(id==='cutW' || id==='cutH'){
       if(Number(els.cutW.value)===Number(els.cutH.value)) els.boxSize.value=els.cutW.value;
     }
     applyLayout();
   }));
   $('autoText').addEventListener('change',()=>{syncTextControls();applyLayout();});
+  $('stickerMode').addEventListener('change',()=>{applyLayout();});
   $('printBtn').addEventListener('click',()=>{if(!serials.length){setStatus('Belum ada QR untuk dicetak.');return;}applyLayout();window.print();});
   $('zipBtn').addEventListener('click',downloadZip);
   $('pressBtn').addEventListener('click',downloadPressPdf);
