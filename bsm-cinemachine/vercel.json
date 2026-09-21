@@ -27,9 +27,26 @@
           "value": "noindex, nofollow"
         }
       ]
+    },
+    {
+      "source": "/qr-code",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        },
+        {
+          "key": "Content-Type",
+          "value": "text/html; charset=utf-8"
+        }
+      ]
     }
   ],
   "rewrites": [
+    {
+      "source": "/qr-code",
+      "destination": "/qr.html"
+    },
     {
       "source": "/cms-admin-v5-20260912.js",
       "destination": "https://cdn.jsdelivr.net/gh/satriaaao/linix@46bde66fd10ce06d2ba9f0c1af67689bb43c5ba0/bsm-cinemachine/cms-admin-v5-20260912.js"
@@ -149,6 +166,18 @@
     {
       "source": "/pesanan",
       "destination": "/api/site?kind=order"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/qr",
+      "destination": "/qr-code",
+      "permanent": true
+    },
+    {
+      "source": "/qr.html",
+      "destination": "/qr-code",
+      "permanent": true
     }
   ]
 }
