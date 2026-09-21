@@ -392,7 +392,7 @@
   <style id="printStyle">@page{size:A4 portrait;margin:0}</style>
 </head>
 <body>
-<!-- qr-code polished ui v3 -->
+<!-- qr-code polished ui v4 title-default-on -->
 <div class="app">
   <header class="topbar">
     <div class="topbar-inner">
@@ -514,14 +514,14 @@
   }
   function fitQr(s){ return Math.min(s.qr, s.w-4, s.h-(s.title?10:7)); }
   function saveLocal(){
-    localStorage.setItem('bsm_qr_settings',JSON.stringify(settings()));
-    localStorage.setItem('bsm_qr_input',els.input.value);
+    localStorage.setItem('qr_label_settings_v2',JSON.stringify(settings()));
+    localStorage.setItem('qr_label_input_v2',els.input.value);
   }
   function loadLocal(){
     try{
-      const s=JSON.parse(localStorage.getItem('bsm_qr_settings')||'null');
+      const s=JSON.parse(localStorage.getItem('qr_label_settings_v2')||'null');
       if(s){els.labelW.value=s.w;els.labelH.value=s.h;els.qrSize.value=s.qr;els.columns.value=s.cols;els.gap.value=s.gap;els.fontSize.value=s.font;els.paper.value=s.paper||'A4';els.showTitle.checked=s.title!==false;els.cutLine.checked=s.cut!==false;}
-      const input=localStorage.getItem('bsm_qr_input'); if(input) els.input.value=input;
+      const input=localStorage.getItem('qr_label_input_v2'); if(input) els.input.value=input;
     }catch(e){}
   }
   function paperWidth(p){ return p==='A3'?297:p==='Letter'?215.9:210; }
