@@ -392,7 +392,7 @@
   <style id="printStyle">@page{size:A4 portrait;margin:0}</style>
 </head>
 <body>
-<!-- qr-code polished ui v4 title-default-on -->
+<!-- qr-code polished ui v5 title-forced-on -->
 <div class="app">
   <header class="topbar">
     <div class="topbar-inner">
@@ -455,7 +455,6 @@
           <div><label>Ukuran teks (mm)</label><input id="fontSize" type="number" min="1.5" max="10" step=".2" value="3.1"></div>
           <div><label>Kertas</label><select id="paper"><option value="A4">A4</option><option value="A3">A3</option><option value="Letter">Letter</option></select></div>
         </div>
-        <div class="toggle"><span>Tampilkan “BSM Rental” di atas QR</span><input id="showTitle" type="checkbox" checked></div>
         <div class="toggle"><span>Tampilkan garis potong</span><input id="cutLine" type="checkbox" checked></div>
         <p class="hint">Ukuran dicetak menggunakan satuan mm supaya hasil label lebih konsisten.</p>
       </div>
@@ -489,7 +488,7 @@
   const els = {
     input:$('serialInput'), sheet:$('sheet'), total:$('totalCount'), status:$('status'), meta:$('previewMeta'),
     labelW:$('labelW'), labelH:$('labelH'), qrSize:$('qrSize'), columns:$('columns'), gap:$('gap'), fontSize:$('fontSize'),
-    paper:$('paper'), showTitle:$('showTitle'), cutLine:$('cutLine'), file:$('fileInput')
+    paper:$('paper'), cutLine:$('cutLine'), file:$('fileInput')
   };
   let serials = [];
 
@@ -508,7 +507,7 @@
       gap:clamp(els.gap.value,0,20,2),
       font:clamp(els.fontSize.value,1.5,10,3.1),
       paper:els.paper.value,
-      title:els.showTitle.checked,
+      title:true,
       cut:els.cutLine.checked
     };
   }
@@ -520,7 +519,7 @@
   function loadLocal(){
     try{
       const s=JSON.parse(localStorage.getItem('qr_label_settings_v2')||'null');
-      if(s){els.labelW.value=s.w;els.labelH.value=s.h;els.qrSize.value=s.qr;els.columns.value=s.cols;els.gap.value=s.gap;els.fontSize.value=s.font;els.paper.value=s.paper||'A4';els.showTitle.checked=s.title!==false;els.cutLine.checked=s.cut!==false;}
+      if(s){els.labelW.value=s.w;els.labelH.value=s.h;els.qrSize.value=s.qr;els.columns.value=s.cols;els.gap.value=s.gap;els.fontSize.value=s.font;els.paper.value=s.paper||'A4';els.cutLine.checked=s.cut!==false;}
       const input=localStorage.getItem('qr_label_input_v2'); if(input) els.input.value=input;
     }catch(e){}
   }
@@ -540,7 +539,7 @@
       const q=label.querySelector('.qr-box'); if(q){q.style.width=qr+'mm';q.style.height=qr+'mm';}
       label.querySelectorAll('.qr-box canvas,.qr-box img').forEach(n=>{n.style.width=qr+'mm';n.style.height=qr+'mm';});
       const t=label.querySelector('.serial'); if(t) t.style.fontSize=s.font+'mm';
-      const title=label.querySelector('.label-title'); if(title) title.style.display=s.title?'block':'none';
+      const title=label.querySelector('.label-title'); if(title) title.style.display='block';
     });
     els.meta.textContent=s.paper+' • '+s.cols+' kolom • '+s.w+' × '+s.h+' mm';
     $('printStyle').textContent='@page{size:'+s.paper+' portrait;margin:0}';
@@ -561,7 +560,7 @@
       const label=document.createElement('div');
       label.className='qr-label'+(s.cut?'':' no-cut');
       label.style.width=s.w+'mm';label.style.height=s.h+'mm';
-      const title=document.createElement('div');title.className='label-title';title.textContent='BSM Rental';title.style.display=s.title?'block':'none';
+      const title=document.createElement('div');title.className='label-title';title.textContent='BSM Rental';title.style.display='block';
       const box=document.createElement('div');box.className='qr-box';box.style.width=qr+'mm';box.style.height=qr+'mm';
       const text=document.createElement('div');text.className='serial';text.textContent=serial;text.style.fontSize=s.font+'mm';
       label.append(title,box,text);els.sheet.appendChild(label);
@@ -631,7 +630,7 @@
         const c=document.createElement('canvas');c.width=w;c.height=h;
         const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.fillStyle='#111';ctx.textAlign='center';
         let y=Math.round(1.5*3.7795*scale);
-        if(s.title){ctx.font='700 '+Math.round(2.8*3.7795*scale)+'px Arial';ctx.fillText('BSM Rental',w/2,y+Math.round(2.8*3.7795*scale));y+=Math.round(4.4*3.7795*scale);}
+        ctx.font='700 '+Math.round(2.8*3.7795*scale)+'px Arial';ctx.fillText('BSM Rental',w/2,y+Math.round(2.8*3.7795*scale));y+=Math.round(4.4*3.7795*scale);
         const qmm=fitQr(s),qp=Math.round(qmm*3.7795*scale),qx=Math.round((w-qp)/2);
         ctx.drawImage(qrCanvas,qx,y,qp,qp);y+=qp+Math.round(1.2*3.7795*scale);
         ctx.font='500 '+Math.round(s.font*3.7795*scale)+'px Arial';ctx.fillText(serials[i],w/2,Math.min(h-Math.round(1.5*3.7795*scale),y+Math.round(s.font*3.7795*scale)));
@@ -659,7 +658,7 @@
   $('dropzone').addEventListener('dragleave',()=>{$('dropzone').style.background='';});
   $('dropzone').addEventListener('drop',e=>{e.preventDefault();$('dropzone').style.background='';handleFile(e.dataTransfer.files[0]);});
   els.file.addEventListener('change',()=>handleFile(els.file.files[0]));
-  ['labelW','labelH','qrSize','columns','gap','fontSize','paper','showTitle','cutLine'].forEach(id=>$(id).addEventListener('change',()=>{if(serials.length)render();else applyLayout();}));
+  ['labelW','labelH','qrSize','columns','gap','fontSize','paper','cutLine'].forEach(id=>$(id).addEventListener('change',()=>{if(serials.length)render();else applyLayout();}));
   $('printBtn').addEventListener('click',()=>{if(!serials.length){setStatus('Belum ada QR untuk dicetak.');return;}applyLayout();window.print();});
   $('zipBtn').addEventListener('click',downloadZip);
   window.addEventListener('beforeprint',applyLayout);
