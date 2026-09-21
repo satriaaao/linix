@@ -403,7 +403,7 @@
   <style id="printStyle">@page{size:A4 portrait;margin:6mm}</style>
 </head>
 <body>
-<!-- qr-code polished ui v6 print-fit-fix -->
+<!-- qr-code polished ui v7 rebuild-reset-fix -->
 <div class="app">
   <header class="topbar">
     <div class="topbar-inner">
@@ -557,10 +557,17 @@
     saveLocal();
   }
 
+  function updateGenerateButton(){
+    const btn=$('generateBtn');
+    if(!btn) return;
+    btn.textContent=serials.length ? 'Buat Ulang' : 'Buat QR';
+  }
+
   function render(){
     serials = unique(serials);
     els.sheet.innerHTML='';
     els.total.textContent=serials.length;
+    updateGenerateButton();
     if(!serials.length){
       els.sheet.innerHTML='<div class="empty"><div><b>Belum ada QR</b>Masukkan nomor seri lalu tekan <strong>Buat QR</strong>.</div></div>';
       applyLayout(); return;
@@ -582,7 +589,20 @@
   }
 
   function generateFromInput(){
-    serials=parseText(els.input.value);
+    const nextSerials=parseText(els.input.value);
+    const currentKey=serials.join('\n');
+    const nextKey=nextSerials.join('\n');
+
+    if(serials.length && nextKey===currentKey){
+      serials=[];
+      els.input.value='';
+      render();
+      setStatus('QR lama sudah dihapus. Masukkan nomor seri baru lalu tekan Buat QR.');
+      setTimeout(()=>els.input.focus(),50);
+      return;
+    }
+
+    serials=nextSerials;
     render();
     setStatus(serials.length ? serials.length+' nomor seri berhasil dibuat.' : 'Masukkan nomor seri terlebih dahulu.');
   }
