@@ -422,7 +422,7 @@
   <style id="printStyle">@page{size:A4 portrait;margin:6mm}</style>
 </head>
 <body>
-<!-- qr-code polished ui v14 mobile-sliders -->
+<!-- qr-code polished ui v15 snug-cut-sliders -->
 <div class="app">
   <header class="topbar">
     <div class="topbar-inner">
@@ -473,14 +473,14 @@
       <div class="section">
         <h2>4. Pengaturan Label</h2>
         <div class="row" style="margin-bottom:8px">
-          <div><label>Ukuran Kotak Persegi (mm)</label><input id="boxSize" type="number" min="20" max="120" step="1" value="35"></div>
+          <div><label>Ukuran Kotak Persegi (mm)</label><input id="boxSize" type="number" min="10" max="120" step="1" value="35"></div>
           <div><label>Ukuran Isi (%)</label><input id="contentScale" type="number" min="50" max="180" step="5" value="100"></div>
         </div>
         <div class="row">
-          <div><label>Lebar Kotak (mm)</label><input id="cutW" type="number" min="20" max="120" step="1" value="35"></div>
-          <div><label>Tinggi Kotak (mm)</label><input id="cutH" type="number" min="20" max="120" step="1" value="35"></div>
+          <div><label>Lebar Kotak (mm)</label><input id="cutW" type="number" min="10" max="120" step="1" value="35"></div>
+          <div><label>Tinggi Kotak (mm)</label><input id="cutH" type="number" min="10" max="120" step="1" value="35"></div>
         </div>
-        <p class="hint">Ukuran Kotak Persegi mengubah lebar + tinggi kotak sekaligus. Ukuran Isi membesarkan/mengecilkan BSM Rental + QR + nomor seri.</p>
+        <p class="hint">Geser Lebar/Tinggi Kotak sampai batas minimum untuk membuat garis potong mepet ke isi QR tanpa memotong BSM Rental atau nomor seri.</p>
         <div class="row" style="margin-top:8px">
           <div><label>Ukuran Dasar QR (mm)</label><input id="qrSize" type="number" min="10" max="90" step="1" value="22"></div>
           <div><label>Jarak Potong (mm)</label><input id="gap" type="number" min="0" max="20" step=".5" value="2"></div>
@@ -551,9 +551,9 @@
   function setStatus(msg){ els.status.textContent = msg || ''; }
   function settings(){
     return {
-      boxSize:clamp(els.boxSize.value,20,120,35),
-      cutW:clamp(els.cutW.value,20,120,35),
-      cutH:clamp(els.cutH.value,20,120,35),
+      boxSize:clamp(els.boxSize.value,10,120,35),
+      cutW:clamp(els.cutW.value,10,120,35),
+      cutH:clamp(els.cutH.value,10,120,35),
       contentScale:clamp(els.contentScale.value,50,180,100),
       qr:clamp(els.qrSize.value,10,90,22),
       cols:Math.round(clamp(els.columns.value,1,10,5)),
@@ -659,6 +659,45 @@
     });
   }
 
+  function contentFitMinimum(s){
+    const scale=s.contentScale/100;
+    const padding=s.padding;
+    const qr=s.qr*scale;
+    const titleFont=(s.autoText ? clamp(s.qr*0.115,2.1,4.2,2.8) : s.titleFont)*scale;
+    const serialFont=(s.autoText ? clamp(s.qr*0.13,2.4,5,3.1) : s.serialFont)*scale;
+    const titleGap=(s.autoText ? clamp(s.qr*0.035,.7,1.5,1) : s.titleGap)*scale;
+    const serialGap=(s.autoText ? clamp(s.qr*0.04,.8,1.7,1) : s.serialGap)*scale;
+    return {
+      w:Math.ceil((qr+(padding*2))*10)/10,
+      h:Math.ceil((titleFont+titleGap+qr+serialGap+serialFont+(padding*2))*10)/10
+    };
+  }
+
+  function syncCutMinimums(){
+    const s=settings();
+    const min=contentFitMinimum(s);
+    const squareMin=Math.max(min.w,min.h);
+
+    const pairs=[
+      [els.cutW,min.w],
+      [els.cutH,min.h],
+      [els.boxSize,squareMin]
+    ];
+
+    pairs.forEach(([number,minValue])=>{
+      number.min=String(minValue);
+      const range=number.closest('.range-control')?.querySelector('input[type="range"]');
+      if(range){
+        range.min=String(minValue);
+        if(Number(range.value)<minValue) range.value=String(minValue);
+        updateSliderFill(range);
+      }
+      if(Number(number.value)<minValue) number.value=String(minValue);
+    });
+
+    return min;
+  }
+
   function centeredContentStartY(s,m){
     const contentH=m.titleFont+m.titleGap+m.qr+m.serialGap+m.serialFont;
     return Math.max(m.padding,(s.cutH-contentH)/2);
@@ -672,12 +711,12 @@
     });
   }
   function saveLocal(){
-    localStorage.setItem('qr_label_settings_v6',JSON.stringify(settings()));
+    localStorage.setItem('qr_label_settings_v7',JSON.stringify(settings()));
     localStorage.setItem('qr_label_input_v2',els.input.value);
   }
   function loadLocal(){
     try{
-      const s=JSON.parse(localStorage.getItem('qr_label_settings_v6')||'null');
+      const s=JSON.parse(localStorage.getItem('qr_label_settings_v7')||'null');
       if(s){
         els.boxSize.value=s.boxSize ?? s.cutW ?? 35;els.cutW.value=s.cutW;els.cutH.value=s.cutH;els.contentScale.value=s.contentScale ?? 100;els.qrSize.value=s.qr;els.columns.value=s.cols;els.gap.value=s.gap;els.paper.value=s.paper||'A4';
         els.labelPadding.value=s.padding ?? 1.5;els.autoText.checked=s.autoText!==false;
@@ -691,6 +730,7 @@
   function paperHeight(p){ return p==='A3'?420:p==='Letter'?279.4:297; }
 
   function applyLayout(){
+    syncCutMinimums();
     const s=settings();
     const m=adaptiveMetrics(s);
     els.sheet.style.width=paperWidth(s.paper)+'mm';
@@ -976,7 +1016,9 @@
   $('dropzone').addEventListener('drop',e=>{e.preventDefault();$('dropzone').style.background='';handleFile(e.dataTransfer.files[0]);});
   els.file.addEventListener('change',()=>handleFile(els.file.files[0]));
   $('boxSize').addEventListener('change',()=>{
-    const size=clamp(els.boxSize.value,20,120,35);
+    const fit=contentFitMinimum(settings());
+    const minSquare=Math.max(fit.w,fit.h);
+    const size=clamp(els.boxSize.value,minSquare,120,35);
     els.cutW.value=size;
     els.cutH.value=size;
     const rw=els.cutW.closest('.range-control')?.querySelector('input[type="range"]');
