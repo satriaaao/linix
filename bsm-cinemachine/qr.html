@@ -403,7 +403,7 @@
   <style id="printStyle">@page{size:A4 portrait;margin:6mm}</style>
 </head>
 <body>
-<!-- qr-code polished ui v10 manual-and-auto-component-sizing -->
+<!-- qr-code polished ui v11 overall-content-scale -->
 <div class="app">
   <header class="topbar">
     <div class="topbar-inner">
@@ -456,15 +456,20 @@
         <div class="row3">
           <div><label>Lebar Potong (mm)</label><input id="cutW" type="number" min="20" max="120" step="1" value="35"></div>
           <div><label>Tinggi Potong (mm)</label><input id="cutH" type="number" min="20" max="120" step="1" value="35"></div>
-          <div><label>Ukuran QR (mm)</label><input id="qrSize" type="number" min="10" max="90" step="1" value="22"></div>
+          <div><label>Ukuran Isi (%)</label><input id="contentScale" type="number" min="50" max="180" step="5" value="100"></div>
         </div>
+        <p class="hint">Ukuran Isi membesarkan/mengecilkan sekaligus: BSM Rental + QR + nomor seri.</p>
         <div class="row" style="margin-top:8px">
-          <div><label>Kolom per halaman</label><input id="columns" type="number" min="1" max="10" value="5"></div>
+          <div><label>Ukuran Dasar QR (mm)</label><input id="qrSize" type="number" min="10" max="90" step="1" value="22"></div>
           <div><label>Jarak Potong (mm)</label><input id="gap" type="number" min="0" max="20" step=".5" value="2"></div>
         </div>
         <div class="row" style="margin-top:8px">
+          <div><label>Kolom per halaman</label><input id="columns" type="number" min="1" max="10" value="5"></div>
           <div><label>Kertas</label><select id="paper"><option value="A4">A4</option><option value="A3">A3</option><option value="Letter">Letter</option></select></div>
+        </div>
+        <div class="row" style="margin-top:8px">
           <div><label>Padding Label (mm)</label><input id="labelPadding" type="number" min=".5" max="8" step=".1" value="1.5"></div>
+          <div></div>
         </div>
         <div class="toggle"><span>Ukuran teks otomatis mengikuti QR</span><input id="autoText" type="checkbox" checked></div>
         <div class="row" style="margin-top:8px">
@@ -507,7 +512,7 @@
   const $ = id => document.getElementById(id);
   const els = {
     input:$('serialInput'), sheet:$('sheet'), total:$('totalCount'), status:$('status'), meta:$('previewMeta'),
-    cutW:$('cutW'), cutH:$('cutH'), qrSize:$('qrSize'), columns:$('columns'), gap:$('gap'),
+    cutW:$('cutW'), cutH:$('cutH'), contentScale:$('contentScale'), qrSize:$('qrSize'), columns:$('columns'), gap:$('gap'),
     paper:$('paper'), labelPadding:$('labelPadding'), autoText:$('autoText'),
     titleSize:$('titleSize'), serialSize:$('serialSize'), titleGap:$('titleGap'), serialGap:$('serialGap'),
     cutLine:$('cutLine'), file:$('fileInput')
@@ -524,6 +529,7 @@
     return {
       cutW:clamp(els.cutW.value,20,120,35),
       cutH:clamp(els.cutH.value,20,120,35),
+      contentScale:clamp(els.contentScale.value,50,180,100),
       qr:clamp(els.qrSize.value,10,90,22),
       cols:Math.round(clamp(els.columns.value,1,10,5)),
       gap:clamp(els.gap.value,0,20,2),
@@ -540,14 +546,16 @@
   }
 
   function adaptiveMetrics(s){
+    const scale=s.contentScale/100;
     const padding=s.padding;
-    const titleFont=s.autoText ? clamp(s.qr*0.115,2.1,4.2,2.8) : s.titleFont;
-    const serialFont=s.autoText ? clamp(s.qr*0.13,2.4,5,3.1) : s.serialFont;
-    const titleGap=s.autoText ? clamp(s.qr*0.035,.7,1.5,1) : s.titleGap;
-    const serialGap=s.autoText ? clamp(s.qr*0.04,.8,1.7,1) : s.serialGap;
+    const baseQr=s.qr*scale;
+    const titleFont=(s.autoText ? clamp(s.qr*0.115,2.1,4.2,2.8) : s.titleFont)*scale;
+    const serialFont=(s.autoText ? clamp(s.qr*0.13,2.4,5,3.1) : s.serialFont)*scale;
+    const titleGap=(s.autoText ? clamp(s.qr*0.035,.7,1.5,1) : s.titleGap)*scale;
+    const serialGap=(s.autoText ? clamp(s.qr*0.04,.8,1.7,1) : s.serialGap)*scale;
     const maxQrByWidth=Math.max(10,s.cutW-(padding*2));
     const maxQrByHeight=Math.max(10,s.cutH-(padding*2)-titleFont-titleGap-serialFont-serialGap);
-    const qr=Math.max(10,Math.min(s.qr,maxQrByWidth,maxQrByHeight));
+    const qr=Math.max(10,Math.min(baseQr,maxQrByWidth,maxQrByHeight));
     return {padding,titleFont,serialFont,titleGap,serialGap,qr};
   }
 
@@ -559,14 +567,14 @@
     });
   }
   function saveLocal(){
-    localStorage.setItem('qr_label_settings_v4',JSON.stringify(settings()));
+    localStorage.setItem('qr_label_settings_v5',JSON.stringify(settings()));
     localStorage.setItem('qr_label_input_v2',els.input.value);
   }
   function loadLocal(){
     try{
-      const s=JSON.parse(localStorage.getItem('qr_label_settings_v4')||'null');
+      const s=JSON.parse(localStorage.getItem('qr_label_settings_v5')||'null');
       if(s){
-        els.cutW.value=s.cutW;els.cutH.value=s.cutH;els.qrSize.value=s.qr;els.columns.value=s.cols;els.gap.value=s.gap;els.paper.value=s.paper||'A4';
+        els.cutW.value=s.cutW;els.cutH.value=s.cutH;els.contentScale.value=s.contentScale ?? 100;els.qrSize.value=s.qr;els.columns.value=s.cols;els.gap.value=s.gap;els.paper.value=s.paper||'A4';
         els.labelPadding.value=s.padding ?? 1.5;els.autoText.checked=s.autoText!==false;
         els.titleSize.value=s.titleFont ?? 2.8;els.serialSize.value=s.serialFont ?? 3.1;
         els.titleGap.value=s.titleGap ?? 1;els.serialGap.value=s.serialGap ?? 1;els.cutLine.checked=s.cut!==false;
@@ -610,7 +618,7 @@
         t.style.marginTop=m.serialGap+'mm';
       }
     });
-    els.meta.textContent=s.paper+' • '+s.cols+' kolom • potong '+s.cutW+' × '+s.cutH+' mm • QR '+Math.round(m.qr*10)/10+' mm • teks '+(s.autoText?'auto':'manual');
+    els.meta.textContent=s.paper+' • '+s.cols+' kolom • potong '+s.cutW+' × '+s.cutH+' mm • isi '+s.contentScale+'%';
     $('printStyle').textContent='@page{size:'+s.paper+' portrait;margin:6mm}';
     saveLocal();
   }
@@ -768,7 +776,7 @@
   $('dropzone').addEventListener('dragleave',()=>{$('dropzone').style.background='';});
   $('dropzone').addEventListener('drop',e=>{e.preventDefault();$('dropzone').style.background='';handleFile(e.dataTransfer.files[0]);});
   els.file.addEventListener('change',()=>handleFile(els.file.files[0]));
-  ['cutW','cutH','qrSize','columns','gap','paper','labelPadding','titleSize','serialSize','titleGap','serialGap','cutLine'].forEach(id=>$(id).addEventListener('change',()=>{if(serials.length)render();else applyLayout();}));
+  ['cutW','cutH','contentScale','qrSize','columns','gap','paper','labelPadding','titleSize','serialSize','titleGap','serialGap','cutLine'].forEach(id=>$(id).addEventListener('change',()=>{if(serials.length)render();else applyLayout();}));
   $('autoText').addEventListener('change',()=>{syncTextControls();if(serials.length)render();else applyLayout();});
   $('printBtn').addEventListener('click',()=>{if(!serials.length){setStatus('Belum ada QR untuk dicetak.');return;}applyLayout();window.print();});
   $('zipBtn').addEventListener('click',downloadZip);
