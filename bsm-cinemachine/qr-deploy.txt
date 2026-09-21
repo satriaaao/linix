@@ -1,1 +1,1 @@
-QR generator deployment trigger v2
+QR generator deployment trigger v3
