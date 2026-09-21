@@ -187,6 +187,7 @@
     #generateBtn:before{content:"✦";font-size:12px}
     #printBtn:before{content:"⌁";font-size:16px;transform:rotate(90deg)}
     #zipBtn:before{content:"↓";font-size:15px}
+    #pressBtn:before{content:"PDF";font-size:9px;font-weight:900;border:1px solid currentColor;border-radius:4px;padding:2px 3px}
     #rangeBtn:before{content:"＋";font-size:15px}
 
     .dropzone{
@@ -403,7 +404,7 @@
   <style id="printStyle">@page{size:A4 portrait;margin:6mm}</style>
 </head>
 <body>
-<!-- qr-code polished ui v11 overall-content-scale -->
+<!-- qr-code polished ui v12 press-ready-pdf -->
 <div class="app">
   <header class="topbar">
     <div class="topbar-inner">
@@ -489,8 +490,9 @@
         <div class="actions">
           <button class="btn btn-red" id="printBtn">Cetak / Simpan PDF</button>
           <button class="btn btn-primary" id="zipBtn">Download ZIP PNG</button>
+          <button class="btn btn-soft" id="pressBtn">Download PDF Percetakan</button>
         </div>
-        <p class="hint">Saat mencetak, pilih skala 100% / Actual Size dan matikan header-footer browser.</p>
+        <p class="hint">PDF Percetakan dibuat dengan ukuran mm asli, tanpa header/footer browser, dan siap dikirim ke percetakan.</p>
       </div>
     </aside>
 
@@ -507,6 +509,7 @@
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script>
 (() => {
   const $ = id => document.getElementById(id);
@@ -724,6 +727,100 @@
     els.file.value='';
   }
 
+  function makeLabelCanvas(serial,s,m,scale=6){
+    const px=3.7795275591*scale;
+    const w=Math.max(1,Math.round(s.cutW*px));
+    const h=Math.max(1,Math.round(s.cutH*px));
+    const c=document.createElement('canvas');
+    c.width=w;c.height=h;
+    const ctx=c.getContext('2d');
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);
+    ctx.fillStyle='#111';ctx.textAlign='center';
+
+    let y=Math.round(m.padding*px);
+    ctx.font='700 '+Math.round(m.titleFont*px)+'px Arial';
+    ctx.fillText('BSM Rental',w/2,y+Math.round(m.titleFont*px));
+    y+=Math.round((m.titleFont+m.titleGap)*px);
+
+    const temp=document.createElement('div');
+    temp.style.position='fixed';temp.style.left='-99999px';temp.style.top='-99999px';
+    document.body.appendChild(temp);
+    new QRCode(temp,{text:serial,width:1024,height:1024,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+    const qrCanvas=temp.querySelector('canvas');
+
+    const qp=Math.round(m.qr*px),qx=Math.round((w-qp)/2);
+    if(qrCanvas) ctx.drawImage(qrCanvas,qx,y,qp,qp);
+    temp.remove();
+
+    y+=qp+Math.round(m.serialGap*px);
+    ctx.font='600 '+Math.round(m.serialFont*px)+'px Arial';
+    const baseline=Math.min(h-Math.round(m.padding*px),y+Math.round(m.serialFont*px));
+    ctx.fillText(serial,w/2,baseline);
+
+    if(s.cut){
+      ctx.save();
+      ctx.strokeStyle='#b9c4d3';
+      ctx.setLineDash([Math.max(3,Math.round(px*.7)),Math.max(3,Math.round(px*.7))]);
+      ctx.lineWidth=Math.max(1,Math.round(px*.08));
+      ctx.strokeRect(ctx.lineWidth/2,ctx.lineWidth/2,w-ctx.lineWidth,h-ctx.lineWidth);
+      ctx.restore();
+    }
+    return c;
+  }
+
+  async function downloadPressPdf(){
+    if(!serials.length){setStatus('Belum ada QR untuk dibuat PDF percetakan.');return;}
+    if(!window.jspdf || !window.jspdf.jsPDF){setStatus('Library PDF belum termuat. Coba refresh halaman.');return;}
+
+    const btn=$('pressBtn');
+    btn.disabled=true;
+    setStatus('Menyiapkan PDF percetakan…');
+
+    try{
+      const s=settings(),m=adaptiveMetrics(s);
+      const pageW=paperWidth(s.paper),pageH=paperHeight(s.paper);
+      const margin=6;
+      const maxCols=Math.max(1,Math.floor((pageW-(margin*2)+s.gap)/(s.cutW+s.gap)));
+      const cols=Math.max(1,Math.min(s.cols,maxCols));
+      const rows=Math.max(1,Math.floor((pageH-(margin*2)+s.gap)/(s.cutH+s.gap)));
+      const perPage=cols*rows;
+
+      const orientation=pageW>pageH?'landscape':'portrait';
+      const format=s.paper==='Letter'?'letter':s.paper.toLowerCase();
+      const pdf=new window.jspdf.jsPDF({unit:'mm',format,orientation,compress:true});
+
+      const gridW=(cols*s.cutW)+((cols-1)*s.gap);
+      const gridH=(rows*s.cutH)+((rows-1)*s.gap);
+      const startX=Math.max(margin,(pageW-gridW)/2);
+      const startY=Math.max(margin,(pageH-gridH)/2);
+
+      for(let i=0;i<serials.length;i++){
+        if(i>0 && i%perPage===0) pdf.addPage(format,orientation);
+        const local=i%perPage;
+        const col=local%cols;
+        const row=Math.floor(local/cols);
+        const x=startX+col*(s.cutW+s.gap);
+        const y=startY+row*(s.cutH+s.gap);
+
+        const canvas=makeLabelCanvas(serials[i],s,m,6);
+        const img=canvas.toDataURL('image/png');
+        pdf.addImage(img,'PNG',x,y,s.cutW,s.cutH,undefined,'FAST');
+      }
+
+      pdf.setProperties({
+        title:'BSM Rental QR - Percetakan',
+        subject:'QR label print-ready',
+        author:'BSM Rental'
+      });
+      pdf.save('BSM-Rental-QR-Percetakan-'+serials.length+'pcs.pdf');
+      setStatus('PDF percetakan berhasil dibuat.');
+    }catch(e){
+      console.error(e);
+      setStatus('Gagal membuat PDF percetakan. Coba lagi.');
+    }
+    btn.disabled=false;
+  }
+
   async function downloadZip(){
     if(!serials.length){setStatus('Belum ada QR untuk didownload.');return;}
     if(typeof JSZip==='undefined'){setStatus('Library ZIP belum termuat. Coba refresh halaman.');return;}
@@ -780,6 +877,7 @@
   $('autoText').addEventListener('change',()=>{syncTextControls();if(serials.length)render();else applyLayout();});
   $('printBtn').addEventListener('click',()=>{if(!serials.length){setStatus('Belum ada QR untuk dicetak.');return;}applyLayout();window.print();});
   $('zipBtn').addEventListener('click',downloadZip);
+  $('pressBtn').addEventListener('click',downloadPressPdf);
   window.addEventListener('beforeprint',applyLayout);
 
   loadLocal();
