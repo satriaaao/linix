@@ -384,15 +384,26 @@
         display:block!important;margin:0!important;padding:0!important;
         border:0!important;box-shadow:none!important;background:#fff!important;max-width:none!important
       }
-      #sheet{box-shadow:none!important;margin:0!important;border-radius:0!important;zoom:1!important}
+      #sheet{
+        width:auto!important;
+        min-height:0!important;
+        height:auto!important;
+        padding:0!important;
+        margin:0 auto!important;
+        box-shadow:none!important;
+        border-radius:0!important;
+        zoom:1!important;
+        justify-content:center!important;
+        page-break-after:auto!important;
+      }
       .qr-label{break-inside:avoid;page-break-inside:avoid}
       .qr-label.no-cut{border-color:transparent!important}
     }
   </style>
-  <style id="printStyle">@page{size:A4 portrait;margin:0}</style>
+  <style id="printStyle">@page{size:A4 portrait;margin:6mm}</style>
 </head>
 <body>
-<!-- qr-code polished ui v5 title-forced-on -->
+<!-- qr-code polished ui v6 print-fit-fix -->
 <div class="app">
   <header class="topbar">
     <div class="topbar-inner">
@@ -542,7 +553,7 @@
       const title=label.querySelector('.label-title'); if(title) title.style.display='block';
     });
     els.meta.textContent=s.paper+' • '+s.cols+' kolom • '+s.w+' × '+s.h+' mm';
-    $('printStyle').textContent='@page{size:'+s.paper+' portrait;margin:0}';
+    $('printStyle').textContent='@page{size:'+s.paper+' portrait;margin:6mm}';
     saveLocal();
   }
 
