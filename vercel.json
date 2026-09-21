@@ -34,7 +34,6 @@
   "rewrites": [
     {"source": "/cms", "destination": "/cms.html"},
     {"source": "/cms/:path*", "destination": "/cms.html"},
-    {"source": "/omset", "destination": "/omset.html"},
     {"source": "/produk", "destination": "/index.html"},
     {"source": "/produk/:path*", "destination": "/index.html"},
     {"source": "/portfolio", "destination": "/index.html"},
