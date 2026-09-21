@@ -83,6 +83,12 @@
 .proofPreview{margin-top:7px;padding:9px 10px;border-radius:10px;background:#eef4ff;color:#506a91;font-size:8px;line-height:1.45}
 @media(max-width:860px){.driverTaskTable{width:1080px;min-width:1080px}.taskColProducts{width:220px}.taskColActions{width:210px}}
 
+
+.driverNavIcon svg{width:19px;height:19px;display:block;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.driverSideActions .actionIcon{width:17px;height:17px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+.driverSideActions .actionIcon svg{width:17px;height:17px;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.driverSideActions button{display:flex!important;align-items:center!important;justify-content:center!important;gap:8px!important}
+
 </style>
 </head>
 <body>
@@ -589,23 +595,42 @@ function jobCard(j){
   '</div>'+
  '</article>';
 }
+function driverIcon(name){
+ const icons={
+  dashboard:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"></rect><rect x="14" y="3" width="7" height="7" rx="2"></rect><rect x="3" y="14" width="7" height="7" rx="2"></rect><rect x="14" y="14" width="7" height="7" rx="2"></rect></svg>',
+  tasks:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11"></path><path d="M9 12h11"></path><path d="M9 18h11"></path><path d="M4 6h.01"></path><path d="M4 12h.01"></path><path d="M4 18h.01"></path></svg>',
+  route:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="19" r="3"></circle><path d="M9 19h3.5a4.5 4.5 0 0 0 0-9H11"></path><circle cx="6" cy="5" r="3"></circle><path d="M9 5h7a3 3 0 0 1 3 3v1"></path></svg>',
+  vehicle:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17H3v-5l2-5h14l2 5v5h-2"></path><path d="M5 17h14"></path><circle cx="7" cy="17" r="2"></circle><circle cx="17" cy="17" r="2"></circle><path d="M5 12h14"></path></svg>',
+  fuel:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 22V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v17"></path><path d="M3 10h12"></path><path d="M7 6h4"></path><path d="M15 7h2l3 3v7a2 2 0 0 0 2 2"></path></svg>',
+  history:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l3 2"></path></svg>',
+  locate:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3"></path><path d="M12 19v3"></path><path d="M2 12h3"></path><path d="M19 12h3"></path><circle cx="12" cy="12" r="8"></circle></svg>',
+  refresh:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5"></path><path d="M4 18v-5h5"></path><path d="M6.1 9a7 7 0 0 1 11.7-2.4L20 11"></path><path d="M17.9 15a7 7 0 0 1-11.7 2.4L4 13"></path></svg>',
+  logout:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path></svg>'
+ };
+ return icons[name]||icons.dashboard;
+}
+
 function driverSidebarHtml(jobs,open,todayCount){
  const done=jobs.filter(x=>x.status==='completed');
  const initial=E(String(data?.driver?.name||'D').trim().charAt(0).toUpperCase()||'D');
  const live=watchId!==null;
- const nav=(page,icon,label,badge='')=>'<button class="'+(driverPage===page?'active':'')+'" data-driver-page="'+page+'"><span class="driverNavIcon">'+icon+'</span><span>'+label+'</span>'+(badge!==''?'<span class="driverNavBadge">'+badge+'</span>':'<span></span>')+'</button>';
+ const nav=(page,icon,label,badge='')=>'<button class="'+(driverPage===page?'active':'')+'" data-driver-page="'+page+'"><span class="driverNavIcon">'+driverIcon(icon)+'</span><span>'+label+'</span>'+(badge!==''?'<span class="driverNavBadge">'+badge+'</span>':'<span></span>')+'</button>';
  return '<aside class="driverSidebar" aria-label="Menu driver">'+
   '<div class="driverSideBrand"><div class="driverSideAvatar">'+initial+'</div><div class="driverSideIdentity"><b>'+E(data?.driver?.name||'Driver')+'</b><small>@'+E(data?.driver?.username||'driver')+' · Portal Driver</small></div></div>'+
   '<div class="driverSideLive '+(live?'on':'')+'"><i></i>'+(live?'GPS realtime aktif':'GPS belum aktif')+'</div>'+
   '<div class="driverSideGroup"><small>MENU UTAMA</small><nav class="driverNav">'+
-   nav('dashboard','⌂','Dashboard',open.length)+
-   nav('tasks','☷','Tugas Antar-Jemput',open.length)+
-   nav('route','⌖','Peta & Rute')+
-   nav('vehicle','▣','Kendaraan')+
-   nav('fuel','⛽','BBM & Struk')+
-   nav('history','↺','Riwayat',done.length)+
+   nav('dashboard','dashboard','Dashboard',open.length)+
+   nav('tasks','tasks','Tugas Antar-Jemput',open.length)+
+   nav('route','route','Peta & Rute')+
+   nav('vehicle','vehicle','Kendaraan')+
+   nav('fuel','fuel','BBM & Struk')+
+   nav('history','history','Riwayat',done.length)+
   '</nav></div>'+
-  '<div class="driverSideActions"><button data-action="live" class="sideLive '+(live?'on':'')+'">'+(live?'● GPS Aktif':'● Aktifkan Lokasi')+'</button><button data-action="refresh">↻ Perbarui Data</button><button data-action="logout" class="sideLogout">Keluar</button></div>'+
+  '<div class="driverSideActions">'+
+   '<button data-action="live" class="sideLive '+(live?'on':'')+'"><span class="actionIcon">'+driverIcon('locate')+'</span><span>'+(live?'GPS Aktif':'Aktifkan Lokasi')+'</span></button>'+
+   '<button data-action="refresh"><span class="actionIcon">'+driverIcon('refresh')+'</span><span>Perbarui Data</span></button>'+
+   '<button data-action="logout" class="sideLogout"><span class="actionIcon">'+driverIcon('logout')+'</span><span>Keluar</span></button>'+
+  '</div>'+
  '</aside><button class="driverBackdrop" data-sidebar-close aria-label="Tutup menu"></button>';
 }
 
