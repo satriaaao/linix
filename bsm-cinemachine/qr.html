@@ -404,7 +404,7 @@
   <style id="printStyle">@page{size:A4 portrait;margin:6mm}</style>
 </head>
 <body>
-<!-- qr-code polished ui v12 press-ready-pdf -->
+<!-- qr-code polished ui v13 box-size-and-centered-content -->
 <div class="app">
   <header class="topbar">
     <div class="topbar-inner">
@@ -454,12 +454,15 @@
 
       <div class="section">
         <h2>4. Pengaturan Label</h2>
-        <div class="row3">
-          <div><label>Lebar Potong (mm)</label><input id="cutW" type="number" min="20" max="120" step="1" value="35"></div>
-          <div><label>Tinggi Potong (mm)</label><input id="cutH" type="number" min="20" max="120" step="1" value="35"></div>
+        <div class="row" style="margin-bottom:8px">
+          <div><label>Ukuran Kotak Persegi (mm)</label><input id="boxSize" type="number" min="20" max="120" step="1" value="35"></div>
           <div><label>Ukuran Isi (%)</label><input id="contentScale" type="number" min="50" max="180" step="5" value="100"></div>
         </div>
-        <p class="hint">Ukuran Isi membesarkan/mengecilkan sekaligus: BSM Rental + QR + nomor seri.</p>
+        <div class="row">
+          <div><label>Lebar Kotak (mm)</label><input id="cutW" type="number" min="20" max="120" step="1" value="35"></div>
+          <div><label>Tinggi Kotak (mm)</label><input id="cutH" type="number" min="20" max="120" step="1" value="35"></div>
+        </div>
+        <p class="hint">Ukuran Kotak Persegi mengubah lebar + tinggi kotak sekaligus. Ukuran Isi membesarkan/mengecilkan BSM Rental + QR + nomor seri.</p>
         <div class="row" style="margin-top:8px">
           <div><label>Ukuran Dasar QR (mm)</label><input id="qrSize" type="number" min="10" max="90" step="1" value="22"></div>
           <div><label>Jarak Potong (mm)</label><input id="gap" type="number" min="0" max="20" step=".5" value="2"></div>
@@ -515,7 +518,7 @@
   const $ = id => document.getElementById(id);
   const els = {
     input:$('serialInput'), sheet:$('sheet'), total:$('totalCount'), status:$('status'), meta:$('previewMeta'),
-    cutW:$('cutW'), cutH:$('cutH'), contentScale:$('contentScale'), qrSize:$('qrSize'), columns:$('columns'), gap:$('gap'),
+    boxSize:$('boxSize'), cutW:$('cutW'), cutH:$('cutH'), contentScale:$('contentScale'), qrSize:$('qrSize'), columns:$('columns'), gap:$('gap'),
     paper:$('paper'), labelPadding:$('labelPadding'), autoText:$('autoText'),
     titleSize:$('titleSize'), serialSize:$('serialSize'), titleGap:$('titleGap'), serialGap:$('serialGap'),
     cutLine:$('cutLine'), file:$('fileInput')
@@ -530,6 +533,7 @@
   function setStatus(msg){ els.status.textContent = msg || ''; }
   function settings(){
     return {
+      boxSize:clamp(els.boxSize.value,20,120,35),
       cutW:clamp(els.cutW.value,20,120,35),
       cutH:clamp(els.cutH.value,20,120,35),
       contentScale:clamp(els.contentScale.value,50,180,100),
@@ -562,6 +566,11 @@
     return {padding,titleFont,serialFont,titleGap,serialGap,qr};
   }
 
+  function centeredContentStartY(s,m){
+    const contentH=m.titleFont+m.titleGap+m.qr+m.serialGap+m.serialFont;
+    return Math.max(m.padding,(s.cutH-contentH)/2);
+  }
+
   function syncTextControls(){
     const disabled=els.autoText.checked;
     [els.titleSize,els.serialSize,els.titleGap,els.serialGap].forEach(el=>{
@@ -570,14 +579,14 @@
     });
   }
   function saveLocal(){
-    localStorage.setItem('qr_label_settings_v5',JSON.stringify(settings()));
+    localStorage.setItem('qr_label_settings_v6',JSON.stringify(settings()));
     localStorage.setItem('qr_label_input_v2',els.input.value);
   }
   function loadLocal(){
     try{
-      const s=JSON.parse(localStorage.getItem('qr_label_settings_v5')||'null');
+      const s=JSON.parse(localStorage.getItem('qr_label_settings_v6')||'null');
       if(s){
-        els.cutW.value=s.cutW;els.cutH.value=s.cutH;els.contentScale.value=s.contentScale ?? 100;els.qrSize.value=s.qr;els.columns.value=s.cols;els.gap.value=s.gap;els.paper.value=s.paper||'A4';
+        els.boxSize.value=s.boxSize ?? s.cutW ?? 35;els.cutW.value=s.cutW;els.cutH.value=s.cutH;els.contentScale.value=s.contentScale ?? 100;els.qrSize.value=s.qr;els.columns.value=s.cols;els.gap.value=s.gap;els.paper.value=s.paper||'A4';
         els.labelPadding.value=s.padding ?? 1.5;els.autoText.checked=s.autoText!==false;
         els.titleSize.value=s.titleFont ?? 2.8;els.serialSize.value=s.serialFont ?? 3.1;
         els.titleGap.value=s.titleGap ?? 1;els.serialGap.value=s.serialGap ?? 1;els.cutLine.checked=s.cut!==false;
@@ -737,7 +746,7 @@
     ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);
     ctx.fillStyle='#111';ctx.textAlign='center';
 
-    let y=Math.round(m.padding*px);
+    let y=Math.round(centeredContentStartY(s,m)*px);
     ctx.font='700 '+Math.round(m.titleFont*px)+'px Arial';
     ctx.fillText('BSM Rental',w/2,y+Math.round(m.titleFont*px));
     y+=Math.round((m.titleFont+m.titleGap)*px);
@@ -837,7 +846,7 @@
         const c=document.createElement('canvas');c.width=w;c.height=h;
         const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.fillStyle='#111';ctx.textAlign='center';
 
-        let y=Math.round(m.padding*px);
+        let y=Math.round(centeredContentStartY(s,m)*px);
         ctx.font='700 '+Math.round(m.titleFont*px)+'px Arial';
         ctx.fillText('BSM Rental',w/2,y+Math.round(m.titleFont*px));
         y+=Math.round((m.titleFont+m.titleGap)*px);
@@ -873,7 +882,18 @@
   $('dropzone').addEventListener('dragleave',()=>{$('dropzone').style.background='';});
   $('dropzone').addEventListener('drop',e=>{e.preventDefault();$('dropzone').style.background='';handleFile(e.dataTransfer.files[0]);});
   els.file.addEventListener('change',()=>handleFile(els.file.files[0]));
-  ['cutW','cutH','contentScale','qrSize','columns','gap','paper','labelPadding','titleSize','serialSize','titleGap','serialGap','cutLine'].forEach(id=>$(id).addEventListener('change',()=>{if(serials.length)render();else applyLayout();}));
+  $('boxSize').addEventListener('change',()=>{
+    const size=clamp(els.boxSize.value,20,120,35);
+    els.cutW.value=size;
+    els.cutH.value=size;
+    if(serials.length)render();else applyLayout();
+  });
+  ['cutW','cutH','contentScale','qrSize','columns','gap','paper','labelPadding','titleSize','serialSize','titleGap','serialGap','cutLine'].forEach(id=>$(id).addEventListener('change',()=>{
+    if(id==='cutW' || id==='cutH'){
+      if(Number(els.cutW.value)===Number(els.cutH.value)) els.boxSize.value=els.cutW.value;
+    }
+    if(serials.length)render();else applyLayout();
+  }));
   $('autoText').addEventListener('change',()=>{syncTextControls();if(serials.length)render();else applyLayout();});
   $('printBtn').addEventListener('click',()=>{if(!serials.length){setStatus('Belum ada QR untuk dicetak.');return;}applyLayout();window.print();});
   $('zipBtn').addEventListener('click',downloadZip);
