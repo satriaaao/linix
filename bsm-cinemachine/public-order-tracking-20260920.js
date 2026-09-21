@@ -104,6 +104,10 @@
       #app .track-driver small{display:block;color:#aeb4bd;font-size:10px;margin-top:3px}
       #app .track-back{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:0;margin-bottom:18px;color:#626a76;font-size:11px;font-weight:800;cursor:pointer}
       #drawer .drawer-link[data-track-menu]{display:flex!important}
+      .header .nav [data-track-desktop]{display:inline-flex!important;align-items:center;gap:7px;min-height:38px;padding:0 12px!important;border-radius:11px;background:#111;color:#fff!important;font-size:12px!important;font-weight:850!important;text-decoration:none!important;white-space:nowrap;box-shadow:0 5px 16px rgba(0,0,0,.08);transition:transform .16s ease,background .16s ease}
+      .header .nav [data-track-desktop]:hover{background:#f26a21!important;transform:translateY(-1px)}
+      .header .nav [data-track-desktop] svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+      @media(max-width:900px){.header .nav [data-track-desktop]{display:none!important}}
       @media(max-width:620px){
         #app .track-page{padding:24px 0 54px}
         #app .track-shell{padding:0 18px}
@@ -129,6 +133,21 @@
       <span><b>Cek Order / Antar Jemput</b><small>Pakai nomor order</small></span>
       <svg class="drawer-arrow" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
     </a>`;
+  }
+
+  function desktopMenuMarkup(){
+    return `<a data-go="${PATH}" data-track-desktop>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M5 4h14v16H5zM8 8h8M8 12h5M8 16h4M16 15l2 2 3-4"/>
+      </svg>
+      <span>Cek Order / Antar Jemput</span>
+    </a>`;
+  }
+
+  function ensureDesktopMenu(){
+    const nav=document.querySelector('.header .nav');
+    if(!nav||nav.querySelector('[data-track-desktop]'))return;
+    nav.insertAdjacentHTML('beforeend',desktopMenuMarkup());
   }
 
   function ensureMenu(){
@@ -288,6 +307,7 @@
   function sync(){
     style();
     ensureMenu();
+    ensureDesktopMenu();
     const app=document.getElementById('app');
     if(location.pathname!==PATH&&app?.dataset.trackPage==='1')delete app.dataset.trackPage;
     renderTracking();
