@@ -422,7 +422,7 @@
   <style id="printStyle">@page{size:A4 portrait;margin:6mm}</style>
 </head>
 <body>
-<!-- qr-code polished ui v15 snug-cut-sliders -->
+<!-- qr-code polished ui v16 sticker-print-ready-copy -->
 <div class="app">
   <header class="topbar">
     <div class="topbar-inner">
@@ -511,9 +511,9 @@
         <div class="actions">
           <button class="btn btn-red" id="printBtn">Cetak / Simpan PDF</button>
           <button class="btn btn-primary" id="zipBtn">Download ZIP PNG</button>
-          <button class="btn btn-soft" id="pressBtn">Download PDF Percetakan</button>
+          <button class="btn btn-soft" id="pressBtn">Download PDF Stiker Siap Cetak</button>
         </div>
-        <p class="hint">PDF Percetakan dibuat dengan ukuran mm asli, tanpa header/footer browser, dan siap dikirim ke percetakan.</p>
+        <p class="hint">PDF Stiker dibuat dengan ukuran mm asli, resolusi tinggi, tanpa header/footer browser, dan siap dikirim ke percetakan stiker.</p>
       </div>
     </aside>
 
@@ -911,12 +911,12 @@
   }
 
   async function downloadPressPdf(){
-    if(!serials.length){setStatus('Belum ada QR untuk dibuat PDF percetakan.');return;}
+    if(!serials.length){setStatus('Belum ada QR untuk dibuat PDF stiker.');return;}
     if(!window.jspdf || !window.jspdf.jsPDF){setStatus('Library PDF belum termuat. Coba refresh halaman.');return;}
 
     const btn=$('pressBtn');
     btn.disabled=true;
-    setStatus('Menyiapkan PDF percetakan…');
+    setStatus('Menyiapkan PDF stiker…');
 
     try{
       const s=settings(),m=adaptiveMetrics(s);
@@ -950,15 +950,15 @@
       }
 
       pdf.setProperties({
-        title:'BSM Rental QR - Percetakan',
-        subject:'QR label print-ready',
+        title:'BSM Rental QR - Stiker Siap Cetak',
+        subject:'QR sticker print-ready',
         author:'BSM Rental'
       });
-      pdf.save('BSM-Rental-QR-Percetakan-'+serials.length+'pcs.pdf');
-      setStatus('PDF percetakan berhasil dibuat.');
+      pdf.save('BSM-Rental-QR-Stiker-Siap-Cetak-'+serials.length+'pcs.pdf');
+      setStatus('PDF stiker berhasil dibuat.');
     }catch(e){
       console.error(e);
-      setStatus('Gagal membuat PDF percetakan. Coba lagi.');
+      setStatus('Gagal membuat PDF stiker. Coba lagi.');
     }
     btn.disabled=false;
   }
