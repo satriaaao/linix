@@ -269,6 +269,34 @@
     }
     .status:empty{display:none}
 
+    .process-overlay{
+      position:fixed;inset:0;z-index:9999;display:none;place-items:center;
+      padding:22px;background:rgba(8,24,49,.54);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)
+    }
+    .process-overlay.show{display:grid}
+    .process-card{
+      width:min(390px,100%);background:#fff;border-radius:22px;padding:24px;
+      box-shadow:0 30px 80px rgba(2,12,27,.28);text-align:center
+    }
+    .process-loader{
+      width:66px;height:66px;margin:0 auto 16px;position:relative;border-radius:18px;
+      display:grid;place-items:center;background:#eef5ff;color:#153d72;font-size:30px;font-weight:900;
+      animation:processPulse 1.4s ease-in-out infinite
+    }
+    .process-loader:before,.process-loader:after{
+      content:"";position:absolute;inset:-7px;border:3px solid rgba(37,99,235,.22);
+      border-top-color:#2563eb;border-radius:24px;animation:processSpin 1s linear infinite
+    }
+    .process-loader:after{inset:-14px;border-width:2px;border-top-color:#7aa7ea;animation-duration:1.8s;animation-direction:reverse}
+    .process-card h3{margin:0;color:#142d50;font-size:18px}
+    .process-card p{margin:7px 0 16px;color:#6b778c;font-size:12px;line-height:1.45}
+    .process-track{height:11px;border-radius:999px;background:#e8eef7;overflow:hidden}
+    .process-bar{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#153d72,#2563eb);transition:width .18s ease}
+    .process-bottom{display:flex;justify-content:space-between;gap:12px;margin-top:9px;color:#5c6d85;font-size:11px;font-weight:750}
+    .process-percent{color:#153d72;font-size:13px;font-weight:900}
+    @keyframes processSpin{to{transform:rotate(360deg)}}
+    @keyframes processPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+
     .preview-card{
       min-height:720px;
       overflow:hidden;
@@ -422,7 +450,7 @@
   <style id="printStyle">@page{size:A4 portrait;margin:6mm}</style>
 </head>
 <body>
-<!-- qr-code polished ui v18 fast-bulk-print -->
+<!-- qr-code polished ui v19 animated-fast-hd-export -->
 <div class="app">
   <header class="topbar">
     <div class="topbar-inner">
@@ -516,9 +544,9 @@
         <div class="actions">
           <button class="btn btn-red" id="printBtn">Cetak Semua Cepat</button>
           <button class="btn btn-primary" id="zipBtn">Download ZIP PNG</button>
-          <button class="btn btn-soft" id="pressBtn">Download PDF Stiker Siap Cetak</button>
+          <button class="btn btn-soft" id="pressBtn">Download PDF Stiker HD</button>
         </div>
-        <p class="hint">Untuk data banyak, preview dibatasi agar HP tetap cepat. Cetak/Download PDF tetap memproses SEMUA QR sekaligus.</p>
+        <p class="hint">PDF HD memakai teks vektor + QR resolusi tinggi agar hasil percetakan tetap tajam. Data banyak tetap diproses semua sekaligus.</p>
       </div>
     </aside>
 
@@ -530,6 +558,19 @@
       <div class="paper-wrap"><div id="sheet"><div class="empty"><div><b>Belum ada QR</b>Masukkan nomor seri lalu tekan <strong>Buat QR</strong>.</div></div></div></div>
     </section>
   </main>
+</div>
+
+<div class="process-overlay" id="processOverlay" aria-live="polite">
+  <div class="process-card">
+    <div class="process-loader">▦</div>
+    <h3 id="processTitle">Menyiapkan file…</h3>
+    <p id="processText">Mohon tunggu, QR sedang diproses.</p>
+    <div class="process-track"><div class="process-bar" id="processBar"></div></div>
+    <div class="process-bottom">
+      <span id="processCount">0 / 0 QR</span>
+      <span class="process-percent" id="processPercent">0%</span>
+    </div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
@@ -556,6 +597,31 @@
   const clamp = (v,min,max,fallback) => Math.min(max,Math.max(min,Number(v)||fallback));
 
   function setStatus(msg){ els.status.textContent = msg || ''; }
+
+  function showProcess(title,text,total=serials.length){
+    const overlay=$('processOverlay');
+    if(!overlay) return;
+    $('processTitle').textContent=title||'Menyiapkan file…';
+    $('processText').textContent=text||'Mohon tunggu, QR sedang diproses.';
+    $('processCount').textContent='0 / '+total+' QR';
+    $('processPercent').textContent='0%';
+    $('processBar').style.width='0%';
+    overlay.classList.add('show');
+    document.body.style.overflow='hidden';
+  }
+  function updateProcess(done,total,text){
+    const pct=total ? Math.max(0,Math.min(100,Math.round((done/total)*100))) : 0;
+    if(text) $('processText').textContent=text;
+    $('processCount').textContent=done+' / '+total+' QR';
+    $('processPercent').textContent=pct+'%';
+    $('processBar').style.width=pct+'%';
+  }
+  function hideProcess(){
+    const overlay=$('processOverlay');
+    if(overlay) overlay.classList.remove('show');
+    document.body.style.overflow='';
+  }
+
   function settings(){
     return {
       boxSize:clamp(els.boxSize.value,10,120,35),
@@ -887,13 +953,58 @@
     els.file.value='';
   }
 
-  function makeLabelCanvas(serial,s,m,scale=3.2,showCutBorder=true){
+  function makeQrCanvas(serial,size=512){
+    const temp=document.createElement('div');
+    const qr=new QRCode(temp,{text:serial,width:size,height:size,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+    return temp.querySelector('canvas');
+  }
+
+  function drawPdfLabel(pdf,serial,s,m,x,y){
+    const mmToPt=72/25.4;
+    const centerX=x+(s.cutW/2);
+    let cy=y+centeredContentStartY(s,m);
+
+    pdf.setTextColor(17,17,17);
+    pdf.setFont('helvetica','bold');
+    pdf.setFontSize(m.titleFont*mmToPt);
+    pdf.text('BSM Rental',centerX,cy+m.titleFont,{align:'center',baseline:'bottom'});
+    cy+=m.titleFont+m.titleGap;
+
+    const qrCanvas=makeQrCanvas(serial,512);
+    pdf.addImage(qrCanvas,'PNG',centerX-(m.qr/2),cy,m.qr,m.qr,undefined,'FAST');
+    cy+=m.qr+m.serialGap;
+
+    pdf.setFont('helvetica','bold');
+    pdf.setFontSize(m.serialFont*mmToPt);
+    pdf.text(serial,centerX,cy+m.serialFont,{align:'center',baseline:'bottom'});
+
+    if(s.stickerMode){
+      pdf.saveGraphicsState();
+      pdf.setDrawColor(150,150,150);
+      pdf.setLineWidth(0.12);
+      pdf.setLineDashPattern([1.2,1.2],0);
+      const r=Math.max(0,Math.min(s.cornerRadius,s.cutW/2,s.cutH/2));
+      if(r>0) pdf.roundedRect(x,y,s.cutW,s.cutH,r,r,'S');
+      else pdf.rect(x,y,s.cutW,s.cutH,'S');
+      pdf.restoreGraphicsState();
+    }else if(s.cut){
+      pdf.saveGraphicsState();
+      pdf.setDrawColor(185,196,211);
+      pdf.setLineWidth(0.10);
+      pdf.setLineDashPattern([1.0,1.0],0);
+      pdf.rect(x,y,s.cutW,s.cutH,'S');
+      pdf.restoreGraphicsState();
+    }
+  }
+
+  function makeLabelCanvas(serial,s,m,scale=3.15,showCutBorder=true){
     const px=3.7795275591*scale;
     const w=Math.max(1,Math.round(s.cutW*px));
     const h=Math.max(1,Math.round(s.cutH*px));
     const c=document.createElement('canvas');
     c.width=w;c.height=h;
     const ctx=c.getContext('2d');
+    ctx.imageSmoothingEnabled=false;
     ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);
     ctx.fillStyle='#111';ctx.textAlign='center';
 
@@ -902,15 +1013,10 @@
     ctx.fillText('BSM Rental',w/2,y+Math.round(m.titleFont*px));
     y+=Math.round((m.titleFont+m.titleGap)*px);
 
-    const temp=document.createElement('div');
-    temp.style.position='fixed';temp.style.left='-99999px';temp.style.top='-99999px';
-    document.body.appendChild(temp);
-    new QRCode(temp,{text:serial,width:512,height:512,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
-    const qrCanvas=temp.querySelector('canvas');
+    const qrCanvas=makeQrCanvas(serial,512);
 
     const qp=Math.round(m.qr*px),qx=Math.round((w-qp)/2);
     if(qrCanvas) ctx.drawImage(qrCanvas,qx,y,qp,qp);
-    temp.remove();
 
     y+=qp+Math.round(m.serialGap*px);
     ctx.font='600 '+Math.round(m.serialFont*px)+'px Arial';
@@ -936,7 +1042,8 @@
     const printBtn=$('printBtn');
     if(btn) btn.disabled=true;
     if(printBtn) printBtn.disabled=true;
-    setStatus('Menyiapkan PDF stiker 0%…');
+    showProcess(action==='print'?'Menyiapkan Cetak Semua':'Membuat PDF Stiker HD','Teks vektor + QR resolusi tinggi sedang dibuat…',serials.length);
+    setStatus('Menyiapkan PDF stiker HD 0%…');
 
     try{
       const s=settings(),m=adaptiveMetrics(s);
@@ -964,27 +1071,13 @@
         const x=startX+col*(s.cutW+s.gap);
         const y=startY+row*(s.cutH+s.gap);
 
-        const canvas=makeLabelCanvas(serials[i],s,m,3.2,!s.stickerMode);
-        const img=canvas.toDataURL('image/png');
-        pdf.addImage(img,'PNG',x,y,s.cutW,s.cutH,undefined,'FAST');
+        drawPdfLabel(pdf,serials[i],s,m,x,y);
 
-        if(s.stickerMode){
-          pdf.saveGraphicsState();
-          pdf.setDrawColor(150,150,150);
-          pdf.setLineWidth(0.12);
-          pdf.setLineDashPattern([1.2,1.2],0);
-          const r=Math.max(0,Math.min(s.cornerRadius,s.cutW/2,s.cutH/2));
-          if(r>0){
-            pdf.roundedRect(x,y,s.cutW,s.cutH,r,r,'S');
-          }else{
-            pdf.rect(x,y,s.cutW,s.cutH,'S');
-          }
-          pdf.restoreGraphicsState();
-        }
-
-        if(i===serials.length-1 || (i+1)%20===0){
-          const pct=Math.round(((i+1)/serials.length)*100);
-          setStatus('Menyiapkan PDF stiker '+pct+'% • '+(i+1)+' / '+serials.length+' QR');
+        if(i===serials.length-1 || (i+1)%50===0){
+          const done=i+1;
+          const pct=Math.round((done/serials.length)*100);
+          updateProcess(done,serials.length,'Membuat QR tajam dan menyusun halaman…');
+          setStatus('Menyiapkan PDF stiker HD '+pct+'% • '+done+' / '+serials.length+' QR');
           await yieldUi();
         }
       }
@@ -998,6 +1091,7 @@
         ? 'BSM-Rental-Stiker-Kupas-'+serials.length+'pcs.pdf'
         : 'BSM-Rental-QR-Stiker-Siap-Cetak-'+serials.length+'pcs.pdf';
 
+      updateProcess(serials.length,serials.length,'File selesai dibuat. Menyiapkan hasil…');
       if(action==='print'){
         const blob=pdf.output('blob');
         const url=URL.createObjectURL(blob);
@@ -1016,9 +1110,11 @@
     }catch(e){
       console.error(e);
       setStatus('Gagal membuat PDF stiker. Coba lagi.');
+      hideProcess();
     }
     if(btn) btn.disabled=false;
     if(printBtn) printBtn.disabled=false;
+    setTimeout(hideProcess,350);
   }
 
   async function downloadZip(){
@@ -1026,35 +1122,53 @@
     if(typeof JSZip==='undefined'){setStatus('Library ZIP belum termuat. Coba refresh halaman.');return;}
     const btn=$('zipBtn');
     btn.disabled=true;
+    showProcess('Membuat ZIP PNG Tajam','Membuat label PNG 300 DPI tanpa pecah…',serials.length);
     setStatus('Menyiapkan ZIP 0%…');
+
+    const canvasToBlob=canvas=>new Promise((resolve,reject)=>{
+      canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('PNG gagal dibuat')),'image/png');
+    });
+
     try{
       const zip=new JSZip();
       const s=settings(),m=adaptiveMetrics(s);
       for(let i=0;i<serials.length;i++){
-        const c=makeLabelCanvas(serials[i],s,m,3.2,true);
-        const data=c.toDataURL('image/png').split(',')[1];
-        zip.file(serials[i].replace(/[^a-z0-9_-]+/gi,'_')+'.png',data,{base64:true});
+        const c=makeLabelCanvas(serials[i],s,m,3.15,true);
+        const blob=await canvasToBlob(c);
+        zip.file(serials[i].replace(/[^a-z0-9_-]+/gi,'_')+'.png',blob);
 
-        if(i===serials.length-1 || (i+1)%20===0){
-          const pct=Math.round(((i+1)/serials.length)*100);
-          setStatus('Menyiapkan ZIP '+pct+'% • '+(i+1)+' / '+serials.length+' QR');
+        if(i===serials.length-1 || (i+1)%35===0){
+          const done=i+1;
+          const pct=Math.round((done/serials.length)*100);
+          updateProcess(done,serials.length,'Membuat PNG 300 DPI yang tajam…');
+          setStatus('Menyiapkan ZIP '+pct+'% • '+done+' / '+serials.length+' QR');
           await yieldUi();
         }
       }
-      setStatus('Mengompres ZIP…');
+
+      $('processText').textContent='Mengemas file PNG ke ZIP…';
+      setStatus('Mengemas ZIP…');
       const blob=await zip.generateAsync(
-        {type:'blob',compression:'DEFLATE',compressionOptions:{level:4}},
-        meta=>setStatus('Mengompres ZIP '+Math.round(meta.percent)+'%…')
+        {type:'blob',compression:'STORE',streamFiles:true},
+        meta=>{
+          const pct=Math.round(meta.percent);
+          $('processPercent').textContent=pct+'%';
+          $('processBar').style.width=pct+'%';
+          $('processText').textContent='Mengemas ZIP '+pct+'%…';
+        }
       );
       const a=document.createElement('a');
       a.href=URL.createObjectURL(blob);
-      a.download='BSM-Rental-QR-'+serials.length+'.zip';
+      a.download='BSM-Rental-QR-HD-300DPI-'+serials.length+'.zip';
       a.click();
-      setTimeout(()=>URL.revokeObjectURL(a.href),3000);
-      setStatus('ZIP semua '+serials.length+' QR berhasil dibuat.');
+      setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+      setStatus('ZIP HD semua '+serials.length+' QR berhasil dibuat.');
+      updateProcess(serials.length,serials.length,'Selesai! File ZIP siap digunakan.');
+      setTimeout(hideProcess,450);
     }catch(e){
       console.error(e);
       setStatus('Gagal membuat ZIP. Coba lagi.');
+      hideProcess();
     }
     btn.disabled=false;
   }
