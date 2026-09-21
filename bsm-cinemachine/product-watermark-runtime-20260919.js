@@ -111,45 +111,45 @@
     img.style.userSelect='none';
   }
 
+  function ensureOverlay(img,w){
+    protectImage(img);
+    const host=img.parentElement;
+    if(!host)return;
+    const cs=getComputedStyle(host);
+    if(cs.position==='static')host.style.position='relative';
+
+    let mark=host.querySelector(':scope > .rc-product-watermark');
+    if(!w.enabled||!w.logoUrl){
+      if(mark)mark.remove();
+      return;
+    }
+    if(!mark){
+      mark=document.createElement('img');
+      mark.className='rc-product-watermark';
+      mark.alt='';
+      mark.setAttribute('aria-hidden','true');
+      mark.setAttribute('draggable','false');
+      host.appendChild(mark);
+    }
+    if(mark.src!==w.logoUrl)mark.src=w.logoUrl;
+    mark.style.opacity=String(w.opacity);
+    mark.style.width=w.size+'%';
+    mark.style.left='';
+    mark.style.right='';
+    mark.style.top='';
+    mark.style.bottom='';
+    const gap=w.offset+'%';
+    if(w.position==='top-right'){mark.style.top=gap;mark.style.right=gap;}
+    else if(w.position==='bottom-left'){mark.style.bottom=gap;mark.style.left=gap;}
+    else if(w.position==='bottom-right'){mark.style.bottom=gap;mark.style.right=gap;}
+    else {mark.style.top=gap;mark.style.left=gap;}
+  }
+
   function apply(){
     cancelAnimationFrame(raf);
     raf=requestAnimationFrame(()=>{
       const w=cfg();
-      if(!w.enabled||!w.logoUrl){
-        document.querySelectorAll('.rc-product-watermark').forEach(x=>x.remove());
-        return;
-      }
-      [...document.querySelectorAll('#app img')].filter(productImage).forEach(img=>{
-        protectImage(img);
-        const host=img.parentElement;
-        if(!host)return;
-        const cs=getComputedStyle(host);
-        if(cs.position==='static')host.style.position='relative';
-        if(!originalSrc.has(img))originalSrc.set(img,img.currentSrc||img.src);
-
-        // If this image is already baked, keep only the baked image and never add another overlay.
-        if(img.dataset.rcWatermarked==='1'){
-          removeOverlay(host);
-          protectImage(img);
-          return;
-        }
-
-        removeOverlay(host);
-
-        if(!processed.has(img)){
-          processed.add(img);
-          const bake=()=>makeWatermarkedSrc(img,w).then(src=>{
-            if(src&&img.isConnected){
-              img.dataset.rcWatermarked='1';
-              img.src=src;
-              removeOverlay(img.parentElement);
-          protectImage(img);
-            }
-          }).catch(()=>{});
-          if(img.complete&&img.naturalWidth)bake(); else img.addEventListener('load',bake,{once:true});
-        }
-          protectImage(img);
-      });
+      [...document.querySelectorAll('#app img')].filter(productImage).forEach(img=>ensureOverlay(img,w));
     });
   }
 
@@ -166,7 +166,7 @@
 
   const style=document.createElement('style');
   style.id='rc-product-watermark-style';
-  style.textContent='.rc-product-watermark{display:none!important}.pcard,.product-card,.home-category-card{overflow:hidden}#app img[data-rc-protected="1"]{-webkit-user-drag:none!important;-webkit-touch-callout:none!important;user-select:none!important;-webkit-user-select:none!important;pointer-events:none!important}';
+  style.textContent='.pcard,.product-card,.home-category-card,.cms-gallery-main,.cms-gallery-thumb{overflow:hidden}#app img[data-rc-protected="1"]{-webkit-user-drag:none!important;-webkit-touch-callout:none!important;user-select:none!important;-webkit-user-select:none!important}.rc-product-watermark{position:absolute!important;z-index:7!important;height:auto!important;max-width:34%!important;object-fit:contain!important;pointer-events:none!important;-webkit-user-drag:none!important;-webkit-touch-callout:none!important;user-select:none!important;transition:none!important;animation:none!important}';
   document.head.appendChild(style);
   document.addEventListener('contextmenu',e=>{
     const img=e.target?.closest?.('#app img');
@@ -189,5 +189,4 @@
   new MutationObserver(apply).observe(document.getElementById('app')||document.body,{childList:true,subtree:true});
   pull();
   setTimeout(apply,200);
-  setTimeout(apply,900);
 })();
