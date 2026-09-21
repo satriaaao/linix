@@ -18,11 +18,11 @@ function styles(){
   if(document.getElementById(STYLE_ID))return;
   const s=document.createElement('style');s.id=STYLE_ID;s.textContent=`
     #app .home-featured:first-of-type{padding-top:38px!important}
-    #app .home-featured:first-of-type .home-product-head{display:block!important;margin-bottom:14px!important}
-    #app .home-featured:first-of-type .home-product-title-link{font-size:34px!important;line-height:1!important;margin-top:4px!important}
+    #app .home-featured:first-of-type .home-product-head{display:block!important;margin:0 0 16px!important}
+    #app .home-featured:first-of-type .home-product-title-link{font-size:34px!important;line-height:1!important;margin-top:2px!important}
     #app .rc-camera-heading{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
     #app .rc-camera-heading p{margin:0 0 3px!important;color:#7d7d7d!important;font-size:12px!important;line-height:1.45!important}
-    #app .rc-camera-toolbar{display:flex;align-items:center;gap:10px;margin:0 0 18px;flex-wrap:wrap}
+    #app .rc-camera-toolbar{display:flex;align-items:center;gap:10px;margin:0 0 16px;flex-wrap:wrap}
     #app .rc-camera-tool{position:relative;height:50px;padding:0 15px;border:1px solid #e3e7ed;border-radius:13px;background:#fff;color:#172033;display:inline-flex;align-items:center;gap:10px;font-size:12px;font-weight:850;cursor:pointer;box-shadow:0 6px 18px rgba(20,32,50,.045);transition:transform .16s ease,box-shadow .16s ease}
     #app .rc-camera-tool:hover{transform:translateY(-1px);box-shadow:0 9px 22px rgba(20,32,50,.08)}
     #app .rc-camera-tool .toolIcon{width:30px;height:30px;border-radius:9px;display:grid;place-items:center}
@@ -96,13 +96,13 @@ function mount(){
   }
   head.querySelector('.home-product-view')?.remove();
   if(!camera.querySelector('.rc-camera-toolbar')){
-    head.insertAdjacentHTML('afterend',toolbar());
+    head.insertAdjacentHTML('beforebegin',toolbar());
   }
 }
 document.addEventListener('click',e=>{
-  if(e.target.closest('[data-rc-camera-new]')){go('/produk?label=NEW');return}
-  if(e.target.closest('[data-rc-camera-promo]')){go('/produk?label=PROMO%2CNEW%2CDISKON');return}
-  if(e.target.closest('[data-rc-camera-catalog]')){go('/produk?cat=cinema');return}
+  if(e.target.closest('[data-rc-camera-new]')){go('/produk?new=1');return}
+  if(e.target.closest('[data-rc-camera-promo]')){go('/produk?promo=1');return}
+  if(e.target.closest('[data-rc-camera-catalog]')){go('/produk');return}
 });
 document.addEventListener('submit',e=>{
   const f=e.target.closest('[data-rc-camera-search]');if(!f)return;
