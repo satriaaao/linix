@@ -371,6 +371,61 @@
     @keyframes ambientPulse{0%,100%{transform:scale(.95);opacity:.72}50%{transform:scale(1.06);opacity:1}}
     @keyframes glassSheen{0%,100%{transform:translateX(-6%)}50%{transform:translateX(6%)}}
 
+    .measure-upload{
+      display:grid;place-items:center;min-height:96px;border:1.5px dashed #a8bbd2;border-radius:13px;
+      background:linear-gradient(180deg,#f9fbfe,#f5f8fc);color:#365271;text-align:center;padding:13px;cursor:pointer
+    }
+    .measure-upload strong{font-size:12px}.measure-upload small{display:block;margin-top:4px;color:#7b8799;font-size:10px}
+    .sim-tools{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+    .sim-tools .btn{min-height:36px;padding:7px 10px;font-size:11px}
+    .sim-stage{
+      position:relative;margin-top:12px;width:100%;aspect-ratio:4/3;border-radius:14px;overflow:hidden;
+      background:
+        linear-gradient(45deg,#edf2f8 25%,transparent 25%) 0 0/18px 18px,
+        linear-gradient(45deg,transparent 75%,#edf2f8 75%) 0 0/18px 18px,
+        linear-gradient(45deg,transparent 75%,#edf2f8 75%) 9px -9px/18px 18px,
+        linear-gradient(45deg,#edf2f8 25%,#f8fafc 25%) 9px -9px/18px 18px;
+      border:1px solid #dbe3ee;touch-action:none
+    }
+    .sim-stage.empty:before{
+      content:"Upload foto barang untuk mulai simulasi";position:absolute;inset:0;display:grid;place-items:center;
+      color:#8290a4;font-size:11px;font-weight:750;padding:20px;text-align:center
+    }
+    .sim-stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;user-select:none;-webkit-user-drag:none}
+    .measure-frame{
+      position:absolute;left:8%;top:8%;width:84%;height:84%;border:2px solid rgba(37,99,235,.82);
+      box-shadow:0 0 0 999px rgba(4,18,40,.12);border-radius:9px;cursor:move;display:none
+    }
+    .measure-frame.show{display:block}
+    .measure-frame:before{
+      content:attr(data-size);position:absolute;left:7px;top:7px;padding:4px 7px;border-radius:999px;
+      background:rgba(10,35,71,.88);color:#fff;font-size:9px;font-weight:800;letter-spacing:.02em
+    }
+    .measure-handle{
+      position:absolute;right:-9px;bottom:-9px;width:22px;height:22px;border-radius:7px;
+      background:#fff;border:3px solid #2563eb;box-shadow:0 2px 10px rgba(37,99,235,.3);cursor:nwse-resize
+    }
+    .sticker-sim{
+      position:absolute;left:50%;top:70%;transform:translate(-50%,-50%);display:none;align-items:center;justify-content:center;
+      flex-direction:column;background:#fff;border:1px dashed #7587a3;border-radius:4px;overflow:hidden;
+      box-shadow:0 4px 14px rgba(15,35,65,.2);cursor:grab;touch-action:none;color:#111
+    }
+    .sticker-sim.show{display:flex}.sticker-sim:active{cursor:grabbing}
+    .sticker-sim .ss-title{font-weight:900;line-height:1.05;white-space:nowrap}
+    .sticker-sim .ss-qr{
+      width:56%;aspect-ratio:1;display:grid;place-items:center;background:
+      linear-gradient(90deg,#111 10%,transparent 10% 20%,#111 20% 35%,transparent 35% 48%,#111 48% 64%,transparent 64% 76%,#111 76%),
+      linear-gradient(#111 10%,transparent 10% 22%,#111 22% 38%,transparent 38% 50%,#111 50% 68%,transparent 68% 78%,#111 78%);
+      background-size:100% 100%
+    }
+    .sticker-sim .ss-sn{font-weight:800;line-height:1;white-space:nowrap}
+    .sim-readout{
+      margin-top:10px;padding:10px 11px;border-radius:11px;background:#f5f8fc;border:1px solid #e2e8f1;
+      color:#43536b;font-size:10.5px;line-height:1.5
+    }
+    .sim-readout strong{color:#173965}
+    .sim-warning{color:#b45309!important}.sim-ok{color:#166534!important}
+
     .preview-card{
       min-height:720px;
       overflow:hidden;
@@ -496,6 +551,9 @@
       .process-steps{gap:7px}
       .process-step{gap:6px;font-size:8.8px}
       .process-step-dot{width:22px;height:22px}
+      .sim-stage{aspect-ratio:1/1}
+      .sim-tools{display:grid;grid-template-columns:1fr 1fr}
+      .sim-tools .btn{width:100%}
     }
     @media(max-width:390px){
       .brand p{max-width:145px}
@@ -531,7 +589,7 @@
   <style id="printStyle">@page{size:A4 portrait;margin:6mm}</style>
 </head>
 <body>
-<!-- qr-code polished ui v20 futuristic-smart-processing -->
+<!-- qr-code polished ui v21 photo-measure-placement-simulator -->
 <div class="app">
   <header class="topbar">
     <div class="topbar-inner">
@@ -621,7 +679,44 @@
       </div>
 
       <div class="section">
-        <h2>5. Cetak / Download</h2>
+        <h2>5. Ukur & Simulasi Tempel</h2>
+        <label>Foto barang</label>
+        <div class="measure-upload" id="measureUpload">
+          <div><strong>Upload Foto Barang</strong><small>Masukkan ukuran asli untuk mengkalibrasi skala.</small></div>
+          <input id="measurePhoto" type="file" accept="image/*" hidden>
+        </div>
+
+        <div class="row3" style="margin-top:10px">
+          <div><label>Lebar Barang (mm)</label><input id="itemW" type="number" min="1" max="1000" step=".1" value="20"></div>
+          <div><label>Tinggi Barang (mm)</label><input id="itemH" type="number" min="1" max="1000" step=".1" value="28"></div>
+          <div><label>Tebal (mm)</label><input id="itemD" type="number" min=".1" max="500" step=".1" value="2.8"></div>
+        </div>
+
+        <div class="sim-tools">
+          <button class="btn btn-soft" id="fitObjectBtn">Pas-kan Area Barang</button>
+          <button class="btn btn-soft" id="recommendStickerBtn">Rekomendasi Ukuran</button>
+          <button class="btn btn-white" id="centerStickerBtn">Stiker ke Tengah</button>
+        </div>
+
+        <div class="sim-stage empty" id="simStage">
+          <img id="simImage" alt="" style="display:none">
+          <div class="measure-frame" id="measureFrame" data-size="20 × 28 mm">
+            <div class="measure-handle" id="measureHandle"></div>
+            <div class="sticker-sim" id="stickerSim">
+              <div class="ss-title">BSM Rental</div>
+              <div class="ss-qr"></div>
+              <div class="ss-sn">SN001</div>
+            </div>
+          </div>
+        </div>
+        <div class="sim-readout" id="simReadout">
+          <strong>Contoh:</strong> barang 20 × 28 mm. Upload foto, lalu geser/ubah kotak biru mengikuti tepi barang. Ukuran stiker mengikuti setting label di atas.
+        </div>
+        <p class="hint">Kotak biru = ukuran fisik barang. Stiker bisa digeser langsung di foto. Ini simulasi skala setelah ukuran asli barang dimasukkan.</p>
+      </div>
+
+      <div class="section">
+        <h2>6. Cetak / Download</h2>
         <div class="actions">
           <button class="btn btn-red" id="printBtn">Cetak Semua Cepat</button>
           <button class="btn btn-primary" id="zipBtn">Download ZIP PNG</button>
@@ -676,7 +771,9 @@
     boxSize:$('boxSize'), cutW:$('cutW'), cutH:$('cutH'), contentScale:$('contentScale'), qrSize:$('qrSize'), columns:$('columns'), gap:$('gap'),
     paper:$('paper'), labelPadding:$('labelPadding'), autoText:$('autoText'),
     titleSize:$('titleSize'), serialSize:$('serialSize'), titleGap:$('titleGap'), serialGap:$('serialGap'),
-    stickerMode:$('stickerMode'), cornerRadius:$('cornerRadius'), cutLine:$('cutLine'), file:$('fileInput')
+    stickerMode:$('stickerMode'), cornerRadius:$('cornerRadius'), cutLine:$('cutLine'), file:$('fileInput'),
+    measurePhoto:$('measurePhoto'), simStage:$('simStage'), simImage:$('simImage'), measureFrame:$('measureFrame'),
+    stickerSim:$('stickerSim'), itemW:$('itemW'), itemH:$('itemH'), itemD:$('itemD'), simReadout:$('simReadout')
   };
   let serials = [];
   const PREVIEW_LIMIT = window.matchMedia('(max-width:700px)').matches ? 36 : 100;
@@ -742,6 +839,86 @@
     const overlay=$('processOverlay');
     if(overlay) overlay.classList.remove('show');
     document.body.style.overflow='';
+  }
+
+  const simState={frame:{x:.08,y:.08,w:.84,h:.84},sticker:{x:.5,y:.70},photoUrl:null};
+
+  function simDimensions(){
+    return {
+      w:clamp(els.itemW?.value,1,1000,20),
+      h:clamp(els.itemH?.value,1,1000,28),
+      d:clamp(els.itemD?.value,.1,500,2.8)
+    };
+  }
+
+  function applySimFrame(){
+    if(!els.measureFrame) return;
+    const f=simState.frame;
+    els.measureFrame.style.left=(f.x*100)+'%';
+    els.measureFrame.style.top=(f.y*100)+'%';
+    els.measureFrame.style.width=(f.w*100)+'%';
+    els.measureFrame.style.height=(f.h*100)+'%';
+    const d=simDimensions();
+    els.measureFrame.dataset.size=d.w+' × '+d.h+' mm';
+    updateStickerSim();
+  }
+
+  function updateStickerSim(){
+    if(!els.stickerSim || !els.measureFrame) return;
+    const d=simDimensions();
+    const s=settings();
+    const pctW=Math.max(.02,Math.min(1.25,s.cutW/d.w));
+    const pctH=Math.max(.02,Math.min(1.25,s.cutH/d.h));
+    els.stickerSim.style.width=(pctW*100)+'%';
+    els.stickerSim.style.height=(pctH*100)+'%';
+    els.stickerSim.style.left=(simState.sticker.x*100)+'%';
+    els.stickerSim.style.top=(simState.sticker.y*100)+'%';
+
+    const minSide=Math.max(6,Math.min(els.measureFrame.clientWidth*pctW,els.measureFrame.clientHeight*pctH));
+    const title=els.stickerSim.querySelector('.ss-title');
+    const sn=els.stickerSim.querySelector('.ss-sn');
+    if(title) title.style.fontSize=Math.max(5,minSide*.10)+'px';
+    if(sn) sn.style.fontSize=Math.max(5,minSide*.09)+'px';
+
+    const cover=Math.round(Math.min(999,(s.cutW*s.cutH)/(d.w*d.h)*100));
+    const tooBig=s.cutW>d.w || s.cutH>d.h;
+    if(els.simReadout){
+      els.simReadout.innerHTML=
+        '<strong>Barang:</strong> '+d.w+' × '+d.h+' × '+d.d+' mm &nbsp; • &nbsp; '+
+        '<strong>Stiker:</strong> '+s.cutW+' × '+s.cutH+' mm &nbsp; • &nbsp; '+
+        '<strong>Area muka tertutup:</strong> ±'+cover+'%<br>'+
+        '<span class="'+(tooBig?'sim-warning':'sim-ok')+'">'+
+        (tooBig?'⚠ Ukuran stiker lebih besar dari muka barang. Kecilkan label.':'✓ Ukuran stiker masih berada di dalam muka barang.')+
+        '</span>';
+    }
+  }
+
+  function fitMeasureFrame(){
+    if(!els.simStage) return;
+    const d=simDimensions();
+    const stageRatio=els.simStage.clientWidth/Math.max(1,els.simStage.clientHeight);
+    const itemRatio=d.w/d.h;
+    let w=.82,h=.82;
+    if(itemRatio>stageRatio) h=w*stageRatio/itemRatio;
+    else w=h*itemRatio/stageRatio;
+    simState.frame={x:(1-w)/2,y:(1-h)/2,w,h};
+    applySimFrame();
+  }
+
+  function recommendStickerSize(){
+    const d=simDimensions();
+    const target=Math.max(6,Math.min(20,Math.round(Math.min(d.w,d.h)*.5*2)/2));
+    els.boxSize.value=target;
+    els.cutW.value=target;
+    els.cutH.value=target;
+    const controls=[els.boxSize,els.cutW,els.cutH];
+    controls.forEach(number=>{
+      const range=number?.closest('.range-control')?.querySelector('input[type="range"]');
+      if(range){range.value=target;updateSliderFill(range);}
+    });
+    applyLayout();
+    updateStickerSim();
+    setStatus('Rekomendasi ukuran stiker: '+target+' × '+target+' mm untuk barang '+d.w+' × '+d.h+' mm.');
   }
 
   function settings(){
@@ -965,6 +1142,7 @@
     els.meta.textContent=s.paper+' • '+s.cols+' kolom • potong '+s.cutW+' × '+s.cutH+' mm • isi '+s.contentScale+'%';
     $('printStyle').textContent='@page{size:'+s.paper+' portrait;margin:6mm}';
     saveLocal();
+    updateStickerSim();
   }
 
   function render(){
@@ -1329,6 +1507,88 @@
   }));
   $('autoText').addEventListener('change',()=>{syncTextControls();applyLayout();});
   $('stickerMode').addEventListener('change',()=>{applyLayout();});
+
+  $('measureUpload').addEventListener('click',()=>els.measurePhoto.click());
+  els.measurePhoto.addEventListener('change',()=>{
+    const file=els.measurePhoto.files?.[0];
+    if(!file) return;
+    if(simState.photoUrl) URL.revokeObjectURL(simState.photoUrl);
+    simState.photoUrl=URL.createObjectURL(file);
+    els.simImage.src=simState.photoUrl;
+    els.simImage.style.display='block';
+    els.simStage.classList.remove('empty');
+    els.measureFrame.classList.add('show');
+    els.stickerSim.classList.add('show');
+    setTimeout(fitMeasureFrame,60);
+  });
+
+  ['itemW','itemH','itemD'].forEach(id=>$(id).addEventListener('input',()=>{
+    if(id==='itemW'||id==='itemH') fitMeasureFrame();
+    else updateStickerSim();
+  }));
+
+  $('fitObjectBtn').addEventListener('click',fitMeasureFrame);
+  $('recommendStickerBtn').addEventListener('click',recommendStickerSize);
+  $('centerStickerBtn').addEventListener('click',()=>{
+    simState.sticker={x:.5,y:.5};updateStickerSim();
+  });
+
+  let frameDrag=null;
+  els.measureFrame.addEventListener('pointerdown',e=>{
+    if(e.target.id==='measureHandle' || e.target.closest('#stickerSim')) return;
+    e.preventDefault();
+    els.measureFrame.setPointerCapture(e.pointerId);
+    frameDrag={sx:e.clientX,sy:e.clientY,x:simState.frame.x,y:simState.frame.y,
+      sw:els.simStage.clientWidth,sh:els.simStage.clientHeight};
+  });
+  els.measureFrame.addEventListener('pointermove',e=>{
+    if(!frameDrag) return;
+    const nx=frameDrag.x+(e.clientX-frameDrag.sx)/frameDrag.sw;
+    const ny=frameDrag.y+(e.clientY-frameDrag.sy)/frameDrag.sh;
+    simState.frame.x=Math.max(0,Math.min(1-simState.frame.w,nx));
+    simState.frame.y=Math.max(0,Math.min(1-simState.frame.h,ny));
+    applySimFrame();
+  });
+  const stopFrame=()=>{frameDrag=null};
+  els.measureFrame.addEventListener('pointerup',stopFrame);
+  els.measureFrame.addEventListener('pointercancel',stopFrame);
+
+  let resizeDrag=null;
+  $('measureHandle').addEventListener('pointerdown',e=>{
+    e.preventDefault();e.stopPropagation();
+    $('measureHandle').setPointerCapture(e.pointerId);
+    resizeDrag={sx:e.clientX,sy:e.clientY,w:simState.frame.w,h:simState.frame.h,
+      sw:els.simStage.clientWidth,sh:els.simStage.clientHeight};
+  });
+  $('measureHandle').addEventListener('pointermove',e=>{
+    if(!resizeDrag) return;
+    simState.frame.w=Math.max(.08,Math.min(1-simState.frame.x,resizeDrag.w+(e.clientX-resizeDrag.sx)/resizeDrag.sw));
+    simState.frame.h=Math.max(.08,Math.min(1-simState.frame.y,resizeDrag.h+(e.clientY-resizeDrag.sy)/resizeDrag.sh));
+    applySimFrame();
+  });
+  $('measureHandle').addEventListener('pointerup',()=>{resizeDrag=null});
+  $('measureHandle').addEventListener('pointercancel',()=>{resizeDrag=null});
+
+  let stickerDrag=null;
+  els.stickerSim.addEventListener('pointerdown',e=>{
+    e.preventDefault();e.stopPropagation();
+    els.stickerSim.setPointerCapture(e.pointerId);
+    stickerDrag={sx:e.clientX,sy:e.clientY,x:simState.sticker.x,y:simState.sticker.y,
+      fw:els.measureFrame.clientWidth,fh:els.measureFrame.clientHeight};
+  });
+  els.stickerSim.addEventListener('pointermove',e=>{
+    if(!stickerDrag) return;
+    const rect=els.stickerSim.getBoundingClientRect();
+    const frameRect=els.measureFrame.getBoundingClientRect();
+    const halfX=(rect.width/2)/Math.max(1,frameRect.width);
+    const halfY=(rect.height/2)/Math.max(1,frameRect.height);
+    simState.sticker.x=Math.max(halfX,Math.min(1-halfX,stickerDrag.x+(e.clientX-stickerDrag.sx)/stickerDrag.fw));
+    simState.sticker.y=Math.max(halfY,Math.min(1-halfY,stickerDrag.y+(e.clientY-stickerDrag.sy)/stickerDrag.fh));
+    updateStickerSim();
+  });
+  els.stickerSim.addEventListener('pointerup',()=>{stickerDrag=null});
+  els.stickerSim.addEventListener('pointercancel',()=>{stickerDrag=null});
+
   $('printBtn').addEventListener('click',async()=>{
     if(!serials.length){setStatus('Belum ada QR untuk dicetak.');return;}
     const w=window.open('about:blank','_blank');
@@ -1345,6 +1605,7 @@
   loadLocal();
   syncTextControls();
   enhanceSliders();
+  applySimFrame();
   if(els.input.value.trim()){serials=parseText(els.input.value);render();}else applyLayout();
 })();
 </script>
