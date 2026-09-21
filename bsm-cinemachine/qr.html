@@ -159,6 +159,22 @@
 
     .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .range-control{display:grid;grid-template-columns:minmax(0,1fr) 72px;gap:9px;align-items:center}
+    .range-control input[type="range"]{
+      appearance:none;-webkit-appearance:none;width:100%;height:34px;min-height:34px;padding:0;border:0;background:transparent;box-shadow:none
+    }
+    .range-control input[type="range"]::-webkit-slider-runnable-track{
+      height:6px;border-radius:999px;background:linear-gradient(90deg,#2563eb var(--fill,50%),#dbe4f0 var(--fill,50%))
+    }
+    .range-control input[type="range"]::-webkit-slider-thumb{
+      appearance:none;-webkit-appearance:none;width:24px;height:24px;border-radius:50%;
+      margin-top:-9px;background:#fff;border:3px solid #2563eb;box-shadow:0 2px 8px rgba(37,99,235,.25)
+    }
+    .range-control input[type="range"]::-moz-range-track{height:6px;border-radius:999px;background:#dbe4f0}
+    .range-control input[type="range"]::-moz-range-progress{height:6px;border-radius:999px;background:#2563eb}
+    .range-control input[type="range"]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid #2563eb}
+    .range-number{min-height:38px!important;padding:8px 7px!important;text-align:center;font-weight:800;background:#f8fbff!important}
+    .range-unit{font-size:10px;color:#7b8799;margin-top:3px;text-align:right}
     .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}
     .btn{
       min-height:42px;
@@ -359,6 +375,8 @@
       .section h2{font-size:11px;margin-bottom:12px}
       .row,.row3{grid-template-columns:1fr 1fr}
       .row3>div:last-child{grid-column:1/-1}
+      .range-control{grid-template-columns:minmax(0,1fr) 64px;gap:7px}
+      .range-control input[type="range"]::-webkit-slider-thumb{width:28px;height:28px;margin-top:-11px}
       textarea{min-height:120px}
       .actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
       #generateBtn{grid-column:1/-1}
@@ -404,7 +422,7 @@
   <style id="printStyle">@page{size:A4 portrait;margin:6mm}</style>
 </head>
 <body>
-<!-- qr-code polished ui v13 box-size-and-centered-content -->
+<!-- qr-code polished ui v14 mobile-sliders -->
 <div class="app">
   <header class="topbar">
     <div class="topbar-inner">
@@ -564,6 +582,81 @@
     const maxQrByHeight=Math.max(10,s.cutH-(padding*2)-titleFont-titleGap-serialFont-serialGap);
     const qr=Math.max(10,Math.min(baseQr,maxQrByWidth,maxQrByHeight));
     return {padding,titleFont,serialFont,titleGap,serialGap,qr};
+  }
+
+  function sliderUnit(id){
+    if(id==='contentScale') return '%';
+    if(id==='columns') return 'kolom';
+    return 'mm';
+  }
+
+  function updateSliderFill(range){
+    const min=Number(range.min)||0,max=Number(range.max)||100,val=Number(range.value)||0;
+    const pct=max===min?0:((val-min)/(max-min))*100;
+    range.style.setProperty('--fill',pct+'%');
+  }
+
+  function refreshFromControls(){
+    if(serials.length) applyLayout(); else applyLayout();
+  }
+
+  function enhanceSliders(){
+    const ids=['boxSize','contentScale','cutW','cutH','qrSize','gap','columns','labelPadding','titleSize','serialSize','titleGap','serialGap'];
+    ids.forEach(id=>{
+      const number=$(id);
+      if(!number || number.dataset.sliderReady==='1') return;
+
+      const wrap=document.createElement('div');
+      wrap.className='range-control';
+      number.parentNode.insertBefore(wrap,number);
+      wrap.appendChild(number);
+      number.classList.add('range-number');
+      number.dataset.sliderReady='1';
+
+      const range=document.createElement('input');
+      range.type='range';
+      range.min=number.min||'0';
+      range.max=number.max||'100';
+      range.step=number.step||'1';
+      range.value=number.value;
+      range.setAttribute('aria-label',(number.previousElementSibling?.textContent||id)+' slider');
+      wrap.insertBefore(range,number);
+      updateSliderFill(range);
+
+      const unit=document.createElement('div');
+      unit.className='range-unit';
+      unit.style.gridColumn='1 / -1';
+      unit.textContent='Geser untuk atur • '+sliderUnit(id);
+      wrap.appendChild(unit);
+
+      let raf=0;
+      const syncFromRange=()=>{
+        number.value=range.value;
+        updateSliderFill(range);
+
+        if(id==='boxSize'){
+          els.cutW.value=range.value;
+          els.cutH.value=range.value;
+          const rw=els.cutW.closest('.range-control')?.querySelector('input[type="range"]');
+          const rh=els.cutH.closest('.range-control')?.querySelector('input[type="range"]');
+          if(rw){rw.value=range.value;updateSliderFill(rw);}
+          if(rh){rh.value=range.value;updateSliderFill(rh);}
+        }
+
+        cancelAnimationFrame(raf);
+        raf=requestAnimationFrame(refreshFromControls);
+      };
+      range.addEventListener('input',syncFromRange);
+
+      number.addEventListener('input',()=>{
+        range.value=number.value;
+        updateSliderFill(range);
+      });
+      number.addEventListener('change',()=>{
+        range.value=number.value;
+        updateSliderFill(range);
+      });
+    });
   }
 
   function centeredContentStartY(s,m){
@@ -886,15 +979,19 @@
     const size=clamp(els.boxSize.value,20,120,35);
     els.cutW.value=size;
     els.cutH.value=size;
-    if(serials.length)render();else applyLayout();
+    const rw=els.cutW.closest('.range-control')?.querySelector('input[type="range"]');
+    const rh=els.cutH.closest('.range-control')?.querySelector('input[type="range"]');
+    if(rw){rw.value=size;updateSliderFill(rw);}
+    if(rh){rh.value=size;updateSliderFill(rh);}
+    applyLayout();
   });
   ['cutW','cutH','contentScale','qrSize','columns','gap','paper','labelPadding','titleSize','serialSize','titleGap','serialGap','cutLine'].forEach(id=>$(id).addEventListener('change',()=>{
     if(id==='cutW' || id==='cutH'){
       if(Number(els.cutW.value)===Number(els.cutH.value)) els.boxSize.value=els.cutW.value;
     }
-    if(serials.length)render();else applyLayout();
+    applyLayout();
   }));
-  $('autoText').addEventListener('change',()=>{syncTextControls();if(serials.length)render();else applyLayout();});
+  $('autoText').addEventListener('change',()=>{syncTextControls();applyLayout();});
   $('printBtn').addEventListener('click',()=>{if(!serials.length){setStatus('Belum ada QR untuk dicetak.');return;}applyLayout();window.print();});
   $('zipBtn').addEventListener('click',downloadZip);
   $('pressBtn').addEventListener('click',downloadPressPdf);
@@ -902,6 +999,7 @@
 
   loadLocal();
   syncTextControls();
+  enhanceSliders();
   if(els.input.value.trim()){serials=parseText(els.input.value);render();}else applyLayout();
 })();
 </script>
