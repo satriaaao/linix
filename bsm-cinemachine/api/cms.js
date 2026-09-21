@@ -3,6 +3,7 @@ const PWA=require('../cms-pwa-assets');
 
 function sanitizeCmsHtml(html){
   return String(html||'')
+    .replace(/https:\/\/cdn\.jsdelivr\.net\/gh\/satriaaao\/linix@85b0a21372bfcc3bf1276c19ffb6de8a96ff1200\/bsm-cinemachine\/cms-kernel-20260918\.js/g,'/cms-kernel-secure-20260922.js')
     .replace(/<link\b[^>]*href=["'][^"']*cart-mobile-layout-fix-20260919\.css[^"']*["'][^>]*>/gi,'')
     .replace(/<link\b[^>]*href=["'][^"']*cart[^"']*\.css[^"']*["'][^>]*data-public-only[^>]*>/gi,'');
 }
@@ -43,6 +44,12 @@ async function handler(req,res){
     res.statusCode=200;
     res.setHeader('content-type','text/html; charset=utf-8');
     res.setHeader('cache-control','no-store, max-age=0');
+    res.setHeader('pragma','no-cache');
+    res.setHeader('x-content-type-options','nosniff');
+    res.setHeader('x-frame-options','DENY');
+    res.setHeader('referrer-policy','no-referrer');
+    res.setHeader('cross-origin-opener-policy','same-origin');
+    res.setHeader('permissions-policy','camera=(self), geolocation=(self), microphone=()');
     if(req.method==='HEAD')return res.end();
     return res.end(html);
   }catch(e){
