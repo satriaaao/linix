@@ -407,18 +407,18 @@
     }
     .sticker-sim{
       position:absolute;left:50%;top:70%;transform:translate(-50%,-50%);display:none;align-items:center;justify-content:center;
-      flex-direction:column;background:#fff;border:1px dashed #7587a3;border-radius:4px;overflow:hidden;
-      box-shadow:0 4px 14px rgba(15,35,65,.2);cursor:grab;touch-action:none;color:#111
+      background:#fff;border:1px dashed rgba(72,91,121,.72);border-radius:2px;overflow:hidden;
+      box-shadow:0 3px 10px rgba(15,35,65,.16);cursor:grab;touch-action:none;color:#111;
+      padding:4%;box-sizing:border-box
     }
     .sticker-sim.show{display:flex}.sticker-sim:active{cursor:grabbing}
-    .sticker-sim .ss-title{font-weight:900;line-height:1.05;white-space:nowrap}
+    .sticker-sim .ss-title,.sticker-sim .ss-sn{display:none!important}
     .sticker-sim .ss-qr{
-      width:56%;aspect-ratio:1;display:grid;place-items:center;background:
-      linear-gradient(90deg,#111 10%,transparent 10% 20%,#111 20% 35%,transparent 35% 48%,#111 48% 64%,transparent 64% 76%,#111 76%),
-      linear-gradient(#111 10%,transparent 10% 22%,#111 22% 38%,transparent 38% 50%,#111 50% 68%,transparent 68% 78%,#111 78%);
-      background-size:100% 100%
+      width:100%;height:100%;aspect-ratio:1;display:grid;place-items:center;background:#fff;overflow:hidden
     }
-    .sticker-sim .ss-sn{font-weight:800;line-height:1;white-space:nowrap}
+    .sticker-sim .ss-qr canvas,.sticker-sim .ss-qr img{
+      width:100%!important;height:100%!important;display:block;image-rendering:pixelated
+    }
     .sim-readout{
       margin-top:10px;padding:10px 11px;border-radius:11px;background:#f5f8fc;border:1px solid #e2e8f1;
       color:#43536b;font-size:10.5px;line-height:1.5
@@ -589,7 +589,7 @@
   <style id="printStyle">@page{size:A4 portrait;margin:6mm}</style>
 </head>
 <body>
-<!-- qr-code polished ui v21 photo-measure-placement-simulator -->
+<!-- qr-code polished ui v22 qr-only-tight-placement-simulator -->
 <div class="app">
   <header class="topbar">
     <div class="topbar-inner">
@@ -704,7 +704,7 @@
             <div class="measure-handle" id="measureHandle"></div>
             <div class="sticker-sim" id="stickerSim">
               <div class="ss-title">BSM Rental</div>
-              <div class="ss-qr"></div>
+              <div class="ss-qr" id="simQr"></div>
               <div class="ss-sn">SN001</div>
             </div>
           </div>
@@ -712,7 +712,7 @@
         <div class="sim-readout" id="simReadout">
           <strong>Contoh:</strong> barang 20 × 28 mm. Upload foto, lalu geser/ubah kotak biru mengikuti tepi barang. Ukuran stiker mengikuti setting label di atas.
         </div>
-        <p class="hint">Kotak biru = ukuran fisik barang. Stiker bisa digeser langsung di foto. Ini simulasi skala setelah ukuran asli barang dimasukkan.</p>
+        <p class="hint">Kotak biru = ukuran fisik barang. Simulasi hanya menampilkan QR dengan garis putih tipis yang mepet ke QR. QR bisa digeser langsung di foto.</p>
       </div>
 
       <div class="section">
@@ -773,7 +773,7 @@
     titleSize:$('titleSize'), serialSize:$('serialSize'), titleGap:$('titleGap'), serialGap:$('serialGap'),
     stickerMode:$('stickerMode'), cornerRadius:$('cornerRadius'), cutLine:$('cutLine'), file:$('fileInput'),
     measurePhoto:$('measurePhoto'), simStage:$('simStage'), simImage:$('simImage'), measureFrame:$('measureFrame'),
-    stickerSim:$('stickerSim'), itemW:$('itemW'), itemH:$('itemH'), itemD:$('itemD'), simReadout:$('simReadout')
+    stickerSim:$('stickerSim'), simQr:$('simQr'), itemW:$('itemW'), itemH:$('itemH'), itemD:$('itemD'), simReadout:$('simReadout')
   };
   let serials = [];
   const PREVIEW_LIMIT = window.matchMedia('(max-width:700px)').matches ? 36 : 100;
@@ -841,7 +841,7 @@
     document.body.style.overflow='';
   }
 
-  const simState={frame:{x:.08,y:.08,w:.84,h:.84},sticker:{x:.5,y:.70},photoUrl:null};
+  const simState={frame:{x:.08,y:.08,w:.84,h:.84},sticker:{x:.5,y:.70},photoUrl:null,lastQrSerial:null};
 
   function simDimensions(){
     return {
@@ -867,28 +867,45 @@
     if(!els.stickerSim || !els.measureFrame) return;
     const d=simDimensions();
     const s=settings();
-    const pctW=Math.max(.02,Math.min(1.25,s.cutW/d.w));
-    const pctH=Math.max(.02,Math.min(1.25,s.cutH/d.h));
+    const m=adaptiveMetrics(s);
+
+    // Simulator menunjukkan QR saja. Area putih hanya quiet-zone tipis di sekeliling QR.
+    const qrMm=m.qr;
+    const whiteEdge=Math.max(.35,qrMm*.04);
+    const simW=qrMm+(whiteEdge*2);
+    const simH=qrMm+(whiteEdge*2);
+    const pctW=Math.max(.02,Math.min(1.25,simW/d.w));
+    const pctH=Math.max(.02,Math.min(1.25,simH/d.h));
+
     els.stickerSim.style.width=(pctW*100)+'%';
     els.stickerSim.style.height=(pctH*100)+'%';
     els.stickerSim.style.left=(simState.sticker.x*100)+'%';
     els.stickerSim.style.top=(simState.sticker.y*100)+'%';
 
-    const minSide=Math.max(6,Math.min(els.measureFrame.clientWidth*pctW,els.measureFrame.clientHeight*pctH));
-    const title=els.stickerSim.querySelector('.ss-title');
-    const sn=els.stickerSim.querySelector('.ss-sn');
-    if(title) title.style.fontSize=Math.max(5,minSide*.10)+'px';
-    if(sn) sn.style.fontSize=Math.max(5,minSide*.09)+'px';
+    const simSerial=serials[0] || 'SN001';
+    if(els.simQr && (simState.lastQrSerial!==simSerial || !els.simQr.querySelector('canvas'))){
+      els.simQr.innerHTML='';
+      new QRCode(els.simQr,{
+        text:simSerial,width:256,height:256,
+        colorDark:'#000000',colorLight:'#ffffff',
+        correctLevel:QRCode.CorrectLevel.M
+      });
+      simState.lastQrSerial=simSerial;
+      requestAnimationFrame(()=>els.simQr.querySelectorAll('canvas,img').forEach(n=>{
+        n.style.width='100%';n.style.height='100%';n.style.display='block';
+      }));
+    }
 
-    const cover=Math.round(Math.min(999,(s.cutW*s.cutH)/(d.w*d.h)*100));
-    const tooBig=s.cutW>d.w || s.cutH>d.h;
+    const cover=Math.round(Math.min(999,(simW*simH)/(d.w*d.h)*100));
+    const tooBig=simW>d.w || simH>d.h;
     if(els.simReadout){
       els.simReadout.innerHTML=
         '<strong>Barang:</strong> '+d.w+' × '+d.h+' × '+d.d+' mm &nbsp; • &nbsp; '+
-        '<strong>Stiker:</strong> '+s.cutW+' × '+s.cutH+' mm &nbsp; • &nbsp; '+
+        '<strong>QR:</strong> '+qrMm.toFixed(1)+' × '+qrMm.toFixed(1)+' mm &nbsp; • &nbsp; '+
+        '<strong>Area tempel:</strong> '+simW.toFixed(1)+' × '+simH.toFixed(1)+' mm &nbsp; • &nbsp; '+
         '<strong>Area muka tertutup:</strong> ±'+cover+'%<br>'+
         '<span class="'+(tooBig?'sim-warning':'sim-ok')+'">'+
-        (tooBig?'⚠ Ukuran stiker lebih besar dari muka barang. Kecilkan label.':'✓ Ukuran stiker masih berada di dalam muka barang.')+
+        (tooBig?'⚠ QR masih terlalu besar untuk muka barang. Kecilkan Ukuran Dasar QR.':'✓ QR + garis putih tipis masih berada di dalam muka barang.')+
         '</span>';
     }
   }
@@ -907,18 +924,13 @@
 
   function recommendStickerSize(){
     const d=simDimensions();
-    const target=Math.max(6,Math.min(20,Math.round(Math.min(d.w,d.h)*.5*2)/2));
-    els.boxSize.value=target;
-    els.cutW.value=target;
-    els.cutH.value=target;
-    const controls=[els.boxSize,els.cutW,els.cutH];
-    controls.forEach(number=>{
-      const range=number?.closest('.range-control')?.querySelector('input[type="range"]');
-      if(range){range.value=target;updateSliderFill(range);}
-    });
+    const target=Math.max(5,Math.min(18,Math.round(Math.min(d.w,d.h)*.42*2)/2));
+    els.qrSize.value=target;
+    const range=els.qrSize?.closest('.range-control')?.querySelector('input[type="range"]');
+    if(range){range.value=target;updateSliderFill(range);}
     applyLayout();
     updateStickerSim();
-    setStatus('Rekomendasi ukuran stiker: '+target+' × '+target+' mm untuk barang '+d.w+' × '+d.h+' mm.');
+    setStatus('Rekomendasi ukuran QR: '+target+' × '+target+' mm untuk barang '+d.w+' × '+d.h+' mm.');
   }
 
   function settings(){
