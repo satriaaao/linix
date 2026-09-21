@@ -422,7 +422,7 @@
   <style id="printStyle">@page{size:A4 portrait;margin:6mm}</style>
 </head>
 <body>
-<!-- qr-code polished ui v17 peel-sticker-kiss-cut -->
+<!-- qr-code polished ui v18 fast-bulk-print -->
 <div class="app">
   <header class="topbar">
     <div class="topbar-inner">
@@ -514,17 +514,17 @@
       <div class="section">
         <h2>5. Cetak / Download</h2>
         <div class="actions">
-          <button class="btn btn-red" id="printBtn">Cetak / Simpan PDF</button>
+          <button class="btn btn-red" id="printBtn">Cetak Semua Cepat</button>
           <button class="btn btn-primary" id="zipBtn">Download ZIP PNG</button>
           <button class="btn btn-soft" id="pressBtn">Download PDF Stiker Siap Cetak</button>
         </div>
-        <p class="hint">Aktifkan Mode Stiker Kupas agar setiap QR punya garis kiss cut sendiri dan bisa dikelupas satu-satu setelah dicetak.</p>
+        <p class="hint">Untuk data banyak, preview dibatasi agar HP tetap cepat. Cetak/Download PDF tetap memproses SEMUA QR sekaligus.</p>
       </div>
     </aside>
 
     <section class="preview-card">
       <div class="preview-head">
-        <div><h2>Preview Cetak</h2><small id="previewMeta">A4 • 5 kolom • 35 × 35 mm</small></div>
+        <div><h2>Preview Cetak</h2><small id="previewMeta">A4 • 5 kolom • 35 × 35 mm</small><small id="previewLimitNote" style="display:block;margin-top:3px"></small></div>
         <small>QR menyimpan nomor seri yang tertulis di bawahnya.</small>
       </div>
       <div class="paper-wrap"><div id="sheet"><div class="empty"><div><b>Belum ada QR</b>Masukkan nomor seri lalu tekan <strong>Buat QR</strong>.</div></div></div></div>
@@ -540,13 +540,15 @@
 (() => {
   const $ = id => document.getElementById(id);
   const els = {
-    input:$('serialInput'), sheet:$('sheet'), total:$('totalCount'), status:$('status'), meta:$('previewMeta'),
+    input:$('serialInput'), sheet:$('sheet'), total:$('totalCount'), status:$('status'), meta:$('previewMeta'), previewNote:$('previewLimitNote'),
     boxSize:$('boxSize'), cutW:$('cutW'), cutH:$('cutH'), contentScale:$('contentScale'), qrSize:$('qrSize'), columns:$('columns'), gap:$('gap'),
     paper:$('paper'), labelPadding:$('labelPadding'), autoText:$('autoText'),
     titleSize:$('titleSize'), serialSize:$('serialSize'), titleGap:$('titleGap'), serialGap:$('serialGap'),
     stickerMode:$('stickerMode'), cornerRadius:$('cornerRadius'), cutLine:$('cutLine'), file:$('fileInput')
   };
   let serials = [];
+  const PREVIEW_LIMIT = window.matchMedia('(max-width:700px)').matches ? 36 : 100;
+  const yieldUi = () => new Promise(resolve => setTimeout(resolve, 0));
 
   const sanitize = value => String(value ?? '').trim().replace(/^["']|["']$/g,'');
   const unique = arr => [...new Set(arr.map(sanitize).filter(Boolean))];
@@ -785,11 +787,13 @@
     if(btn) btn.textContent='Buat QR';
     if(!serials.length){
       els.sheet.innerHTML='<div class="empty"><div><b>Belum ada QR</b>Masukkan nomor seri lalu tekan <strong>Buat QR</strong>.</div></div>';
+      if(els.previewNote) els.previewNote.textContent='';
       applyLayout(); return;
     }
     const s=settings();
     const m=adaptiveMetrics(s);
-    serials.forEach(serial=>{
+    const previewSerials=serials.slice(0,PREVIEW_LIMIT);
+    previewSerials.forEach(serial=>{
       const label=document.createElement('div');
       label.className='qr-label'+(s.cut?'':' no-cut');
       label.style.width=s.cutW+'mm';
@@ -822,6 +826,11 @@
         n.style.height=m.qr+'mm';
       }));
     });
+    if(els.previewNote){
+      els.previewNote.textContent=serials.length>PREVIEW_LIMIT
+        ? 'Preview '+PREVIEW_LIMIT+' dari '+serials.length+' QR • cetak/download tetap semua'
+        : '';
+    }
     applyLayout();
   }
 
@@ -878,7 +887,7 @@
     els.file.value='';
   }
 
-  function makeLabelCanvas(serial,s,m,scale=6,showCutBorder=true){
+  function makeLabelCanvas(serial,s,m,scale=3.2,showCutBorder=true){
     const px=3.7795275591*scale;
     const w=Math.max(1,Math.round(s.cutW*px));
     const h=Math.max(1,Math.round(s.cutH*px));
@@ -896,7 +905,7 @@
     const temp=document.createElement('div');
     temp.style.position='fixed';temp.style.left='-99999px';temp.style.top='-99999px';
     document.body.appendChild(temp);
-    new QRCode(temp,{text:serial,width:1024,height:1024,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+    new QRCode(temp,{text:serial,width:512,height:512,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
     const qrCanvas=temp.querySelector('canvas');
 
     const qp=Math.round(m.qr*px),qx=Math.round((w-qp)/2);
@@ -919,13 +928,15 @@
     return c;
   }
 
-  async function downloadPressPdf(){
+  async function downloadPressPdf(action='download',printWindow=null){
     if(!serials.length){setStatus('Belum ada QR untuk dibuat PDF stiker.');return;}
     if(!window.jspdf || !window.jspdf.jsPDF){setStatus('Library PDF belum termuat. Coba refresh halaman.');return;}
 
     const btn=$('pressBtn');
-    btn.disabled=true;
-    setStatus('Menyiapkan PDF stiker…');
+    const printBtn=$('printBtn');
+    if(btn) btn.disabled=true;
+    if(printBtn) printBtn.disabled=true;
+    setStatus('Menyiapkan PDF stiker 0%…');
 
     try{
       const s=settings(),m=adaptiveMetrics(s);
@@ -953,7 +964,7 @@
         const x=startX+col*(s.cutW+s.gap);
         const y=startY+row*(s.cutH+s.gap);
 
-        const canvas=makeLabelCanvas(serials[i],s,m,6,!s.stickerMode);
+        const canvas=makeLabelCanvas(serials[i],s,m,3.2,!s.stickerMode);
         const img=canvas.toDataURL('image/png');
         pdf.addImage(img,'PNG',x,y,s.cutW,s.cutH,undefined,'FAST');
 
@@ -970,6 +981,12 @@
           }
           pdf.restoreGraphicsState();
         }
+
+        if(i===serials.length-1 || (i+1)%20===0){
+          const pct=Math.round(((i+1)/serials.length)*100);
+          setStatus('Menyiapkan PDF stiker '+pct+'% • '+(i+1)+' / '+serials.length+' QR');
+          await yieldUi();
+        }
       }
 
       pdf.setProperties({
@@ -980,50 +997,65 @@
       const fileName=s.stickerMode
         ? 'BSM-Rental-Stiker-Kupas-'+serials.length+'pcs.pdf'
         : 'BSM-Rental-QR-Stiker-Siap-Cetak-'+serials.length+'pcs.pdf';
-      pdf.save(fileName);
-      setStatus(s.stickerMode ? 'PDF stiker kupas / kiss cut berhasil dibuat.' : 'PDF stiker berhasil dibuat.');
+
+      if(action==='print'){
+        const blob=pdf.output('blob');
+        const url=URL.createObjectURL(blob);
+        if(printWindow && !printWindow.closed){
+          printWindow.location.replace(url);
+        }else{
+          const a=document.createElement('a');
+          a.href=url;a.target='_blank';a.rel='noopener';a.click();
+        }
+        setStatus('Semua '+serials.length+' QR sudah jadi. PDF siap dicetak.');
+        setTimeout(()=>URL.revokeObjectURL(url),120000);
+      }else{
+        pdf.save(fileName);
+        setStatus(s.stickerMode ? 'PDF stiker kupas / kiss cut berhasil dibuat.' : 'PDF stiker berhasil dibuat.');
+      }
     }catch(e){
       console.error(e);
       setStatus('Gagal membuat PDF stiker. Coba lagi.');
     }
-    btn.disabled=false;
+    if(btn) btn.disabled=false;
+    if(printBtn) printBtn.disabled=false;
   }
 
   async function downloadZip(){
     if(!serials.length){setStatus('Belum ada QR untuk didownload.');return;}
     if(typeof JSZip==='undefined'){setStatus('Library ZIP belum termuat. Coba refresh halaman.');return;}
-    const btn=$('zipBtn');btn.disabled=true;setStatus('Menyiapkan '+serials.length+' PNG…');
+    const btn=$('zipBtn');
+    btn.disabled=true;
+    setStatus('Menyiapkan ZIP 0%…');
     try{
       const zip=new JSZip();
-      const labels=[...document.querySelectorAll('.qr-label')];
-      for(let i=0;i<labels.length;i++){
-        const qrCanvas=labels[i].querySelector('.qr-box canvas');
-        if(!qrCanvas) continue;
-        const s=settings(), m=adaptiveMetrics(s), scale=4;
-        const px=3.7795275591*scale;
-        const w=Math.round(s.cutW*px),h=Math.round(s.cutH*px);
-        const c=document.createElement('canvas');c.width=w;c.height=h;
-        const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.fillStyle='#111';ctx.textAlign='center';
-
-        let y=Math.round(centeredContentStartY(s,m)*px);
-        ctx.font='700 '+Math.round(m.titleFont*px)+'px Arial';
-        ctx.fillText('BSM Rental',w/2,y+Math.round(m.titleFont*px));
-        y+=Math.round((m.titleFont+m.titleGap)*px);
-
-        const qp=Math.round(m.qr*px),qx=Math.round((w-qp)/2);
-        ctx.drawImage(qrCanvas,qx,y,qp,qp);
-        y+=qp+Math.round(m.serialGap*px);
-
-        ctx.font='600 '+Math.round(m.serialFont*px)+'px Arial';
-        const baseline=Math.min(h-Math.round(m.padding*px),y+Math.round(m.serialFont*px));
-        ctx.fillText(serials[i],w/2,baseline);
+      const s=settings(),m=adaptiveMetrics(s);
+      for(let i=0;i<serials.length;i++){
+        const c=makeLabelCanvas(serials[i],s,m,3.2,true);
         const data=c.toDataURL('image/png').split(',')[1];
         zip.file(serials[i].replace(/[^a-z0-9_-]+/gi,'_')+'.png',data,{base64:true});
+
+        if(i===serials.length-1 || (i+1)%20===0){
+          const pct=Math.round(((i+1)/serials.length)*100);
+          setStatus('Menyiapkan ZIP '+pct+'% • '+(i+1)+' / '+serials.length+' QR');
+          await yieldUi();
+        }
       }
-      const blob=await zip.generateAsync({type:'blob'});
-      const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='BSM-Rental-QR-'+serials.length+'.zip';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-      setStatus('ZIP berhasil dibuat.');
-    }catch(e){setStatus('Gagal membuat ZIP. Coba lagi.');}
+      setStatus('Mengompres ZIP…');
+      const blob=await zip.generateAsync(
+        {type:'blob',compression:'DEFLATE',compressionOptions:{level:4}},
+        meta=>setStatus('Mengompres ZIP '+Math.round(meta.percent)+'%…')
+      );
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download='BSM-Rental-QR-'+serials.length+'.zip';
+      a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+      setStatus('ZIP semua '+serials.length+' QR berhasil dibuat.');
+    }catch(e){
+      console.error(e);
+      setStatus('Gagal membuat ZIP. Coba lagi.');
+    }
     btn.disabled=false;
   }
 
@@ -1061,7 +1093,15 @@
   }));
   $('autoText').addEventListener('change',()=>{syncTextControls();applyLayout();});
   $('stickerMode').addEventListener('change',()=>{applyLayout();});
-  $('printBtn').addEventListener('click',()=>{if(!serials.length){setStatus('Belum ada QR untuk dicetak.');return;}applyLayout();window.print();});
+  $('printBtn').addEventListener('click',async()=>{
+    if(!serials.length){setStatus('Belum ada QR untuk dicetak.');return;}
+    const w=window.open('about:blank','_blank');
+    if(w){
+      w.document.write('<!doctype html><meta name="viewport" content="width=device-width"><title>Menyiapkan cetak…</title><body style="font-family:system-ui;padding:32px;text-align:center"><h3>Menyiapkan '+serials.length+' QR…</h3><p>Jangan tutup halaman ini.</p></body>');
+      w.document.close();
+    }
+    await downloadPressPdf('print',w);
+  });
   $('zipBtn').addEventListener('click',downloadZip);
   $('pressBtn').addEventListener('click',downloadPressPdf);
   window.addEventListener('beforeprint',applyLayout);
