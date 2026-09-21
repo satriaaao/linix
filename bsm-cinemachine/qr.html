@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>QR Code Generator — BSM Rental</title>
+  <style>
+    :root{--navy:#071c3b;--navy2:#0d2f63;--red:#e51b23;--bg:#f4f7fb;--line:#d9e1ec;--text:#12243f;--muted:#6d7a8d;--white:#fff}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+    button,input,select,textarea{font:inherit}
+    .app{min-height:100vh}
+    .topbar{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:18px 20px}
+    .topbar-inner{max-width:1440px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:14px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .brandmark{display:grid;place-items:center;width:44px;height:44px;border-radius:12px;background:#fff;color:var(--navy);font-weight:950;letter-spacing:-1px}
+    .brand h1{font-size:20px;margin:0}.brand p{margin:3px 0 0;color:#bfd0eb;font-size:12px}
+    .count-badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);padding:8px 12px;border-radius:999px;font-size:13px;font-weight:800}
+    main{max-width:1440px;margin:0 auto;padding:18px;display:grid;grid-template-columns:380px minmax(0,1fr);gap:18px}
+    .panel,.preview-card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 28px rgba(17,41,78,.06)}
+    .panel{padding:16px;align-self:start;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
+    .section{padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid #edf0f5}.section:last-child{border-bottom:0;margin-bottom:0;padding-bottom:0}
+    .section h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;margin:0 0 10px;color:#3c4b61}
+    label{display:block;font-size:12px;font-weight:800;margin-bottom:6px;color:#45536a}
+    textarea,input,select{width:100%;border:1px solid #cfd8e5;border-radius:10px;background:#fff;color:var(--text);padding:10px 11px;outline:none}
+    textarea{min-height:145px;resize:vertical;line-height:1.45;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px}
+    input:focus,select:focus,textarea:focus{border-color:#6d91c9;box-shadow:0 0 0 3px rgba(50,104,180,.12)}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+    .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .btn{border:0;border-radius:10px;padding:10px 12px;font-weight:850;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+    .btn-primary{background:var(--navy);color:#fff}.btn-red{background:var(--red);color:#fff}.btn-soft{background:#eef3fa;color:#173965}.btn-white{background:#fff;color:#173965;border:1px solid #cad6e6}
+    .btn:disabled{opacity:.45;cursor:not-allowed}.btn:hover{filter:brightness(.98)}
+    .dropzone{border:1.5px dashed #9fb0c8;background:#f8fbff;border-radius:12px;padding:14px;text-align:center;cursor:pointer}.dropzone strong{display:block;font-size:13px}.dropzone small{display:block;color:var(--muted);margin-top:4px;line-height:1.4}
+    .toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0}.toggle span{font-size:13px;font-weight:700}.toggle input{width:18px;height:18px}
+    .preview-card{min-height:700px;overflow:hidden}
+    .preview-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .preview-head h2{font-size:16px;margin:0}.preview-head small{color:var(--muted)}
+    .paper-wrap{padding:20px;overflow:auto;background:#e9eef5}
+    #sheet{background:#fff;margin:0 auto;min-height:297mm;width:210mm;padding:8mm;display:grid;align-content:start;justify-content:start;gap:2mm;box-shadow:0 8px 26px rgba(20,36,61,.14)}
+    .qr-label{width:35mm;height:35mm;border:1px dashed #cbd3df;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;background:#fff;padding:1.5mm}
+    .label-title{font-size:2.8mm;font-weight:900;line-height:1.1;margin-bottom:1mm;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+    .qr-box{display:grid;place-items:center;line-height:0}.qr-box canvas,.qr-box img{display:block}
+    .serial{font-size:3.1mm;line-height:1.2;margin-top:1mm;color:#111;text-align:center;font-weight:650;word-break:break-all;max-width:100%}
+    .empty{grid-column:1/-1;width:100%;min-height:450px;display:grid;place-items:center;text-align:center;color:#7c899b;padding:30px}.empty b{display:block;color:#415069;margin-bottom:5px}
+    .hint{font-size:11px;color:var(--muted);line-height:1.5;margin-top:7px}
+    .status{font-size:12px;color:#426087;margin-top:8px;min-height:18px}
+    @media(max-width:980px){main{grid-template-columns:1fr}.panel{position:static;max-height:none}.paper-wrap{padding:10px}.preview-card{min-height:0}}
+    @media(max-width:600px){.topbar{padding:14px}.topbar-inner{align-items:flex-start}.brand p{display:none}.count-badge{font-size:11px}main{padding:10px;gap:10px}.panel{padding:13px}.row,.row3{grid-template-columns:1fr}.preview-head{align-items:flex-start}.paper-wrap{padding:8px}#sheet{transform-origin:top left}.actions .btn{flex:1 1 auto}}
+    @media print{
+      body{background:#fff}
+      .topbar,.panel,.preview-head{display:none!important}
+      main,.preview-card,.paper-wrap{display:block!important;margin:0!important;padding:0!important;border:0!important;box-shadow:none!important;background:#fff!important;max-width:none!important}
+      #sheet{box-shadow:none!important;margin:0!important}
+      .qr-label{break-inside:avoid;page-break-inside:avoid}
+      .qr-label.no-cut{border-color:transparent!important}
+    }
+  </style>
+  <style id="printStyle">@page{size:A4 portrait;margin:0}</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brandmark">BSM</div>
+        <div><h1>QR Code Generator</h1><p>Buat QR nomor seri sekaligus banyak dan siap cetak</p></div>
+      </div>
+      <div class="count-badge"><span id="totalCount">0</span> QR siap</div>
+    </div>
+  </header>
+
+  <main>
+    <aside class="panel">
+      <div class="section">
+        <h2>1. Data Nomor Seri</h2>
+        <label for="serialInput">Tempel nomor seri</label>
+        <textarea id="serialInput" placeholder="Satu nomor seri per baris&#10;Contoh:&#10;CKRSG001&#10;CKRSG002&#10;CKRSG003"></textarea>
+        <div class="actions">
+          <button class="btn btn-primary" id="generateBtn">Buat QR</button>
+          <button class="btn btn-soft" id="sampleBtn">Isi Contoh</button>
+          <button class="btn btn-white" id="clearBtn">Kosongkan</button>
+        </div>
+        <div class="status" id="status"></div>
+      </div>
+
+      <div class="section">
+        <h2>2. Import File</h2>
+        <div class="dropzone" id="dropzone">
+          <strong>Upload Excel / CSV / TXT</strong>
+          <small>Sistem akan mencari kolom Serial Number, Nomor Seri, SN, atau Kode secara otomatis.</small>
+          <input id="fileInput" type="file" accept=".xlsx,.xls,.csv,.txt" hidden>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>3. Buat Nomor Berurutan</h2>
+        <div class="row">
+          <div><label>Prefix</label><input id="prefix" value="CKRSG"></div>
+          <div><label>Jumlah digit</label><input id="digits" type="number" min="1" max="10" value="3"></div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <div><label>Dari angka</label><input id="startNum" type="number" value="1"></div>
+          <div><label>Sampai angka</label><input id="endNum" type="number" value="50"></div>
+        </div>
+        <button class="btn btn-soft" id="rangeBtn" style="width:100%;margin-top:10px">Buat Rentang Nomor</button>
+      </div>
+
+      <div class="section">
+        <h2>4. Pengaturan Label</h2>
+        <div class="row3">
+          <div><label>Lebar (mm)</label><input id="labelW" type="number" min="15" max="100" step="1" value="35"></div>
+          <div><label>Tinggi (mm)</label><input id="labelH" type="number" min="15" max="100" step="1" value="35"></div>
+          <div><label>QR (mm)</label><input id="qrSize" type="number" min="10" max="70" step="1" value="22"></div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <div><label>Kolom per halaman</label><input id="columns" type="number" min="1" max="10" value="5"></div>
+          <div><label>Jarak (mm)</label><input id="gap" type="number" min="0" max="20" step=".5" value="2"></div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <div><label>Ukuran teks (mm)</label><input id="fontSize" type="number" min="1.5" max="10" step=".2" value="3.1"></div>
+          <div><label>Kertas</label><select id="paper"><option value="A4">A4</option><option value="A3">A3</option><option value="Letter">Letter</option></select></div>
+        </div>
+        <div class="toggle"><span>Tampilkan “BSM Rental” di atas QR</span><input id="showTitle" type="checkbox" checked></div>
+        <div class="toggle"><span>Tampilkan garis potong</span><input id="cutLine" type="checkbox" checked></div>
+        <p class="hint">Ukuran dicetak menggunakan satuan mm supaya hasil label lebih konsisten.</p>
+      </div>
+
+      <div class="section">
+        <h2>5. Cetak / Download</h2>
+        <div class="actions">
+          <button class="btn btn-red" id="printBtn">Cetak / Simpan PDF</button>
+          <button class="btn btn-primary" id="zipBtn">Download ZIP PNG</button>
+        </div>
+        <p class="hint">Saat mencetak, pilih skala 100% / Actual Size dan matikan header-footer browser.</p>
+      </div>
+    </aside>
+
+    <section class="preview-card">
+      <div class="preview-head">
+        <div><h2>Preview Cetak</h2><small id="previewMeta">A4 • 5 kolom • 35 × 35 mm</small></div>
+        <small>QR menyimpan nomor seri yang tertulis di bawahnya.</small>
+      </div>
+      <div class="paper-wrap"><div id="sheet"><div class="empty"><div><b>Belum ada QR</b>Masukkan nomor seri lalu tekan <strong>Buat QR</strong>.</div></div></div></div>
+    </section>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const els = {
+    input:$('serialInput'), sheet:$('sheet'), total:$('totalCount'), status:$('status'), meta:$('previewMeta'),
+    labelW:$('labelW'), labelH:$('labelH'), qrSize:$('qrSize'), columns:$('columns'), gap:$('gap'), fontSize:$('fontSize'),
+    paper:$('paper'), showTitle:$('showTitle'), cutLine:$('cutLine'), file:$('fileInput')
+  };
+  let serials = [];
+
+  const sanitize = value => String(value ?? '').trim().replace(/^["']|["']$/g,'');
+  const unique = arr => [...new Set(arr.map(sanitize).filter(Boolean))];
+  const parseText = text => unique(text.split(/[\n,;\t]+/g));
+  const clamp = (v,min,max,fallback) => Math.min(max,Math.max(min,Number(v)||fallback));
+
+  function setStatus(msg){ els.status.textContent = msg || ''; }
+  function settings(){
+    return {
+      w:clamp(els.labelW.value,15,100,35),
+      h:clamp(els.labelH.value,15,100,35),
+      qr:clamp(els.qrSize.value,10,70,22),
+      cols:Math.round(clamp(els.columns.value,1,10,5)),
+      gap:clamp(els.gap.value,0,20,2),
+      font:clamp(els.fontSize.value,1.5,10,3.1),
+      paper:els.paper.value,
+      title:els.showTitle.checked,
+      cut:els.cutLine.checked
+    };
+  }
+  function fitQr(s){ return Math.min(s.qr, s.w-4, s.h-(s.title?10:7)); }
+  function saveLocal(){
+    localStorage.setItem('bsm_qr_settings',JSON.stringify(settings()));
+    localStorage.setItem('bsm_qr_input',els.input.value);
+  }
+  function loadLocal(){
+    try{
+      const s=JSON.parse(localStorage.getItem('bsm_qr_settings')||'null');
+      if(s){els.labelW.value=s.w;els.labelH.value=s.h;els.qrSize.value=s.qr;els.columns.value=s.cols;els.gap.value=s.gap;els.fontSize.value=s.font;els.paper.value=s.paper||'A4';els.showTitle.checked=s.title!==false;els.cutLine.checked=s.cut!==false;}
+      const input=localStorage.getItem('bsm_qr_input'); if(input) els.input.value=input;
+    }catch(e){}
+  }
+  function paperWidth(p){ return p==='A3'?297:p==='Letter'?215.9:210; }
+  function paperHeight(p){ return p==='A3'?420:p==='Letter'?279.4:297; }
+
+  function applyLayout(){
+    const s=settings();
+    const qr=fitQr(s);
+    els.sheet.style.width=paperWidth(s.paper)+'mm';
+    els.sheet.style.minHeight=paperHeight(s.paper)+'mm';
+    els.sheet.style.gridTemplateColumns='repeat('+s.cols+', '+s.w+'mm)';
+    els.sheet.style.gap=s.gap+'mm';
+    document.querySelectorAll('.qr-label').forEach(label=>{
+      label.style.width=s.w+'mm'; label.style.height=s.h+'mm';
+      label.classList.toggle('no-cut',!s.cut);
+      const q=label.querySelector('.qr-box'); if(q){q.style.width=qr+'mm';q.style.height=qr+'mm';}
+      label.querySelectorAll('.qr-box canvas,.qr-box img').forEach(n=>{n.style.width=qr+'mm';n.style.height=qr+'mm';});
+      const t=label.querySelector('.serial'); if(t) t.style.fontSize=s.font+'mm';
+      const title=label.querySelector('.label-title'); if(title) title.style.display=s.title?'block':'none';
+    });
+    els.meta.textContent=s.paper+' • '+s.cols+' kolom • '+s.w+' × '+s.h+' mm';
+    $('printStyle').textContent='@page{size:'+s.paper+' portrait;margin:0}';
+    saveLocal();
+  }
+
+  function render(){
+    serials = unique(serials);
+    els.sheet.innerHTML='';
+    els.total.textContent=serials.length;
+    if(!serials.length){
+      els.sheet.innerHTML='<div class="empty"><div><b>Belum ada QR</b>Masukkan nomor seri lalu tekan <strong>Buat QR</strong>.</div></div>';
+      applyLayout(); return;
+    }
+    const s=settings();
+    const qr=fitQr(s);
+    serials.forEach(serial=>{
+      const label=document.createElement('div');
+      label.className='qr-label'+(s.cut?'':' no-cut');
+      label.style.width=s.w+'mm';label.style.height=s.h+'mm';
+      const title=document.createElement('div');title.className='label-title';title.textContent='BSM Rental';title.style.display=s.title?'block':'none';
+      const box=document.createElement('div');box.className='qr-box';box.style.width=qr+'mm';box.style.height=qr+'mm';
+      const text=document.createElement('div');text.className='serial';text.textContent=serial;text.style.fontSize=s.font+'mm';
+      label.append(title,box,text);els.sheet.appendChild(label);
+      new QRCode(box,{text:serial,width:256,height:256,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+      requestAnimationFrame(()=>box.querySelectorAll('canvas,img').forEach(n=>{n.style.width=qr+'mm';n.style.height=qr+'mm';}));
+    });
+    applyLayout();
+  }
+
+  function generateFromInput(){
+    serials=parseText(els.input.value);
+    render();
+    setStatus(serials.length ? serials.length+' nomor seri berhasil dibuat.' : 'Masukkan nomor seri terlebih dahulu.');
+  }
+
+  function importRows(rows){
+    if(!rows.length) return [];
+    const normalized=rows.map(r=>Array.isArray(r)?r:[r]);
+    const firstRows=normalized.slice(0,8);
+    let headerRow=-1,col=-1;
+    const keys=['serial number','serial','nomor seri','nomor serial','sn','kode'];
+    outer: for(let r=0;r<firstRows.length;r++){
+      for(let c=0;c<firstRows[r].length;c++){
+        const v=sanitize(firstRows[r][c]).toLowerCase().replace(/[_-]+/g,' ');
+        if(keys.some(k=>v===k||v.includes(k))){headerRow=r;col=c;break outer;}
+      }
+    }
+    if(col<0){
+      const maxCols=Math.max(...normalized.map(r=>r.length),1);let bestCount=-1;
+      for(let c=0;c<maxCols;c++){const count=normalized.filter(r=>sanitize(r[c])).length;if(count>bestCount){bestCount=count;col=c;}}
+    }
+    return unique(normalized.slice(headerRow>=0?headerRow+1:0).map(r=>r[col]));
+  }
+
+  async function handleFile(file){
+    if(!file) return;
+    setStatus('Membaca '+file.name+'…');
+    try{
+      let values=[];
+      if(/\.txt$/i.test(file.name)){
+        values=parseText(await file.text());
+      }else{
+        const data=await file.arrayBuffer();
+        const wb=XLSX.read(data,{type:'array'});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:''});
+        values=importRows(rows);
+      }
+      serials=values;els.input.value=values.join('\n');render();
+      setStatus(values.length+' nomor seri diimpor dari '+file.name+'.');
+    }catch(err){setStatus('File tidak bisa dibaca. Pastikan format Excel/CSV/TXT valid.');}
+    els.file.value='';
+  }
+
+  async function downloadZip(){
+    if(!serials.length){setStatus('Belum ada QR untuk didownload.');return;}
+    if(typeof JSZip==='undefined'){setStatus('Library ZIP belum termuat. Coba refresh halaman.');return;}
+    const btn=$('zipBtn');btn.disabled=true;setStatus('Menyiapkan '+serials.length+' PNG…');
+    try{
+      const zip=new JSZip();
+      const labels=[...document.querySelectorAll('.qr-label')];
+      for(let i=0;i<labels.length;i++){
+        const qrCanvas=labels[i].querySelector('.qr-box canvas');
+        if(!qrCanvas) continue;
+        const s=settings(), scale=4;
+        const w=Math.round(s.w*3.7795275591*scale),h=Math.round(s.h*3.7795275591*scale);
+        const c=document.createElement('canvas');c.width=w;c.height=h;
+        const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.fillStyle='#111';ctx.textAlign='center';
+        let y=Math.round(1.5*3.7795*scale);
+        if(s.title){ctx.font='700 '+Math.round(2.8*3.7795*scale)+'px Arial';ctx.fillText('BSM Rental',w/2,y+Math.round(2.8*3.7795*scale));y+=Math.round(4.4*3.7795*scale);}
+        const qmm=fitQr(s),qp=Math.round(qmm*3.7795*scale),qx=Math.round((w-qp)/2);
+        ctx.drawImage(qrCanvas,qx,y,qp,qp);y+=qp+Math.round(1.2*3.7795*scale);
+        ctx.font='500 '+Math.round(s.font*3.7795*scale)+'px Arial';ctx.fillText(serials[i],w/2,Math.min(h-Math.round(1.5*3.7795*scale),y+Math.round(s.font*3.7795*scale)));
+        const data=c.toDataURL('image/png').split(',')[1];
+        zip.file(serials[i].replace(/[^a-z0-9_-]+/gi,'_')+'.png',data,{base64:true});
+      }
+      const blob=await zip.generateAsync({type:'blob'});
+      const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='BSM-Rental-QR-'+serials.length+'.zip';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+      setStatus('ZIP berhasil dibuat.');
+    }catch(e){setStatus('Gagal membuat ZIP. Coba lagi.');}
+    btn.disabled=false;
+  }
+
+  $('generateBtn').addEventListener('click',generateFromInput);
+  $('sampleBtn').addEventListener('click',()=>{els.input.value=['CKRSG001','CKRSG002','CKRSG003','CKRSG004','CKRSG005','CKRSG006','CKRSG007','CKRSG008','CKRSG009','CKRSG010'].join('\n');generateFromInput();});
+  $('clearBtn').addEventListener('click',()=>{serials=[];els.input.value='';render();setStatus('Data dikosongkan.');});
+  $('rangeBtn').addEventListener('click',()=>{
+    const prefix=$('prefix').value.trim(),digits=Math.round(clamp($('digits').value,1,10,3)),start=Number($('startNum').value),end=Number($('endNum').value);
+    if(!Number.isFinite(start)||!Number.isFinite(end)||end<start||end-start>5000){setStatus('Rentang tidak valid. Maksimal 5.001 nomor sekali buat.');return;}
+    const arr=[];for(let i=start;i<=end;i++)arr.push(prefix+String(i).padStart(digits,'0'));
+    els.input.value=arr.join('\n');generateFromInput();
+  });
+  $('dropzone').addEventListener('click',()=>els.file.click());
+  $('dropzone').addEventListener('dragover',e=>{e.preventDefault();$('dropzone').style.background='#edf5ff';});
+  $('dropzone').addEventListener('dragleave',()=>{$('dropzone').style.background='';});
+  $('dropzone').addEventListener('drop',e=>{e.preventDefault();$('dropzone').style.background='';handleFile(e.dataTransfer.files[0]);});
+  els.file.addEventListener('change',()=>handleFile(els.file.files[0]));
+  ['labelW','labelH','qrSize','columns','gap','fontSize','paper','showTitle','cutLine'].forEach(id=>$(id).addEventListener('change',()=>{if(serials.length)render();else applyLayout();}));
+  $('printBtn').addEventListener('click',()=>{if(!serials.length){setStatus('Belum ada QR untuk dicetak.');return;}applyLayout();window.print();});
+  $('zipBtn').addEventListener('click',downloadZip);
+  window.addEventListener('beforeprint',applyLayout);
+
+  loadLocal();
+  if(els.input.value.trim()){serials=parseText(els.input.value);render();}else applyLayout();
+})();
+</script>
+</body>
+</html>
