@@ -271,31 +271,105 @@
 
     .process-overlay{
       position:fixed;inset:0;z-index:9999;display:none;place-items:center;
-      padding:22px;background:rgba(8,24,49,.54);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)
+      padding:22px;background:rgba(3,14,35,.62);
+      backdrop-filter:blur(16px) saturate(130%);-webkit-backdrop-filter:blur(16px) saturate(130%);
+      overflow:hidden
+    }
+    .process-overlay:before{
+      content:"";position:absolute;width:72vw;height:72vw;max-width:760px;max-height:760px;border-radius:50%;
+      background:radial-gradient(circle,rgba(37,99,235,.24),rgba(96,165,250,.08) 40%,transparent 70%);
+      filter:blur(18px);animation:ambientPulse 3.8s ease-in-out infinite
     }
     .process-overlay.show{display:grid}
     .process-card{
-      width:min(390px,100%);background:#fff;border-radius:22px;padding:24px;
-      box-shadow:0 30px 80px rgba(2,12,27,.28);text-align:center
+      position:relative;overflow:hidden;width:min(520px,100%);
+      background:linear-gradient(160deg,rgba(11,31,67,.94),rgba(15,36,76,.89) 46%,rgba(18,28,62,.94));
+      border:1px solid rgba(115,184,255,.55);border-radius:30px;padding:28px 30px 24px;text-align:center;
+      box-shadow:0 0 0 1px rgba(87,166,255,.16) inset,0 0 42px rgba(37,99,235,.22),0 35px 100px rgba(0,8,24,.52);
+      color:#fff
     }
+    .process-card:before{
+      content:"";position:absolute;inset:0;pointer-events:none;
+      background:
+        radial-gradient(circle at 78% 18%,rgba(69,206,255,.18),transparent 28%),
+        radial-gradient(circle at 18% 88%,rgba(112,77,255,.18),transparent 30%),
+        linear-gradient(120deg,transparent 0 44%,rgba(255,255,255,.05) 50%,transparent 57%);
+      animation:glassSheen 4.8s ease-in-out infinite
+    }
+    .process-card:after{
+      content:"";position:absolute;right:-22px;bottom:-34px;width:170px;height:170px;border-radius:50%;
+      background:radial-gradient(circle,rgba(97,84,255,.22),transparent 67%);filter:blur(5px)
+    }
+    .process-orbit{
+      position:relative;width:118px;height:118px;margin:0 auto 14px;display:grid;place-items:center
+    }
+    .process-orbit:before,.process-orbit:after{
+      content:"";position:absolute;border-radius:50%;border:1.5px solid rgba(91,193,255,.55)
+    }
+    .process-orbit:before{inset:8px;animation:orbitSpin 3.2s linear infinite}
+    .process-orbit:after{inset:22px;border-color:rgba(136,112,255,.55);animation:orbitSpin 2.4s linear infinite reverse}
     .process-loader{
-      width:66px;height:66px;margin:0 auto 16px;position:relative;border-radius:18px;
-      display:grid;place-items:center;background:#eef5ff;color:#153d72;font-size:30px;font-weight:900;
-      animation:processPulse 1.4s ease-in-out infinite
+      width:64px;height:64px;margin:0;position:relative;border-radius:18px;z-index:2;
+      display:grid;place-items:center;
+      background:linear-gradient(145deg,rgba(44,95,170,.98),rgba(62,77,167,.92));
+      border:1px solid rgba(132,207,255,.55);
+      color:#dff6ff;font-size:25px;font-weight:900;
+      box-shadow:0 0 22px rgba(57,174,255,.45),0 0 0 7px rgba(77,132,255,.08);
+      animation:processPulse 1.6s ease-in-out infinite
     }
-    .process-loader:before,.process-loader:after{
-      content:"";position:absolute;inset:-7px;border:3px solid rgba(37,99,235,.22);
-      border-top-color:#2563eb;border-radius:24px;animation:processSpin 1s linear infinite
+    .process-orbit-dot{
+      position:absolute;width:9px;height:9px;border-radius:50%;background:#7fe5ff;
+      box-shadow:0 0 14px #7fe5ff;top:7px;left:54px;animation:dotOrbit 2.7s linear infinite;transform-origin:5px 52px
     }
-    .process-loader:after{inset:-14px;border-width:2px;border-top-color:#7aa7ea;animation-duration:1.8s;animation-direction:reverse}
-    .process-card h3{margin:0;color:#142d50;font-size:18px}
-    .process-card p{margin:7px 0 16px;color:#6b778c;font-size:12px;line-height:1.45}
-    .process-track{height:11px;border-radius:999px;background:#e8eef7;overflow:hidden}
-    .process-bar{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#153d72,#2563eb);transition:width .18s ease}
-    .process-bottom{display:flex;justify-content:space-between;gap:12px;margin-top:9px;color:#5c6d85;font-size:11px;font-weight:750}
-    .process-percent{color:#153d72;font-size:13px;font-weight:900}
-    @keyframes processSpin{to{transform:rotate(360deg)}}
-    @keyframes processPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+    .process-ai-badge{
+      position:absolute;right:2px;top:43px;z-index:3;padding:5px 9px;border-radius:999px;
+      background:linear-gradient(135deg,#24c7ff,#7c5cff);color:#fff;font-size:10px;font-weight:900;letter-spacing:.08em;
+      box-shadow:0 0 16px rgba(89,126,255,.48)
+    }
+    .process-card h3{position:relative;z-index:2;margin:0;color:#fff;font-size:21px;letter-spacing:-.02em}
+    .process-title-accent{background:linear-gradient(90deg,#8cecff,#8db4ff,#b19bff);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .process-card p{position:relative;z-index:2;margin:8px auto 18px;color:#c7d7ee;font-size:12px;line-height:1.55;max-width:390px}
+    .process-track{
+      position:relative;z-index:2;height:13px;border-radius:999px;background:rgba(116,151,205,.19);overflow:hidden;
+      border:1px solid rgba(138,187,255,.14);box-shadow:inset 0 1px 4px rgba(0,0,0,.26)
+    }
+    .process-bar{
+      position:relative;height:100%;width:0%;border-radius:999px;
+      background:linear-gradient(90deg,#24d8ff 0%,#5a8cff 48%,#9d67ff 78%,#e9f0ff 100%);
+      box-shadow:0 0 18px rgba(86,154,255,.58);transition:width .18s ease
+    }
+    .process-bar:after{
+      content:"";position:absolute;inset:0;width:34%;transform:translateX(-140%);
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);
+      animation:progressShimmer 1.35s linear infinite
+    }
+    .process-bottom{
+      position:relative;z-index:2;display:flex;justify-content:space-between;gap:12px;margin-top:10px;
+      color:#bdcce1;font-size:11px;font-weight:750
+    }
+    .process-percent{color:#fff;font-size:14px;font-weight:900;text-shadow:0 0 10px rgba(95,169,255,.55)}
+    .process-steps{
+      position:relative;z-index:2;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:22px
+    }
+    .process-step{display:flex;align-items:center;gap:8px;text-align:left;color:#7f93b2;font-size:9.5px;line-height:1.25}
+    .process-step-dot{
+      flex:0 0 auto;width:25px;height:25px;border-radius:50%;display:grid;place-items:center;
+      border:1px solid rgba(129,163,214,.28);background:rgba(97,126,171,.08);color:#7e8fa9;font-size:11px;font-weight:900
+    }
+    .process-step.done{color:#cce9ff}.process-step.done .process-step-dot{border-color:#43d7ff;color:#43d7ff;background:rgba(67,215,255,.08);box-shadow:0 0 12px rgba(67,215,255,.22)}
+    .process-step.active{color:#eef5ff}.process-step.active .process-step-dot{border-color:#8b7dff;background:rgba(113,92,255,.18);color:#fff;box-shadow:0 0 16px rgba(113,92,255,.52)}
+    .process-signature{
+      position:relative;z-index:2;display:flex;align-items:center;gap:10px;justify-content:center;
+      margin-top:20px;color:#7589a8;font-size:9px;font-weight:850;letter-spacing:.24em
+    }
+    .process-signature:before,.process-signature:after{content:"";height:1px;width:64px;background:linear-gradient(90deg,transparent,rgba(121,161,220,.32))}
+    .process-signature:after{transform:scaleX(-1)}
+    @keyframes processPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
+    @keyframes orbitSpin{to{transform:rotate(360deg)}}
+    @keyframes dotOrbit{to{transform:rotate(360deg)}}
+    @keyframes progressShimmer{to{transform:translateX(380%)}}
+    @keyframes ambientPulse{0%,100%{transform:scale(.95);opacity:.72}50%{transform:scale(1.06);opacity:1}}
+    @keyframes glassSheen{0%,100%{transform:translateX(-6%)}50%{transform:translateX(6%)}}
 
     .preview-card{
       min-height:720px;
@@ -415,6 +489,13 @@
       .preview-head>small{display:none}
       .paper-wrap{padding:9px;overflow:auto}
       #sheet{zoom:.42;box-shadow:0 8px 26px rgba(18,33,58,.14)}
+      .process-card{padding:24px 18px 20px;border-radius:24px}
+      .process-orbit{width:102px;height:102px}
+      .process-loader{width:58px;height:58px}
+      .process-card h3{font-size:19px}
+      .process-steps{gap:7px}
+      .process-step{gap:6px;font-size:8.8px}
+      .process-step-dot{width:22px;height:22px}
     }
     @media(max-width:390px){
       .brand p{max-width:145px}
@@ -450,7 +531,7 @@
   <style id="printStyle">@page{size:A4 portrait;margin:6mm}</style>
 </head>
 <body>
-<!-- qr-code polished ui v19 animated-fast-hd-export -->
+<!-- qr-code polished ui v20 futuristic-smart-processing -->
 <div class="app">
   <header class="topbar">
     <div class="topbar-inner">
@@ -562,14 +643,24 @@
 
 <div class="process-overlay" id="processOverlay" aria-live="polite">
   <div class="process-card">
-    <div class="process-loader">▦</div>
-    <h3 id="processTitle">Menyiapkan file…</h3>
-    <p id="processText">Mohon tunggu, QR sedang diproses.</p>
+    <div class="process-orbit">
+      <div class="process-orbit-dot"></div>
+      <div class="process-loader">▦</div>
+      <div class="process-ai-badge">SMART</div>
+    </div>
+    <h3 id="processTitle">Membuat <span class="process-title-accent">PDF Stiker HD</span></h3>
+    <p id="processText">Optimasi otomatis sedang menyusun QR, kualitas, dan tata letak untuk hasil cetak terbaik…</p>
     <div class="process-track"><div class="process-bar" id="processBar"></div></div>
     <div class="process-bottom">
       <span id="processCount">0 / 0 QR</span>
       <span class="process-percent" id="processPercent">0%</span>
     </div>
+    <div class="process-steps">
+      <div class="process-step active" id="processStep1"><span class="process-step-dot">1</span><span>Menganalisis<br>data QR</span></div>
+      <div class="process-step" id="processStep2"><span class="process-step-dot">2</span><span>Mengoptimalkan<br>kualitas HD</span></div>
+      <div class="process-step" id="processStep3"><span class="process-step-dot">3</span><span>Menyusun<br>halaman PDF</span></div>
+    </div>
+    <div class="process-signature">SMART PROCESSING</div>
   </div>
 </div>
 
@@ -601,11 +692,28 @@
   function showProcess(title,text,total=serials.length){
     const overlay=$('processOverlay');
     if(!overlay) return;
-    $('processTitle').textContent=title||'Menyiapkan file…';
-    $('processText').textContent=text||'Mohon tunggu, QR sedang diproses.';
+    const titleEl=$('processTitle');
+    if(titleEl){
+      const t=title||'Menyiapkan file…';
+      if(/PDF Stiker HD/i.test(t)){
+        titleEl.innerHTML='Membuat <span class="process-title-accent">PDF Stiker HD</span>';
+      }else if(/Cetak Semua/i.test(t)){
+        titleEl.innerHTML='Menyiapkan <span class="process-title-accent">Cetak Semua</span>';
+      }else if(/ZIP/i.test(t)){
+        titleEl.innerHTML='Membuat <span class="process-title-accent">ZIP PNG HD</span>';
+      }else{
+        titleEl.textContent=t;
+      }
+    }
+    $('processText').textContent=text||'Optimasi otomatis sedang memproses QR…';
     $('processCount').textContent='0 / '+total+' QR';
     $('processPercent').textContent='0%';
     $('processBar').style.width='0%';
+    ['processStep1','processStep2','processStep3'].forEach((id,i)=>{
+      const el=$(id); if(!el) return;
+      el.classList.remove('done','active');
+      if(i===0) el.classList.add('active');
+    });
     overlay.classList.add('show');
     document.body.style.overflow='hidden';
   }
@@ -615,6 +723,20 @@
     $('processCount').textContent=done+' / '+total+' QR';
     $('processPercent').textContent=pct+'%';
     $('processBar').style.width=pct+'%';
+
+    const s1=$('processStep1'),s2=$('processStep2'),s3=$('processStep3');
+    if(s1&&s2&&s3){
+      [s1,s2,s3].forEach(x=>x.classList.remove('done','active'));
+      if(pct<34){
+        s1.classList.add('active');
+      }else if(pct<78){
+        s1.classList.add('done');s2.classList.add('active');
+      }else if(pct<100){
+        s1.classList.add('done');s2.classList.add('done');s3.classList.add('active');
+      }else{
+        s1.classList.add('done');s2.classList.add('done');s3.classList.add('done');
+      }
+    }
   }
   function hideProcess(){
     const overlay=$('processOverlay');
