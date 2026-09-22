@@ -34,6 +34,7 @@
     partial:'Cicilan',cicilan:'Cicilan'
   };
   const tripStatus={
+    pending:'Menunggu driver',
     waiting:'Menunggu driver',
     waiting_driver:'Menunggu driver',
     assigned:'Driver ditugaskan',
@@ -87,6 +88,23 @@
       #app .track-info{padding:12px;background:#f7f8fa;border-radius:12px}
       #app .track-info span{display:block;color:#8a919b;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
       #app .track-info b{display:block;color:#17191c;font-size:13px;line-height:1.35;overflow-wrap:anywhere}
+      #app .track-products{margin-top:14px;border:1px solid #e6e9ed;border-radius:14px;overflow:hidden;background:#fff}
+      #app .track-products-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 13px;background:#f7f8fa;border-bottom:1px solid #e6e9ed}
+      #app .track-products-head h3{margin:0;font-size:13px;color:#17191c}
+      #app .track-products-head span{font-size:9px;font-weight:850;color:#7d8591}
+      #app .track-products-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+      #app .track-products-table{width:100%;min-width:560px;border-collapse:collapse}
+      #app .track-products-table th{padding:9px 11px;text-align:left;background:#fbfcfd;color:#8a919b;font-size:8px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid #eceff2;white-space:nowrap}
+      #app .track-products-table td{padding:11px;border-bottom:1px solid #edf0f3;color:#2a3038;font-size:10px;vertical-align:middle}
+      #app .track-products-table tbody tr:last-child td{border-bottom:0}
+      #app .track-products-table td:first-child{font-weight:850;color:#15181c;max-width:280px}
+      #app .track-products-table td:not(:first-child){white-space:nowrap}
+      #app .track-products-table .num{text-align:right}
+      #app .track-trip-note{margin-top:12px;padding:10px 11px;border-radius:11px;background:#f8fafc;color:#77808c;font-size:9px;line-height:1.5}
+      #app .track-card.trip-card{border-color:#e2e7ec}
+      #app .track-card.trip-card.delivery{box-shadow:inset 3px 0 0 #f26a21,0 7px 22px rgba(18,27,40,.04)}
+      #app .track-card.trip-card.collect{box-shadow:inset 3px 0 0 #2f6fe5,0 7px 22px rgba(18,27,40,.04)}
+
       #app .track-timeline{display:grid;gap:0;margin-top:4px}
       #app .track-step{display:grid;grid-template-columns:28px 1fr;gap:10px;min-height:50px;position:relative}
       #app .track-step:before{content:'';position:absolute;left:13px;top:25px;bottom:-4px;width:2px;background:#e6e8eb}
@@ -118,6 +136,12 @@
         #app .track-grid{grid-template-columns:1fr 1fr;gap:8px}
         #app .track-card{padding:15px;border-radius:16px}
         #app .track-card-head{flex-direction:column}
+        #app .track-products{border-radius:12px}
+        #app .track-products-head{padding:10px 11px}
+        #app .track-products-table{min-width:500px}
+        #app .track-products-table th{padding:8px 9px}
+        #app .track-products-table td{padding:10px 9px;font-size:9.5px}
+
       }
     `;
     document.head.appendChild(st);
@@ -177,6 +201,61 @@
     </section>`;
   }
 
+  function money(v){
+    return 'Rp'+new Intl.NumberFormat('id-ID',{maximumFractionDigits:0}).format(Number(v)||0);
+  }
+
+  function productsTable(items){
+    const list=Array.isArray(items)?items:[];
+    if(!list.length)return '';
+    const rows=list.map((x,i)=>{
+      const qty=Math.max(1,Number(x?.quantity||x?.qty||1));
+      const days=Math.max(1,Number(x?.days||1));
+      const price=Number(x?.price_per_day||x?.price||0);
+      const total=Number(x?.amount||price*qty*days);
+      return `<tr>
+        <td>${esc(x?.name||x?.product_name||x?.id||('Produk '+(i+1)))}</td>
+        <td>${qty}</td>
+        <td>${days} hari</td>
+        <td class="num">${esc(money(price))}</td>
+        <td class="num"><b>${esc(money(total))}</b></td>
+      </tr>`;
+    }).join('');
+    return `<div class="track-products">
+      <div class="track-products-head"><h3>Daftar Produk</h3><span>${list.length} produk</span></div>
+      <div class="track-products-scroll">
+        <table class="track-products-table">
+          <thead><tr><th>Produk</th><th>Qty</th><th>Durasi</th><th class="num">Harga / Hari</th><th class="num">Total</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+  }
+
+  function tripCard(kind,trip,delivery,orderNumber){
+    const isCollect=kind==='collect';
+    const title=isCollect?'Status Penjemputan':'Status Pengantaran';
+    const fallbackStatus=isCollect?delivery?.collect_status:delivery?.deliver_status;
+    const t=trip&&typeof trip==='object'?trip:{};
+    const status=String(t.status||fallbackStatus||'pending').toLowerCase();
+    const merged={...delivery,...t,status};
+    const driver=(t.driver_name||t.plate)?`<div class="track-driver">
+      <div class="track-driver-icon">🚚</div>
+      <div><b>${esc(t.driver_name||'Driver ditugaskan')}</b><small>${t.plate?'Kendaraan '+esc(t.plate):'Driver sudah ditugaskan'}</small></div>
+    </div>`:'';
+    const schedule=t.scheduled_at?`<div class="track-trip-note">Jadwal: <b>${esc(fmtDateTime(t.scheduled_at))}</b></div>`:'';
+    return `<div class="track-card trip-card ${isCollect?'collect':'delivery'}">
+      <div class="track-card-head">
+        <div><h2>${title}</h2><p>No. Order / Antar Jemput: <b>${esc(orderNumber||'-')}</b></p></div>
+        <span class="track-badge">${esc(label(tripStatus,status,'Menunggu driver'))}</span>
+      </div>
+      ${t.queue_position?`<div class="track-info" style="margin-bottom:13px"><span>Antrean Driver</span><b>Urutan #${esc(t.queue_position)}</b></div>`:''}
+      ${schedule}
+      ${stages(merged)}
+      ${driver}
+    </div>`;
+  }
+
   function stages(delivery){
     const raw=String(delivery?.status||delivery?.deliver_status||delivery?.collect_status||'waiting').toLowerCase();
     const currentRank=tripRank[raw]??0;
@@ -203,16 +282,18 @@
   }
 
   function resultMarkup(data){
-    const o=data.order||{},d=data.delivery||{};
+    const o=data.order||{},d=data.delivery||{},trips=data.trips||{};
     const orderState=o.rental_status||o.status||'new';
     const cancelled=String(orderState).toLowerCase()==='cancelled';
-    const tripRaw=d.status||d.deliver_status||d.collect_status||'waiting';
-    const mode=(d.kind||d.mode||'').toLowerCase();
-    const tripTitle=mode==='collect'?'Status Penjemputan':'Status Pengantaran';
-    const driver=(d.driver_name||d.plate)?`<div class="track-driver">
-      <div class="track-driver-icon">🚚</div>
-      <div><b>${esc(d.driver_name||'Driver ditugaskan')}</b><small>${d.plate?'Kendaraan '+esc(d.plate):'Driver sudah ditugaskan'}</small></div>
-    </div>`:'';
+    const items=Array.isArray(o.items)?o.items:[];
+    const deliveryMode=String(d.mode||'').toLowerCase();
+    const returnMode=String(d.return_mode||'').toLowerCase();
+    const hasDelivery=deliveryMode==='delivery';
+    const hasCollect=returnMode==='collect';
+
+    let tripCards='';
+    if(hasDelivery)tripCards+=tripCard('deliver',trips.deliver,d,o.order_number);
+    if(hasCollect)tripCards+=tripCard('collect',trips.collect,d,o.order_number);
 
     return `<div class="track-result">
       <div class="track-card">
@@ -226,17 +307,9 @@
           <div class="track-info"><span>Status Order</span><b>${esc(label(orderStatus,o.status))}</b></div>
           <div class="track-info"><span>Pembayaran</span><b>${esc(label(paymentStatus,o.payment_status,'Belum ada status'))}</b></div>
         </div>
+        ${productsTable(items)}
       </div>
-
-      <div class="track-card">
-        <div class="track-card-head">
-          <div><h2>${tripTitle}</h2><p>No. Order / Antar Jemput: <b>${esc(d.number||o.order_number||'-')}</b></p></div>
-          <span class="track-badge">${esc(label(tripStatus,tripRaw,'Menunggu driver'))}</span>
-        </div>
-        ${d.queue_position?`<div class="track-info" style="margin-bottom:13px"><span>Antrean Driver</span><b>Urutan #${esc(d.queue_position)}</b></div>`:''}
-        ${stages(d)}
-        ${driver}
-      </div>
+      ${tripCards}
     </div>`;
   }
 
