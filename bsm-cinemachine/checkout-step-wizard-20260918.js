@@ -16,21 +16,24 @@
     if(step===1){
       const member=form.elements.customer_type?.value==='member';
       if(member){
-        const p=cleanPhone(form.elements.member_phone?.value);
-        if(!/^62[0-9]{7,14}$/.test(p)){
-          alert('Isi nomor WhatsApp member yang valid dulu.');
+        const key=String(form.elements.member_phone?.value||'').trim();
+        if(key.length<4){
+          alert('Isi No. HP atau Kode Member dulu.');
           form.elements.member_phone?.focus();
           return false;
         }
       }else{
+        const details=form.querySelector('[data-guest-panel]');
         const name=String(form.elements.guest_name?.value||'').trim();
         const p=cleanPhone(form.elements.guest_phone?.value);
         if(name.length<2){
+          if(details&&'open' in details)details.open=true;
           alert('Isi nama customer dulu.');
           form.elements.guest_name?.focus();
           return false;
         }
         if(!/^62[0-9]{7,14}$/.test(p)){
+          if(details&&'open' in details)details.open=true;
           alert('Isi nomor WhatsApp yang valid dulu.');
           form.elements.guest_phone?.focus();
           return false;
@@ -55,8 +58,12 @@
     const box=form.querySelector('[data-wizard-review]');
     if(!box)return;
     const member=form.elements.customer_type?.value==='member';
+    let memberLabel='';
+    if(member){
+      try{memberLabel=JSON.parse(form.dataset.member||'{}')?.name||''}catch(_){}
+    }
     const customer=member
-      ? (form.elements.member_phone?.value||'Belum diisi')
+      ? (memberLabel||form.elements.member_phone?.value||'Belum diisi')
       : ((form.elements.guest_name?.value||'Customer')+' · '+(form.elements.guest_phone?.value||''));
     const start=form.elements.start?.value||'-',end=form.elements.end?.value||'-';
     const mode=form.elements.mode?.selectedOptions?.[0]?.textContent||'-';
@@ -131,7 +138,7 @@
         '</div>');
     }
 
-    const p1=panel('Data customer','Isi singkat. Member cukup nomor WhatsApp.',customer,1);
+    const p1=panel('Data customer','Member cukup No. HP atau Kode Member. Belum member isi data lewat dropdown.',customer,1);
     const p2=panel('Jadwal rental','Pilih tanggal mulai dan selesai rental.',schedule,2);
     const p3=panel('Pengambilan & pengembalian','Pilih cara alat diterima dan dikembalikan.',delivery,3);
 
