@@ -44,7 +44,7 @@ function patchPublicHtml(html,seo){
   const homeHero='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@c4cad3787118ab3698ca3bbaaeaa34f81e850062/bsm-cinemachine/home-hero-carousel-20260922.js"><\/script>';
   const catalogGrid='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@2c7cd0759b2a92d31e41dcff1e1c44a543988829/bsm-cinemachine/catalog-grid-polish-20260922.js"><\/script>';
   const brandEquipment='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@7b2464804c61340cfeaec24199dea256b07360a6/bsm-cinemachine/home-brand-equipment-20260922.js"><\/script>';
-  const branchAvailability='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@bca9ef59427c4ccfbb0781672511ecfc3ab63075/bsm-cinemachine/product-branch-availability-20260922.js"><\/script>';
+  const branchAvailability='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@f729e7c9514f7b7cb9f34002269b93ff9812dd67/bsm-cinemachine/product-branch-availability-20260922.js"><\/script>';
   const browserHardening='<script src="/browser-hardening-20260922.js" defer><\/script>';
   out=out.replace('</body>',cartHardening+checkoutWizard+includedDropdown+productWatermark+brandLogoPng+orderTracking+homeHero+catalogGrid+brandEquipment+branchAvailability+browserHardening+'</body>');
   const ssr=`<main id="app"><section data-seo-ssr="1" style="max-width:1180px;margin:0 auto;padding:28px 20px;font-family:Arial,sans-serif"><h1>${esc(seo.h1)}</h1><p>${esc(seo.summary)}</p></section></main>`;
