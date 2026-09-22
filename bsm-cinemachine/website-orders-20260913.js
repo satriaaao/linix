@@ -54,7 +54,7 @@
     return path;
   }
   function wa(order,customer,items,x,link){
-    const target=adminWa();if(!/^62[0-9]{7,14}$/.test(target))return '';
+    const target=adminWa();
     const total=totals(items,x.start,x.end),code=order.order_number||'-';
     const d=v=>v?new Date(v+'T00:00:00+07:00').toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta',day:'numeric',month:'long',year:'numeric'}):'Belum diisi';
     const period=(x.start&&x.end)?`${d(x.start).replace(/\s+\d{4}$/,'')}\u2013${d(x.end)} (${total.days} Hari)`: `${d(x.start||x.end)} (${total.days} Hari)`;
@@ -84,14 +84,42 @@
       `- ${total.tax.label}: ${total.tax.enabled?`${M(total.ppn)} (${total.tax.rate}%)`:'Belum Termasuk'}`,
       `- Total Estimasi: ${M(total.tax.enabled?total.grand:(Number(order.total)||total.subtotal))}`
     ];
-    return 'https://wa.me/'+target+'?text='+encodeURIComponent(lines.join('\n'));
+    return (/^62[0-9]{7,14}$/.test(target)?'https://wa.me/'+target:'https://wa.me/')+'?text='+encodeURIComponent(lines.join('\n'));
   }
   const bankFields=()=>`<div class="rc-payment-grid"><label>Rekening<select name="bank"><option value="">Pilih rekening</option>${banks().map(b=>`<option value="${E(b.id)}">${E(b.bank)} · ${E(b.holder)}</option>`).join('')}</select></label><label>Nominal<input name="amount" type="number" placeholder="Rp0"></label></div><p class="rc-help" data-bank-info>Opsional, bisa dilengkapi nanti.</p><label>Bukti transfer <span>(opsional)</span><input name="receipt" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"></label>`;
   function formHtml(){return `<form id="rentcamOrderForm" class="rc-form rc-checkout" novalidate>
     <div class="rc-form-head"><div><small>LANGKAH TERAKHIR</small><h3>Data pemesanan</h3></div><span>Bisa kirim dulu</span></div>
-    <fieldset class="rc-member-box"><legend>Tipe customer</legend><div class="rc-segment"><label><input type="radio" name="customer_type" value="member" checked><span>Sudah member<small>Cukup nomor HP</small></span></label><label><input type="radio" name="customer_type" value="guest"><span>Non-member<small>Bisa isi singkat</small></span></label></div>
-      <div data-member-panel><label>Nomor HP / WhatsApp<div class="rc-phone-check"><input name="member_phone" type="tel" inputmode="tel" placeholder="0812 3456 7890"><button id="rcMemberCheck" type="button">Cek nomor</button></div></label><p class="rc-member-status" data-member-status>Masukkan nomor yang terdaftar di Master Customer.</p><div class="rc-member-card" data-member-card hidden></div></div>
-      <div data-guest-panel hidden class="rc-guest-grid"><label>Nama<input name="guest_name" placeholder="Nama customer"></label><label>WhatsApp<input name="guest_phone" type="tel" inputmode="tel" placeholder="0812 3456 7890"></label><label class="rc-guest-email">Email<input name="guest_email" type="email" placeholder="nama@email.com"></label></div></fieldset>
+    <fieldset class="rc-member-box rc-member-compact"><legend>Tipe customer</legend>
+      <div class="rc-segment"><label><input type="radio" name="customer_type" value="member" checked><span>Sudah Member<small>No. HP / Kode Member</small></span></label><label><input type="radio" name="customer_type" value="guest"><span>Belum Member<small>Isi data singkat</small></span></label></div>
+      <div data-member-panel class="rc-member-simple">
+        <label>No. HP / Kode Member<div class="rc-phone-check"><input name="member_phone" type="text" autocomplete="off" autocapitalize="characters" placeholder="0812 3456 7890 / BSM-XXXXXXXX"><button id="rcMemberCheck" type="button">Cek Member</button></div></label>
+        <p class="rc-member-status" data-member-status>Cukup masukkan nomor HP atau kode member.</p>
+        <div class="rc-member-card" data-member-card hidden></div>
+      </div>
+      <details data-guest-panel hidden class="rc-guest-details">
+        <summary><span>Isi data customer<small>Nama, WhatsApp & Email</small></span><b>▼</b></summary>
+        <div class="rc-guest-grid"><label>Nama<input name="guest_name" placeholder="Nama customer"></label><label>WhatsApp<input name="guest_phone" type="tel" inputmode="tel" placeholder="0812 3456 7890"></label><label class="rc-guest-email">Email<input name="guest_email" type="email" placeholder="nama@email.com"></label></div>
+      </details>
+      <style>
+        #rentcamOrderForm .rc-member-compact{padding:12px!important}
+        #rentcamOrderForm .rc-member-simple{margin-top:10px}
+        #rentcamOrderForm .rc-member-simple>label{margin-bottom:0}
+        #rentcamOrderForm .rc-member-status{margin:8px 2px 0}
+        #rentcamOrderForm .rc-member-card{margin-top:8px;display:flex;align-items:center;justify-content:space-between;gap:8px;background:#edf9f2}
+        #rentcamOrderForm .rc-member-card:before{content:"✓";width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#16834d;color:#fff;font-weight:900;flex:0 0 auto}
+        #rentcamOrderForm .rc-member-card strong{flex:1}
+        #rentcamOrderForm .rc-member-card span{margin:0!important;padding:4px 7px;border-radius:999px;background:#dff2e7;color:#236545!important;font-size:9px!important;font-weight:850}
+        #rentcamOrderForm .rc-guest-details{margin-top:10px;border:1px solid #e5e8ed;border-radius:12px;overflow:hidden;background:#fafbfc}
+        #rentcamOrderForm .rc-guest-details summary{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;cursor:pointer;list-style:none}
+        #rentcamOrderForm .rc-guest-details summary::-webkit-details-marker{display:none}
+        #rentcamOrderForm .rc-guest-details summary span{display:flex;flex-direction:column;font-size:12px;font-weight:850}
+        #rentcamOrderForm .rc-guest-details summary small{font-size:9px;color:#8b919a;font-weight:500;margin-top:2px}
+        #rentcamOrderForm .rc-guest-details summary b{font-size:10px;color:#697386}
+        #rentcamOrderForm .rc-guest-details[open] summary b{transform:rotate(180deg)}
+        #rentcamOrderForm .rc-guest-details .rc-guest-grid{padding:0 12px 12px}
+        @media(max-width:900px){#rentcamOrderForm .rc-phone-check{grid-template-columns:1fr!important}#rentcamOrderForm #rcMemberCheck{min-height:46px}}
+      </style>
+    </fieldset>
     <section class="rc-compact-section"><div class="rc-section-title"><h4>Jadwal rental</h4><p data-estimate>1 hari</p></div><div class="rc-grid"><label>Mulai<input name="start" type="date" value="${today()}"></label><label>Selesai<input name="end" type="date" value="${today()}"></label></div></section>
     <section class="rc-compact-section"><h4>Pengambilan & pengembalian</h4><div class="rc-grid"><label>Alat diterima<select name="mode"><option value="self_pickup">Ambil sendiri</option><option value="delivery">Diantar</option></select></label><label>Alat kembali<select name="return_mode"><option value="self_return">Kembalikan sendiri</option><option value="collect">Dijemput</option></select></label></div><div class="rc-grid"><label>Tanggal & jam terima<input name="deliver_at" type="datetime-local" value="${today()}T09:00"></label><label>Tanggal & jam kembali<input name="collect_at" type="datetime-local" value="${today()}T18:00"></label></div><div class="rc-location" data-location hidden><label>Alamat<textarea name="address" rows="2" placeholder="Alamat/patokan"></textarea></label><label>Google Maps<input name="maps_url" type="url" placeholder="https://maps.google.com/..."></label><button type="button" id="rcUseLocation">Gunakan lokasi saya</button><span data-location-status></span><input name="latitude" type="hidden"><input name="longitude" type="hidden"></div></section>
     <details class="rc-disclosure"><summary><span>Pembayaran transfer<small>Bisa dilengkapi nanti</small></span><b>Opsional</b></summary><div>${bankFields()}</div></details>
@@ -107,16 +135,22 @@
     f.querySelector('[data-estimate]').textContent=(d>0?d:1)+' hari';
     const b=banks().find(b=>b.id===f.elements.bank?.value),info=f.querySelector('[data-bank-info]');
     if(info)info.textContent=b?`${b.bank} · ${b.number} · a.n. ${b.holder}`:'Opsional, bisa dilengkapi nanti.';
-    const submit=f.querySelector('.rc-submit'),ok=!member||Boolean(f.dataset.memberVerified);
-    if(submit&&!submit.dataset.busy){submit.disabled=!ok;submit.querySelector('[data-submit-hint]').textContent=ok?'Masuk CMS lalu buka WhatsApp':'Verifikasi member dahulu'}
+    const submit=f.querySelector('.rc-submit'),memberKey=String(f.elements.member_phone?.value||'').trim().toUpperCase(),guestName=String(f.elements.guest_name?.value||'').trim(),guestPhone=clean(f.elements.guest_phone?.value),memberReady=memberKey.length>=4,guestReady=guestName.length>=2&&/^62[0-9]{7,14}$/.test(guestPhone),ok=member?memberReady:guestReady;
+    if(submit&&!submit.dataset.busy){submit.disabled=!ok;submit.querySelector('[data-submit-hint]').textContent=member?(f.dataset.memberVerified===memberKey?'Member ditemukan · siap lanjut':'Isi HP/kode member'):(ok?'Siap kirim · buka WhatsApp':'Buka data customer & lengkapi')}
     updateSummary(f);
   }
   async function checkMember(f){
-    const phone=clean(f.elements.member_phone.value),status=f.querySelector('[data-member-status]'),card=f.querySelector('[data-member-card]');
+    const memberKey=String(f.elements.member_phone.value||'').trim().toUpperCase(),status=f.querySelector('[data-member-status]'),card=f.querySelector('[data-member-card]');
     delete f.dataset.memberVerified;delete f.dataset.member;card.hidden=true;card.innerHTML='';
-    if(!/^62[0-9]{7,14}$/.test(phone)){status.className='rc-member-status error';status.textContent='Nomor HP belum valid.';update(f);return}
-    status.textContent='Memeriksa nomor...';
-    try{const m=await rpc('rentcam_member_lookup',{p_phone:phone});if(!m?.found)throw Error('Nomor belum terdaftar. Pilih Non-member untuk lanjut.');f.dataset.memberVerified=phone;f.dataset.member=JSON.stringify(m);status.className='rc-member-status success';status.textContent='Nomor terverifikasi.';card.hidden=false;card.innerHTML=`<strong>${E(m.name)}</strong>${m.email?`<span>${E(m.email)}</span>`:''}`}catch(err){status.className='rc-member-status error';status.textContent=err.message}
+    if(memberKey.length<4){status.className='rc-member-status error';status.textContent='Isi No. HP atau Kode Member.';update(f);return}
+    status.textContent='Mencari member...';
+    try{
+      const m=await rpc('rentcam_member_lookup',{p_phone:memberKey});
+      if(!m?.found)throw Error('Member tidak ditemukan. Coba No. HP/Kode Member lain.');
+      f.dataset.memberVerified=memberKey;f.dataset.member=JSON.stringify(m);
+      status.className='rc-member-status success';status.textContent='Member ditemukan. Data customer otomatis digunakan.';
+      card.hidden=false;card.innerHTML='<strong>'+E(m.name)+'</strong>'+(m.member_code?'<span>'+E(m.member_code)+'</span>':'');
+    }catch(err){status.className='rc-member-status error';status.textContent=err.message}
     update(f);
   }
   function mount(){if(location.pathname!=='/cart')return;const host=document.querySelector('#app .summary');if(!host)return;const form=host.querySelector('#rentcamOrderForm');if(form){update(form);return}host.querySelector('.wide')?.remove();host.insertAdjacentHTML('beforeend',formHtml());update(host.querySelector('form'))}
@@ -129,7 +163,7 @@
     try{
       const x=Object.fromEntries(new FormData(f)),items=JSON.parse(localStorage.getItem('bsm_cart_cm')||'[]');if(!items.length)throw Error('Keranjang kosong.');
       const isMember=x.customer_type==='member';let customer;
-      if(isMember){const phone=clean(x.member_phone);if(!f.dataset.memberVerified||phone!==f.dataset.memberVerified||!f.dataset.member)throw Error('Cek dan verifikasi nomor member dahulu.');const m=JSON.parse(f.dataset.member);customer={name:m.name,phone,email:m.email||''}}else{customer={name:String(x.guest_name||'').trim()||'Customer Web',phone:clean(x.guest_phone)||adminWa()||'6280000000000',email:String(x.guest_email||'').trim()}};
+      if(isMember){const memberKey=String(x.member_phone||'').trim().toUpperCase();if(memberKey.length<4)throw Error('Isi No. HP atau Kode Member.');let m=null;if(f.dataset.memberVerified===memberKey&&f.dataset.member){try{m=JSON.parse(f.dataset.member)}catch(_){m=null}}if(!m?.found){m=await rpc('rentcam_member_lookup',{p_phone:memberKey})}if(!m?.found)throw Error('Member tidak ditemukan. Cek No. HP/Kode Member atau pilih Belum Member.');f.dataset.memberVerified=memberKey;f.dataset.member=JSON.stringify(m);customer={name:m.name,phone:m.phone,email:m.email||''}}else{const name=String(x.guest_name||'').trim(),phone=clean(x.guest_phone);if(name.length<2)throw Error('Isi nama customer.');if(!/^62[0-9]{7,14}$/.test(phone))throw Error('Isi nomor WhatsApp yang valid.');customer={name,phone,email:String(x.guest_email||'').trim()}};
       x.start=x.start||today();x.end=x.end||x.start;if(x.end<x.start)x.end=x.start;x.deliver_at=x.deliver_at||x.start+'T09:00';x.collect_at=x.collect_at||x.end+'T18:00';if(x.collect_at<x.deliver_at)x.collect_at=x.deliver_at;
       const total=totals(items,x.start,x.end);
       const details={customer_type:isMember?'member':'guest',customer_token:crypto.randomUUID(),delivery:{mode:x.mode||'self_pickup',return_mode:x.return_mode||'self_return',address:String(x.address||'').trim(),maps_url:String(x.maps_url||'').trim(),latitude:x.latitude?Number(x.latitude):null,longitude:x.longitude?Number(x.longitude):null,pickup_at:iso(x.deliver_at),return_at:iso(x.collect_at),deliver_at:x.mode==='delivery'?iso(x.deliver_at):null,collect_at:x.return_mode==='collect'?iso(x.collect_at):null},tax:{enabled:total.tax.enabled,rate:total.tax.rate,label:total.tax.label,amount:total.ppn,subtotal:total.subtotal,total:total.tax.enabled?total.grand:total.subtotal},subtotal:total.subtotal,tax_amount:total.ppn,total_with_tax:total.tax.enabled?total.grand:total.subtotal,bank_id:x.bank||'',transfer_amount:Number(x.amount)||null};
