@@ -102,6 +102,15 @@
       #app .track-products-table td:first-child{font-weight:850;color:#15181c;width:260px;min-width:260px;max-width:260px;white-space:normal;overflow-wrap:anywhere}
       #app .track-products-table td:not(:first-child){white-space:nowrap}
       #app .track-products-table .num{text-align:right}
+      #app .track-cost-summary{border-top:1px solid #e8ebef;background:#fbfcfd;padding:12px 13px}
+      #app .track-cost-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:5px 0;color:#747d89;font-size:10px}
+      #app .track-cost-row b{color:#242b34;font-size:10.5px;white-space:nowrap}
+      #app .track-cost-row.discount span,#app .track-cost-row.discount b{color:#c2522b}
+      #app .track-cost-total{margin-top:7px;padding-top:11px;border-top:1px dashed #d9dee4;display:flex;align-items:flex-end;justify-content:space-between;gap:14px}
+      #app .track-cost-total span{font-size:10px;font-weight:900;color:#313945;text-transform:uppercase;letter-spacing:.06em}
+      #app .track-cost-total b{font-size:18px;line-height:1;color:#111;white-space:nowrap}
+      #app .track-cost-paid{margin-top:10px;padding:9px 10px;border-radius:10px;background:#f2f8f5;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:9.5px;color:#44705c}
+      #app .track-cost-paid b{font-size:10px;color:#236545;white-space:nowrap}
       #app .track-trip-note{margin-top:12px;padding:10px 11px;border-radius:11px;background:#f8fafc;color:#77808c;font-size:9px;line-height:1.5}
       #app .track-card.trip-card{border-color:#e2e7ec}
       #app .track-card.trip-card.delivery{box-shadow:inset 3px 0 0 #f26a21,0 7px 22px rgba(18,27,40,.04)}
@@ -148,6 +157,9 @@
         #app .track-products-table{width:560px;min-width:560px}
         #app .track-products-table th{padding:8px 9px}
         #app .track-products-table td{padding:10px 9px;font-size:9.5px}
+        #app .track-cost-summary{padding:11px}
+        #app .track-cost-row{font-size:9.5px}
+        #app .track-cost-total b{font-size:17px}
 
       }
     `;
@@ -212,7 +224,48 @@
     return 'Rp'+new Intl.NumberFormat('id-ID',{maximumFractionDigits:0}).format(Number(v)||0);
   }
 
-  function productsTable(items){
+  function jsonAmount(obj){
+    if(obj==null)return 0;
+    if(typeof obj==='number')return Number(obj)||0;
+    if(typeof obj==='string')return Number(String(obj).replace(/[^0-9.-]/g,''))||0;
+    if(typeof obj==='object'){
+      for(const k of ['amount','value','nominal','total','discount_amount','tax_amount']){
+        const n=Number(obj?.[k]);
+        if(Number.isFinite(n)&&n!==0)return Math.abs(n);
+      }
+    }
+    return 0;
+  }
+
+  function costSummary(items,order,delivery){
+    const list=Array.isArray(items)?items:[];
+    const subtotal=list.reduce((sum,x)=>{
+      const qty=Math.max(1,Number(x?.quantity||x?.qty||1));
+      const days=Math.max(1,Number(x?.days||1));
+      const price=Number(x?.price_per_day||x?.price||0);
+      return sum+Number(x?.amount||price*qty*days||0);
+    },0);
+    const deliverFee=Math.max(0,Number(delivery?.deliver_fee||0));
+    const collectFee=Math.max(0,Number(delivery?.collect_fee||0));
+    const deliveryFee=deliverFee+collectFee;
+    const discount=jsonAmount(order?.discount);
+    const tax=jsonAmount(order?.tax);
+    const computed=Math.max(0,subtotal+deliveryFee-discount+tax);
+    const grandTotal=Number(order?.total);
+    const total=Number.isFinite(grandTotal)&&grandTotal>=0?grandTotal:computed;
+    const paid=Math.max(0,Number(order?.paid_amount||0));
+    const outstanding=Math.max(0,total-paid);
+    return `<div class="track-cost-summary">
+      <div class="track-cost-row"><span>Subtotal Produk</span><b>${esc(money(subtotal))}</b></div>
+      ${deliveryFee>0?`<div class="track-cost-row"><span>Biaya Antar / Jemput</span><b>${esc(money(deliveryFee))}</b></div>`:''}
+      ${discount>0?`<div class="track-cost-row discount"><span>Diskon</span><b>− ${esc(money(discount))}</b></div>`:''}
+      ${tax>0?`<div class="track-cost-row"><span>Pajak / PPN</span><b>${esc(money(tax))}</b></div>`:''}
+      <div class="track-cost-total"><span>Total Akhir</span><b>${esc(money(total))}</b></div>
+      ${paid>0?`<div class="track-cost-paid"><span>Sudah dibayar: <b>${esc(money(paid))}</b></span><span>Sisa: <b>${esc(money(outstanding))}</b></span></div>`:''}
+    </div>`;
+  }
+
+  function productsTable(items,order,delivery){
     const list=Array.isArray(items)?items:[];
     if(!list.length)return '';
     const rows=list.map((x,i)=>{
@@ -236,6 +289,7 @@
           <tbody>${rows}</tbody>
         </table>
       </div>
+      ${costSummary(list,order,delivery)}
     </div>`;
   }
 
@@ -314,7 +368,7 @@
           <div class="track-info"><span>Status Order</span><b>${esc(label(orderStatus,o.status))}</b></div>
           <div class="track-info"><span>Pembayaran</span><b>${esc(label(paymentStatus,o.payment_status,'Belum ada status'))}</b></div>
         </div>
-        ${productsTable(items)}
+        ${productsTable(items,o,d)}
       </div>
       ${tripCards}
     </div>`;
