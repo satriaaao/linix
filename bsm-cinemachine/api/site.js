@@ -36,7 +36,7 @@ function patchPublicHtml(html,seo){
 .header .rc-cart-button{position:relative!important;z-index:41!important}
 .rc-cart-button::before{content:"";position:absolute;inset:-10px;z-index:-1}
 </style>`;
-  const checkoutWizard='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@57a19710d8690fcfc3949e696d51771e3f03e11d/bsm-cinemachine/checkout-step-wizard-20260918.js"><\/script>';
+  const checkoutWizard='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@263d9fcab914f0e9a3c89d8a8083a368701ca54e/bsm-cinemachine/checkout-step-wizard-20260918.js"><\/script>';
   const includedDropdown='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@a1a4ff9dd2bbf75c41c76d06a91dee6beaf98087/bsm-cinemachine/product-included-dropdown-final-20260918.js"><\/script>';
   const productWatermark='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@e4f61b2c0ec25c6f4d1e7cdb0bad97a56f2a649e/bsm-cinemachine/product-watermark-runtime-20260919.js"><\/script>';
   const brandLogoPng='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@900a441a0120153f643ef391be1f0e9524d89c60/bsm-cinemachine/brand-logo-png-runtime-20260920.js"><\/script>';
