@@ -77,8 +77,10 @@
       #app .track-search button{height:48px;border:0;border-radius:12px;background:#111;color:#fff;padding:0 20px;font-weight:850;font-size:13px;white-space:nowrap}
       #app .track-hint{font-size:11px;color:#8a919b;margin-top:-12px;margin-bottom:19px}
       #app .track-loading,#app .track-empty,#app .track-error{border:1px solid #e5e7eb;border-radius:17px;padding:22px;text-align:center;color:#68717e;background:#fff}
-      #app .track-result{display:grid;gap:14px}
-      #app .track-card{border:1px solid #e5e7eb;border-radius:18px;background:#fff;padding:18px;box-shadow:0 7px 22px rgba(18,27,40,.04)}
+      #app .track-page,#app .track-shell,#app .track-result{min-width:0;max-width:100%}
+      #app .track-page{overflow-x:hidden}
+      #app .track-result{display:grid;gap:14px;width:100%;min-width:0}
+      #app .track-card{min-width:0;max-width:100%;width:100%;overflow:hidden;border:1px solid #e5e7eb;border-radius:18px;background:#fff;padding:18px;box-shadow:0 7px 22px rgba(18,27,40,.04)}
       #app .track-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:15px}
       #app .track-card-head h2{margin:0;font-size:18px;color:#111}
       #app .track-card-head p{margin:4px 0 0;color:#818895;font-size:11px}
@@ -88,16 +90,16 @@
       #app .track-info{padding:12px;background:#f7f8fa;border-radius:12px}
       #app .track-info span{display:block;color:#8a919b;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
       #app .track-info b{display:block;color:#17191c;font-size:13px;line-height:1.35;overflow-wrap:anywhere}
-      #app .track-products{margin-top:14px;border:1px solid #e6e9ed;border-radius:14px;overflow:hidden;background:#fff}
+      #app .track-products{min-width:0;max-width:100%;width:100%;margin-top:14px;border:1px solid #e6e9ed;border-radius:14px;overflow:hidden;background:#fff}
       #app .track-products-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 13px;background:#f7f8fa;border-bottom:1px solid #e6e9ed}
       #app .track-products-head h3{margin:0;font-size:13px;color:#17191c}
       #app .track-products-head span{font-size:9px;font-weight:850;color:#7d8591}
-      #app .track-products-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
-      #app .track-products-table{width:100%;min-width:560px;border-collapse:collapse}
+      #app .track-products-scroll{display:block;width:100%;max-width:100%;min-width:0;overflow-x:auto!important;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x pan-y;scrollbar-width:thin;position:relative}
+      #app .track-products-table{width:max-content;min-width:560px;max-width:none;border-collapse:collapse;table-layout:auto}
       #app .track-products-table th{padding:9px 11px;text-align:left;background:#fbfcfd;color:#8a919b;font-size:8px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid #eceff2;white-space:nowrap}
       #app .track-products-table td{padding:11px;border-bottom:1px solid #edf0f3;color:#2a3038;font-size:10px;vertical-align:middle}
       #app .track-products-table tbody tr:last-child td{border-bottom:0}
-      #app .track-products-table td:first-child{font-weight:850;color:#15181c;max-width:280px}
+      #app .track-products-table td:first-child{font-weight:850;color:#15181c;width:260px;min-width:260px;max-width:260px;white-space:normal;overflow-wrap:anywhere}
       #app .track-products-table td:not(:first-child){white-space:nowrap}
       #app .track-products-table .num{text-align:right}
       #app .track-trip-note{margin-top:12px;padding:10px 11px;border-radius:11px;background:#f8fafc;color:#77808c;font-size:9px;line-height:1.5}
@@ -133,12 +135,17 @@
         #app .track-search{gap:7px;padding:7px;border-radius:14px}
         #app .track-search input{height:45px;font-size:15px;padding:0 12px}
         #app .track-search button{height:45px;padding:0 14px}
-        #app .track-grid{grid-template-columns:1fr 1fr;gap:8px}
+        #app .track-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;min-width:0;width:100%}
+        #app .track-info{min-width:0;overflow:hidden}
+        #app .track-info b{font-size:12px;overflow-wrap:anywhere}
         #app .track-card{padding:15px;border-radius:16px}
         #app .track-card-head{flex-direction:column}
         #app .track-products{border-radius:12px}
         #app .track-products-head{padding:10px 11px}
-        #app .track-products-table{min-width:500px}
+        #app .track-products-head:after{content:"Geser →";font-size:8px;font-weight:900;color:#f26a21;margin-left:auto}
+        #app .track-products-head>span{display:none}
+        #app .track-products-scroll{width:100%;max-width:100%;overflow-x:auto!important;touch-action:pan-x pan-y}
+        #app .track-products-table{width:560px;min-width:560px}
         #app .track-products-table th{padding:8px 9px}
         #app .track-products-table td{padding:10px 9px;font-size:9.5px}
 
