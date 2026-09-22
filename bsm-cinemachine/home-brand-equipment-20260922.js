@@ -2,17 +2,14 @@
 'use strict';
 const STYLE_ID='rc-brand-equipment-style';
 const BRANDS=[
-  {name:'ARRI',className:'arri'},
-  {name:'SONY',className:'sony'},
-  {name:'RED',className:'red'},
-  {name:'SIGMA',className:'sigma'},
-  {name:'APUTURE',className:'aputure'},
-  {name:'BLACKMAGIC DESIGN',className:'blackmagic'},
-  {name:'ZOOM',className:'zoom'},
-  {name:'RØDE',className:'rode'},
-  {name:'SARAMONIC',className:'saramonic'},
-  {name:'CANON',className:'canon'}
-];
+  {name:'ARRI',src:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Arri_logo.svg/800px-Arri_logo.svg.png'},
+  {name:'SONY',src:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Sony_logo.svg/960px-Sony_logo.svg.png'},
+  {name:'CANON',src:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Canon_logo.svg/800px-Canon_logo.svg.png'},
+  {name:'SIGMA',src:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Sigma-logo.svg/330px-Sigma-logo.svg.png'},
+  {name:'BLACKMAGIC DESIGN',src:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Blackmagic_Design_logo.png/640px-Blackmagic_Design_logo.png'},
+  {name:'ZOOM',src:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Zoom_Corporation_logo.svg/330px-Zoom_Corporation_logo.svg.png'},
+  {name:'RØDE',src:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/R%C3%98DE_logo.svg/320px-R%C3%98DE_logo.svg.png'}
+]
 function style(){
   if(document.getElementById(STYLE_ID))return;
   const s=document.createElement('style');s.id=STYLE_ID;s.textContent=`
@@ -27,17 +24,9 @@ function style(){
     #app .rc-brand-marquee:after{right:0;background:linear-gradient(270deg,#fff,rgba(255,255,255,0))}
     #app .rc-brand-track{display:flex;width:max-content;gap:14px;padding:14px;animation:rcBrandScroll 28s linear infinite;will-change:transform}
     #app .rc-brand-marquee:hover .rc-brand-track{animation-play-state:paused}
-    #app .rc-brand-item{flex:0 0 auto;min-width:160px;height:72px;padding:0 22px;border:1px solid #edf0f4;border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;color:#1b2430;box-shadow:0 3px 12px rgba(18,32,48,.035)}
-    #app .rc-brand-word{display:block;white-space:nowrap;font-size:20px;font-weight:950;letter-spacing:.04em;line-height:1}
-    #app .rc-brand-item.sony .rc-brand-word{font-family:Georgia,serif;letter-spacing:.03em}
-    #app .rc-brand-item.red .rc-brand-word{font-size:24px;letter-spacing:.09em}
-    #app .rc-brand-item.sigma .rc-brand-word{font-size:22px;font-weight:800;letter-spacing:.08em}
-    #app .rc-brand-item.aputure .rc-brand-word{font-size:18px;letter-spacing:.12em}
-    #app .rc-brand-item.blackmagic .rc-brand-word{font-size:13px;letter-spacing:.055em;text-align:center}
-    #app .rc-brand-item.zoom .rc-brand-word{font-size:23px;letter-spacing:.06em}
-    #app .rc-brand-item.rode .rc-brand-word{font-size:23px;letter-spacing:.08em}
-    #app .rc-brand-item.saramonic .rc-brand-word{font-size:15px;letter-spacing:.08em}
-    #app .rc-brand-item.canon .rc-brand-word{font-family:Georgia,serif;font-size:22px;letter-spacing:.02em}
+    #app .rc-brand-item{flex:0 0 auto;width:170px;height:78px;padding:12px 18px;border:1px solid #edf0f4;border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(18,32,48,.035)}
+    #app .rc-brand-logo-box{width:136px;height:46px;display:flex;align-items:center;justify-content:center}
+    #app .rc-brand-logo{display:block!important;width:auto!important;height:auto!important;max-width:136px!important;max-height:40px!important;object-fit:contain!important;filter:none!important;opacity:1!important}
     @keyframes rcBrandScroll{from{transform:translateX(0)}to{transform:translateX(calc(-50% - 7px))}}
     @media(max-width:760px){
       #app .rc-brand-equipment{margin:28px 0 30px}
@@ -48,21 +37,16 @@ function style(){
       #app .rc-brand-marquee{border-radius:15px}
       #app .rc-brand-marquee:before,#app .rc-brand-marquee:after{width:34px}
       #app .rc-brand-track{gap:9px;padding:10px;animation-duration:20s}
-      #app .rc-brand-item{min-width:128px;height:58px;padding:0 15px;border-radius:12px}
-      #app .rc-brand-word{font-size:17px}
-      #app .rc-brand-item.red .rc-brand-word{font-size:20px}
-      #app .rc-brand-item.sigma .rc-brand-word{font-size:18px}
-      #app .rc-brand-item.aputure .rc-brand-word{font-size:15px}
-      #app .rc-brand-item.blackmagic .rc-brand-word{font-size:10px}
-      #app .rc-brand-item.zoom .rc-brand-word,#app .rc-brand-item.rode .rc-brand-word,#app .rc-brand-item.canon .rc-brand-word{font-size:18px}
-      #app .rc-brand-item.saramonic .rc-brand-word{font-size:12px}
+      #app .rc-brand-item{width:138px;height:64px;padding:10px 14px;border-radius:12px}
+      #app .rc-brand-logo-box{width:110px;height:38px}
+      #app .rc-brand-logo{max-width:110px!important;max-height:32px!important}
     }
     @media(prefers-reduced-motion:reduce){
       #app .rc-brand-track{animation:none;overflow-x:auto}
     }
   `;document.head.appendChild(s);
 }
-function item(b){return '<div class="rc-brand-item '+b.className+'"><span class="rc-brand-word">'+b.name+'</span></div>'}
+function item(b){return '<div class="rc-brand-item" title="'+b.name+'"><span class="rc-brand-logo-box"><img class="rc-brand-logo" src="'+b.src+'" alt="'+b.name+'" loading="lazy" decoding="async" draggable="false" referrerpolicy="no-referrer"></span></div>'}
 function markup(){
   const one=BRANDS.map(item).join('');
   return '<section class="rc-brand-equipment"><div class="rc-brand-head"><div><small>TRUSTED BRANDS</small><h2>BRAND EQUIPMENT</h2></div><p>Equipment profesional dari brand produksi terpercaya.</p></div><div class="rc-brand-marquee"><div class="rc-brand-track">'+one+one+'</div></div></section>';
