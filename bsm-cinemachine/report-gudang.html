@@ -844,6 +844,23 @@
           <strong>Input Banyak Sekaligus</strong>
           <span class="bulk-badge">Paste Excel / Tabel</span>
         </div>
+        <div class="field-grid" style="margin-bottom:10px">
+          <div class="field">
+            <label>Format Data</label>
+            <select class="control" id="bulkModeSelect">
+              <option value="auto">Auto Detect</option>
+              <option value="generic">Report Umum</option>
+              <option value="camera-vendor">Kamera — Vendor / Back Up</option>
+              <option value="camera-complaint">Kamera — Komplain</option>
+              <option value="camera-service">Kamera — Service</option>
+              <option value="admin-matrix">Admin — Matrix Harian</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Target Aktif</label>
+            <div class="control" id="bulkContextText" style="display:flex;align-items:center;background:#f8fbfc">Auto</div>
+          </div>
+        </div>
         <textarea class="bulk-textarea" id="bulkInput" placeholder="Tempel data lengkap di sini, contoh:
 
 MBR Report Gudang LIGHTING BSM Rental
@@ -852,7 +869,7 @@ Report Barang Kurang/Ambil Vendor
 No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
 1     1-Jun-26         Spotlight 36&quot;    1    Spotlight 19&quot; DS    133.200
       22-Jun-26                         1    DS                   166.500"></textarea>
-        <div class="bulk-help">Tempel langsung dari Excel/Spreadsheet atau teks bertabel. Sistem membaca judul, periode, barang, tanggal, QTY, vendor/action, dan harga sekaligus.</div>
+        <div class="bulk-help">Tempel langsung dari Excel / Google Sheets. Auto Detect mengenali Vendor, Komplain, Service, Admin Matrix, atau report umum. Data panjang otomatis dipecah menjadi beberapa slide 16:9.</div>
         <div class="bulk-actions">
           <button class="btn primary" id="importBulkBtn">Masukkan ke Preview</button>
         </div>
@@ -1014,6 +1031,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-admin-matrix.js"></script>
   <script src="/report-camera-vendor.js"></script>
   <script src="/report-camera-reports.js"></script>
+  <script src="/report-bulk-router.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
@@ -1155,6 +1173,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var groupsEditor=document.getElementById("groupsEditor");
       var reportBody=document.getElementById("reportBody");
       var bulkInput=document.getElementById("bulkInput");
+      var bulkModeSelect=document.getElementById("bulkModeSelect");
+      var bulkContextText=document.getElementById("bulkContextText");
       var importBulkBtn=document.getElementById("importBulkBtn");
       var slideCounter=document.getElementById("slideCounter");
       var slideDots=document.getElementById("slideDots");
@@ -1234,15 +1254,19 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             var useful=section.slides.filter(function(r){return (r.groups||[]).length>0;});
             section.slides=[matrixSlide].concat(useful);
           }else if(type.id==="gudang-kamera"){
-            var cameraIndex=section.slides.findIndex(function(r){return r.template==="camera-vendor";});
-            var cameraSlide=cameraIndex>=0?section.slides.splice(cameraIndex,1)[0]:window.BSMCameraVendor.createSlide();
-            cameraSlide.template="camera-vendor";cameraSlide.reportType="gudang-kamera";cameraSlide.cameraVendor=cameraSlide.cameraVendor||clone(window.BSMCameraVendor.DATA);
-            var cameraUseful=section.slides.filter(function(r){
-              return r.template!=="camera-complaint"&&r.template!=="camera-service"&&(r.groups||[]).length>0;
+            var complaintSlides=section.slides.filter(function(r){return r.template==="camera-complaint";});
+            var serviceSlides=section.slides.filter(function(r){return r.template==="camera-service";});
+            var vendorSlides=section.slides.filter(function(r){return r.template==="camera-vendor";});
+            if(!complaintSlides.length) complaintSlides=window.BSMCameraReports.createComplaintSlides();
+            if(!serviceSlides.length) serviceSlides=window.BSMCameraReports.createServiceSlides();
+            if(!vendorSlides.length) vendorSlides=[window.BSMCameraVendor.createSlide()];
+            vendorSlides.forEach(function(cameraSlide){
+              cameraSlide.template="camera-vendor";cameraSlide.reportType="gudang-kamera";cameraSlide.cameraVendor=cameraSlide.cameraVendor||clone(window.BSMCameraVendor.DATA);
             });
-            var complaintSlides=window.BSMCameraReports.createComplaintSlides();
-            var serviceSlides=window.BSMCameraReports.createServiceSlides();
-            section.slides=complaintSlides.concat(serviceSlides,[cameraSlide],cameraUseful);
+            var cameraUseful=section.slides.filter(function(r){
+              return r.template!=="camera-complaint"&&r.template!=="camera-service"&&r.template!=="camera-vendor"&&(r.groups||[]).length>0;
+            });
+            section.slides=complaintSlides.concat(serviceSlides,vendorSlides,cameraUseful);
           }else if(!section.slides.length){
             section.slides.push(ensureIds(emptyReportForType(type.id)));
           }
@@ -1867,6 +1891,19 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         requestAnimationFrame(updatePreviewScale);
       }
 
+      function updateBulkContext(){
+        if(!bulkModeSelect||!bulkContextText||!bulkInput) return;
+        var type=reportType(state.activeType);
+        bulkContextText.textContent=type.label+" • "+(bulkModeSelect.options[bulkModeSelect.selectedIndex]?bulkModeSelect.options[bulkModeSelect.selectedIndex].text:"Auto Detect");
+        if(state.activeType==="gudang-kamera"){
+          bulkInput.placeholder="Paste tabel Kamera dari Excel. Contoh Vendor:\nNAMA BARANG\tQTY\tTANGGAL\tKETERANGAN\tHARGA VENDOR\nSony FX3\t4\t05 Juni 2026\t2xkopafi,2xDs\t\nTotal\t4";
+        }else if(state.activeType==="admin"){
+          bulkInput.placeholder="Paste matrix Admin dari Excel, termasuk header JAM/TANGGAL, tanggal 1-30, TOTAL dan KET.";
+        }else{
+          bulkInput.placeholder="Paste tabel "+type.label+" dari Excel / Google Sheets. Pilih Auto Detect atau Report Umum.";
+        }
+      }
+
       function renderAll(){
         mountDashboardSections();
         populateHeaderInputs();
@@ -1883,6 +1920,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         renderSlidesPage();
         renderDownloadsPage();
         renderSidebarNav();
+        updateBulkContext();
         requestAnimationFrame(updatePreviewScale);
       }
     
@@ -1918,14 +1956,48 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         var raw=bulkInput.value.trim();
         if(!raw){toast("Tempel data report dulu"); bulkInput.focus(); return;}
         try{
-          if(!window.BSMReportParser||typeof window.BSMReportParser.parseBulkText!=="function") throw new Error("Parser belum termuat. Refresh halaman lalu coba lagi.");
-          var parsed=ensureIds(normalizeReport(window.BSMReportParser.parseBulkText(raw))),type=reportType(state.activeType),section=activeSection();
-          parsed.department=type.department;parsed.reportType=type.id;
-          section.slides.push(clone(parsed));state.slides=section.slides;state.activeSlide=section.slides.length-1;state.draft=clone(parsed);
-          state.activeView=window.BSMReportMaster.findPageIndex(state,"report:"+type.id+":"+state.activeSlide);
-          renderAll(); saveState(false); setMobileTab(true); bulkInput.value="";
-          toast("Slide "+type.label+" ditambahkan ke Preview Master");
-        }catch(err){ toast(err&&err.message?err.message:"Data belum bisa dibaca"); }
+          if(!window.BSMReportParser||typeof window.BSMReportParser.parseBulkText!=="function") throw new Error("Parser generic belum termuat.");
+          if(!window.BSMBulkRouter||typeof window.BSMBulkRouter.parse!=="function") throw new Error("Bulk router belum termuat. Refresh halaman lalu coba lagi.");
+          var mode=bulkModeSelect?bulkModeSelect.value:"auto";
+          var result=window.BSMBulkRouter.parse(raw,{
+            typeId:state.activeType,
+            mode:mode,
+            genericParser:window.BSMReportParser.parseBulkText,
+            maxVendorRows:18,
+            maxComplaintRows:20,
+            maxServiceUnits:20,
+            maxGenericRows:18
+          });
+          var targetType=(result.kind.indexOf("camera-")===0)?"gudang-kamera":(result.kind==="admin-matrix"?"admin":state.activeType);
+          state.activeType=targetType;
+          var type=reportType(targetType),section=state.sections[targetType];
+          var slides=(result.slides||[]).map(function(report){
+            if(result.kind==="generic"){
+              var parsed=ensureIds(normalizeReport(report));parsed.department=type.department;parsed.reportType=type.id;return parsed;
+            }
+            report.department=type.department;report.reportType=type.id;return clone(report);
+          });
+          if(!slides.length) throw new Error("Tidak ada slide yang terbaca.");
+
+          if(result.kind==="generic"){
+            section.slides=section.slides.concat(slides);
+          }else{
+            section.slides=section.slides.filter(function(r){return r.template!==result.kind;}).concat(slides);
+          }
+
+          ensureMasterReports();
+          section=state.sections[targetType];
+          var firstIndex=result.kind==="generic"?Math.max(0,section.slides.length-slides.length):section.slides.findIndex(function(r){return r.template===result.kind;});
+          if(firstIndex<0) firstIndex=0;
+          bindActiveSection(firstIndex);
+          state.coverTarget=targetType;
+          state.activeView=window.BSMReportMaster.findPageIndex(state,"report:"+targetType+":"+firstIndex);
+          renderAll();saveState(false);setMobileTab(true);bulkInput.value="";
+          toast(slides.length+" slide "+type.label+" berhasil dibuat");
+        }catch(err){
+          console.error(err);
+          toast(err&&err.message?err.message:"Data belum bisa dibaca");
+        }
       }
     
       function addGroup(){
@@ -1981,6 +2053,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       subtitleInput.addEventListener("input",function(){state.draft.subtitle=this.value;syncActiveSlide();renderReport();autoSave();});
     
       importBulkBtn.addEventListener("click",importBulk);
+      if(bulkModeSelect) bulkModeSelect.addEventListener("change",updateBulkContext);
       document.getElementById("bulkFocusBtn").addEventListener("click",function(){showPage("bulk");setTimeout(function(){bulkInput.focus();},100);});
       document.getElementById("addGroupInline").addEventListener("click",addGroup);
       document.getElementById("addReportSlideBtn").addEventListener("click",addReportSlide);
@@ -2073,5 +2146,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     })();
   </script>
 </body>
-<!-- report-gudang-build-v15-camera-auto-reports-deploy -->
+<!-- report-gudang-build-v16-universal-bulk-input -->
 </html>
