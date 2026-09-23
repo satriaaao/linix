@@ -25,7 +25,7 @@
     return {width:clamp(src.width==null?180:src.width,80,320),x:clamp(src.x||0,-200,200),y:clamp(src.y||0,-200,200)};
   }
   function renderSidebar(active){
-    var items=[['slides','Slide'],['cover','Cover Slide 1'],['bulk','Input Banyak'],['table','Editor Tabel'],['preview','Preview'],['downloads','Download Data'],['pdf','PDF 16:9'],['settings','Pengaturan']];
+    var items=[['slides','Slide'],['cover','Cover Slide 1'],['bulk','Input Banyak'],['table','Editor Tabel'],['preview','Preview'],['downloads','Download Data'],['pdf','Download PDF 16:9'],['settings','Pengaturan']];
     return items.map(function(it){return '<button class="rg-sidebar-item '+(active===it[0]?'active':'')+'" data-menu="'+it[0]+'">'+it[1]+'</button>';}).join('');
   }
   function renderModalShell(kind,title,body){
