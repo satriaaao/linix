@@ -90,7 +90,7 @@
     vp.forEach(function(gs,i){if(gs.length)slides.push({template:'lighting-vendor',reportType:'gudang-lighting',department:'LIGHTING',groups:[],lightingVendorGroups:gs,pageNo:i+1,pageTotal:vp.length,period:opts.period||'JUNI 2026'});});
     var sp=paginateGroups(parsed.serviceGroups||[],opts.maxServiceRows||16);
     sp.forEach(function(gs,i){if(gs.length)slides.push({template:'lighting-service',reportType:'gudang-lighting',department:'LIGHTING',groups:[],lightingServiceGroups:gs,pageNo:i+1,pageTotal:sp.length,period:opts.servicePeriod||'JUNI 2026'});});
-    var maxC=Math.max(5,Number(opts.maxComplaintRows||18)),compl=parsed.complaints||[];
+    var maxC=Math.max(5,Number(opts.maxComplaintRows||9)),compl=parsed.complaints||[];
     for(var c=0;c<compl.length;c+=maxC) slides.push({template:'lighting-complaint',reportType:'gudang-lighting',department:'LIGHTING',groups:[],lightingComplaints:compl.slice(c,c+maxC),pageNo:Math.floor(c/maxC)+1,pageTotal:Math.max(1,Math.ceil(compl.length/maxC)),period:opts.period||'JUNI 2026'});
     return slides;
   }
@@ -105,7 +105,7 @@
   function renderComplaintSlide(slide,esc){
     esc=esc||escDefault;slide=slide||{};var rows=(slide.lightingComplaints||[]).map(function(r){return '<tr><td class="light-no">'+esc(r.no)+'</td><td>'+esc(r.date)+'</td><td>'+esc(r.customer)+'</td><td>'+esc(r.item)+'</td><td class="light-qty">'+esc(r.qty)+'</td><td>'+esc(r.chronology||'-')+'</td><td>'+esc(r.action||'-')+'</td><td>'+esc(r.expense||'-')+'</td><td class="light-ind '+indClass(r.indication)+'">'+esc(r.indication||'-')+'</td><td>'+esc(r.pic||'-')+'</td></tr>';}).join('');
     var suffix=slide.pageTotal>1?' ('+slide.pageNo+'/'+slide.pageTotal+')':'';
-    return '<section class="lighting-complaint-slide"><div class="light-grid"></div><div class="light-kicker"><div>// LAPORAN GUDANG</div><div class="accent">// REPORT LIGHTING</div></div><h1>REPORT BARANG BERMASALAH / <span>KOMPLAIN</span>'+suffix+'</h1><div class="light-wrap"><table class="light-complaint-table"><thead><tr><th>NO</th><th>TGL</th><th>NAMA CUSTOMER</th><th>NAMA ALAT</th><th>QTY</th><th>KRONOLOGI</th><th>TINDAKAN</th><th>PENGELUARAN</th><th>INDIKASI</th><th>PIC</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+footer(slide.period||'JUNI 2026')+'</section>';
+    return '<section class="lighting-complaint-slide"><div class="light-grid"></div><div class="light-kicker"><div>// LAPORAN GUDANG</div><div class="accent">// REPORT LIGHTING</div></div><h1>REPORT BARANG BERMASALAH / <span>KOMPLAIN</span>'+suffix+'</h1><div class="light-wrap"><table class="light-complaint-table"><colgroup><col class="lc-no"><col class="lc-date"><col class="lc-customer"><col class="lc-item"><col class="lc-qty"><col class="lc-chrono"><col class="lc-action"><col class="lc-expense"><col class="lc-ind"><col class="lc-pic"></colgroup><thead><tr><th>NO</th><th>TGL</th><th>NAMA CUSTOMER</th><th>NAMA ALAT</th><th>QTY</th><th>KRONOLOGI</th><th>TINDAKAN</th><th>PENGELUARAN</th><th>INDIKASI</th><th>PIC</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+footer(slide.period||'JUNI 2026')+'</section>';
   }
   function renderServiceSlide(slide,esc){
     esc=esc||escDefault;slide=slide||{};var no=0,rows='';
