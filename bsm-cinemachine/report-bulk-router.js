@@ -62,30 +62,44 @@
     var rows=compact(splitRows(text)),hi=headerIndex(rows,['NAMA BARANG','QTY','TANGGAL','KETERANGAN']);
     if(hi<0) throw new Error('Header Vendor belum terbaca. Gunakan: NAMA BARANG, QTY, TANGGAL, KETERANGAN, HARGA VENDOR.');
     var header=rows[hi],nameI=findCol(header,[/^NAMA BARANG$/]),qtyI=findCol(header,[/^QTY$/]),dateI=findCol(header,[/^TANGGAL$/]),noteI=findCol(header,[/^KETERANGAN$/]),priceI=findCol(header,[/HARGA VENDOR/]);
-    var groups=[],current=null,afterExplicitTotals=false;
-    function finish(totalValue){
-      if(!current||!current.rows.length) return;
-      current.total=totalValue>0?totalValue:current.rows.reduce(function(s,r){return s+num(r.qty);},0);
-      groups.push(current);current=null;
+    var groups=[],buffer=[],sawTotal=false;
+    function rowModel(r){
+      var first=clean(r[nameI>=0?nameI:0]);
+      return {qty:num(r[qtyI]),date:clean(r[dateI]),note:clean(r[noteI])||'-',price:clean(r[priceI])||'-',sourceName:first};
+    }
+    function pushGroup(rowsIn,totalValue){
+      if(!rowsIn.length) return;
+      var g={no:String(groups.length+1),name:rowsIn[0].sourceName,rows:rowsIn};
+      g.total=totalValue>0?totalValue:rowsIn.reduce(function(s,r){return s+num(r.qty);},0);
+      groups.push(g);
     }
     rows.slice(hi+1).forEach(function(r){
       var first=clean(r[nameI>=0?nameI:0]);
       if(!first) return;
       if(/^TOTAL\b/i.test(first)){
-        finish(num(r[qtyI]));
-        afterExplicitTotals=true;
-        return;
+        pushGroup(buffer,num(r[qtyI]));buffer=[];sawTotal=true;return;
       }
-      var row={qty:num(r[qtyI]),date:clean(r[dateI]),note:clean(r[noteI])||'-',price:clean(r[priceI])||'-',sourceName:first};
-      if(!current){
-        current={no:String(groups.length+1),name:first,rows:[]};
-      }else if(afterExplicitTotals && upper(current.name)!==upper(first)){
-        finish(0);
-        current={no:String(groups.length+1),name:first,rows:[]};
-      }
-      current.rows.push(row);
+      buffer.push(rowModel(r));
     });
-    finish(0);
+    if(buffer.length){
+      if(sawTotal){
+        var tail=[],lastName='';
+        buffer.forEach(function(r){
+          var n=upper(r.sourceName);
+          if(tail.length&&n!==lastName){pushGroup(tail,0);tail=[];}
+          tail.push(r);lastName=n;
+        });
+        pushGroup(tail,0);
+      }else{
+        var run=[],runName='';
+        buffer.forEach(function(r){
+          var n=upper(r.sourceName);
+          if(run.length&&n!==runName){pushGroup(run,0);run=[];}
+          run.push(r);runName=n;
+        });
+        pushGroup(run,0);
+      }
+    }
     if(!groups.length) throw new Error('Data Vendor belum terbaca.');
     groups.forEach(function(g,i){g.no=String(i+1);});
     var grand=groups.reduce(function(s,g){return s+num(g.total);},0);
