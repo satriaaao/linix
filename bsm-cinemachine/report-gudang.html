@@ -727,16 +727,16 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     </aside>
 
     <main class="report-zone dashboard-main" id="dashboardMain">
-      <section class="dashboard-page" id="slidesPage">
+      <section class="dashboard-page" id="typesPage">
         <div class="page-card">
-          <div class="page-head"><div><h3>Daftar Slide</h3><p>Kelola cover dan semua report.</p></div><div class="page-actions"><button class="btn" data-page-download="slides" data-format="xlsx">XLSX</button><button class="btn" data-page-download="slides" data-format="csv">CSV</button></div></div>
-          <div class="page-body"><div class="data-table-wrap"><table class="data-table"><thead><tr><th>No</th><th>Tipe</th><th>Nama</th><th>Periode</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="slidesTableBody"></tbody></table></div></div>
+          <div class="page-head"><div><h3>Jenis Report</h3><p>Setiap bagian punya judul dan data report sendiri.</p></div><div class="page-actions"><button class="btn" data-page-download="slides" data-format="xlsx">XLSX</button><button class="btn" data-page-download="slides" data-format="csv">CSV</button></div></div>
+          <div class="page-body"><div class="data-table-wrap"><table class="data-table"><thead><tr><th>No</th><th>Jenis</th><th>Nama Report</th><th>Jumlah Slide</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="slidesTableBody"></tbody></table></div></div>
         </div>
       </section>
 
       <section class="dashboard-page" id="coverPage">
         <div class="page-card">
-          <div class="page-head"><div><h3>Cover Slide 1</h3><p>Semua elemen cover dapat diedit.</p></div><div class="page-actions"><button class="btn" data-page-download="cover" data-format="xlsx">XLSX</button><button class="btn" data-page-download="cover" data-format="csv">CSV</button></div></div>
+          <div class="page-head"><div><h3 id="coverPageTitle">Cover Master</h3><p id="coverPageSub">Judul utama presentasi master.</p></div><div class="page-actions"><button class="btn" data-page-download="cover" data-format="xlsx">XLSX</button><button class="btn" data-page-download="cover" data-format="csv">CSV</button></div></div>
           <div class="page-body" id="coverPageMount"></div>
         </div>
       </section>
@@ -750,7 +750,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
 
       <section class="dashboard-page" id="tablePage">
         <div class="page-card">
-          <div class="page-head"><div><h3>Editor Tabel</h3><p>Edit data report aktif langsung di tabel.</p></div><div class="page-actions"><button class="btn" data-page-download="report" data-format="xlsx">XLSX</button><button class="btn" data-page-download="report" data-format="csv">CSV</button></div></div>
+          <div class="page-head"><div><h3 id="tablePageTitle">Editor Report</h3><p id="tablePageSub">Data report terpisah per jenis.</p></div><div class="page-actions"><button class="btn primary" id="addReportSlideBtn">+ Slide Report</button><button class="btn" data-page-download="report" data-format="xlsx">XLSX</button><button class="btn" data-page-download="report" data-format="csv">CSV</button></div></div>
           <div class="page-body" id="tablePageMount"></div>
         </div>
       </section>
@@ -776,11 +776,11 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
               <div class="report-kicker">
                 <span class="circle-slash"></span>
                 <div class="kicker-lines">
-                  <div>// LAPORAN GUDANG</div>
+                  <div>// <span id="kickerPrefix">LAPORAN GUDANG</span></div>
                   <div class="teal-line">// REPORT <span id="kickerDepartment">LIGHTING</span></div>
                 </div>
               </div>
-              <h1 class="report-title">MBR REPORT GUDANG <span class="accent" id="titleDepartment">LIGHTING BSM RENTAL</span></h1>
+              <h1 class="report-title"><span id="titlePrefix">MBR REPORT GUDANG</span> <span class="accent" id="titleDepartment">LIGHTING BSM RENTAL</span></h1>
               <div class="report-meta">
                 <div>Priode <span id="periodLabel">JUNI 2026</span></div>
                 <div id="subtitleLabel">Report Barang Kurang / Ambil Vendor</div>
@@ -792,7 +792,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
                 </table>
               </div>
               <div class="report-footer">
-                <div>Laporan Gudang <span id="footerDepartment">Lighting</span> BSM Rental</div>
+                <div><span id="footerPrefix">Laporan Gudang</span> <span id="footerDepartment">Lighting</span> BSM Rental</div>
                 <div class="footer-line"></div>
                 <div>// <span id="footerMonth">JUNI</span> <span id="footerYear">2026</span></div>
               </div>
@@ -826,6 +826,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-parser.js"></script>
   <script src="/report-gudang-editor.js"></script>
   <script src="/report-gudang-cover.js"></script>
+  <script src="/report-gudang-master.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
@@ -913,6 +914,10 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       if(!window.BSMReportCover||typeof window.BSMReportCover.defaultCover!=="function"){
         throw new Error("Cover helper tidak termuat");
       }
+      if(!window.BSMReportMaster||typeof window.BSMReportMaster.flattenMaster!=="function"){
+        throw new Error("Master report helper tidak termuat");
+      }
+      var REPORT_TYPES=window.BSMReportMaster.REPORT_TYPES;
       var storedCover=state.cover||{};
       state.cover=window.BSMReportCover.normalizeCover(storedCover);
       if(!window.BSMReportUI||typeof window.BSMReportUI.renderSidebar!=="function"){
@@ -920,10 +925,23 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
       var storedLogo=(storedCover&&storedCover.logo)||{};
       state.cover.logo=Object.assign({image:storedLogo.image||""},window.BSMReportUI.normalizeLogoSettings(storedLogo));
-      if(!Number.isInteger(state.activeView)){
-        state.activeView=state.activeSlide>=0?state.activeSlide+1:0;
+      var hadMasterState=state.masterVersion===1&&state.sections;
+      var legacySlides=hadMasterState?[]:(Array.isArray(state.slides)?state.slides:[]);
+      if(!hadMasterState){
+        state.cover.mainTitle1="MBR";
+        state.cover.mainTitle2="PT BLUE STAR MEDIA";
+        state.cover.titleTop1="// MASTER BUSINESS REVIEW";
+        state.cover.titleTop2="// MASTER REPORT";
+        state.cover.dataPrefix="DIVISI :";
+        state.cover.item1="OPERASIONAL";
+        state.cover.item2="GUDANG";
+        state.cover.item3="MARKETING";
+        state.cover.footerRight="// MASTER REPORT";
       }
-      if(state.activeView<0||state.activeView>state.slides.length) state.activeView=0;
+      state.sections=window.BSMReportMaster.normalizeSections(state.sections,state.cover,legacySlides);
+      state.masterVersion=1;
+      state.activeType=(state.activeType&&state.sections[state.activeType])?state.activeType:(legacySlides.length?"gudang-lighting":"it");
+      state.coverTarget=state.coverTarget||"master";
       var departmentInput=document.getElementById("departmentInput");
       var monthInput=document.getElementById("monthInput");
       var yearInput=document.getElementById("yearInput");
@@ -976,6 +994,63 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         report.groups.forEach(function(g){ g.id=g.id||uid(); g.rows.forEach(function(r){r.id=r.id||uid();}); });
         return report;
       }
+      function reportType(typeId){ return window.BSMReportMaster.typeById(typeId||state.activeType); }
+      function emptyReportForType(typeId){
+        var type=reportType(typeId),r=emptyReport();
+        r.department=type.department;
+        r.subtitle="Report "+type.label;
+        r.reportType=type.id;
+        return r;
+      }
+      function activeSection(){ return state.sections[state.activeType]||state.sections.it; }
+      function ensureMasterReports(){
+        REPORT_TYPES.forEach(function(type){
+          var section=state.sections[type.id];
+          section.slides=(section.slides||[]).map(function(report){
+            var normalized=normalizeReport(report);
+            normalized.reportType=type.id;
+            if(!normalized.department) normalized.department=type.department;
+            return ensureIds(normalized);
+          });
+          if(!section.slides.length) section.slides.push(ensureIds(emptyReportForType(type.id)));
+        });
+      }
+      function bindActiveSection(index){
+        var section=activeSection();
+        state.slides=section.slides;
+        var i=Number.isInteger(index)?index:state.activeSlide;
+        if(i<0||i>=section.slides.length) i=0;
+        state.activeSlide=i;
+        state.draft=clone(section.slides[i]||emptyReportForType(state.activeType));
+      }
+      function masterPages(){ return window.BSMReportMaster.flattenMaster(state); }
+      function currentMasterPage(){
+        var pages=masterPages();
+        if(!Number.isInteger(state.activeView)||state.activeView<0||state.activeView>=pages.length) state.activeView=0;
+        return pages[state.activeView]||pages[0];
+      }
+      function editableCover(){
+        return state.coverTarget==="master"?state.cover:(state.sections[state.coverTarget]||activeSection()).cover;
+      }
+      function setCoverTarget(target){
+        state.coverTarget=target==="master"?"master":target;
+        var key=state.coverTarget==="master"?"master-cover":"section-cover:"+state.coverTarget;
+        state.activeView=window.BSMReportMaster.findPageIndex(state,key);
+      }
+      function openReportType(typeId,showEditor){
+        if(!state.sections[typeId]) return;
+        state.activeType=typeId;
+        bindActiveSection(0);
+        state.coverTarget=typeId;
+        state.activeView=window.BSMReportMaster.findPageIndex(state,"report:"+typeId+":"+state.activeSlide);
+        renderAll();
+        saveState(false);
+        showPage(showEditor===false?"types":"table");
+      }
+      ensureMasterReports();
+      bindActiveSection(state.activeSlide);
+      if(!Number.isInteger(state.activeView)) state.activeView=0;
+      if(state.activeView<0||state.activeView>=masterPages().length) state.activeView=0;
     
       function saveState(showMessage){
         localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
@@ -1001,7 +1076,12 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
     
       function syncActiveSlide(){
-        if(state.activeView>0 && state.activeSlide>=0 && state.slides[state.activeSlide]) state.slides[state.activeSlide]=clone(state.draft);
+        var section=activeSection();
+        if(state.activeSlide>=0 && section.slides[state.activeSlide]){
+          state.draft.reportType=state.activeType;
+          section.slides[state.activeSlide]=clone(state.draft);
+          state.slides=section.slides;
+        }
       }
     
       function updateGroupSummary(g){
@@ -1034,16 +1114,21 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
 
       function renderCoverSlide(){
-        coverSlideHost.innerHTML=window.BSMReportCover.renderCoverSlide(state.cover,esc);
+        var page=currentMasterPage();
+        var model=page.kind==="master-cover"?state.cover:(page.kind==="section-cover"?(state.sections[page.typeId]||activeSection()).cover:editableCover());
+        coverSlideHost.innerHTML=window.BSMReportCover.renderCoverSlide(model,esc);
         var slide=coverSlideHost.querySelector(".cover-slide");
-        if(slide&&state.cover.logo&&state.cover.logo.image){
+        if(slide&&model.logo&&model.logo.image){
           slide.classList.add("has-uploaded-logo");
-          slide.insertAdjacentHTML("beforeend",window.BSMReportUI.renderLogoOverlay(state.cover.logo));
+          slide.insertAdjacentHTML("beforeend",window.BSMReportUI.renderLogoOverlay(model.logo));
         }
       }
 
       function renderCoverEditor(){
-        var c=state.cover,logo=c.logo||{image:"",width:180,x:0,y:0};
+        var c=editableCover(),logo=c.logo||{image:"",width:180,x:0,y:0};
+        var coverTitle=document.getElementById("coverPageTitle"),coverSub=document.getElementById("coverPageSub");
+        if(coverTitle) coverTitle.textContent=state.coverTarget==="master"?"Cover Master":"Judul "+reportType(state.coverTarget).label;
+        if(coverSub) coverSub.textContent=state.coverTarget==="master"?"Judul utama presentasi master.":"Cover pembuka khusus "+reportType(state.coverTarget).label+".";
         function textRow(label,key,value){
           return '<tr><td>'+esc(label)+'</td><td><input class="inline-cover-input cover-input" data-cover-field="'+key+'" value="'+esc(value||'')+'"></td><td><span class="tiny">Editable</span></td></tr>';
         }
@@ -1073,24 +1158,24 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         var imageInput=document.getElementById("coverImageInput");
         if(imageInput) imageInput.addEventListener("change",function(){
           var file=this.files&&this.files[0]; if(!file) return;
-          resizeCoverImage(file,function(dataUrl){state.cover.image=dataUrl;renderCoverEditor();renderCoverSlide();saveState(false);toast("Gambar Slide 1 diperbarui");});
+          resizeCoverImage(file,function(dataUrl){c.image=dataUrl;renderCoverEditor();renderCoverSlide();saveState(false);toast("Gambar cover diperbarui");});
         });
         var logoInput=document.getElementById("coverLogoInput");
         if(logoInput) logoInput.addEventListener("change",function(){
           var file=this.files&&this.files[0]; if(!file) return;
           var reader=new FileReader();
-          reader.onload=function(ev){state.cover.logo.image=String(ev.target.result||"");renderCoverEditor();renderCoverSlide();saveState(false);toast("Logo Slide 1 diperbarui");};
+          reader.onload=function(ev){c.logo=c.logo||{image:"",width:180,x:0,y:0};c.logo.image=String(ev.target.result||"");renderCoverEditor();renderCoverSlide();saveState(false);toast("Logo cover diperbarui");};
           reader.readAsDataURL(file);
         });
         Array.prototype.forEach.call(coverEditorHost.querySelectorAll("[data-logo-setting]"),function(input){
           input.addEventListener("input",function(){
-            var key=this.dataset.logoSetting;state.cover.logo[key]=Number(this.value||0);
+            var key=this.dataset.logoSetting;c.logo=c.logo||{image:"",width:180,x:0,y:0};c.logo[key]=Number(this.value||0);
             var label=coverEditorHost.querySelector('[data-logo-value="'+key+'"]');if(label) label.textContent=this.value+(key==="width"?" px":"");
             renderCoverSlide();autoSave();
           });
         });
         var resetLogo=coverEditorHost.querySelector("[data-reset-logo]");
-        if(resetLogo) resetLogo.addEventListener("click",function(){state.cover.logo={image:"",width:180,x:0,y:0};renderCoverEditor();renderCoverSlide();saveState(false);toast("Logo direset");});
+        if(resetLogo) resetLogo.addEventListener("click",function(){c.logo={image:"",width:180,x:0,y:0};renderCoverEditor();renderCoverSlide();saveState(false);toast("Logo direset");});
       }
 
       function applyEditorMode(){
@@ -1100,7 +1185,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
 
       function applyPreviewMode(){
-        var coverMode=state.activeView===0;
+        var page=currentMasterPage();
+        var coverMode=page.kind==="master-cover"||page.kind==="section-cover";
         coverSlideHost.style.display=coverMode?"block":"none";
         reportEl.style.display=coverMode?"none":"block";
       }
