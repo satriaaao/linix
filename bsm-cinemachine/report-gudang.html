@@ -1414,7 +1414,9 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     
       function staticReportHtml(report,index,total){
         var dep=String(report.department||"LIGHTING").trim()||"LIGHTING",m=Number(report.month||1),y=Number(report.year||new Date().getFullYear());
-        return '<section class="report print-report">'
+        var rowCount=(report.groups||[]).reduce(function(sum,g){return sum+(g.rows||[]).length+1;},0);
+        var density=rowCount>24?" report-very-dense":(rowCount>16?" report-dense":"");
+        return '<section class="report print-report'+density+'">'
           +'<div class="report-kicker"><span class="circle-slash"></span><div class="kicker-lines"><div>// LAPORAN GUDANG</div><div class="teal-line">// REPORT '+esc(dep.toUpperCase())+'</div></div></div>'
           +'<h1 class="report-title">MBR REPORT GUDANG <span class="accent">'+esc(dep.toUpperCase())+' BSM RENTAL</span></h1>'
           +'<div class="report-meta"><div>Priode '+esc(months[m-1]+" "+y)+'</div><div>'+esc(report.subtitle||"Report Barang Kurang / Ambil Vendor")+'</div></div>'
