@@ -248,6 +248,84 @@ assert(html.includes('template==="audio-service"'),'Preview harus mengenali Audi
 assert(html.includes('window.BSMAudioReports.createSlides'),'Import Excel harus membuat slide Audio');
 assert(html.includes('window.BSMAudioReports.renderServiceSlide'),'PDF/Preview harus memakai renderer Audio');
 
+const cinemaServiceRows=[
+  ['MBR ALAT-ALAT YANG DI SERVICE GUDANG CINEMA','','','','','','','',''],
+  ['PRIMAMEDIA','','','','','','','',''],
+  ['NO','TANGGAL','NAMA BARANG','KERUSAKAN','QTY','SN BALLAST','SN BODY','SUDAH DI AMBIL/TGL','KETERANGAN'],
+  [1,46196,'XT52','MATI',1,'SN-A','SN-B','',''],
+  ['DENKA','','','','','','','',''],
+  ['NO','TANGGAL','NAMA BARANG','KERUSAKAN','QTY','SERIAL NUMBER/SN','CASE ID','SUDAH DI AMBIL/TGL','KETERANGAN'],
+  [1,46205,'battrey zgcine','MATI TOTAL',3,'','','',''],
+  ['NO','TANGGAL','NAMA BARANG','KERUSAKAN','QTY','SN BALLAST','SN BODY','SUDAH DI AMBIL/TGL','KETERANGAN'],
+  [2,46206,'Dji ronin2','EROR',1,'','','','']
+];
+const cinemaMonthRows=[
+  ['MBR Report Gudang CINEMA BSM Tebet','','','','','','','Report Barang Bermasalah / Komplain','','','','','','','','',''],
+  ['Periode TGL 01-30 JUNI 2026','','','','','','','NO','TGL penyewaan','Indikasi','Nama Alat','QTY','Kronologis','Action','BIAYA','PIC','NAMA CLIENT'],
+  ['','','','','','','',1,'01-Juni-2026','trouble','Dji force pro',1,'sinyal hilang','BBM',25000,'Rian','Rafi film'],
+  ['Report Barang Kurang / Ambil Vendor','','','','','','','','','','','','','','','',''],
+  ['NO','TGL penyewaan','Durasi Sewa','Nama Alat','QTY','Action','','','','','','','','','','',''],
+  [1,'01-Juni-2026','1 hari','Small hd',1,'DS','','','','','','','','','','',''],
+  ['','','','TOTAL',1,'','','','','','','','','','','','']
+];
+const cinemaParsed=cinemaReports.parseWorkbookRows(cinemaServiceRows,cinemaMonthRows);
+assert.strictEqual(cinemaParsed.serviceCenters.length,2,'Cinema service harus dipisah per tempat');
+assert.strictEqual(cinemaParsed.serviceCenters[1].rows.length,2,'Header lanjutan DENKA harus tetap satu tempat service');
+assert.strictEqual(cinemaParsed.vendorGroups.length,1,'Cinema vendor harus terbaca');
+assert.strictEqual(cinemaParsed.complaints.length,1,'Cinema komplain harus terbaca');
+const cinemaSlides=cinemaReports.createSlides(cinemaParsed,{maxServiceRows:1,maxVendorRows:1,maxComplaintRows:1});
+assert(cinemaSlides.some(x=>x.template==='cinema-vendor'));
+assert(cinemaSlides.some(x=>x.template==='cinema-complaint'));
+assert(cinemaSlides.filter(x=>x.template==='cinema-service').length>=2);
+assert(cinemaReports.renderVendorSlide(cinemaSlides.find(x=>x.template==='cinema-vendor')).includes('BARANG KURANG'));
+assert(cinemaReports.renderComplaintSlide(cinemaSlides.find(x=>x.template==='cinema-complaint')).includes('KOMPLAIN'));
+assert(cinemaReports.renderServiceSlide(cinemaSlides.find(x=>x.template==='cinema-service')).includes('DI SERVICE'));
+
+const lightingVendorRows=[
+  ['MBR Report Gudang LIGHTING BSM Rental','','','','','',''],
+  ['Priode JUNI 2026','','','','','',''],
+  ['Report Barang Kurang/Ambil Vendor','','','','','',''],
+  ['No','TGL Penyewaan','Nama Alat','QTY','Action','','Harga Sewa'],
+  [1,46174,'Spotlight 36"',1,'DS','',133200],
+  ['Total','','',1,'','','Total Sewa = Rp. 133200']
+];
+const lightingServiceRows=[
+  ['BARANG SERVICE GUDANG LIGHTING','','','','','',''],
+  ['','','','','','',''],
+  ['NO','Nama Alat','SN ','','Tempat Service ','Tanggal Service','Indikasi Rusak'],
+  ['','','Lampu','Control Box','','',''],
+  [1,'Aputure 600d Pro','SN-L','SN-C','Prima Media',45972,'Kabel rusak'],
+  [2,'','SN-L2','SN-C2','Prima Media',45992,'LCD rusak'],
+  ['Stock Aputure 600d','','','','','',''],
+  ['Stock BSM = 40 | Sehat = 17 | Service = 6','','','','','','']
+];
+const lightingComplaintRows=[
+  ['Report Barang Bermasalah/Komplain Mei','','','','','','','','',''],
+  ['No','TGL Penyewaan','Nama Customer','Nama Alat','QTY','Kronologi','Tindakan','Pengeluaran','Indikasi','Pic Siapkan Alat'],
+  [1,46184,'PT Test','Aputure Dome II',1,'Belum ready','Kirim ulang','Rp. 44.000','Kelalaian','Gusti']
+];
+const lightingParsed=lightingReports.parseWorkbookRows(lightingVendorRows,lightingServiceRows,lightingComplaintRows);
+assert.strictEqual(lightingParsed.vendorGroups.length,1,'Lighting vendor harus terbaca');
+assert.strictEqual(lightingParsed.serviceGroups.length,1,'Lighting service group harus terbaca');
+assert.strictEqual(lightingParsed.serviceGroups[0].stockSummary.includes('Stock BSM'),true,'ringkasan stok Lighting harus dipertahankan');
+assert.strictEqual(lightingParsed.complaints.length,1,'Lighting komplain harus terbaca');
+const lightingSlides=lightingReports.createSlides(lightingParsed,{maxVendorRows:1,maxServiceRows:2,maxComplaintRows:1});
+assert(lightingSlides.some(x=>x.template==='lighting-vendor'));
+assert(lightingSlides.some(x=>x.template==='lighting-service'));
+assert(lightingSlides.some(x=>x.template==='lighting-complaint'));
+assert(lightingReports.renderServiceSlide(lightingSlides.find(x=>x.template==='lighting-service')).includes('STOCK'));
+
+assert(html.includes('/report-cinema-reports.js'),'Gudang Cinema harus memuat helper khusus');
+assert(html.includes('/report-lighting-reports.js'),'Gudang Lighting harus memuat helper khusus');
+assert(html.includes('id="cinemaExcelInput"'),'Cinema harus punya Import Excel');
+assert(html.includes('id="lightingExcelInput"'),'Lighting harus punya Import Excel');
+assert(html.includes('id="cinemaReportHost"'),'Preview harus punya host Cinema');
+assert(html.includes('id="lightingReportHost"'),'Preview harus punya host Lighting');
+assert(html.includes('template==="cinema-service"'),'Preview harus mengenali Cinema Service');
+assert(html.includes('template==="lighting-service"'),'Preview harus mengenali Lighting Service');
+assert(html.includes('window.BSMCinemaReports.createSlides'),'Import Cinema harus membuat slide');
+assert(html.includes('window.BSMLightingReports.createSlides'),'Import Lighting harus membuat slide');
+
 
 const cinemaServiceRows=[
   ['MBR ALAT-ALAT YANG DI SERVICE GUDANG CINEMA','','','','','','','',''],
