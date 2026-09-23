@@ -2,6 +2,7 @@ const assert = require('assert');
 const fs = require('fs');
 const ui = require('./report-gudang-ui.js');
 const adminMatrix = require('./report-admin-matrix.js');
+const cameraVendor = require('./report-camera-vendor.js');
 
 const phone = ui.getPreviewLayout(390, 10);
 assert.strictEqual(phone.canvasWidth, 1600);
@@ -67,5 +68,17 @@ assert(adminHtml.includes('class="admin-col-time"'),'kolom Jam/Tanggal harus pun
 assert(adminHtml.includes('class="admin-col-total"'),'kolom Total harus punya lebar eksplisit');
 assert(adminHtml.includes('class="admin-col-ket"'),'kolom Ket harus punya lebar eksplisit');
 assert(html.includes('.admin-col-day{width:2.45%}'),'CSS tanggal harus sama rata 1-30');
+assert(html.includes('/report-camera-vendor.js'),'Gudang Kamera harus memuat helper vendor/back up');
+assert(html.includes('id="cameraVendorHost"'),'Preview harus punya host khusus Gudang Kamera');
+assert(html.includes('template==="camera-vendor"'),'render harus mengenali template Gudang Kamera');
+assert(html.includes('window.BSMCameraVendor.renderSlide'),'Preview/PDF Kamera harus memakai renderer khusus');
+const cameraHtml = cameraVendor.renderSlide(cameraVendor.DATA);
+assert(cameraHtml.includes('AMBIL ALAT VENDOR / BACK UP'),'judul Kamera harus sesuai');
+assert(cameraHtml.includes('Sony FX3'),'data FX3 harus tersedia');
+assert(cameraHtml.includes('Sony a7 III'),'data a7 III harus tersedia');
+assert(cameraHtml.includes('>67<'),'total FX3 harus 67');
+assert(cameraHtml.includes('>26<'),'total a7 III harus 26');
+assert(cameraHtml.includes('TOTAL KESELURUHAN'),'harus ada total keseluruhan');
+assert(cameraHtml.includes('>93<'),'total keseluruhan harus 93');
 
 console.log('16:9 dashboard mobile/print tests passed');
