@@ -327,6 +327,17 @@ assert(lightingSlides.some(x=>x.template==='lighting-vendor'));
 assert(lightingSlides.some(x=>x.template==='lighting-service'));
 assert(lightingSlides.some(x=>x.template==='lighting-complaint'));
 assert(lightingReports.renderServiceSlide(lightingSlides.find(x=>x.template==='lighting-service')).includes('STOCK'));
+const lightingComplaintHtml=lightingReports.renderComplaintSlide(lightingSlides.find(x=>x.template==='lighting-complaint'));
+assert(lightingComplaintHtml.includes('<colgroup>'),'Lighting Komplain harus pakai colgroup khusus');
+assert(lightingComplaintHtml.includes('class="lc-item"'),'Lighting Komplain harus punya kolom Nama Alat khusus');
+assert(lightingComplaintHtml.includes('class="lc-chrono"'),'Lighting Komplain harus punya kolom Kronologi khusus');
+assert(lightingComplaintHtml.includes('class="lc-qty"'),'Lighting Komplain harus punya kolom QTY khusus');
+assert(html.includes('.lighting-complaint-slide h1{font-size:48px!important'),'Judul Komplain Lighting harus besar');
+assert(html.includes('.lighting-complaint-table thead th{height:40px!important;font-size:12px!important'),'Header Komplain Lighting harus besar');
+assert(html.includes('.lighting-complaint-table td{height:38px!important;font-size:12px!important'),'Isi Komplain Lighting harus besar');
+assert(html.includes('.lc-chrono{width:18%}'),'Kronologi Lighting harus lebih lebar');
+assert(html.includes('.lc-qty{width:5%}'),'QTY Lighting harus sempit');
+assert(html.includes('maxLightingComplaintRows:9'),'Input Banyak Komplain Lighting maksimal 9 row per slide');
 
 assert(html.includes('/report-cinema-reports.js'),'Gudang Cinema harus memuat helper khusus');
 assert(html.includes('/report-lighting-reports.js'),'Gudang Lighting harus memuat helper khusus');
