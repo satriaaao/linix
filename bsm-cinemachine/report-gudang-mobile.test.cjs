@@ -1,4 +1,5 @@
 const assert = require('assert');
+const fs = require('fs');
 const ui = require('./report-gudang-ui.js');
 
 const phone = ui.getPreviewLayout(390, 10);
@@ -17,4 +18,17 @@ const narrow = ui.getPreviewLayout(320, 10);
 assert.strictEqual(narrow.viewportWidth, 300);
 assert.strictEqual(narrow.viewportHeight, 168.75);
 
-console.log('16:9 preview layout tests passed');
+const html = fs.readFileSync('./bsm-cinemachine/report-gudang.html','utf8');
+assert(html.includes('@page{size:13.333in 7.5in'));
+assert(!html.includes('@page{size:A4 landscape'));
+assert(html.includes('width:1600px!important;height:900px!important'));
+assert(html.includes('id="previewViewport"'));
+assert(html.includes('id="previewCanvas"'));
+assert(html.includes('id="downloadsPage"'));
+assert(html.includes('id="slidesPage"'));
+assert(html.includes('id="coverPage"'));
+assert(html.includes('id="tablePage"'));
+assert(html.includes('id="previewPage"'));
+assert(html.includes('page-break-after:always'));
+
+console.log('16:9 dashboard mobile/print tests passed');
