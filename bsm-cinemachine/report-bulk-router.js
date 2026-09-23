@@ -48,6 +48,12 @@
     if(/TGL PENYEWAAN/.test(s)&&/DURASI SEWA/.test(s)&&/NAMA ALAT/.test(s)&&/UPGRADE/.test(s)&&/VENDOR/.test(s)) return 'audio-vendor';
     if(/TGL PENYEWAAN/.test(s)&&/INDIKASI/.test(s)&&/NAMA ALAT/.test(s)&&/KRONOLOGIS/.test(s)&&/ACTION/.test(s)) return 'audio-complaint';
     if(/NAMA BARANG/.test(s)&&/KERUSAKAN/.test(s)&&/SERIAL NUMBER/.test(s)&&/CASE ID/.test(s)) return 'audio-service';
+    if(typeId==='gudang-cinema'&&/TGL PENYEWAAN/.test(s)&&/DURASI SEWA/.test(s)&&/NAMA ALAT/.test(s)&&/ACTION/.test(s)) return 'cinema-vendor';
+    if(typeId==='gudang-cinema'&&/TGL PENYEWAAN/.test(s)&&/INDIKASI/.test(s)&&/KRONOLOGIS/.test(s)&&/BIAYA/.test(s)) return 'cinema-complaint';
+    if(typeId==='gudang-cinema'&&/NAMA BARANG/.test(s)&&/KERUSAKAN/.test(s)&&/SN (BALLAST|BODY)/.test(s)) return 'cinema-service';
+    if(typeId==='gudang-lighting'&&/TGL PENYEWAAN/.test(s)&&/NAMA ALAT/.test(s)&&/HARGA SEWA/.test(s)) return 'lighting-vendor';
+    if(typeId==='gudang-lighting'&&/NAMA CUSTOMER/.test(s)&&/KRONOLOGI/.test(s)&&/PENGELUARAN/.test(s)&&/INDIKASI/.test(s)) return 'lighting-complaint';
+    if(typeId==='gudang-lighting'&&/NAMA ALAT/.test(s)&&/TEMPAT SERVICE/.test(s)&&/TANGGAL SERVICE/.test(s)&&/INDIKASI RUSAK/.test(s)) return 'lighting-service';
     if(/JAM\/TANGGAL/.test(s)&&(/\t1\t/.test(String(text))||/\b1\s+2\s+3\b/.test(s))) return 'admin-matrix';
     return 'generic';
   }
@@ -361,6 +367,56 @@
     return {kind:'audio-service',slides:slides};
   }
 
+  function parseCinemaVendor(text,opts){
+    opts=opts||{};var rows=compact(splitRows(text)),hi=headerIndex(rows,['TGL','DURASI','NAMA ALAT','QTY']);
+    if(hi<0) throw new Error('Header Cinema Vendor belum terbaca.');
+    var h=rows[hi],dateI=findCol(h,[/TGL/]),durI=findCol(h,[/DURASI/]),nameI=findCol(h,[/NAMA ALAT/]),qtyI=findCol(h,[/^QTY$/]),actionI=findCol(h,[/ACTION/]);
+    var groups=[],buf=[];
+    function finish(total){if(!buf.length)return;groups.push({name:buf[0].item,rows:buf,total:clean(total)||String(buf.reduce(function(s,r){return s+num(r.qty);},0))});buf=[];}
+    rows.slice(hi+1).forEach(function(r){var name=clean(r[nameI]);if(!name)return;if(/^TOTAL$/i.test(name)){finish(r[qtyI]);return;}buf.push({date:clean(r[dateI]),duration:clean(r[durI]),item:name,qty:clean(r[qtyI]),action:clean(r[actionI])});});
+    finish('');if(!groups.length)throw new Error('Data Cinema Vendor belum terbaca.');
+    var pages=paginateGroups(groups,opts.maxCinemaVendorRows||16);
+    return {kind:'cinema-vendor',slides:pages.filter(function(x){return x.length;}).map(function(gs,i){return {template:'cinema-vendor',reportType:'gudang-cinema',department:'CINEMA',groups:[],cinemaVendorGroups:gs,pageNo:i+1,pageTotal:pages.length,period:opts.period||'JUNI 2026'};})};
+  }
+  function parseCinemaComplaint(text,opts){
+    opts=opts||{};var rows=compact(splitRows(text)),hi=headerIndex(rows,['TGL','INDIKASI','NAMA ALAT','QTY','KRONOLOGIS']);
+    if(hi<0)throw new Error('Header Cinema Komplain belum terbaca.');
+    var h=rows[hi],noI=findCol(h,[/^NO$/]),dateI=findCol(h,[/TGL/]),indI=findCol(h,[/INDIKASI/]),itemI=findCol(h,[/NAMA ALAT/]),qtyI=findCol(h,[/^QTY$/]),chronI=findCol(h,[/KRONOLOGIS/]),actionI=findCol(h,[/ACTION/]),costI=findCol(h,[/BIAYA/]),picI=findCol(h,[/^PIC$/]),clientI=findCol(h,[/NAMA CLIENT/,/NAMA KLIEN/,/NAMA CLIEN/]);
+    var data=rows.slice(hi+1).filter(function(r){return clean(r[itemI])!=='';}).map(function(r,i){return {no:num(r[noI])||i+1,date:clean(r[dateI]),indication:clean(r[indI]),item:clean(r[itemI]),qty:clean(r[qtyI]),chronology:clean(r[chronI]),action:clean(r[actionI]),cost:clean(r[costI]),pic:clean(r[picI]),client:clean(r[clientI])};});
+    var max=Math.max(5,Number(opts.maxCinemaComplaintRows||18)),slides=[];for(var i=0;i<data.length;i+=max)slides.push({template:'cinema-complaint',reportType:'gudang-cinema',department:'CINEMA',groups:[],cinemaComplaints:data.slice(i,i+max),pageNo:Math.floor(i/max)+1,pageTotal:Math.max(1,Math.ceil(data.length/max)),period:opts.period||'JUNI 2026'});
+    if(!slides.length)throw new Error('Data Cinema Komplain belum terbaca.');return {kind:'cinema-complaint',slides:slides};
+  }
+  function isCinemaServiceHeader(r){var s=upper((r||[]).join(' | '));return upper((r||[])[0])==='NO'&&s.indexOf('NAMA BARANG')>=0&&s.indexOf('QTY')>=0&&(s.indexOf('KERUSAKAN')>=0||s.indexOf('TROUBLE')>=0);}
+  function parseCinemaService(text,opts){
+    opts=opts||{};var rows=splitRows(text),headers=[];rows.forEach(function(r,i){if(isCinemaServiceHeader(r))headers.push(i);});if(!headers.length)throw new Error('Header Cinema Service belum terbaca.');
+    var slides=[],centers=[];
+    headers.forEach(function(hi,pos){var name='SERVICE CENTER';for(var k=hi-1;k>=0;k--){var v=clean((rows[k]||[])[0]);if(!v)continue;if(/^MBR/i.test(v)||isCinemaServiceHeader(rows[k]))break;name=v;break;}var end=pos+1<headers.length?headers[pos+1]:rows.length,data=[];
+      for(var j=hi+1;j<end;j++){var r=rows[j]||[];if(/^\d+$/.test(clean(r[0]))||(!clean(r[0])&&clean(r[1])&&clean(r[2])))data.push({no:num(r[0])||'',date:clean(r[1]),item:clean(r[2]),damage:clean(r[3]),qty:clean(r[4]),sn1:clean(r[5]),sn2:clean(r[6]),takenDate:clean(r[7]),note:clean(r[8])});}
+      if(data.length)centers.push({name:name,rows:data});
+    });
+    var max=Math.max(5,Number(opts.maxCinemaServiceRows||18));centers.forEach(function(center){var total=Math.max(1,Math.ceil(center.rows.length/max));for(var i=0;i<center.rows.length;i+=max)slides.push({template:'cinema-service',reportType:'gudang-cinema',department:'CINEMA',groups:[],serviceCenter:center.name,cinemaServiceRows:center.rows.slice(i,i+max),pageNo:Math.floor(i/max)+1,pageTotal:total,period:opts.servicePeriod||'2026'});});
+    return {kind:'cinema-service',slides:slides};
+  }
+  function parseLightingVendor(text,opts){
+    opts=opts||{};var rows=compact(splitRows(text)),hi=headerIndex(rows,['TGL','NAMA ALAT','QTY','ACTION']);if(hi<0)throw new Error('Header Lighting Vendor belum terbaca.');
+    var h=rows[hi],dateI=findCol(h,[/TGL/]),nameI=findCol(h,[/NAMA ALAT/]),qtyI=findCol(h,[/^QTY$/]),actionI=findCol(h,[/ACTION/]),backupI=findCol(h,[/BACKUP/,/UPGRADE/]),priceI=findCol(h,[/HARGA SEWA/]);
+    var groups=[],buf=[];function finish(total,totalPrice){if(!buf.length)return;groups.push({name:buf[0].item,rows:buf,total:clean(total)||String(buf.reduce(function(s,r){return s+num(r.qty);},0)),totalPrice:clean(totalPrice)});buf=[];}
+    rows.slice(hi+1).forEach(function(r){var first=upper(r[0]),name=clean(r[nameI]);if(first==='TOTAL'){finish(r[qtyI],r[priceI]);return;}if(!clean(r[dateI])&&!name)return;buf.push({date:clean(r[dateI]),item:name,qty:clean(r[qtyI]),action:clean(r[actionI]),backup:clean(r[backupI]),price:clean(r[priceI])});});finish('','');
+    var pages=paginateGroups(groups,opts.maxLightingVendorRows||16);return {kind:'lighting-vendor',slides:pages.filter(function(x){return x.length;}).map(function(gs,i){return {template:'lighting-vendor',reportType:'gudang-lighting',department:'LIGHTING',groups:[],lightingVendorGroups:gs,pageNo:i+1,pageTotal:pages.length,period:opts.period||'JUNI 2026'};})};
+  }
+  function parseLightingComplaint(text,opts){
+    opts=opts||{};var rows=compact(splitRows(text)),hi=headerIndex(rows,['NAMA CUSTOMER','NAMA ALAT','KRONOLOGI','INDIKASI']);if(hi<0)throw new Error('Header Lighting Komplain belum terbaca.');
+    var h=rows[hi],noI=findCol(h,[/^NO$/]),dateI=findCol(h,[/TGL/]),custI=findCol(h,[/NAMA CUSTOMER/]),itemI=findCol(h,[/NAMA ALAT/]),qtyI=findCol(h,[/^QTY$/]),chronI=findCol(h,[/KRONOLOGI/]),actionI=findCol(h,[/TINDAKAN/]),expI=findCol(h,[/PENGELUARAN/]),indI=findCol(h,[/INDIKASI/]),picI=findCol(h,[/PIC/]);
+    var data=rows.slice(hi+1).filter(function(r){return clean(r[itemI])!=='';}).map(function(r,i){return {no:num(r[noI])||i+1,date:clean(r[dateI]),customer:clean(r[custI]),item:clean(r[itemI]),qty:clean(r[qtyI]),chronology:clean(r[chronI]),action:clean(r[actionI]),expense:clean(r[expI]),indication:clean(r[indI]),pic:clean(r[picI])};});
+    var max=Math.max(5,Number(opts.maxLightingComplaintRows||18)),slides=[];for(var i=0;i<data.length;i+=max)slides.push({template:'lighting-complaint',reportType:'gudang-lighting',department:'LIGHTING',groups:[],lightingComplaints:data.slice(i,i+max),pageNo:Math.floor(i/max)+1,pageTotal:Math.max(1,Math.ceil(data.length/max)),period:opts.period||'JUNI 2026'});return {kind:'lighting-complaint',slides:slides};
+  }
+  function parseLightingService(text,opts){
+    opts=opts||{};var rows=splitRows(text),hi=headerIndex(rows,['NAMA ALAT','TEMPAT SERVICE','TANGGAL SERVICE','INDIKASI RUSAK']);if(hi<0)throw new Error('Header Lighting Service belum terbaca.');
+    var groups=[],current=null,lastName='';function push(){if(current&&current.rows.length){groups.push(current);current=null;}}
+    rows.slice(hi+1).forEach(function(r){var first=clean(r[0]),name=clean(r[1]);if(/^\d+$/.test(first)){if(name){push();current={name:name,rows:[],stockTitle:'',stockSummary:''};lastName=name;}else if(!current)current={name:lastName||'Barang Service',rows:[],stockTitle:'',stockSummary:''};current.rows.push({no:num(r[0]),item:name||lastName,snLamp:clean(r[2]),snControl:clean(r[3]),serviceCenter:clean(r[4]),date:clean(r[5]),damage:clean(r[6])});}else if(/^Stock /i.test(first)&&current){if(/^Stock BSM/i.test(first)){current.stockSummary=first;push();}else current.stockTitle=first;}});push();
+    var pages=paginateGroups(groups,opts.maxLightingServiceRows||16);return {kind:'lighting-service',slides:pages.filter(function(x){return x.length;}).map(function(gs,i){return {template:'lighting-service',reportType:'gudang-lighting',department:'LIGHTING',groups:[],lightingServiceGroups:gs,pageNo:i+1,pageTotal:pages.length,period:opts.period||'JUNI 2026'};})};
+  }
+
   function parseAdmin(text,opts){
     opts=opts||{};
     var rows=splitRows(text),hi=rows.findIndex(function(r){return r.some(function(c){return upper(c)==='JAM/TANGGAL';});});
@@ -413,10 +469,16 @@
     if(kind==='audio-vendor') return parseAudioVendor(text,opts);
     if(kind==='audio-complaint') return parseAudioComplaint(text,opts);
     if(kind==='audio-service') return parseAudioService(text,opts);
+    if(kind==='cinema-vendor') return parseCinemaVendor(text,opts);
+    if(kind==='cinema-complaint') return parseCinemaComplaint(text,opts);
+    if(kind==='cinema-service') return parseCinemaService(text,opts);
+    if(kind==='lighting-vendor') return parseLightingVendor(text,opts);
+    if(kind==='lighting-complaint') return parseLightingComplaint(text,opts);
+    if(kind==='lighting-service') return parseLightingService(text,opts);
     if(kind==='admin-matrix') return parseAdmin(text,opts);
     if(typeof opts.genericParser!=='function') throw new Error('Parser generic belum tersedia.');
     var parsed=opts.genericParser(text);
     return {kind:'generic',slides:paginateGeneric(parsed,opts.maxGenericRows||18)};
   }
-  return {detectKind:detectKind,parse:parse,parseVendor:parseVendor,parseComplaint:parseComplaint,parseService:parseService,parseAudioVendor:parseAudioVendor,parseAudioComplaint:parseAudioComplaint,parseAudioService:parseAudioService,parseAdmin:parseAdmin,paginateGeneric:paginateGeneric};
+  return {detectKind:detectKind,parse:parse,parseVendor:parseVendor,parseComplaint:parseComplaint,parseService:parseService,parseAudioVendor:parseAudioVendor,parseAudioComplaint:parseAudioComplaint,parseAudioService:parseAudioService,parseCinemaVendor:parseCinemaVendor,parseCinemaComplaint:parseCinemaComplaint,parseCinemaService:parseCinemaService,parseLightingVendor:parseLightingVendor,parseLightingComplaint:parseLightingComplaint,parseLightingService:parseLightingService,parseAdmin:parseAdmin,paginateGeneric:paginateGeneric};
 });
