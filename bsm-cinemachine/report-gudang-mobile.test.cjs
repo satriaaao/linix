@@ -146,6 +146,9 @@ const multiParsed=bulkRouter.parse(multiCenterService,{typeId:'marketing',mode:'
 assert.deepStrictEqual([...new Set(multiParsed.slides.map(x=>x.serviceCenter))],['SONY CENTER','ANEKA WARNA','SERVICE OM INDRA'],'satu paste harus memisahkan tiap tempat service');
 assert(multiParsed.slides.some(x=>x.serviceCenter==='SONY CENTER'&&x.serviceGroups.some(g=>g.name==='Sony 70-200 Gm')));
 assert(multiParsed.slides.some(x=>x.serviceCenter==='ANEKA WARNA'&&x.serviceGroups.some(g=>g.name==='Sigma 24-70 for sony')));
+const quotedTabService='ANEKA WARNA\nNO\tMODEL\tTANGGAL\t\tSTOK KANTOR\tSERVICE\tBISA JALAN\tKETERANGAN\n1\t"Sigma 24-70\tfor sony"\t05/01/2026\t\t19\t2\t17\tLensa pecah';
+const quotedParsed=bulkRouter.parse(quotedTabService,{typeId:'marketing',mode:'camera-service'});
+assert.strictEqual(quotedParsed.slides[0].serviceGroups[0].name,'Sigma 24-70 for sony','tab di dalam quoted model harus dinormalisasi jadi spasi');
 assert(multiParsed.slides.some(x=>x.serviceCenter==='SERVICE OM INDRA'&&x.serviceGroups.some(g=>g.name==='Canon ef 24-70mm Lll')));
 const adminPaste='JAM/TANGGAL\t1\t2\t3\tTOTAL\n1:00\t2\t5\t9\t16';
 assert.strictEqual(bulkRouter.detectKind(adminPaste,'admin'),'admin-matrix');
