@@ -4,6 +4,7 @@ const ui = require('./report-gudang-ui.js');
 const adminMatrix = require('./report-admin-matrix.js');
 const cameraVendor = require('./report-camera-vendor.js');
 const cameraReports = require('./report-camera-reports.js');
+const bulkRouter = require('./report-bulk-router.js');
 
 const phone = ui.getPreviewLayout(390, 10);
 assert.strictEqual(phone.canvasWidth, 1600);
@@ -103,5 +104,29 @@ assert(html.includes('template==="camera-complaint"'),'Preview harus mengenali s
 assert(html.includes('template==="camera-service"'),'Preview harus mengenali slide service');
 assert(html.includes('window.BSMCameraReports.renderComplaintSlide'),'renderer komplain harus terpasang');
 assert(html.includes('window.BSMCameraReports.renderServiceSlide'),'renderer service harus terpasang');
+const vendorPaste=[
+  'AMBIL ALAT VENDOR / BACK UP',
+  'NAMA BARANG\tQTY\tTANGGAL\tKETERANGAN\tHARGA VENDOR',
+  'Sony FX3\t4\t05 Juni 2026\t2xkopafi,2xDs\t',
+  'Sony FX3\t3\t06 Juni 2026\t2xkopafi,Ds\t',
+  'Total\t7\t\t\t',
+  'Sony a7 III\t2\t07 Juni 2026\tBandung\t',
+  'Total\t2\t\t\t'
+].join('\n');
+assert.strictEqual(bulkRouter.detectKind(vendorPaste,'gudang-kamera'),'camera-vendor');
+const vendorSlides=bulkRouter.parse(vendorPaste,{typeId:'gudang-kamera',maxVendorRows:2});
+assert.strictEqual(vendorSlides.kind,'camera-vendor');
+assert.strictEqual(vendorSlides.slides.length,2,'vendor harus auto pecah jika melewati batas');
+assert.strictEqual(vendorSlides.slides[0].cameraVendor.groups[0].total,7);
+const complaintPaste='NAMA BARANG\tNAMA CLIEN\tTANGGAL\tINDIKASI\tKRONOLOGIS\tPIC\nSony A\tClient\t01/06/2026\tTrouble\tError\tRian';
+assert.strictEqual(bulkRouter.detectKind(complaintPaste,'gudang-kamera'),'camera-complaint');
+const servicePaste='TEMPAT SERVICE\tMODEL\tTANGGAL\tSTOK KANTOR / SN\tTOTAL UNIT\tDI SERVICE\tBISA JALAN\tKETERANGAN\nSony Center\tSony FX3\t01/06/2026\t123\t31\t15\t16\tHDMI Rusak';
+assert.strictEqual(bulkRouter.detectKind(servicePaste,'gudang-kamera'),'camera-service');
+const adminPaste='JAM/TANGGAL\t1\t2\t3\tTOTAL\n1:00\t2\t5\t9\t16';
+assert.strictEqual(bulkRouter.detectKind(adminPaste,'admin'),'admin-matrix');
+assert.strictEqual(bulkRouter.detectKind('No  TGL Penyewaan  Nama Alat  QTY  Action  Harga Sewa','gudang-lighting'),'generic');
+assert(html.includes('/report-bulk-router.js'),'halaman harus memuat bulk router');
+assert(html.includes('id="bulkModeSelect"'),'Input Banyak harus punya pilihan format');
+assert(html.includes('window.BSMBulkRouter.parse'),'import bulk harus memakai router');
 
 console.log('16:9 dashboard mobile/print tests passed');
