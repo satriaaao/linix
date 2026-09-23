@@ -126,6 +126,27 @@ const complaintPaste='NAMA BARANG\tNAMA CLIEN\tTANGGAL\tINDIKASI\tKRONOLOGIS\tPI
 assert.strictEqual(bulkRouter.detectKind(complaintPaste,'gudang-kamera'),'camera-complaint');
 const servicePaste='TEMPAT SERVICE\tMODEL\tTANGGAL\tSTOK KANTOR / SN\tTOTAL UNIT\tDI SERVICE\tBISA JALAN\tKETERANGAN\nSony Center\tSony FX3\t01/06/2026\t123\t31\t15\t16\tHDMI Rusak';
 assert.strictEqual(bulkRouter.detectKind(servicePaste,'gudang-kamera'),'camera-service');
+const multiCenterService=[
+  'REPORT BARANG YANG DI SERVICE',
+  'SONY CENTER',
+  'NO\tMODEL\tTANGGAL\t\tSTOK KANTOR\tDISERVICE\tBISA JALAN\tKETERANGAN',
+  '1\tSony 70-200 Gm\t11/01/2025\tBsm7020008\t16\t5\t11\tF Tidak Detect',
+  '2\tSony 70-200 Gm\t14/05/2025\t1811547\t\t\t\tF Rusak',
+  '',
+  'ANEKA WARNA',
+  'NO\tMODEL\tTANGGAL\t\tSTOK KANTOR\tSERVICE\tBISA JALAN\tKETERANGAN',
+  '1\tSigma 24-70 for sony\t05/01/2026\t\t19\t2\t17\tLensa pecah',
+  '2\tSigma 24-70 for sony\t27/01/2026\t\t\t\t\t',
+  'SERVICE OM INDRA',
+  'NO\tMODEL\tTANGGAL\t\tSTOK KANTOR\tSERVICE\tBISA JALAN\tKETERANGAN',
+  '1\tCanon ef 24-70mm Lll\t15/12/2025\t\t6\t3\t3\tError 01'
+].join('\n');
+assert.strictEqual(bulkRouter.detectKind(multiCenterService,'marketing'),'camera-service','service harus terdeteksi walau target aktif Marketing');
+const multiParsed=bulkRouter.parse(multiCenterService,{typeId:'marketing',mode:'camera-service',maxServiceUnits:20});
+assert.deepStrictEqual([...new Set(multiParsed.slides.map(x=>x.serviceCenter))],['SONY CENTER','ANEKA WARNA','SERVICE OM INDRA'],'satu paste harus memisahkan tiap tempat service');
+assert(multiParsed.slides.some(x=>x.serviceCenter==='SONY CENTER'&&x.serviceGroups.some(g=>g.name==='Sony 70-200 Gm')));
+assert(multiParsed.slides.some(x=>x.serviceCenter==='ANEKA WARNA'&&x.serviceGroups.some(g=>g.name==='Sigma 24-70 for sony')));
+assert(multiParsed.slides.some(x=>x.serviceCenter==='SERVICE OM INDRA'&&x.serviceGroups.some(g=>g.name==='Canon ef 24-70mm Lll')));
 const adminPaste='JAM/TANGGAL\t1\t2\t3\tTOTAL\n1:00\t2\t5\t9\t16';
 assert.strictEqual(bulkRouter.detectKind(adminPaste,'admin'),'admin-matrix');
 assert.strictEqual(bulkRouter.detectKind('No  TGL Penyewaan  Nama Alat  QTY  Action  Harga Sewa','gudang-lighting'),'generic');
