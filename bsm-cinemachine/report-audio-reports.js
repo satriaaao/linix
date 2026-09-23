@@ -144,7 +144,7 @@
     var cp=paginateGroups(parsed.complaintGroups||[],opts.maxComplaintRows||16);
     cp.forEach(function(groups,i){if(groups.length) slides.push({template:'audio-complaint',reportType:'gudang-audio',department:'AUDIO',groups:[],audioComplaintGroups:groups,pageNo:i+1,pageTotal:cp.length,period:opts.period||'JUNI 2026'});});
     (parsed.serviceCenters||[]).forEach(function(center){
-      var rows=center.rows||[],max=Math.max(5,Number(opts.maxServiceRows||18)),total=Math.max(1,Math.ceil(rows.length/max));
+      var rows=center.rows||[],max=Math.max(5,Number(opts.maxServiceRows||12)),total=Math.max(1,Math.ceil(rows.length/max));
       for(var i=0;i<rows.length;i+=max){
         slides.push({template:'audio-service',reportType:'gudang-audio',department:'AUDIO',groups:[],serviceCenter:center.name,audioServiceRows:rows.slice(i,i+max),pageNo:Math.floor(i/max)+1,pageTotal:total,period:opts.servicePeriod||'2026'});
       }
