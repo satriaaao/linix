@@ -154,6 +154,22 @@ assert.strictEqual(quotedParsed.slides[0].serviceGroups[0].name,'Sigma 24-70 for
 assert(multiParsed.slides.some(x=>x.serviceCenter==='SERVICE OM INDRA'&&x.serviceGroups.some(g=>g.name==='Canon ef 24-70mm Lll')));
 const adminPaste='JAM/TANGGAL\t1\t2\t3\tTOTAL\n1:00\t2\t5\t9\t16';
 assert.strictEqual(bulkRouter.detectKind(adminPaste,'admin'),'admin-matrix');
+const audioVendorPaste='NO\tTGL penyewaan\tDurasi Sewa\tNama Alat\tQTY\tUpgrade\tVendor\tharga sewa vendor\n\t13 juni 2026\t1 hari\tatomos ninja v\t3 unit\t\tpanorama\t\n\t\t\ttotal\t3 unit\t\t\t';
+assert.strictEqual(bulkRouter.detectKind(audioVendorPaste,'gudang-audio'),'audio-vendor');
+const audioVendorParsed=bulkRouter.parse(audioVendorPaste,{typeId:'gudang-audio',mode:'audio-vendor',maxAudioVendorRows:16});
+assert.strictEqual(audioVendorParsed.kind,'audio-vendor');
+assert.strictEqual(audioVendorParsed.slides[0].audioVendorGroups[0].name,'atomos ninja v');
+
+const audioComplaintPaste='NO\tTGL penyewaan\tIndikasi\tNama Alat\tQTY\tKronologis\tAction\tPic yang menyiapkan\tnama client\n\t12 juni 2026\ttrouble\tatomos hdr\t1 unit\toverheat\tdicek trouble\taldi\tpt badan geo\n\t\t\ttotal\t1 unit\t\t\t\t';
+assert.strictEqual(bulkRouter.detectKind(audioComplaintPaste,'gudang-audio'),'audio-complaint');
+const audioComplaintParsed=bulkRouter.parse(audioComplaintPaste,{typeId:'gudang-audio',mode:'audio-complaint'});
+assert.strictEqual(audioComplaintParsed.slides[0].audioComplaintGroups[0].rows[0].client,'pt badan geo');
+
+const audioServicePaste='PT. BURSA KAMERA\nNO\tTANGGAL\tNAMA BARANG\tKERUSAKAN\tQTY\tSERIAL NUMBER/SN\tCASE ID\tSUDAH DI AMBIL/TGL\tKETERANGAN\n1\t24 november 2023\tatomos sumo 19\tmonitor tidak nyala\t1\tSN1\t\t\t\nRudy TILTA/VITESSE\nNO\tTANGGAL\tNAMA BARANG\tKERUSAKAN\tQTY\tSERIAL NUMBER/SN\tCASE ID\tSUDAH DI AMBIL/TGL\tKETERANGAN\n1\t10 februari 2021\tatomos ninja v\tLCD Pecah\t1\tSN2\t\t\t';
+assert.strictEqual(bulkRouter.detectKind(audioServicePaste,'gudang-audio'),'audio-service');
+const audioServiceParsed=bulkRouter.parse(audioServicePaste,{typeId:'gudang-audio',mode:'audio-service',maxAudioServiceRows:18});
+assert.deepStrictEqual([...new Set(audioServiceParsed.slides.map(x=>x.serviceCenter))],['PT. BURSA KAMERA','Rudy TILTA/VITESSE']);
+
 assert.strictEqual(bulkRouter.detectKind('No  TGL Penyewaan  Nama Alat  QTY  Action  Harga Sewa','gudang-lighting'),'generic');
 assert(html.includes('/report-bulk-router.js'),'halaman harus memuat bulk router');
 assert(html.includes('id="bulkModeSelect"'),'Input Banyak harus punya pilihan format');
