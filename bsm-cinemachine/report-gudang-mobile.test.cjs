@@ -30,5 +30,7 @@ assert(html.includes('id="coverPage"'));
 assert(html.includes('id="tablePage"'));
 assert(html.includes('id="previewPage"'));
 assert(html.includes('page-break-after:always'));
+assert(html.includes('.top-actions .btn.menu-toggle#menuToggle{'));
+assert(!html.includes('body:not(.mobile-preview) .report-zone{display:none}'));
 
 console.log('16:9 dashboard mobile/print tests passed');
