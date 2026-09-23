@@ -1,5 +1,5 @@
 {
-  "buildCommand": "rm -rf dist && mkdir -p dist && cp bsm-cinemachine/public-v5.html dist/index.html && cp bsm-cinemachine/cms-v5.html dist/cms.html && mkdir -p dist/qr-code && cp bsm-cinemachine/qr.html dist/qr-code/index.html && cp bsm-cinemachine/report-gudang.html dist/report-gudang.html && cp bsm-cinemachine/*.js dist/ && cp bsm-cinemachine/*.css dist/ 2>/dev/null || true",
+  "buildCommand": "rm -rf dist && mkdir -p dist && cp bsm-cinemachine/public-v5.html dist/index.html && cp bsm-cinemachine/cms-v5.html dist/cms.html && mkdir -p dist/qr-code && cp bsm-cinemachine/qr.html dist/qr-code/index.html && cp bsm-cinemachine/report-gudang.html dist/report-gudang && cp bsm-cinemachine/report-gudang.html dist/report-gudang.html && cp bsm-cinemachine/*.js dist/ && cp bsm-cinemachine/*.css dist/ 2>/dev/null || true",
   "outputDirectory": "dist",
   "cleanUrls": true,
   "headers": [
@@ -104,11 +104,6 @@
     }
   ],
   "redirects": [
-    {
-      "source": "/report-gudang",
-      "destination": "/report-gudang.html",
-      "permanent": false
-    },
     {
       "source": "/qr",
       "destination": "/qr-code",
