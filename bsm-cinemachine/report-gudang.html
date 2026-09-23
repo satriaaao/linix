@@ -1891,13 +1891,19 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         requestAnimationFrame(updatePreviewScale);
       }
 
+      function bulkTargetTypeForMode(mode){
+        if(mode==="camera-vendor"||mode==="camera-complaint"||mode==="camera-service") return "gudang-kamera";
+        if(mode==="admin-matrix") return "admin";
+        return state.activeType;
+      }
       function updateBulkContext(){
         if(!bulkModeSelect||!bulkContextText||!bulkInput) return;
-        var type=reportType(state.activeType);
+        var targetType=bulkTargetTypeForMode(bulkModeSelect.value);
+        var type=reportType(targetType);
         bulkContextText.textContent=type.label+" • "+(bulkModeSelect.options[bulkModeSelect.selectedIndex]?bulkModeSelect.options[bulkModeSelect.selectedIndex].text:"Auto Detect");
-        if(state.activeType==="gudang-kamera"){
+        if(targetType==="gudang-kamera"){
           bulkInput.placeholder="Paste tabel Kamera dari Excel. Contoh Vendor:\nNAMA BARANG\tQTY\tTANGGAL\tKETERANGAN\tHARGA VENDOR\nSony FX3\t4\t05 Juni 2026\t2xkopafi,2xDs\t\nTotal\t4";
-        }else if(state.activeType==="admin"){
+        }else if(targetType==="admin"){
           bulkInput.placeholder="Paste matrix Admin dari Excel, termasuk header JAM/TANGGAL, tanggal 1-30, TOTAL dan KET.";
         }else{
           bulkInput.placeholder="Paste tabel "+type.label+" dari Excel / Google Sheets. Pilih Auto Detect atau Report Umum.";
@@ -2146,5 +2152,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     })();
   </script>
 </body>
-<!-- report-gudang-build-v16-universal-bulk-input -->
+<!-- report-gudang-build-v17-service-multicenter-bulk -->
 </html>
