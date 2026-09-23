@@ -24,9 +24,30 @@
     src=src||{};
     return {width:clamp(src.width==null?180:src.width,80,320),x:clamp(src.x||0,-200,200),y:clamp(src.y||0,-200,200)};
   }
-  function renderSidebar(active){
-    var items=[['slides','Slide'],['cover','Cover Slide 1'],['bulk','Input Banyak'],['table','Editor Tabel'],['preview','Preview'],['downloads','Download Data'],['pdf','Download PDF 16:9'],['settings','Pengaturan']];
-    return items.map(function(it){return '<button class="rg-sidebar-item '+(active===it[0]?'active':'')+'" data-menu="'+it[0]+'">'+it[1]+'</button>';}).join('');
+  function renderSidebar(active,reportTypes,activeType,coverTarget){
+    var items=[
+      ['preview','Preview Master'],
+      ['types','Jenis Report'],
+      ['master-cover','Cover Master'],
+      ['bulk','Input Banyak'],
+      ['table','Editor Report Aktif'],
+      ['downloads','Download Data'],
+      ['pdf','Download PDF 16:9'],
+      ['settings','Pengaturan']
+    ];
+    var html=items.map(function(it){
+      var isActive=active===it[0]||(it[0]==='master-cover'&&active==='cover'&&coverTarget==='master');
+      return '<button class="rg-sidebar-item '+(isActive?'active':'')+'" data-menu="'+it[0]+'">'+it[1]+'</button>';
+    }).join('');
+    var types=Array.isArray(reportTypes)?reportTypes:[];
+    if(types.length){
+      html+='<div class="rg-sidebar-group">Jenis Report</div>';
+      html+=types.map(function(t){
+        var isActive=t.id===activeType&&active!=='preview'&&!(active==='cover'&&coverTarget==='master');
+        return '<button class="rg-sidebar-item rg-report-type '+(isActive?'active':'')+'" data-report-type="'+t.id+'">'+t.label+'</button>';
+      }).join('');
+    }
+    return html;
   }
   function renderModalShell(kind,title,body){
     return '<div class="rg-modal-backdrop" id="rgModal" data-modal="'+kind+'"><div class="rg-modal-card"><div class="rg-modal-head"><strong>'+title+'</strong><button class="rg-modal-close" data-close-modal>×</button></div><div class="rg-modal-body">'+body+'</div></div></div>';
