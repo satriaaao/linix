@@ -644,7 +644,8 @@
     @media print{
       @page{size:13.333in 7.5in;margin:0}
       html,body{margin:0!important;padding:0!important;background:#fff!important}
-      .topbar,.editor,.report-toolbar,.slide-dots,.dashboard-main,.rg-sidebar-scrim,.rg-modal-backdrop{display:none!important}
+      .topbar,.editor,.report-toolbar,.slide-dots,.dashboard-page,.rg-sidebar-scrim,.rg-modal-backdrop{display:none!important}
+      .dashboard-main{display:block!important;max-width:none!important;margin:0!important;padding:0!important}
       .print-stack{display:block!important;margin:0!important;padding:0!important}
       .print-page{display:block!important;width:13.333in!important;height:7.5in!important;overflow:hidden!important;margin:0!important}
       .print-canvas{display:block!important;width:1600px!important;height:900px!important;transform:scale(.8)!important;transform-origin:top left!important}
@@ -833,7 +834,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       </div>
       </section>
 
-      <section class="dashboard-page" id="downloadPage">
+      <section class="dashboard-page" id="downloadsPage">
         <div class="page-card">
           <div class="page-head"><div><h3>Download Data</h3><p>Download data dalam format XLSX atau CSV.</p></div></div>
           <div class="page-body"><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Data</th><th>Jumlah Baris</th><th>XLSX</th><th>CSV</th></tr></thead><tbody id="downloadTableBody"></tbody></table></div></div>
@@ -986,7 +987,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var modalHost=document.getElementById("modalHost");
       var dataResetSection=document.getElementById("dataResetSection");
       var menuToggle=document.getElementById("menuToggle");
-      var activeMenu=state.activeView===0?"cover":"table";
+      var activeMenu="preview";
       var modalMovedNodes=[];
     
       function esc(v){
@@ -1485,8 +1486,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       document.addEventListener("keydown",function(e){if(e.key==="Escape"){closeModal();closeSidebar();}});
 
       var touchStartX=null;
-      document.querySelector(".report-shell").addEventListener("touchstart",function(e){touchStartX=e.changedTouches&&e.changedTouches[0]?e.changedTouches[0].clientX:null;},{passive:true});
-      document.querySelector(".report-shell").addEventListener("touchend",function(e){
+      previewViewport.addEventListener("touchstart",function(e){touchStartX=e.changedTouches&&e.changedTouches[0]?e.changedTouches[0].clientX:null;},{passive:true});
+      previewViewport.addEventListener("touchend",function(e){
         if(touchStartX==null||!e.changedTouches||!e.changedTouches[0]) return;
         var dx=e.changedTouches[0].clientX-touchStartX; touchStartX=null;
         if(Math.abs(dx)>55) changeSlide(dx<0?1:-1);
