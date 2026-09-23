@@ -339,6 +339,11 @@ assert(html.includes('slide-fit-tight'),'harus ada mode tight');
 assert(html.includes('ensureSlideSafeFit(currentSlideRoot())'),'Preview harus menjalankan safe fit');
 assert(html.includes('ensureSlideSafeFit(node)'),'PDF harus menjalankan safe fit sebelum capture');
 assert(html.includes('overflow-wrap:anywhere'),'teks tabel panjang harus bisa wrap tanpa memotong horizontal');
+assert(html.includes('.audio-service-table thead th{height:40px!important;font-size:12px!important'),'Header Service Audio harus besar');
+assert(html.includes('.audio-service-table td{height:34px!important;font-size:12px!important'),'Isi Service Audio harus besar');
+assert(html.includes('.audio-service-slide h1{font-size:48px!important'),'Judul Service Audio harus diperbesar');
+assert(html.includes('maxVendorRows:14,maxComplaintRows:14,maxServiceRows:12'),'Import Excel Audio Service maksimal 12 row per slide');
+assert(html.includes('maxAudioServiceRows:12'),'Input Banyak Audio Service maksimal 12 row per slide');
 
 
 const cinemaServiceRows=[
