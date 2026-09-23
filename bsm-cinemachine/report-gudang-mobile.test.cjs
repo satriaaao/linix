@@ -403,6 +403,8 @@ assert(html.includes('window.BSMLightingReports.createSlides'),'Import Excel Lig
 
 const cinemaVendorPaste='NO\tTGL penyewaan\tDurasi Sewa\tNama Alat\tQTY\tAction\n1\t01-Juni-2026\t1 hari\tSmall hd\t1\tDS\n\t\t\tTOTAL\t1\t';
 assert.strictEqual(bulkRouter.detectKind(cinemaVendorPaste,'gudang-cinema'),'cinema-vendor');
+const cinemaDenkaPaste='NO\tTANGGAL\tNAMA BARANG\tKERUSAKAN/TROUBLE\tQTY\tSERIAL NUMBER/SN\tCASE ID\tSUDAH DI AMBIL/TGL\tKETERANGAN\n1\t01/06/2026\tNucleus M\tMotor mati\t1\tSN1\tCASE1\t\t';
+assert.strictEqual(bulkRouter.detectKind(cinemaDenkaPaste,'gudang-cinema'),'cinema-service','Service Cinema dengan SERIAL NUMBER/CASE ID tidak boleh salah jadi Audio');
 assert.strictEqual(bulkRouter.parse(cinemaVendorPaste,{typeId:'gudang-cinema',mode:'cinema-vendor'}).slides[0].cinemaVendorGroups[0].name,'Small hd');
 
 const lightingVendorPaste='No\tTGL Penyewaan\tNama Alat\tQTY\tAction\tBackup\tHarga Sewa\n1\t01/06/2026\tSpotlight\t1\tDS\t\t100000\nTotal\t\t\t1\t\t\t100000';
