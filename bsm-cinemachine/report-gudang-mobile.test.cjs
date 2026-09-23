@@ -7,6 +7,8 @@ const cameraReports = require('./report-camera-reports.js');
 const bulkRouter = require('./report-bulk-router.js');
 const liveEdit = require('./report-live-edit.js');
 const audioReports = require('./report-audio-reports.js');
+const cinemaReports = require('./report-cinema-reports.js');
+const lightingReports = require('./report-lighting-reports.js');
 
 const phone = ui.getPreviewLayout(390, 10);
 assert.strictEqual(phone.canvasWidth, 1600);
@@ -245,5 +247,80 @@ assert(html.includes('template==="audio-complaint"'),'Preview harus mengenali Au
 assert(html.includes('template==="audio-service"'),'Preview harus mengenali Audio Service');
 assert(html.includes('window.BSMAudioReports.createSlides'),'Import Excel harus membuat slide Audio');
 assert(html.includes('window.BSMAudioReports.renderServiceSlide'),'PDF/Preview harus memakai renderer Audio');
+
+
+const cinemaServiceRows=[
+  ['MBR ALAT-ALAT YANG DI SERVICE GUDANG CINEMA','','','','','','','',''],
+  ['PRIMAMEDIA','','','','','','','',''],
+  ['NO','TANGGAL','NAMA BARANG','KERUSAKAN','QTY','SN BALLAST','SN BODY','SUDAH DI AMBIL/TGL','KETERANGAN'],
+  [1,46196,'XT52','BALLAST MATI',1,'SN-A','SN-B','',''],
+  ['VITESSE','','','','','','','',''],
+  ['NO','TANGGAL','NAMA BARANG','KERUSAKAN','QTY','SERIAL NUMBER/SN','SN BODY','SUDAH DI AMBIL/TGL','KETERANGAN'],
+  [1,46181,'VAXIS 3000','GAMBAR KOTAK',1,'SN-C','','','']
+];
+const cinemaMonthRows=[
+  ['MBR Report Gudang CINEMA BSM Tebet','','','','','','','Report Barang Bermasalah / Komplain','','','','','','','','',''],
+  ['Periode TGL 01-30 JUNI 2026','','','','','','','NO','TGL penyewaan','Indikasi','Nama Alat','QTY','Kronologis','Action','BIAYA','PIC','NAMA CLIENT'],
+  ['','','','','','','',1,'01-Juni-2026','trouble','Dji force pro',1,'sinyal hilang','BBM',25000,'','Rafi'],
+  ['Report Barang Kurang / Ambil Vendor','','','','','','','','','','','','','','','',''],
+  ['NO','TGL penyewaan','Durasi Sewa','Nama Alat','QTY','Action','','','','','','','','','','',''],
+  [1,'01-Juni-2026','1 hari','Small hd',1,'DS','','','','','','','','','','',''],
+  ['','','','TOTAL',1,'','','','','','','','','','','','']
+];
+const cinemaParsed=cinemaReports.parseWorkbookRows(cinemaServiceRows,cinemaMonthRows);
+assert.strictEqual(cinemaParsed.serviceCenters.length,2);
+assert.strictEqual(cinemaParsed.vendorGroups.length,1);
+assert.strictEqual(cinemaParsed.complaints.length,1);
+const cinemaSlides=cinemaReports.createSlides(cinemaParsed,{maxServiceRows:1,maxVendorRows:1,maxComplaintRows:1});
+assert(cinemaSlides.some(x=>x.template==='cinema-vendor'));
+assert(cinemaSlides.some(x=>x.template==='cinema-complaint'));
+assert(cinemaSlides.filter(x=>x.template==='cinema-service').length>=2);
+assert(cinemaReports.renderVendorSlide(cinemaSlides.find(x=>x.template==='cinema-vendor')).includes('AMBIL VENDOR'));
+assert(cinemaReports.renderComplaintSlide(cinemaSlides.find(x=>x.template==='cinema-complaint')).includes('KOMPLAIN'));
+assert(cinemaReports.renderServiceSlide(cinemaSlides.find(x=>x.template==='cinema-service')).includes('SERVICE'));
+
+const lightingVendorRows=[
+  ['MBR Report Gudang LIGHTING BSM Rental','','','','','',''],
+  ['Priode JUNI 2026','','','','','',''],
+  ['Report Barang Kurang/Ambil Vendor','','','','','',''],
+  ['No','TGL Penyewaan','Nama Alat','QTY','Action','','Harga Sewa'],
+  [1,46174,'Spotlight 36"',1,'Spotlight 19" DS','',133200],
+  ['',46195,'',1,'DS','',166500],
+  ['Total','','',2,'','','Total Sewa = Rp. 299700']
+];
+const lightingServiceRows=[
+  ['BARANG SERVICE GUDANG LIGHTING','','','','','',''],
+  ['','','','','','',''],
+  ['NO','Nama Alat','SN ','','Tempat Service ','Tanggal Service','Indikasi Rusak'],
+  ['','','Lampu','Control Box','','',''],
+  [1,'Aputure 600d Pro','SN-L1','SN-C1','Prima Media',45972,'Kabel rusak'],
+  [2,'','SN-L2','SN-C2','Prima Media',45992,'LCD rusak'],
+  ['Stock Aputure 600d','','','','','',''],
+  ['Stock BSM = 40 | Stock Jakarta = 31 | Sehat = 17 | Service = 6','','','','','','']
+];
+const lightingComplaintRows=[
+  ['Report Barang Bermasalah/Komplain Mei','','','','','','','','',''],
+  ['No','TGL Penyewaan','Nama Customer','Nama Alat','QTY','Kronologi','Tindakan','Pengeluaran','Indikasi','Pic Siapkan Alat'],
+  [1,46184,'PT Wahana','Aputure Dome II',1,'Belum konfirmasi','Kirim ulang','Rp. 44.000','Kelalaian','Gusti']
+];
+const lightingParsed=lightingReports.parseWorkbookRows(lightingVendorRows,lightingServiceRows,lightingComplaintRows);
+assert.strictEqual(lightingParsed.vendorGroups.length,1);
+assert.strictEqual(lightingParsed.serviceGroups.length,1);
+assert.strictEqual(lightingParsed.complaints.length,1);
+const lightingSlides=lightingReports.createSlides(lightingParsed,{maxVendorRows:1,maxServiceRows:1,maxComplaintRows:1});
+assert(lightingSlides.some(x=>x.template==='lighting-vendor'));
+assert(lightingSlides.some(x=>x.template==='lighting-service'));
+assert(lightingSlides.some(x=>x.template==='lighting-complaint'));
+assert(lightingReports.renderServiceSlide(lightingSlides.find(x=>x.template==='lighting-service')).includes('BARANG SERVICE'));
+assert(lightingReports.renderComplaintSlide(lightingSlides.find(x=>x.template==='lighting-complaint')).includes('KOMPLAIN'));
+
+assert(html.includes('/report-cinema-reports.js'),'Gudang Cinema harus memuat helper khusus');
+assert(html.includes('/report-lighting-reports.js'),'Gudang Lighting harus memuat helper khusus');
+assert(html.includes('id="cinemaExcelInput"'),'Input Banyak harus punya Import Excel Cinema');
+assert(html.includes('id="lightingExcelInput"'),'Input Banyak harus punya Import Excel Lighting');
+assert(html.includes('id="cinemaReportHost"'),'Preview harus punya host Cinema');
+assert(html.includes('id="lightingReportHost"'),'Preview harus punya host Lighting');
+assert(html.includes('window.BSMCinemaReports.createSlides'),'Import Excel Cinema harus membuat slide');
+assert(html.includes('window.BSMLightingReports.createSlides'),'Import Excel Lighting harus membuat slide');
 
 console.log('16:9 dashboard mobile/print tests passed');
