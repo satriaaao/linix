@@ -42,18 +42,26 @@
   }
   function detectKind(text,typeId){
     var s=upper(text);
+    if(typeId==='gudang-cinema'){
+      if(/TGL PENYEWAAN/.test(s)&&/DURASI SEWA/.test(s)&&/NAMA ALAT/.test(s)&&/ACTION/.test(s)) return 'cinema-vendor';
+      if(/TGL PENYEWAAN/.test(s)&&/INDIKASI/.test(s)&&/KRONOLOGIS/.test(s)&&/BIAYA/.test(s)) return 'cinema-complaint';
+      if(/NAMA BARANG/.test(s)&&/KERUSAKAN/.test(s)&&(/SN (BALLAST|BODY)/.test(s)||/SERIAL NUMBER/.test(s)||/CASE ID/.test(s))) return 'cinema-service';
+    }
+    if(typeId==='gudang-lighting'){
+      if(/TGL PENYEWAAN/.test(s)&&/NAMA ALAT/.test(s)&&/HARGA SEWA/.test(s)) return 'lighting-vendor';
+      if(/NAMA CUSTOMER/.test(s)&&/KRONOLOGI/.test(s)&&/PENGELUARAN/.test(s)&&/INDIKASI/.test(s)) return 'lighting-complaint';
+      if(/NAMA ALAT/.test(s)&&/TEMPAT SERVICE/.test(s)&&/TANGGAL SERVICE/.test(s)&&/INDIKASI RUSAK/.test(s)) return 'lighting-service';
+    }
+    if(typeId==='gudang-audio'){
+      if(/TGL PENYEWAAN/.test(s)&&/DURASI SEWA/.test(s)&&/NAMA ALAT/.test(s)&&/UPGRADE/.test(s)&&/VENDOR/.test(s)) return 'audio-vendor';
+      if(/TGL PENYEWAAN/.test(s)&&/INDIKASI/.test(s)&&/NAMA ALAT/.test(s)&&/KRONOLOGIS/.test(s)&&/ACTION/.test(s)) return 'audio-complaint';
+      if(/NAMA BARANG/.test(s)&&/KERUSAKAN/.test(s)&&/SERIAL NUMBER/.test(s)&&/CASE ID/.test(s)) return 'audio-service';
+    }
     if(/NAMA BARANG/.test(s)&&/QTY/.test(s)&&/HARGA VENDOR/.test(s)) return 'camera-vendor';
     if(/NAMA BARANG/.test(s)&&/(NAMA CLIEN|NAMA CLIENT|NAMA KLIEN)/.test(s)&&/(IDIKASI|INDIKASI)/.test(s)&&/KRONOLOGIS/.test(s)) return 'camera-complaint';
     if(/MODEL/.test(s)&&/STOK KANTOR/.test(s)&&/(DI\s*SERVICE|DISERVICE|\bSERVICE\b)/.test(s)&&/BISA JALAN/.test(s)) return 'camera-service';
     if(/TGL PENYEWAAN/.test(s)&&/DURASI SEWA/.test(s)&&/NAMA ALAT/.test(s)&&/UPGRADE/.test(s)&&/VENDOR/.test(s)) return 'audio-vendor';
-    if(/TGL PENYEWAAN/.test(s)&&/INDIKASI/.test(s)&&/NAMA ALAT/.test(s)&&/KRONOLOGIS/.test(s)&&/ACTION/.test(s)) return 'audio-complaint';
-    if(/NAMA BARANG/.test(s)&&/KERUSAKAN/.test(s)&&/SERIAL NUMBER/.test(s)&&/CASE ID/.test(s)) return 'audio-service';
-    if(typeId==='gudang-cinema'&&/TGL PENYEWAAN/.test(s)&&/DURASI SEWA/.test(s)&&/NAMA ALAT/.test(s)&&/ACTION/.test(s)) return 'cinema-vendor';
-    if(typeId==='gudang-cinema'&&/TGL PENYEWAAN/.test(s)&&/INDIKASI/.test(s)&&/KRONOLOGIS/.test(s)&&/BIAYA/.test(s)) return 'cinema-complaint';
-    if(typeId==='gudang-cinema'&&/NAMA BARANG/.test(s)&&/KERUSAKAN/.test(s)&&/SN (BALLAST|BODY)/.test(s)) return 'cinema-service';
-    if(typeId==='gudang-lighting'&&/TGL PENYEWAAN/.test(s)&&/NAMA ALAT/.test(s)&&/HARGA SEWA/.test(s)) return 'lighting-vendor';
-    if(typeId==='gudang-lighting'&&/NAMA CUSTOMER/.test(s)&&/KRONOLOGI/.test(s)&&/PENGELUARAN/.test(s)&&/INDIKASI/.test(s)) return 'lighting-complaint';
-    if(typeId==='gudang-lighting'&&/NAMA ALAT/.test(s)&&/TEMPAT SERVICE/.test(s)&&/TANGGAL SERVICE/.test(s)&&/INDIKASI RUSAK/.test(s)) return 'lighting-service';
+    if(/NAMA CUSTOMER/.test(s)&&/KRONOLOGI/.test(s)&&/PENGELUARAN/.test(s)&&/INDIKASI/.test(s)) return 'lighting-complaint';
     if(/JAM\/TANGGAL/.test(s)&&(/\t1\t/.test(String(text))||/\b1\s+2\s+3\b/.test(s))) return 'admin-matrix';
     return 'generic';
   }
