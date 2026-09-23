@@ -4,6 +4,15 @@
   if(root) root.BSMReportUI=api;
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
   function clamp(n,min,max){ n=Number(n||0); return Math.max(min,Math.min(max,n)); }
+  function computePreviewScale(viewportWidth,baseWidth,sidePadding){
+    var vw=Number(viewportWidth||0),bw=Number(baseWidth||1480),pad=Number(sidePadding==null?20:sidePadding);
+    if(!bw||bw<1) return 1;
+    return Math.min(1,Math.max(.12,(vw-(pad*2))/bw));
+  }
+  function getMobilePreviewLayout(viewportWidth,baseWidth,baseHeight,sidePadding){
+    var scale=computePreviewScale(viewportWidth,baseWidth,sidePadding);
+    return {scale:scale,width:Math.max(0,Number(viewportWidth||0)-(Number(sidePadding==null?20:sidePadding)*2)),height:Number(baseHeight||820)*scale};
+  }
   function normalizeLogoSettings(src){
     src=src||{};
     return {width:clamp(src.width==null?180:src.width,80,320),x:clamp(src.x||0,-200,200),y:clamp(src.y||0,-200,200)};
@@ -29,5 +38,5 @@
       +'<label>Posisi Y <span data-logo-value="y">'+s.y+'</span><input type="range" min="-200" max="200" value="'+s.y+'" data-logo-setting="y"></label>'
       +'<button class="btn" data-reset-logo>Reset Logo</button></div>';
   }
-  return {normalizeLogoSettings:normalizeLogoSettings,renderSidebar:renderSidebar,renderModalShell:renderModalShell,renderLogoOverlay:renderLogoOverlay,renderLogoEditor:renderLogoEditor};
+  return {computePreviewScale:computePreviewScale,getMobilePreviewLayout:getMobilePreviewLayout,normalizeLogoSettings:normalizeLogoSettings,renderSidebar:renderSidebar,renderModalShell:renderModalShell,renderLogoOverlay:renderLogoOverlay,renderLogoEditor:renderLogoEditor};
 });
