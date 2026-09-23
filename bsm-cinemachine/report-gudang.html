@@ -639,11 +639,11 @@
       body.presentation-mode #previewPage,
       body.presentation-mode .preview-stage{height:100vh!important}
     }
-    .cover-slide,.report,.admin-matrix-slide,.camera-vendor-slide,.camera-complaint-slide,.camera-service-slide,.audio-vendor-slide,.audio-complaint-slide,.audio-service-slide{
+    .cover-slide,.report,.admin-matrix-slide,.camera-vendor-slide,.camera-complaint-slide,.camera-service-slide,.audio-vendor-slide,.audio-complaint-slide,.audio-service-slide,.cinema-vendor-slide,.cinema-complaint-slide,.cinema-service-slide,.lighting-vendor-slide,.lighting-complaint-slide,.lighting-service-slide{
       width:1600px!important;height:900px!important;min-height:900px!important;max-height:900px!important;
       aspect-ratio:16/9;overflow:hidden!important;
     }
-    #adminMatrixHost,#cameraVendorHost,#cameraOpsHost,#audioReportHost{width:1600px;height:900px}
+    #adminMatrixHost,#cameraVendorHost,#cameraOpsHost,#audioReportHost,#cinemaReportHost,#lightingReportHost{width:1600px;height:900px}
     .admin-matrix-slide{
       position:relative;background:#fff;color:#15394b;padding:20px 28px 18px;font-family:Arial,Helvetica,sans-serif;
       box-sizing:border-box;
@@ -793,6 +793,30 @@
     .audio-report-footer>div{min-width:245px}.audio-report-footer strong{display:block;font-size:12px;letter-spacing:.08em}.audio-report-footer small{display:block;margin-top:8px;font-size:9px;letter-spacing:.15em}
     .audio-report-footer i{height:1px;background:#7e99a8;flex:1;margin-bottom:11px}.audio-report-footer>b{font-size:14px;white-space:nowrap;margin-bottom:3px}
 
+    .cinema-vendor-slide,.cinema-complaint-slide,.cinema-service-slide,.lighting-vendor-slide,.lighting-complaint-slide,.lighting-service-slide{
+      position:relative;background:#fff;color:#263650;padding:25px 38px 22px;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box;
+    }
+    .cin-grid,.light-grid{position:absolute;inset:0;pointer-events:none;opacity:.4;background-image:linear-gradient(rgba(42,154,176,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(42,154,176,.08) 1px,transparent 1px);background-size:28px 28px}
+    .cin-kicker,.light-kicker{position:relative;font-family:monospace;font-size:15px;letter-spacing:.18em;line-height:1.7;margin:0 0 7px 6px}.cin-kicker .accent,.light-kicker .accent{color:#1085a1}
+    .cinema-vendor-slide h1,.cinema-complaint-slide h1,.cinema-service-slide h1,.lighting-vendor-slide h1,.lighting-complaint-slide h1,.lighting-service-slide h1{position:relative;margin:0 0 14px 6px;font-size:43px;line-height:.98;font-weight:950;letter-spacing:-.032em;color:#050505}
+    .cinema-vendor-slide h1 span,.cinema-complaint-slide h1 span,.cinema-service-slide h1 span,.lighting-vendor-slide h1 span,.lighting-complaint-slide h1 span,.lighting-service-slide h1 span{color:#1085a1}
+    .cinema-service-slide h2{position:absolute;right:40px;top:102px;margin:0;font-family:monospace;font-size:17px;letter-spacing:.14em;color:#244764;text-transform:uppercase}
+    .cin-wrap,.light-wrap{position:relative;border:1px solid #b8dce5;background:rgba(255,255,255,.96)}
+    .cin-wrap table,.light-wrap table{width:100%;table-layout:fixed;border-collapse:collapse}
+    .cin-wrap th,.cin-wrap td,.light-wrap th,.light-wrap td{border:1px solid #c5e2e8;box-sizing:border-box;vertical-align:middle}
+    .cin-wrap thead th,.light-wrap thead th{height:36px;background:#def3f8;color:#12617a;font-size:10.5px;font-weight:950;text-align:center}
+    .cin-wrap td,.light-wrap td{height:28px;padding:0 7px;font-size:10.5px;line-height:1.12}
+    .cin-no,.light-no{text-align:center;font-weight:950;color:#08718b}.cin-qty,.light-qty{text-align:center;font-weight:900;background:#d8f3f8;color:#0b6b82}.light-price{text-align:right}
+    .cin-total td,.light-total td,.light-stock td{height:30px;background:#e2f4f7!important;color:#0d637b;font-weight:950;text-align:center}
+    .cin-ind,.light-ind{text-align:center;font-weight:950}.cin-ind.trouble,.light-ind.trouble{background:#f8b8be;color:#a81f2a}.cin-ind.warning,.light-ind.warning{background:#ffe59a;color:#6d5000}.light-ind.ready{background:#d6ecff;color:#1f5c91}.cin-ind.neutral,.light-ind.neutral{background:#f5f8fa;color:#657684}
+    .cin-vendor-table th:nth-child(1){width:5%}.cin-vendor-table th:nth-child(2){width:13%}.cin-vendor-table th:nth-child(3){width:11%}.cin-vendor-table th:nth-child(4){width:30%}.cin-vendor-table th:nth-child(5){width:8%}.cin-vendor-table th:nth-child(6){width:33%}
+    .cin-complaint-table{font-size:9.5px}.cin-service-table{font-size:9.5px}
+    .light-vendor-table th:nth-child(1){width:5%}.light-vendor-table th:nth-child(2){width:13%}.light-vendor-table th:nth-child(3){width:25%}.light-vendor-table th:nth-child(4){width:7%}.light-vendor-table th:nth-child(5){width:22%}.light-vendor-table th:nth-child(6){width:18%}.light-vendor-table th:nth-child(7){width:10%}
+    .light-complaint-table,.light-service-table{font-size:9.5px}
+    .cinema-footer,.light-footer{position:absolute;left:46px;right:46px;bottom:22px;display:flex;align-items:flex-end;gap:20px;font-family:monospace;color:#324a64}
+    .cinema-footer>div,.light-footer>div{min-width:245px}.cinema-footer strong,.light-footer strong{display:block;font-size:12px;letter-spacing:.08em}.cinema-footer small,.light-footer small{display:block;margin-top:8px;font-size:9px;letter-spacing:.15em}
+    .cinema-footer i,.light-footer i{height:1px;background:#7e99a8;flex:1;margin-bottom:11px}.cinema-footer>b,.light-footer>b{font-size:14px;white-space:nowrap;margin-bottom:3px}
+
     .report.report-dense{padding-top:24px!important}
     .report.report-dense .report-title{font-size:47px}
     .report.report-dense table{font-size:12px}
@@ -826,7 +850,7 @@
       .print-stack{display:block!important;margin:0!important;padding:0!important}
       .print-page{display:block!important;width:13.333in!important;height:7.5in!important;overflow:hidden!important;margin:0!important}
       .print-canvas{display:block!important;width:1600px!important;height:900px!important;transform:scale(.8)!important;transform-origin:top left!important}
-      .print-canvas .cover-slide,.print-canvas .report,.print-canvas .admin-matrix-slide,.print-canvas .camera-vendor-slide,.print-canvas .camera-complaint-slide,.print-canvas .camera-service-slide,.print-canvas .audio-vendor-slide,.print-canvas .audio-complaint-slide,.print-canvas .audio-service-slide{
+      .print-canvas .cover-slide,.print-canvas .report,.print-canvas .admin-matrix-slide,.print-canvas .camera-vendor-slide,.print-canvas .camera-complaint-slide,.print-canvas .camera-service-slide,.print-canvas .audio-vendor-slide,.print-canvas .audio-complaint-slide,.print-canvas .audio-service-slide,.print-canvas .cinema-vendor-slide,.print-canvas .cinema-complaint-slide,.print-canvas .cinema-service-slide,.print-canvas .lighting-vendor-slide,.print-canvas .lighting-complaint-slide,.print-canvas .lighting-service-slide{
         display:block!important;width:1600px!important;height:900px!important;min-height:900px!important;margin:0!important;
         border:0!important;box-shadow:none!important;zoom:1!important;transform:none!important;
       }
@@ -891,6 +915,12 @@
               <option value="audio-vendor">Audio — Barang Kurang / Vendor</option>
               <option value="audio-complaint">Audio — Komplain</option>
               <option value="audio-service">Audio — Service</option>
+              <option value="cinema-vendor">Cinema — Barang Kurang / Vendor</option>
+              <option value="cinema-complaint">Cinema — Komplain</option>
+              <option value="cinema-service">Cinema — Service</option>
+              <option value="lighting-vendor">Lighting — Barang Kurang / Vendor</option>
+              <option value="lighting-complaint">Lighting — Komplain</option>
+              <option value="lighting-service">Lighting — Service</option>
               <option value="admin-matrix">Admin — Matrix Harian</option>
             </select>
           </div>
@@ -912,6 +942,16 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           <label>Import Workbook Gudang Audio</label>
           <input class="control" id="audioExcelInput" type="file" accept=".xlsx,.xls" />
           <div class="tiny" style="margin-top:5px">Membaca sekaligus Barang Kurang/Vendor, Komplain, dan Service per tempat dari workbook MBR Gudang Audio.</div>
+        </div>
+        <div class="field" style="margin-top:10px">
+          <label>Import Workbook Gudang Cinema</label>
+          <input class="control" id="cinemaExcelInput" type="file" accept=".xlsx,.xls" />
+          <div class="tiny" style="margin-top:5px">Membaca Bulan Juni + Service Cinema, termasuk vendor, komplain, dan tempat service.</div>
+        </div>
+        <div class="field" style="margin-top:10px">
+          <label>Import Workbook Gudang Lighting</label>
+          <input class="control" id="lightingExcelInput" type="file" accept=".xlsx,.xls" />
+          <div class="tiny" style="margin-top:5px">Membaca Alat Kurang, Barang Service, dan Report Komplain Lighting sekaligus.</div>
         </div>
         <div class="bulk-actions">
           <button class="btn primary" id="importBulkBtn">Masukkan ke Preview</button>
@@ -1012,6 +1052,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             <div id="cameraVendorHost"></div>
             <div id="cameraOpsHost"></div>
             <div id="audioReportHost"></div>
+            <div id="cinemaReportHost"></div>
+            <div id="lightingReportHost"></div>
             <section class="report" id="report">
               <div class="report-kicker">
                 <span class="circle-slash"></span>
@@ -1078,6 +1120,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-camera-vendor.js"></script>
   <script src="/report-camera-reports.js"></script>
   <script src="/report-audio-reports.js"></script>
+  <script src="/report-cinema-reports.js"></script>
+  <script src="/report-lighting-reports.js"></script>
   <script src="/report-bulk-router.js"></script>
   <script src="/report-live-edit.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -1144,6 +1188,12 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         base.audioVendorGroups=src.audioVendorGroups?clone(src.audioVendorGroups):null;
         base.audioComplaintGroups=src.audioComplaintGroups?clone(src.audioComplaintGroups):null;
         base.audioServiceRows=src.audioServiceRows?clone(src.audioServiceRows):null;
+        base.cinemaVendorGroups=src.cinemaVendorGroups?clone(src.cinemaVendorGroups):null;
+        base.cinemaComplaints=src.cinemaComplaints?clone(src.cinemaComplaints):null;
+        base.cinemaServiceRows=src.cinemaServiceRows?clone(src.cinemaServiceRows):null;
+        base.lightingVendorGroups=src.lightingVendorGroups?clone(src.lightingVendorGroups):null;
+        base.lightingComplaints=src.lightingComplaints?clone(src.lightingComplaints):null;
+        base.lightingServiceGroups=src.lightingServiceGroups?clone(src.lightingServiceGroups):null;
         base.period=src.period||"";
         base.pageNo=Number(src.pageNo||1);
         base.pageTotal=Number(src.pageTotal||1);
@@ -1196,6 +1246,12 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       if(!window.BSMAudioReports||typeof window.BSMAudioReports.createSlides!=="function"){
         throw new Error("Gudang Audio helper tidak termuat");
       }
+      if(!window.BSMCinemaReports||typeof window.BSMCinemaReports.createSlides!=="function"){
+        throw new Error("Gudang Cinema helper tidak termuat");
+      }
+      if(!window.BSMLightingReports||typeof window.BSMLightingReports.createSlides!=="function"){
+        throw new Error("Gudang Lighting helper tidak termuat");
+      }
       var REPORT_TYPES=window.BSMReportMaster.REPORT_TYPES;
       var storedCover=state.cover||{};
       state.cover=window.BSMReportCover.normalizeCover(storedCover);
@@ -1235,6 +1291,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var bulkModeSelect=document.getElementById("bulkModeSelect");
       var bulkContextText=document.getElementById("bulkContextText");
       var audioExcelInput=document.getElementById("audioExcelInput");
+      var cinemaExcelInput=document.getElementById("cinemaExcelInput");
+      var lightingExcelInput=document.getElementById("lightingExcelInput");
       var importBulkBtn=document.getElementById("importBulkBtn");
       var slideCounter=document.getElementById("slideCounter");
       var slideDots=document.getElementById("slideDots");
@@ -1255,6 +1313,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var cameraVendorHost=document.getElementById("cameraVendorHost");
       var cameraOpsHost=document.getElementById("cameraOpsHost");
       var audioReportHost=document.getElementById("audioReportHost");
+      var cinemaReportHost=document.getElementById("cinemaReportHost");
+      var lightingReportHost=document.getElementById("lightingReportHost");
       var reportInfoSection=document.getElementById("reportInfoSection");
       var reportItemsSection=document.getElementById("reportItemsSection");
       var reportEl=document.getElementById("report");
@@ -1333,6 +1393,14 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             var audioSpecial=section.slides.filter(function(r){return r.template==="audio-vendor"||r.template==="audio-complaint"||r.template==="audio-service";});
             var audioUseful=section.slides.filter(function(r){return r.template!=="audio-vendor"&&r.template!=="audio-complaint"&&r.template!=="audio-service"&&(r.groups||[]).length>0;});
             section.slides=audioSpecial.length?audioSpecial.concat(audioUseful):(audioUseful.length?audioUseful:[ensureIds(emptyReportForType(type.id))]);
+          }else if(type.id==="gudang-cinema"){
+            var cinemaSpecial=section.slides.filter(function(r){return r.template==="cinema-vendor"||r.template==="cinema-complaint"||r.template==="cinema-service";});
+            var cinemaUseful=section.slides.filter(function(r){return r.template!=="cinema-vendor"&&r.template!=="cinema-complaint"&&r.template!=="cinema-service"&&(r.groups||[]).length>0;});
+            section.slides=cinemaSpecial.length?cinemaSpecial.concat(cinemaUseful):(cinemaUseful.length?cinemaUseful:[ensureIds(emptyReportForType(type.id))]);
+          }else if(type.id==="gudang-lighting"){
+            var lightingSpecial=section.slides.filter(function(r){return r.template==="lighting-vendor"||r.template==="lighting-complaint"||r.template==="lighting-service";});
+            var lightingUseful=section.slides.filter(function(r){return r.template!=="lighting-vendor"&&r.template!=="lighting-complaint"&&r.template!=="lighting-service"&&(r.groups||[]).length>0;});
+            section.slides=lightingSpecial.length?lightingSpecial.concat(lightingUseful):(lightingUseful.length?lightingUseful:[ensureIds(emptyReportForType(type.id))]);
           }else if(!section.slides.length){
             section.slides.push(ensureIds(emptyReportForType(type.id)));
           }
@@ -1366,6 +1434,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           if(page.report.template==="camera-vendor") return cameraVendorHost.firstElementChild;
           if(page.report.template==="camera-complaint"||page.report.template==="camera-service") return cameraOpsHost.firstElementChild;
           if(page.report.template==="audio-vendor"||page.report.template==="audio-complaint"||page.report.template==="audio-service") return audioReportHost.firstElementChild;
+          if(page.report.template==="cinema-vendor"||page.report.template==="cinema-complaint"||page.report.template==="cinema-service") return cinemaReportHost.firstElementChild;
+          if(page.report.template==="lighting-vendor"||page.report.template==="lighting-complaint"||page.report.template==="lighting-service") return lightingReportHost.firstElementChild;
         }
         return reportEl;
       }
@@ -1564,6 +1634,21 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         }
       }
 
+      function renderCinemaSlide(){
+        var page=currentMasterPage();
+        if(page.kind==="report"&&page.report&&page.report.template==="cinema-vendor") cinemaReportHost.innerHTML=window.BSMCinemaReports.renderVendorSlide(page.report,esc);
+        else if(page.kind==="report"&&page.report&&page.report.template==="cinema-complaint") cinemaReportHost.innerHTML=window.BSMCinemaReports.renderComplaintSlide(page.report,esc);
+        else if(page.kind==="report"&&page.report&&page.report.template==="cinema-service") cinemaReportHost.innerHTML=window.BSMCinemaReports.renderServiceSlide(page.report,esc);
+        else cinemaReportHost.innerHTML="";
+      }
+      function renderLightingSlide(){
+        var page=currentMasterPage();
+        if(page.kind==="report"&&page.report&&page.report.template==="lighting-vendor") lightingReportHost.innerHTML=window.BSMLightingReports.renderVendorSlide(page.report,esc);
+        else if(page.kind==="report"&&page.report&&page.report.template==="lighting-complaint") lightingReportHost.innerHTML=window.BSMLightingReports.renderComplaintSlide(page.report,esc);
+        else if(page.kind==="report"&&page.report&&page.report.template==="lighting-service") lightingReportHost.innerHTML=window.BSMLightingReports.renderServiceSlide(page.report,esc);
+        else lightingReportHost.innerHTML="";
+      }
+
       function renderCoverEditor(){
         var c=editableCover(),logo=c.logo||{image:"",width:180,x:0,y:0};
         var coverTitle=document.getElementById("coverPageTitle"),coverSub=document.getElementById("coverPageSub");
@@ -1620,7 +1705,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
 
       function applyEditorMode(){
         coverEditorSection.classList.add("active");
-        var special=state.draft&&(state.draft.template==="admin-matrix"||state.draft.template==="camera-vendor"||state.draft.template==="camera-complaint"||state.draft.template==="camera-service"||state.draft.template==="audio-vendor"||state.draft.template==="audio-complaint"||state.draft.template==="audio-service");
+        var special=state.draft&&(state.draft.template==="admin-matrix"||state.draft.template==="camera-vendor"||state.draft.template==="camera-complaint"||state.draft.template==="camera-service"||state.draft.template==="audio-vendor"||state.draft.template==="audio-complaint"||state.draft.template==="audio-service"||state.draft.template==="cinema-vendor"||state.draft.template==="cinema-complaint"||state.draft.template==="cinema-service"||state.draft.template==="lighting-vendor"||state.draft.template==="lighting-complaint"||state.draft.template==="lighting-service");
         if(reportInfoSection) reportInfoSection.style.display=special?"none":"";
         if(reportItemsSection) reportItemsSection.style.display="";
         var add=document.getElementById("addGroupInline");
@@ -1634,12 +1719,16 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         var cameraMode=page.kind==="report"&&page.report&&page.report.template==="camera-vendor";
         var cameraOpsMode=page.kind==="report"&&page.report&&(page.report.template==="camera-complaint"||page.report.template==="camera-service");
         var audioMode=page.kind==="report"&&page.report&&(page.report.template==="audio-vendor"||page.report.template==="audio-complaint"||page.report.template==="audio-service");
+        var cinemaMode=page.kind==="report"&&page.report&&(page.report.template==="cinema-vendor"||page.report.template==="cinema-complaint"||page.report.template==="cinema-service");
+        var lightingMode=page.kind==="report"&&page.report&&(page.report.template==="lighting-vendor"||page.report.template==="lighting-complaint"||page.report.template==="lighting-service");
         coverSlideHost.style.display=coverMode?"block":"none";
         adminMatrixHost.style.display=adminMode?"block":"none";
         cameraVendorHost.style.display=cameraMode?"block":"none";
         cameraOpsHost.style.display=cameraOpsMode?"block":"none";
         audioReportHost.style.display=audioMode?"block":"none";
-        reportEl.style.display=(coverMode||adminMode||cameraMode||cameraOpsMode||audioMode)?"none":"block";
+        cinemaReportHost.style.display=cinemaMode?"block":"none";
+        lightingReportHost.style.display=lightingMode?"block":"none";
+        reportEl.style.display=(coverMode||adminMode||cameraMode||cameraOpsMode||audioMode||cinemaMode||lightingMode)?"none":"block";
       }
 
       function renderEditor(){
@@ -1677,6 +1766,14 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           document.getElementById("groupCount").textContent="Audio • Service • "+(state.draft.serviceCenter||"Service Center")+" • "+(state.draft.pageNo||1)+"/"+(state.draft.pageTotal||1);
           groupsEditor.innerHTML='<div class="editor-empty"><strong>ALAT-ALAT YANG DI SERVICE — AUDIO</strong><br><br>Service dipisah per tempat dan otomatis membuat slide lanjutan jika data penuh.</div>';
           return;
+        }
+        if(state.draft&&/^cinema-/.test(state.draft.template||"")){
+          document.getElementById("groupCount").textContent="Cinema • "+(state.draft.pageNo||1)+"/"+(state.draft.pageTotal||1);
+          groupsEditor.innerHTML='<div class="editor-empty"><strong>REPORT GUDANG CINEMA</strong><br><br>Template Cinema dari workbook: Vendor, Komplain, atau Service. Teks dapat diedit langsung di Preview/Presentasi.</div>';return;
+        }
+        if(state.draft&&/^lighting-/.test(state.draft.template||"")){
+          document.getElementById("groupCount").textContent="Lighting • "+(state.draft.pageNo||1)+"/"+(state.draft.pageTotal||1);
+          groupsEditor.innerHTML='<div class="editor-empty"><strong>REPORT GUDANG LIGHTING</strong><br><br>Template Lighting dari workbook: Alat Kurang/Vendor, Barang Service, atau Komplain. Teks dapat diedit langsung di Preview/Presentasi.</div>';return;
         }
         document.getElementById("groupCount").textContent=state.draft.groups.length+" item";
         if(!window.BSMReportEditor||typeof window.BSMReportEditor.renderEditableTable!=="function"){
@@ -2066,6 +2163,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       function bulkTargetTypeForMode(mode){
         if(mode==="camera-vendor"||mode==="camera-complaint"||mode==="camera-service") return "gudang-kamera";
         if(mode==="audio-vendor"||mode==="audio-complaint"||mode==="audio-service") return "gudang-audio";
+        if(mode==="cinema-vendor"||mode==="cinema-complaint"||mode==="cinema-service") return "gudang-cinema";
+        if(mode==="lighting-vendor"||mode==="lighting-complaint"||mode==="lighting-service") return "gudang-lighting";
         if(mode==="admin-matrix") return "admin";
         return state.activeType;
       }
@@ -2078,6 +2177,10 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           bulkInput.placeholder="Paste tabel Kamera dari Excel. Contoh Vendor:\nNAMA BARANG\tQTY\tTANGGAL\tKETERANGAN\tHARGA VENDOR\nSony FX3\t4\t05 Juni 2026\t2xkopafi,2xDs\t\nTotal\t4";
         }else if(targetType==="gudang-audio"){
           bulkInput.placeholder="Paste tabel Gudang Audio dari Excel, atau gunakan Import Workbook Gudang Audio di bawah. Format didukung: Barang Kurang/Vendor, Komplain, dan Service.";
+        }else if(targetType==="gudang-cinema"){
+          bulkInput.placeholder="Paste tabel Gudang Cinema atau gunakan Import Workbook Gudang Cinema. Format: Vendor, Komplain, Service.";
+        }else if(targetType==="gudang-lighting"){
+          bulkInput.placeholder="Paste tabel Gudang Lighting atau gunakan Import Workbook Gudang Lighting. Format: Alat Kurang/Vendor, Komplain, Service.";
         }else if(targetType==="admin"){
           bulkInput.placeholder="Paste matrix Admin dari Excel, termasuk header JAM/TANGGAL, tanggal 1-30, TOTAL dan KET.";
         }else{
@@ -2115,6 +2218,31 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         reader.readAsArrayBuffer(file);
       }
 
+      function importCinemaWorkbook(file){
+        if(!file)return;var reader=new FileReader();
+        reader.onload=function(ev){try{
+          var wb=window.XLSX.read(ev.target.result,{type:"array"}),parsed=window.BSMCinemaReports.parseWorkbook(wb);
+          var slides=window.BSMCinemaReports.createSlides(parsed,{maxVendorRows:16,maxComplaintRows:18,maxServiceRows:18,period:"JUNI 2026",servicePeriod:"2026"});
+          if(!slides.length)throw new Error("Tidak ada data Gudang Cinema yang terbaca.");
+          state.activeType="gudang-cinema";var section=state.sections["gudang-cinema"];section.slides=slides.map(function(s){s.liveEditId=uid();return s;});
+          ensureMasterReports();bindActiveSection(0);state.coverTarget="gudang-cinema";state.activeView=window.BSMReportMaster.findPageIndex(state,"report:gudang-cinema:0");
+          renderAll();saveState(false);showPage("preview");toast(slides.length+" slide Gudang Cinema berhasil dibuat");
+        }catch(err){console.error(err);toast(err&&err.message?err.message:"Workbook Gudang Cinema gagal dibaca");}finally{cinemaExcelInput.value="";}};
+        reader.onerror=function(){toast("File Excel Gudang Cinema gagal dibaca");};reader.readAsArrayBuffer(file);
+      }
+      function importLightingWorkbook(file){
+        if(!file)return;var reader=new FileReader();
+        reader.onload=function(ev){try{
+          var wb=window.XLSX.read(ev.target.result,{type:"array"}),parsed=window.BSMLightingReports.parseWorkbook(wb);
+          var slides=window.BSMLightingReports.createSlides(parsed,{maxVendorRows:16,maxComplaintRows:18,maxServiceRows:16,period:"JUNI 2026",servicePeriod:"JUNI 2026"});
+          if(!slides.length)throw new Error("Tidak ada data Gudang Lighting yang terbaca.");
+          state.activeType="gudang-lighting";var section=state.sections["gudang-lighting"];section.slides=slides.map(function(s){s.liveEditId=uid();return s;});
+          ensureMasterReports();bindActiveSection(0);state.coverTarget="gudang-lighting";state.activeView=window.BSMReportMaster.findPageIndex(state,"report:gudang-lighting:0");
+          renderAll();saveState(false);showPage("preview");toast(slides.length+" slide Gudang Lighting berhasil dibuat");
+        }catch(err){console.error(err);toast(err&&err.message?err.message:"Workbook Gudang Lighting gagal dibaca");}finally{lightingExcelInput.value="";}};
+        reader.onerror=function(){toast("File Excel Gudang Lighting gagal dibaca");};reader.readAsArrayBuffer(file);
+      }
+
       function renderAll(){
         mountDashboardSections();
         populateHeaderInputs();
@@ -2126,6 +2254,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         renderCameraVendorSlide();
         renderCameraOpsSlide();
         renderAudioSlide();
+        renderCinemaSlide();
+        renderLightingSlide();
         renderSlideNav();
         applyEditorMode();
         applyPreviewMode();
@@ -2233,6 +2363,12 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(report&&report.template==="audio-vendor") return window.BSMAudioReports.renderVendorSlide(report,esc);
         if(report&&report.template==="audio-complaint") return window.BSMAudioReports.renderComplaintSlide(report,esc);
         if(report&&report.template==="audio-service") return window.BSMAudioReports.renderServiceSlide(report,esc);
+        if(report&&report.template==="cinema-vendor") return window.BSMCinemaReports.renderVendorSlide(report,esc);
+        if(report&&report.template==="cinema-complaint") return window.BSMCinemaReports.renderComplaintSlide(report,esc);
+        if(report&&report.template==="cinema-service") return window.BSMCinemaReports.renderServiceSlide(report,esc);
+        if(report&&report.template==="lighting-vendor") return window.BSMLightingReports.renderVendorSlide(report,esc);
+        if(report&&report.template==="lighting-complaint") return window.BSMLightingReports.renderComplaintSlide(report,esc);
+        if(report&&report.template==="lighting-service") return window.BSMLightingReports.renderServiceSlide(report,esc);
         var type=reportType(typeId||report.reportType),dep=String(report.department||type.department).trim()||type.department,m=Number(report.month||1),y=Number(report.year||new Date().getFullYear());
         var warehouse=String(type.id).indexOf("gudang-")===0;
         var rowCount=(report.groups||[]).reduce(function(sum,g){return sum+(g.rows||[]).length+1;},0);
@@ -2277,6 +2413,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       importBulkBtn.addEventListener("click",importBulk);
       if(bulkModeSelect) bulkModeSelect.addEventListener("change",updateBulkContext);
       if(audioExcelInput) audioExcelInput.addEventListener("change",function(){importAudioWorkbook(this.files&&this.files[0]);});
+      if(cinemaExcelInput) cinemaExcelInput.addEventListener("change",function(){importCinemaWorkbook(this.files&&this.files[0]);});
+      if(lightingExcelInput) lightingExcelInput.addEventListener("change",function(){importLightingWorkbook(this.files&&this.files[0]);});
       document.getElementById("bulkFocusBtn").addEventListener("click",function(){showPage("bulk");setTimeout(function(){bulkInput.focus();},100);});
       document.getElementById("addGroupInline").addEventListener("click",addGroup);
       document.getElementById("addReportSlideBtn").addEventListener("click",addReportSlide);
@@ -2385,5 +2523,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     })();
   </script>
 </body>
-<!-- report-gudang-build-v23-audio-upload-root-fix -->
+<!-- report-gudang-build-v24-cinema-lighting-workbooks -->
 </html>
