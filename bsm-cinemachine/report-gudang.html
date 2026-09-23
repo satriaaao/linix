@@ -634,11 +634,11 @@
       body.presentation-mode #previewPage,
       body.presentation-mode .preview-stage{height:100vh!important}
     }
-    .cover-slide,.report,.admin-matrix-slide,.camera-vendor-slide{
+    .cover-slide,.report,.admin-matrix-slide,.camera-vendor-slide,.camera-complaint-slide,.camera-service-slide{
       width:1600px!important;height:900px!important;min-height:900px!important;max-height:900px!important;
       aspect-ratio:16/9;overflow:hidden!important;
     }
-    #adminMatrixHost,#cameraVendorHost{width:1600px;height:900px}
+    #adminMatrixHost,#cameraVendorHost,#cameraOpsHost{width:1600px;height:900px}
     .admin-matrix-slide{
       position:relative;background:#fff;color:#15394b;padding:20px 28px 18px;font-family:Arial,Helvetica,sans-serif;
       box-sizing:border-box;
@@ -722,6 +722,42 @@
     .camera-vendor-footer>div{min-width:245px}.camera-vendor-footer strong{display:block;font-size:12px;letter-spacing:.08em}.camera-vendor-footer small{display:block;margin-top:8px;font-size:9px;letter-spacing:.15em}
     .camera-vendor-footer i{height:1px;background:#7e99a8;flex:1;margin-bottom:11px}.camera-vendor-footer>b{font-size:14px;white-space:nowrap;margin-bottom:3px}
 
+    .camera-complaint-slide,.camera-service-slide{
+      position:relative;background:#fff;color:#263650;padding:24px 40px 22px;
+      font-family:Arial,Helvetica,sans-serif;box-sizing:border-box;
+    }
+    .camera-report-grid{
+      position:absolute;inset:0;pointer-events:none;opacity:.4;
+      background-image:linear-gradient(rgba(42,154,176,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(42,154,176,.08) 1px,transparent 1px);
+      background-size:28px 28px;
+    }
+    .camera-report-kicker{position:relative;font-family:monospace;font-size:15px;letter-spacing:.18em;line-height:1.72;margin:0 0 7px 6px}
+    .camera-report-kicker .accent{color:#1284a0}
+    .camera-complaint-slide h1,.camera-service-slide h1{position:relative;margin:0 0 14px 6px;font-size:49px;line-height:.98;font-weight:950;letter-spacing:-.035em;color:#050505}
+    .camera-complaint-slide h1 span,.camera-service-slide h1 span{color:#1084a2}
+    .camera-service-slide h2{position:absolute;right:42px;top:103px;margin:0;font-family:monospace;font-size:18px;letter-spacing:.22em;color:#213a59;text-transform:uppercase}
+    .camera-complaint-wrap,.camera-service-wrap{position:relative;border:1px solid #b8dce5;background:rgba(255,255,255,.96)}
+    .camera-complaint-table,.camera-service-table{width:100%;table-layout:fixed;border-collapse:collapse}
+    .camera-complaint-table th,.camera-complaint-table td,.camera-service-table th,.camera-service-table td{border:1px solid #c5e2e8;box-sizing:border-box;vertical-align:middle}
+    .camera-complaint-table thead th,.camera-service-table thead th{height:38px;background:#def3f8;color:#12617a;font-size:12px;font-weight:950;letter-spacing:.035em;text-align:center}
+    .camera-complaint-table td{height:27px;padding:0 10px;font-size:12px}
+    .cc-no{width:5.5%}.cc-item{width:17%}.cc-client{width:16%}.cc-date{width:11%}.cc-ind{width:10.5%}.cc-chrono{width:30%}.cc-pic{width:10%}
+    .camera-complaint-no,.camera-complaint-date,.camera-complaint-pic{text-align:center}
+    .camera-complaint-no{font-size:15px!important;font-weight:950;color:#08718b}
+    .camera-complaint-indication{text-align:center;font-weight:950}
+    .camera-complaint-indication.trouble{background:#f8b8be;color:#a81f2a}
+    .camera-complaint-indication.negligence{background:#ffe59a;color:#6d5000}
+    .camera-complaint-indication.neutral{background:#f7fafb;color:#687987}
+    .camera-service-table td{height:27px;padding:0 10px;font-size:12px}
+    .cs-no{width:5.5%}.cs-model{width:20.5%}.cs-date{width:13%}.cs-stock{width:14%}.cs-total{width:7%}.cs-service{width:7%}.cs-run{width:12%}.cs-note{width:21%}
+    .camera-service-no{text-align:center}
+    .camera-service-total,.camera-service-active,.camera-service-run{text-align:center;font-weight:950}
+    .camera-service-total{background:#ffd4b5;color:#884900}.camera-service-active{background:#cfeec0;color:#397426}.camera-service-run{background:#cfeaf8;color:#176888}
+    .camera-service-subtotal td{height:31px;background:#dff3f7;color:#0d637b;font-weight:950;text-align:center}
+    .camera-report-footer{position:absolute;left:48px;right:48px;bottom:22px;display:flex;align-items:flex-end;gap:20px;font-family:monospace;color:#324a64}
+    .camera-report-footer>div{min-width:245px}.camera-report-footer strong{display:block;font-size:12px;letter-spacing:.08em}.camera-report-footer small{display:block;margin-top:8px;font-size:9px;letter-spacing:.15em}
+    .camera-report-footer i{height:1px;background:#7e99a8;flex:1;margin-bottom:11px}.camera-report-footer>b{font-size:14px;white-space:nowrap;margin-bottom:3px}
+
     .report.report-dense{padding-top:24px!important}
     .report.report-dense .report-title{font-size:47px}
     .report.report-dense table{font-size:12px}
@@ -755,7 +791,7 @@
       .print-stack{display:block!important;margin:0!important;padding:0!important}
       .print-page{display:block!important;width:13.333in!important;height:7.5in!important;overflow:hidden!important;margin:0!important}
       .print-canvas{display:block!important;width:1600px!important;height:900px!important;transform:scale(.8)!important;transform-origin:top left!important}
-      .print-canvas .cover-slide,.print-canvas .report,.print-canvas .admin-matrix-slide,.print-canvas .camera-vendor-slide{
+      .print-canvas .cover-slide,.print-canvas .report,.print-canvas .admin-matrix-slide,.print-canvas .camera-vendor-slide,.print-canvas .camera-complaint-slide,.print-canvas .camera-service-slide{
         display:block!important;width:1600px!important;height:900px!important;min-height:900px!important;margin:0!important;
         border:0!important;box-shadow:none!important;zoom:1!important;transform:none!important;
       }
@@ -913,6 +949,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             <div id="coverSlideHost"></div>
             <div id="adminMatrixHost"></div>
             <div id="cameraVendorHost"></div>
+            <div id="cameraOpsHost"></div>
             <section class="report" id="report">
               <div class="report-kicker">
                 <span class="circle-slash"></span>
@@ -976,6 +1013,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-master.js"></script>
   <script src="/report-admin-matrix.js"></script>
   <script src="/report-camera-vendor.js"></script>
+  <script src="/report-camera-reports.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
@@ -1033,6 +1071,12 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         base.reportType=src.reportType||"";
         base.matrix=src.matrix?clone(src.matrix):null;
         base.cameraVendor=src.cameraVendor?clone(src.cameraVendor):null;
+        base.complaintRows=src.complaintRows?clone(src.complaintRows):null;
+        base.serviceCenter=src.serviceCenter||"";
+        base.servicePeriod=src.servicePeriod||"";
+        base.serviceGroups=src.serviceGroups?clone(src.serviceGroups):null;
+        base.pageNo=Number(src.pageNo||1);
+        base.pageTotal=Number(src.pageTotal||1);
         base.groups=(src.groups||[]).map(function(g){
           return {id:g.id||uid(),name:g.name||"Nama Alat",rows:(g.rows||[]).map(function(row){
             return {id:row.id||uid(),date:row.date||"",qty:Number(row.qty||0),action:row.action||"",price:Number(row.price||0)};
@@ -1075,6 +1119,9 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
       if(!window.BSMCameraVendor||typeof window.BSMCameraVendor.renderSlide!=="function"){
         throw new Error("Gudang Kamera vendor helper tidak termuat");
+      }
+      if(!window.BSMCameraReports||typeof window.BSMCameraReports.createComplaintSlides!=="function"){
+        throw new Error("Gudang Kamera komplain/service helper tidak termuat");
       }
       var REPORT_TYPES=window.BSMReportMaster.REPORT_TYPES;
       var storedCover=state.cover||{};
@@ -1125,6 +1172,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var coverSlideHost=document.getElementById("coverSlideHost");
       var adminMatrixHost=document.getElementById("adminMatrixHost");
       var cameraVendorHost=document.getElementById("cameraVendorHost");
+      var cameraOpsHost=document.getElementById("cameraOpsHost");
       var reportInfoSection=document.getElementById("reportInfoSection");
       var reportItemsSection=document.getElementById("reportItemsSection");
       var reportEl=document.getElementById("report");
@@ -1189,8 +1237,12 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             var cameraIndex=section.slides.findIndex(function(r){return r.template==="camera-vendor";});
             var cameraSlide=cameraIndex>=0?section.slides.splice(cameraIndex,1)[0]:window.BSMCameraVendor.createSlide();
             cameraSlide.template="camera-vendor";cameraSlide.reportType="gudang-kamera";cameraSlide.cameraVendor=cameraSlide.cameraVendor||clone(window.BSMCameraVendor.DATA);
-            var cameraUseful=section.slides.filter(function(r){return (r.groups||[]).length>0;});
-            section.slides=[cameraSlide].concat(cameraUseful);
+            var cameraUseful=section.slides.filter(function(r){
+              return r.template!=="camera-complaint"&&r.template!=="camera-service"&&(r.groups||[]).length>0;
+            });
+            var complaintSlides=window.BSMCameraReports.createComplaintSlides();
+            var serviceSlides=window.BSMCameraReports.createServiceSlides();
+            section.slides=complaintSlides.concat(serviceSlides,[cameraSlide],cameraUseful);
           }else if(!section.slides.length){
             section.slides.push(ensureIds(emptyReportForType(type.id)));
           }
@@ -1323,6 +1375,17 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         }
       }
 
+      function renderCameraOpsSlide(){
+        var page=currentMasterPage();
+        if(page.kind==="report"&&page.report&&page.report.template==="camera-complaint"){
+          cameraOpsHost.innerHTML=window.BSMCameraReports.renderComplaintSlide(page.report,esc);
+        }else if(page.kind==="report"&&page.report&&page.report.template==="camera-service"){
+          cameraOpsHost.innerHTML=window.BSMCameraReports.renderServiceSlide(page.report,esc);
+        }else{
+          cameraOpsHost.innerHTML="";
+        }
+      }
+
       function renderCoverEditor(){
         var c=editableCover(),logo=c.logo||{image:"",width:180,x:0,y:0};
         var coverTitle=document.getElementById("coverPageTitle"),coverSub=document.getElementById("coverPageSub");
@@ -1379,7 +1442,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
 
       function applyEditorMode(){
         coverEditorSection.classList.add("active");
-        var special=state.draft&&(state.draft.template==="admin-matrix"||state.draft.template==="camera-vendor");
+        var special=state.draft&&(state.draft.template==="admin-matrix"||state.draft.template==="camera-vendor"||state.draft.template==="camera-complaint"||state.draft.template==="camera-service");
         if(reportInfoSection) reportInfoSection.style.display=special?"none":"";
         if(reportItemsSection) reportItemsSection.style.display="";
         var add=document.getElementById("addGroupInline");
@@ -1391,10 +1454,12 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         var coverMode=page.kind==="master-cover"||page.kind==="section-cover";
         var adminMode=page.kind==="report"&&page.report&&page.report.template==="admin-matrix";
         var cameraMode=page.kind==="report"&&page.report&&page.report.template==="camera-vendor";
+        var cameraOpsMode=page.kind==="report"&&page.report&&(page.report.template==="camera-complaint"||page.report.template==="camera-service");
         coverSlideHost.style.display=coverMode?"block":"none";
         adminMatrixHost.style.display=adminMode?"block":"none";
         cameraVendorHost.style.display=cameraMode?"block":"none";
-        reportEl.style.display=(coverMode||adminMode||cameraMode)?"none":"block";
+        cameraOpsHost.style.display=cameraOpsMode?"block":"none";
+        reportEl.style.display=(coverMode||adminMode||cameraMode||cameraOpsMode)?"none":"block";
       }
 
       function renderEditor(){
@@ -1406,6 +1471,16 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(state.draft&&state.draft.template==="camera-vendor"){
           document.getElementById("groupCount").textContent="Vendor / Back Up • Total 93";
           groupsEditor.innerHTML='<div class="editor-empty"><strong>AMBIL ALAT VENDOR / BACK UP</strong><br><br>Gudang Kamera: Sony FX3 total 67 + Sony a7 III total 26 = <strong>93</strong>. Slide khusus ini sudah masuk Preview Master, Presentasi, dan PDF 16:9.</div>';
+          return;
+        }
+        if(state.draft&&state.draft.template==="camera-complaint"){
+          document.getElementById("groupCount").textContent="Komplain • "+(state.draft.pageNo||1)+"/"+(state.draft.pageTotal||1);
+          groupsEditor.innerHTML='<div class="editor-empty"><strong>REPORT KOMPLAIN GUDANG KAMERA</strong><br><br>Maksimal 20 baris per slide. Jika data bertambah, sistem otomatis membuat slide lanjutan.</div>';
+          return;
+        }
+        if(state.draft&&state.draft.template==="camera-service"){
+          document.getElementById("groupCount").textContent="Service • "+(state.draft.serviceCenter||"Service Center")+" • "+(state.draft.pageNo||1)+"/"+(state.draft.pageTotal||1);
+          groupsEditor.innerHTML='<div class="editor-empty"><strong>REPORT BARANG YANG DI SERVICE</strong><br><br>Data dipisah per tempat service dan otomatis membuat slide baru saat tabel melebihi batas 16:9.</div>';
           return;
         }
         document.getElementById("groupCount").textContent=state.draft.groups.length+" item";
@@ -1801,6 +1876,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         renderCoverSlide();
         renderAdminMatrixSlide();
         renderCameraVendorSlide();
+        renderCameraOpsSlide();
         renderSlideNav();
         applyEditorMode();
         applyPreviewMode();
@@ -1867,6 +1943,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       function staticReportHtml(report,index,total,typeId){
         if(report&&report.template==="admin-matrix") return window.BSMAdminMatrix.renderSlide(report.matrix||window.BSMAdminMatrix.DATA,esc);
         if(report&&report.template==="camera-vendor") return window.BSMCameraVendor.renderSlide(report.cameraVendor||window.BSMCameraVendor.DATA,esc);
+        if(report&&report.template==="camera-complaint") return window.BSMCameraReports.renderComplaintSlide(report,esc);
+        if(report&&report.template==="camera-service") return window.BSMCameraReports.renderServiceSlide(report,esc);
         var type=reportType(typeId||report.reportType),dep=String(report.department||type.department).trim()||type.department,m=Number(report.month||1),y=Number(report.year||new Date().getFullYear());
         var warehouse=String(type.id).indexOf("gudang-")===0;
         var rowCount=(report.groups||[]).reduce(function(sum,g){return sum+(g.rows||[]).length+1;},0);
@@ -1995,5 +2073,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     })();
   </script>
 </body>
-<!-- report-gudang-build-v13-camera-vendor-deploy -->
+<!-- report-gudang-build-v14-camera-auto-reports -->
 </html>
