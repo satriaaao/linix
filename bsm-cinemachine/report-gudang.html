@@ -123,6 +123,67 @@
     .summary-box{padding:9px 10px;border-radius:10px;background:#edf7f8;border:1px solid #d4ebed}
     .summary-box span{display:block;font-size:9px;text-transform:uppercase;color:#60727f;font-weight:850;letter-spacing:.08em}
     .summary-box b{display:block;margin-top:3px;font-size:12px;color:var(--teal-dark)}
+
+    .editor-table-wrap{
+      width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;
+      border:1px solid #d7e3e6;border-radius:14px;background:#fff;
+      box-shadow:0 5px 18px rgba(15,23,42,.04);
+    }
+    .editor-table{
+      width:100%;min-width:900px;border-collapse:separate;border-spacing:0;
+      table-layout:fixed;font-size:11px;background:#fff;
+    }
+    .editor-table th,.editor-table td{
+      border:0;border-right:1px solid #e2eaec;border-bottom:1px solid #e2eaec;
+      padding:0;vertical-align:middle;background:#fff;
+    }
+    .editor-table th{
+      position:sticky;top:0;z-index:2;padding:9px 8px;background:#eef7f8;
+      color:#086e76;font-size:9px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;
+      white-space:nowrap;text-align:left;
+    }
+    .editor-table th:nth-child(1){width:44px!important;text-align:center}
+    .editor-table th:nth-child(2){width:138px!important}
+    .editor-table th:nth-child(3){width:180px!important}
+    .editor-table th:nth-child(4){width:68px!important;text-align:center}
+    .editor-table th:nth-child(5){width:240px!important}
+    .editor-table th:nth-child(6){width:125px!important}
+    .editor-table th:nth-child(7){width:42px!important}
+    .editor-table tr:last-child td{border-bottom:0}
+    .editor-table th:last-child,.editor-table td:last-child{border-right:0}
+    .editor-data-row[data-row="0"] td{border-top:2px solid #b8dadd}
+    .editor-no{text-align:center;font-weight:950;color:var(--teal);font-size:12px;background:#f8fcfc!important}
+    .editor-cell{
+      display:block;width:100%;min-width:0;height:38px;border:0!important;border-radius:0!important;
+      padding:7px 8px;background:transparent!important;color:#1e293b;font-size:11px;outline:none;
+      box-shadow:none!important;
+    }
+    .editor-cell:focus{background:#f0fbfc!important;box-shadow:inset 0 0 0 2px rgba(8,125,134,.35)!important}
+    .editor-name-input{font-weight:800;color:#172033}
+    .editor-number{text-align:right;font-variant-numeric:tabular-nums}
+    .editor-actions{text-align:center;background:#fbfdfd!important}
+    .editor-mini-btn{
+      width:28px;height:28px;border:1px solid #d9e3e6;background:#fff;border-radius:8px;
+      color:#60707d;font-weight:900;line-height:1;padding:0;margin:4px auto;
+    }
+    .editor-mini-btn.danger{color:#b42318;border-color:#f0cfcb;background:#fff8f7}
+    .editor-total-row td{
+      background:#eaf6f7!important;color:#08727a;font-weight:900;
+      padding:7px 8px;border-bottom:2px solid #b8dadd;
+    }
+    .editor-total-row .editor-actions{padding:0;background:#eaf6f7!important}
+    .editor-total-left{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .editor-link-btn{
+      border:0;background:transparent;color:var(--teal-dark);font-weight:900;font-size:10px;
+      padding:4px 6px;border-radius:7px;
+    }
+    .editor-link-btn:hover{background:#d9eff1}
+    .editor-total-qty{text-align:right;font-variant-numeric:tabular-nums}
+    .editor-total-label{text-align:right;font-size:9px;text-transform:uppercase;letter-spacing:.05em}
+    .editor-total-price{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+    .editor-empty{padding:22px 10px;text-align:center;color:#7b8a97;font-size:11px;border:1px dashed #c7d9dc;border-radius:12px;background:#fbfefe}
+    .editor-table-hint{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 8px;color:#6b7b88;font-size:9px}
+
     .report-zone{min-width:0}
     .report-toolbar{
       display:flex;justify-content:space-between;align-items:center;gap:12px;
@@ -230,6 +291,11 @@
       body.mobile-preview .editor{display:none}
       body:not(.mobile-preview) .report-zone{display:none}
       .report-shell{border-radius:12px;padding:8px}
+      .section{padding-left:14px;padding-right:14px}
+      .editor-table{min-width:790px;font-size:10px}
+      .editor-cell{height:36px;font-size:10.5px;padding:6px 7px}
+      .editor-table th{font-size:8.5px;padding:8px 7px}
+      .editor-table-hint{font-size:8.5px}
     }
     @media print{
       @page{size:A4 landscape;margin:7mm}
@@ -339,6 +405,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           <strong>Daftar Barang</strong>
           <span class="tiny" id="groupCount"></span>
         </div>
+        <div class="editor-table-hint"><span>Edit langsung di dalam tabel</span><span>Geser ↔ untuk kolom lain</span></div>
         <div id="groupsEditor"></div>
         <button class="add-row" id="addGroupInline">+ Tambah Barang Baru</button>
       </div>
@@ -411,6 +478,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <div class="toast" id="toast"></div>
 
   <script src="/report-gudang-parser.js"></script>
+  <script src="/report-gudang-editor.js"></script>
   <script>
     (function(){
       var STORAGE_KEY = "bsm-report-gudang-v2";
@@ -549,74 +617,83 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
     
       function updateGroupSummary(g){
-        var card=groupsEditor.querySelector('[data-group-card="'+g+'"]');
-        if(!card) return;
-        var qty=card.querySelector('[data-summary="qty"]');
-        var price=card.querySelector('[data-summary="price"]');
+        var totals=groupsEditor.querySelectorAll(".editor-total-row");
+        var row=totals[g];
+        if(!row||!state.draft.groups[g]) return;
+        var qty=row.querySelector(".editor-total-qty");
+        var price=row.querySelector(".editor-total-price");
         if(qty) qty.textContent=groupQty(state.draft.groups[g]);
-        if(price){
-          var p=groupPrice(state.draft.groups[g]);
-          price.textContent=p?("Rp "+money(p)):"Belum diisi";
-        }
+        if(price) price.textContent="Rp "+money(groupPrice(state.draft.groups[g]));
       }
     
       function renderEditor(){
         document.getElementById("groupCount").textContent=state.draft.groups.length+" barang";
-        if(!state.draft.groups.length){
-          groupsEditor.innerHTML='<div style="padding:18px 8px;text-align:center;color:#7b8a97;font-size:12px">Belum ada barang. Bisa input manual atau tempel data banyak di atas.</div>';
+        if(!window.BSMReportEditor||typeof window.BSMReportEditor.renderEditableTable!=="function"){
+          groupsEditor.innerHTML='<div class="editor-empty">Editor tabel belum termuat. Refresh halaman lalu coba lagi.</div>';
           return;
         }
-        groupsEditor.innerHTML=state.draft.groups.map(function(group,gIndex){
-          var rowsHtml=group.rows.map(function(row,rIndex){
-            return '<div class="row-card" data-row-id="'+esc(row.id)+'">'
-              +'<div class="row-mini">'
-              +'<div class="field"><label>Tanggal</label><input class="control row-input" type="date" data-g="'+gIndex+'" data-r="'+rIndex+'" data-field="date" value="'+esc(row.date)+'"></div>'
-              +'<div class="field"><label>QTY</label><input class="control row-input" type="number" min="0" data-g="'+gIndex+'" data-r="'+rIndex+'" data-field="qty" value="'+esc(row.qty)+'"></div>'
-              +'</div>'
-              +'<div class="field" style="margin-bottom:8px"><label>Action / Vendor</label><input class="control row-input" data-g="'+gIndex+'" data-r="'+rIndex+'" data-field="action" value="'+esc(row.action)+'" placeholder="GEN / Baraka / Panorama"></div>'
-              +'<div class="field"><label>Harga Sewa (Rp)</label><input class="control row-input" type="number" min="0" step="100" data-g="'+gIndex+'" data-r="'+rIndex+'" data-field="price" value="'+(Number(row.price)||"")+'" placeholder="0"></div>'
-              +'<div class="row-actions"><span class="tiny">Baris '+(rIndex+1)+'</span><button class="icon-btn delete-row" data-g="'+gIndex+'" data-r="'+rIndex+'" title="Hapus baris">×</button></div>'
-              +'</div>';
-          }).join("");
-          var priceTotal=groupPrice(group);
-          return '<div class="group-card" data-group-card="'+gIndex+'">'
-            +'<div class="group-top"><div class="group-index">'+(gIndex+1)+'</div>'
-            +'<input class="control group-name" data-g="'+gIndex+'" value="'+esc(group.name)+'" placeholder="Nama alat">'
-            +'<button class="icon-btn delete-group" data-g="'+gIndex+'" title="Hapus barang">×</button></div>'
-            +'<div class="rows">'+rowsHtml
-            +'<button class="add-row add-row-btn" data-g="'+gIndex+'">+ Tambah Baris Penyewaan</button>'
-            +'<div class="summary-strip"><div class="summary-box"><span>Total QTY</span><b data-summary="qty">'+groupQty(group)+'</b></div>'
-            +'<div class="summary-box"><span>Total Sewa</span><b data-summary="price">'+(priceTotal?("Rp "+money(priceTotal)):"Belum diisi")+'</b></div></div>'
-            +'</div></div>';
-        }).join("");
-    
-        Array.prototype.forEach.call(document.querySelectorAll(".group-name"),function(input){
+        groupsEditor.innerHTML=window.BSMReportEditor.renderEditableTable(state.draft.groups,{
+          esc:esc,
+          money:money,
+          groupQty:groupQty,
+          groupPrice:groupPrice
+        });
+
+        Array.prototype.forEach.call(groupsEditor.querySelectorAll(".editor-name-input"),function(input){
           input.addEventListener("input",function(){
-            var g=Number(this.dataset.g); state.draft.groups[g].name=this.value; syncActiveSlide(); renderReport(); autoSave();
+            var g=Number(this.dataset.g);
+            if(!state.draft.groups[g]) return;
+            state.draft.groups[g].name=this.value;
+            syncActiveSlide();
+            renderReport();
+            autoSave();
           });
         });
-        Array.prototype.forEach.call(document.querySelectorAll(".row-input"),function(input){
+
+        Array.prototype.forEach.call(groupsEditor.querySelectorAll(".editor-row-input"),function(input){
           input.addEventListener("input",function(){
             var g=Number(this.dataset.g),r=Number(this.dataset.r),field=this.dataset.field,value=this.value;
+            if(!state.draft.groups[g]||!state.draft.groups[g].rows[r]) return;
             if(field==="qty"||field==="price") value=Number(value||0);
-            state.draft.groups[g].rows[r][field]=value; syncActiveSlide(); renderReport(); updateGroupSummary(g); autoSave();
+            state.draft.groups[g].rows[r][field]=value;
+            syncActiveSlide();
+            renderReport();
+            updateGroupSummary(g);
+            autoSave();
           });
         });
-        Array.prototype.forEach.call(document.querySelectorAll(".delete-row"),function(btn){
+
+        Array.prototype.forEach.call(groupsEditor.querySelectorAll("[data-delete-row]"),function(btn){
           btn.addEventListener("click",function(){
-            var g=Number(this.dataset.g),r=Number(this.dataset.r); state.draft.groups[g].rows.splice(r,1);
+            var parts=String(this.dataset.deleteRow||"").split(":");
+            var g=Number(parts[0]),r=Number(parts[1]);
+            if(!state.draft.groups[g]) return;
+            state.draft.groups[g].rows.splice(r,1);
             if(!state.draft.groups[g].rows.length) state.draft.groups[g].rows.push({id:uid(),date:"",qty:1,action:"",price:0});
-            syncActiveSlide(); renderAll(); autoSave();
+            syncActiveSlide();
+            renderAll();
+            autoSave();
           });
         });
-        Array.prototype.forEach.call(document.querySelectorAll(".delete-group"),function(btn){
+
+        Array.prototype.forEach.call(groupsEditor.querySelectorAll("[data-delete-group]"),function(btn){
           btn.addEventListener("click",function(){
-            state.draft.groups.splice(Number(this.dataset.g),1); syncActiveSlide(); renderAll(); autoSave();
+            var g=Number(this.dataset.deleteGroup);
+            state.draft.groups.splice(g,1);
+            syncActiveSlide();
+            renderAll();
+            autoSave();
           });
         });
-        Array.prototype.forEach.call(document.querySelectorAll(".add-row-btn"),function(btn){
+
+        Array.prototype.forEach.call(groupsEditor.querySelectorAll("[data-add-row]"),function(btn){
           btn.addEventListener("click",function(){
-            state.draft.groups[Number(this.dataset.g)].rows.push({id:uid(),date:"",qty:1,action:"",price:0}); syncActiveSlide(); renderAll(); autoSave();
+            var g=Number(this.dataset.addRow);
+            if(!state.draft.groups[g]) return;
+            state.draft.groups[g].rows.push({id:uid(),date:"",qty:1,action:"",price:0});
+            syncActiveSlide();
+            renderAll();
+            autoSave();
           });
         });
       }
@@ -767,5 +844,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     })();
   </script>
 </body>
-<!-- report-gudang-build-v5-bulk-slides -->
+<!-- report-gudang-build-v6-compact-editor-table -->
 </html>
