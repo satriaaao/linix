@@ -323,4 +323,20 @@ assert(html.includes('id="lightingReportHost"'),'Preview harus punya host Lighti
 assert(html.includes('window.BSMCinemaReports.createSlides'),'Import Excel Cinema harus membuat slide');
 assert(html.includes('window.BSMLightingReports.createSlides'),'Import Excel Lighting harus membuat slide');
 
+const cinemaVendorPaste='NO\tTGL penyewaan\tDurasi Sewa\tNama Alat\tQTY\tAction\n1\t01-Juni-2026\t1 hari\tSmall hd\t1\tDS\n\t\t\tTOTAL\t1\t';
+assert.strictEqual(bulkRouter.detectKind(cinemaVendorPaste,'gudang-cinema'),'cinema-vendor');
+assert.strictEqual(bulkRouter.parse(cinemaVendorPaste,{typeId:'gudang-cinema',mode:'cinema-vendor'}).slides[0].cinemaVendorGroups[0].name,'Small hd');
+
+const lightingVendorPaste='No\tTGL Penyewaan\tNama Alat\tQTY\tAction\tBackup\tHarga Sewa\n1\t01/06/2026\tSpotlight\t1\tDS\t\t100000\nTotal\t\t\t1\t\t\t100000';
+assert.strictEqual(bulkRouter.detectKind(lightingVendorPaste,'gudang-lighting'),'lighting-vendor');
+assert.strictEqual(bulkRouter.parse(lightingVendorPaste,{typeId:'gudang-lighting',mode:'lighting-vendor'}).slides[0].lightingVendorGroups[0].name,'Spotlight');
+
+const lightingComplaintPaste='No\tTGL Penyewaan\tNama Customer\tNama Alat\tQTY\tKronologi\tTindakan\tPengeluaran\tIndikasi\tPic Siapkan Alat\n1\t01/06/2026\tPT A\tDome\t1\tError\tKirim\tRp 10\tTrouble\tGusti';
+assert.strictEqual(bulkRouter.detectKind(lightingComplaintPaste,'gudang-lighting'),'lighting-complaint');
+assert.strictEqual(bulkRouter.parse(lightingComplaintPaste,{typeId:'gudang-lighting',mode:'lighting-complaint'}).slides[0].lightingComplaints[0].customer,'PT A');
+
+const lightingServicePaste='NO\tNama Alat\tSN Lampu\tSN Control Box\tTempat Service\tTanggal Service\tIndikasi Rusak\n1\tAputure 600d\tSN1\tCB1\tPrima Media\t01/06/2026\tLCD rusak\nStock Aputure 600d\nStock BSM = 40 | Service = 1';
+assert.strictEqual(bulkRouter.detectKind(lightingServicePaste,'gudang-lighting'),'lighting-service');
+assert.strictEqual(bulkRouter.parse(lightingServicePaste,{typeId:'gudang-lighting',mode:'lighting-service'}).slides[0].lightingServiceGroups[0].name,'Aputure 600d');
+
 console.log('16:9 dashboard mobile/print tests passed');
