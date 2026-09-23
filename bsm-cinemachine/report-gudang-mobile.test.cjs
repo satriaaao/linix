@@ -152,6 +152,8 @@ assert.strictEqual(bulkRouter.detectKind(adminPaste,'admin'),'admin-matrix');
 assert.strictEqual(bulkRouter.detectKind('No  TGL Penyewaan  Nama Alat  QTY  Action  Harga Sewa','gudang-lighting'),'generic');
 assert(html.includes('/report-bulk-router.js'),'halaman harus memuat bulk router');
 assert(html.includes('id="bulkModeSelect"'),'Input Banyak harus punya pilihan format');
+assert(html.includes('function bulkTargetTypeForMode(mode)'),'UI harus menentukan target divisi dari format input');
+assert(html.includes('bulkTargetTypeForMode(bulkModeSelect.value)'),'Target Aktif harus mengikuti format yang dipilih');
 assert(html.includes('window.BSMBulkRouter.parse'),'import bulk harus memakai router');
 
 console.log('16:9 dashboard mobile/print tests passed');
