@@ -281,6 +281,18 @@ assert(cinemaSlides.filter(x=>x.template==='cinema-service').length>=2);
 assert(cinemaReports.renderVendorSlide(cinemaSlides.find(x=>x.template==='cinema-vendor')).includes('BARANG KURANG'));
 assert(cinemaReports.renderComplaintSlide(cinemaSlides.find(x=>x.template==='cinema-complaint')).includes('KOMPLAIN'));
 assert(cinemaReports.renderServiceSlide(cinemaSlides.find(x=>x.template==='cinema-service')).includes('DI SERVICE'));
+const cinemaServiceHtml=cinemaReports.renderServiceSlide(cinemaSlides.find(x=>x.template==='cinema-service'));
+assert(cinemaServiceHtml.includes('<colgroup>'),'Cinema Service harus memakai colgroup khusus');
+assert(cinemaServiceHtml.includes('class="cs-item"'),'Cinema Service harus punya lebar kolom Nama Barang');
+assert(cinemaServiceHtml.includes('class="cs-damage"'),'Cinema Service harus punya lebar kolom Kerusakan');
+assert(cinemaServiceHtml.includes('class="cs-qty"'),'Cinema Service harus punya lebar kolom QTY');
+assert(cinemaServiceHtml.includes('class="cs-note"'),'Cinema Service harus punya lebar kolom Keterangan');
+assert(html.includes('.cinema-service-slide h1{font-size:48px!important'),'Judul Cinema Service harus besar');
+assert(html.includes('.cinema-service-table thead th{height:40px!important;font-size:12px!important'),'Header Cinema Service harus besar');
+assert(html.includes('.cinema-service-table td{height:34px!important;font-size:12px!important'),'Isi Cinema Service harus besar');
+assert(html.includes('.cs-damage{width:19%}'),'Kerusakan Cinema harus lebih lebar');
+assert(html.includes('.cs-qty{width:5%}'),'QTY Cinema harus sempit');
+assert(html.includes('maxCinemaServiceRows:10'),'Input Banyak Cinema Service maksimal 10 row per slide');
 
 const lightingVendorRows=[
   ['MBR Report Gudang LIGHTING BSM Rental','','','','','',''],
