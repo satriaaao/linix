@@ -274,12 +274,14 @@
     .rg-sidebar-brand strong{display:block;font-size:14px;letter-spacing:-.01em}
     .rg-sidebar-brand span{display:block;margin-top:4px;color:#9ca3af;font-size:10px}
     .rg-sidebar-list{display:grid;gap:5px}
+    .rg-sidebar-group{margin:10px 10px 3px;color:#7f8da3;font-size:9px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
     .rg-sidebar-item{
       width:100%;border:0;background:transparent;color:#cbd5e1;text-align:left;
       padding:11px 12px;border-radius:10px;font-size:11px;font-weight:800;transition:.15s;
     }
     .rg-sidebar-item:hover{background:#1f2937;color:#fff}
     .rg-sidebar-item.active{background:var(--teal);color:#fff;box-shadow:0 8px 20px rgba(8,125,134,.28)}
+    .rg-report-type{padding-left:20px;font-size:10.5px}
     .menu-toggle{display:none}
     .top-actions #csvBtn,.top-actions #printBtn,.top-actions #bulkFocusBtn{display:none}
     .rg-sidebar-scrim{display:none}
@@ -510,9 +512,11 @@
       }
       #slideCounter{
         min-width:72px!important;
+        max-width:145px!important;
         padding:0 4px;
         font-size:11px!important;
         white-space:nowrap;
+        overflow:hidden;text-overflow:ellipsis;
       }
       #deleteSlideBtn{
         width:38px!important;height:40px!important;min-height:40px!important;padding:0!important;
@@ -758,7 +762,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       <section class="dashboard-page active" id="previewPage">
         
       <div class="report-toolbar">
-        <div class="hint">Preview 16:9 • swipe kiri/kanan untuk pindah slide</div>
+        <div class="hint">Preview Master 16:9 • semua jenis report digabung berurutan</div>
         <div class="carousel-controls">
           <button class="slide-nav-btn" id="prevSlideBtn" aria-label="Slide sebelumnya">‹</button>
           <strong id="slideCounter">Belum ada slide</strong>
