@@ -25,6 +25,11 @@ assert.strictEqual((html.match(/@page\{/g)||[]).length,1,'PDF harus hanya punya 
 assert(!/A4/i.test(html),'PDF tidak boleh memakai ukuran A4');
 assert(html.includes('.print-page{width:13.333in;height:7.5in;'));
 assert(html.includes('.print-canvas{width:1600px;height:900px;transform:scale(.8)'));
+assert(html.includes('html2canvas.min.js'),'direct PDF harus memuat html2canvas');
+assert(html.includes('jspdf.umd.min.js'),'direct PDF harus memuat jsPDF');
+assert(html.includes('function downloadPdf16x9()'),'harus ada generator download PDF langsung');
+assert(html.includes('if(kind===\"pdf\"){closeSidebar();downloadPdf16x9();return;}'),'menu PDF harus download langsung');
+assert(!html.includes('if(kind===\"pdf\"){closeSidebar();renderPrintStack();setTimeout(function(){window.print();},60);return;}'),'menu PDF tidak boleh membuka dialog print');
 assert(html.includes('width:1600px!important;height:900px!important'));
 assert(html.includes('id="previewViewport"'));
 assert(html.includes('id="previewCanvas"'));
