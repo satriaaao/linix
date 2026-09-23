@@ -13,6 +13,13 @@
     var scale=computePreviewScale(viewportWidth,baseWidth,sidePadding);
     return {scale:scale,width:Math.max(0,Number(viewportWidth||0)-(Number(sidePadding==null?20:sidePadding)*2)),height:Number(baseHeight||820)*scale};
   }
+  function getPreviewLayout(viewportWidth,sidePadding){
+    var canvasWidth=1600,canvasHeight=900;
+    var pad=Number(sidePadding==null?10:sidePadding);
+    var available=Math.max(0,Number(viewportWidth||0)-(pad*2));
+    var scale=Math.min(1,Math.max(.12,available/canvasWidth));
+    return {scale:scale,viewportWidth:canvasWidth*scale,viewportHeight:canvasHeight*scale,canvasWidth:canvasWidth,canvasHeight:canvasHeight};
+  }
   function normalizeLogoSettings(src){
     src=src||{};
     return {width:clamp(src.width==null?180:src.width,80,320),x:clamp(src.x||0,-200,200),y:clamp(src.y||0,-200,200)};
@@ -38,5 +45,5 @@
       +'<label>Posisi Y <span data-logo-value="y">'+s.y+'</span><input type="range" min="-200" max="200" value="'+s.y+'" data-logo-setting="y"></label>'
       +'<button class="btn" data-reset-logo>Reset Logo</button></div>';
   }
-  return {computePreviewScale:computePreviewScale,getMobilePreviewLayout:getMobilePreviewLayout,normalizeLogoSettings:normalizeLogoSettings,renderSidebar:renderSidebar,renderModalShell:renderModalShell,renderLogoOverlay:renderLogoOverlay,renderLogoEditor:renderLogoEditor};
+  return {computePreviewScale:computePreviewScale,getMobilePreviewLayout:getMobilePreviewLayout,getPreviewLayout:getPreviewLayout,normalizeLogoSettings:normalizeLogoSettings,renderSidebar:renderSidebar,renderModalShell:renderModalShell,renderLogoOverlay:renderLogoOverlay,renderLogoEditor:renderLogoEditor};
 });
