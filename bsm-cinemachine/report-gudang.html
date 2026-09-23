@@ -634,10 +634,54 @@
       body.presentation-mode #previewPage,
       body.presentation-mode .preview-stage{height:100vh!important}
     }
-    .cover-slide,.report{
+    .cover-slide,.report,.admin-matrix-slide{
       width:1600px!important;height:900px!important;min-height:900px!important;max-height:900px!important;
       aspect-ratio:16/9;overflow:hidden!important;
     }
+    #adminMatrixHost{width:1600px;height:900px}
+    .admin-matrix-slide{
+      position:relative;background:#fff;color:#15394b;padding:20px 28px 18px;font-family:Arial,Helvetica,sans-serif;
+      box-sizing:border-box;
+    }
+    .admin-matrix-grid{
+      position:absolute;inset:0;pointer-events:none;opacity:.42;
+      background-image:linear-gradient(rgba(42,154,176,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(42,154,176,.08) 1px,transparent 1px);
+      background-size:28px 28px;
+    }
+    .admin-matrix-kicker{position:relative;font-family:monospace;font-size:14px;letter-spacing:.16em;line-height:1.7;margin:0 0 4px 8px}
+    .admin-matrix-kicker .accent{color:#1586a0}
+    .admin-matrix-slide h1{position:relative;margin:0 0 8px 8px;font-size:40px;line-height:1;font-weight:950;letter-spacing:-.03em;color:#050505}
+    .admin-matrix-slide h1 span{color:#1082a1}
+    .admin-matrix-table-wrap{position:relative;border:1px solid #b8dce5;background:rgba(255,255,255,.94)}
+    .admin-matrix-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:10px;line-height:1.05}
+    .admin-matrix-table th,.admin-matrix-table td{border:1px solid #c5e2e8;text-align:center;height:22px;padding:0 2px;box-sizing:border-box}
+    .admin-matrix-table thead th{height:27px;background:#def3f8;color:#174b62;font-weight:900}
+    .admin-matrix-table th:nth-child(1){width:96px}
+    .admin-matrix-table th:nth-child(2){width:86px}
+    .admin-matrix-table th:nth-child(3){width:108px}
+    .admin-matrix-table th:nth-last-child(2){width:76px}
+    .admin-matrix-table th:last-child{width:62px}
+    .admin-day-head{font-size:10px}
+    .admin-day.has-value{background:#d8f3f8;color:#153e52;font-weight:800}
+    .admin-group{background:#f4fbfc;font-weight:900;color:#0d6f87;vertical-align:middle}
+    .admin-group b{display:block;font-size:27px;line-height:1;margin-bottom:5px;color:#08677f}
+    .admin-group strong{display:block;font-size:12px}
+    .admin-shift{font-weight:900;color:#12637b;background:#f8fcfd}
+    .admin-time{font-weight:700;color:#355e70}
+    .admin-total-row td{background:#cfeff5!important;color:#0b5870;font-weight:950}
+    .admin-grand-total{font-size:12px}
+    .admin-surat-row td{height:27px}
+    .admin-matrix-bottom{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:12px}
+    .admin-box{border:1px solid #b8dce5;background:rgba(255,255,255,.94);min-height:118px}
+    .admin-box h3{margin:0;padding:5px 14px;background:#d8f2f7;color:#174b62;font-size:15px;letter-spacing:.06em}
+    .admin-summary-row{display:grid;grid-template-columns:1fr 150px;min-height:17px;border-top:1px solid #d5e9ed;font-size:10px;align-items:center}
+    .admin-summary-row span{padding-left:14px}
+    .admin-summary-row b{text-align:center;background:#e1f5f8;height:100%;display:flex;align-items:center;justify-content:center}
+    .admin-summary-row.strong{font-weight:950}
+    .admin-note{display:flex;gap:12px;padding:6px 14px 0;font-size:10px;font-weight:750}
+    .admin-matrix-footer{position:relative;display:flex;align-items:center;gap:14px;margin:11px 3px 0;font-family:monospace;font-size:10px;letter-spacing:.07em;color:#244f63}
+    .admin-matrix-footer i{height:1px;background:#8eaeb9;flex:1}
+    .admin-matrix-footer strong{font-size:11px;white-space:nowrap}
     .report.report-dense{padding-top:24px!important}
     .report.report-dense .report-title{font-size:47px}
     .report.report-dense table{font-size:12px}
@@ -671,7 +715,7 @@
       .print-stack{display:block!important;margin:0!important;padding:0!important}
       .print-page{display:block!important;width:13.333in!important;height:7.5in!important;overflow:hidden!important;margin:0!important}
       .print-canvas{display:block!important;width:1600px!important;height:900px!important;transform:scale(.8)!important;transform-origin:top left!important}
-      .print-canvas .cover-slide,.print-canvas .report{
+      .print-canvas .cover-slide,.print-canvas .report,.print-canvas .admin-matrix-slide{
         display:block!important;width:1600px!important;height:900px!important;min-height:900px!important;margin:0!important;
         border:0!important;box-shadow:none!important;zoom:1!important;transform:none!important;
       }
@@ -827,6 +871,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         <div class="preview-viewport" id="previewViewport">
           <div class="preview-canvas" id="previewCanvas">
             <div id="coverSlideHost"></div>
+            <div id="adminMatrixHost"></div>
             <section class="report" id="report">
               <div class="report-kicker">
                 <span class="circle-slash"></span>
@@ -888,6 +933,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-editor.js"></script>
   <script src="/report-gudang-cover.js"></script>
   <script src="/report-gudang-master.js"></script>
+  <script src="/report-admin-matrix.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
@@ -941,6 +987,9 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         base.month=Number(src.month||base.month);
         base.year=Number(src.year||base.year);
         base.subtitle=src.subtitle||base.subtitle;
+        base.template=src.template||"";
+        base.reportType=src.reportType||"";
+        base.matrix=src.matrix?clone(src.matrix):null;
         base.groups=(src.groups||[]).map(function(g){
           return {id:g.id||uid(),name:g.name||"Nama Alat",rows:(g.rows||[]).map(function(row){
             return {id:row.id||uid(),date:row.date||"",qty:Number(row.qty||0),action:row.action||"",price:Number(row.price||0)};
@@ -977,6 +1026,9 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
       if(!window.BSMReportMaster||typeof window.BSMReportMaster.flattenMaster!=="function"){
         throw new Error("Master report helper tidak termuat");
+      }
+      if(!window.BSMAdminMatrix||typeof window.BSMAdminMatrix.renderSlide!=="function"){
+        throw new Error("Admin MBR matrix helper tidak termuat");
       }
       var REPORT_TYPES=window.BSMReportMaster.REPORT_TYPES;
       var storedCover=state.cover||{};
@@ -1025,6 +1077,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var coverEditorSection=document.getElementById("coverEditorSection");
       var coverEditorHost=document.getElementById("coverEditorHost");
       var coverSlideHost=document.getElementById("coverSlideHost");
+      var adminMatrixHost=document.getElementById("adminMatrixHost");
       var reportInfoSection=document.getElementById("reportInfoSection");
       var reportItemsSection=document.getElementById("reportItemsSection");
       var reportEl=document.getElementById("report");
@@ -1079,7 +1132,15 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             if(!normalized.department) normalized.department=type.department;
             return ensureIds(normalized);
           });
-          if(!section.slides.length) section.slides.push(ensureIds(emptyReportForType(type.id)));
+          if(type.id==="admin"){
+            var matrixIndex=section.slides.findIndex(function(r){return r.template==="admin-matrix";});
+            var matrixSlide=matrixIndex>=0?section.slides.splice(matrixIndex,1)[0]:window.BSMAdminMatrix.createSlide();
+            matrixSlide.template="admin-matrix";matrixSlide.reportType="admin";matrixSlide.matrix=matrixSlide.matrix||clone(window.BSMAdminMatrix.DATA);
+            var useful=section.slides.filter(function(r){return (r.groups||[]).length>0;});
+            section.slides=[matrixSlide].concat(useful);
+          }else if(!section.slides.length){
+            section.slides.push(ensureIds(emptyReportForType(type.id)));
+          }
         });
       }
       function bindActiveSection(index){
@@ -1191,6 +1252,15 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         }
       }
 
+      function renderAdminMatrixSlide(){
+        var page=currentMasterPage();
+        if(page.kind==="report"&&page.report&&page.report.template==="admin-matrix"){
+          adminMatrixHost.innerHTML=window.BSMAdminMatrix.renderSlide(page.report.matrix||window.BSMAdminMatrix.DATA,esc);
+        }else{
+          adminMatrixHost.innerHTML="";
+        }
+      }
+
       function renderCoverEditor(){
         var c=editableCover(),logo=c.logo||{image:"",width:180,x:0,y:0};
         var coverTitle=document.getElementById("coverPageTitle"),coverSub=document.getElementById("coverPageSub");
@@ -1247,18 +1317,28 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
 
       function applyEditorMode(){
         coverEditorSection.classList.add("active");
-        if(reportInfoSection) reportInfoSection.style.display="";
+        var adminMatrix=state.draft&&state.draft.template==="admin-matrix";
+        if(reportInfoSection) reportInfoSection.style.display=adminMatrix?"none":"";
         if(reportItemsSection) reportItemsSection.style.display="";
+        var add=document.getElementById("addGroupInline");
+        if(add) add.style.display=adminMatrix?"none":"";
       }
 
       function applyPreviewMode(){
         var page=currentMasterPage();
         var coverMode=page.kind==="master-cover"||page.kind==="section-cover";
+        var adminMode=page.kind==="report"&&page.report&&page.report.template==="admin-matrix";
         coverSlideHost.style.display=coverMode?"block":"none";
-        reportEl.style.display=coverMode?"none":"block";
+        adminMatrixHost.style.display=adminMode?"block":"none";
+        reportEl.style.display=(coverMode||adminMode)?"none":"block";
       }
 
       function renderEditor(){
+        if(state.draft&&state.draft.template==="admin-matrix"){
+          document.getElementById("groupCount").textContent="Matrix Admin Juni 2026";
+          groupsEditor.innerHTML='<div class="editor-empty"><strong>DATA MBR ADMIN JUNI 2026</strong><br><br>Template matrix Admin sudah dimuat ke Preview Master dan PDF. Gunakan Preview Master untuk melihat tabel 1–30, Delivery, Jemputan, Surat Jalan, KET, dan Catatan.</div>';
+          return;
+        }
         document.getElementById("groupCount").textContent=state.draft.groups.length+" item";
         if(!window.BSMReportEditor||typeof window.BSMReportEditor.renderEditableTable!=="function"){
           groupsEditor.innerHTML='<div class="editor-empty">Editor tabel belum termuat. Refresh halaman lalu coba lagi.</div>';
@@ -1650,6 +1730,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         renderCoverEditor();
         renderReport();
         renderCoverSlide();
+        renderAdminMatrixSlide();
         renderSlideNav();
         applyEditorMode();
         applyPreviewMode();
@@ -1714,6 +1795,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
     
       function staticReportHtml(report,index,total,typeId){
+        if(report&&report.template==="admin-matrix") return window.BSMAdminMatrix.renderSlide(report.matrix||window.BSMAdminMatrix.DATA,esc);
         var type=reportType(typeId||report.reportType),dep=String(report.department||type.department).trim()||type.department,m=Number(report.month||1),y=Number(report.year||new Date().getFullYear());
         var warehouse=String(type.id).indexOf("gudang-")===0;
         var rowCount=(report.groups||[]).reduce(function(sum,g){return sum+(g.rows||[]).length+1;},0);
