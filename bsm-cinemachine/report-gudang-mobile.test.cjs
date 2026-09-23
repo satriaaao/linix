@@ -210,6 +210,21 @@ const audioSheet2Rows=[
   ['', '12 juni 2026','trouble','atomos hdr','1 unit','overheat','dicek trouble','aldi','pt badan geo'],
   ['', '', '', 'total','1 unit','','','','']
 ];
+globalThis.XLSX={
+  utils:{
+    sheet_to_json:function(sheet){return sheet.rows;}
+  }
+};
+const workbookParsed=audioReports.parseWorkbook({
+  SheetNames:['Service','Sheet2'],
+  Sheets:{
+    Service:{rows:audioServiceRows},
+    Sheet2:{rows:audioSheet2Rows}
+  }
+});
+assert.strictEqual(workbookParsed.serviceCenters.length,2,'Import workbook Audio harus bisa memakai XLSX global tanpa error root');
+delete globalThis.XLSX;
+
 const audioParsed=audioReports.parseWorkbookRows(audioServiceRows,audioSheet2Rows);
 assert.strictEqual(audioParsed.serviceCenters.length,2,'Audio service harus dipisah per tempat service');
 assert.strictEqual(audioParsed.vendorGroups.length,1,'Audio vendor harus terbaca dari Sheet2');
