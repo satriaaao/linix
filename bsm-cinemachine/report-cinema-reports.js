@@ -101,7 +101,7 @@
     var maxC=Math.max(5,Number(opts.maxComplaintRows||18)),compl=parsed.complaints||[];
     for(var c=0;c<compl.length;c+=maxC) slides.push({template:'cinema-complaint',reportType:'gudang-cinema',department:'CINEMA',groups:[],cinemaComplaints:compl.slice(c,c+maxC),pageNo:Math.floor(c/maxC)+1,pageTotal:Math.max(1,Math.ceil(compl.length/maxC)),period:opts.period||'JUNI 2026'});
     (parsed.serviceCenters||[]).forEach(function(center){
-      var max=Math.max(5,Number(opts.maxServiceRows||18)),total=Math.max(1,Math.ceil(center.rows.length/max));
+      var max=Math.max(5,Number(opts.maxServiceRows||10)),total=Math.max(1,Math.ceil(center.rows.length/max));
       for(var i=0;i<center.rows.length;i+=max) slides.push({template:'cinema-service',reportType:'gudang-cinema',department:'CINEMA',groups:[],serviceCenter:center.name,cinemaServiceRows:center.rows.slice(i,i+max),pageNo:Math.floor(i/max)+1,pageTotal:total,period:opts.servicePeriod||'2026'});
     });
     return slides;
@@ -122,7 +122,7 @@
   function renderServiceSlide(slide,esc){
     esc=esc||escDefault;slide=slide||{};var rows=(slide.cinemaServiceRows||[]).map(function(r,i){return '<tr><td class="cin-no">'+esc(r.no||i+1)+'</td><td>'+esc(r.date)+'</td><td>'+esc(r.item)+'</td><td>'+esc(r.damage||'-')+'</td><td class="cin-qty">'+esc(r.qty)+'</td><td>'+esc(r.sn1||'-')+'</td><td>'+esc(r.sn2||'-')+'</td><td>'+esc(r.takenDate||'-')+'</td><td>'+esc(r.note||'-')+'</td></tr>';}).join('');
     var suffix=slide.pageTotal>1?' ('+slide.pageNo+'/'+slide.pageTotal+')':'';
-    return '<section class="cinema-service-slide"><div class="cin-grid"></div><div class="cin-kicker"><div>// LAPORAN GUDANG</div><div class="accent">// REPORT CINEMA</div></div><h1>ALAT-ALAT YANG DI <span>SERVICE</span></h1><h2>'+esc(slide.serviceCenter||'SERVICE CENTER')+suffix+'</h2><div class="cin-wrap"><table class="cin-service-table"><thead><tr><th>NO</th><th>TANGGAL</th><th>NAMA BARANG</th><th>KERUSAKAN</th><th>QTY</th><th>SN 1</th><th>SN 2 / CASE ID</th><th>SUDAH DIAMBIL/TGL</th><th>KETERANGAN</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+footer(slide.period||'2026')+'</section>';
+    return '<section class="cinema-service-slide"><div class="cin-grid"></div><div class="cin-kicker"><div>// LAPORAN GUDANG</div><div class="accent">// REPORT CINEMA</div></div><h1>ALAT-ALAT YANG DI <span>SERVICE</span></h1><h2>'+esc(slide.serviceCenter||'SERVICE CENTER')+suffix+'</h2><div class="cin-wrap"><table class="cin-service-table"><colgroup><col class="cs-no"><col class="cs-date"><col class="cs-item"><col class="cs-damage"><col class="cs-qty"><col class="cs-sn1"><col class="cs-sn2"><col class="cs-taken"><col class="cs-note"></colgroup><thead><tr><th>NO</th><th>TANGGAL</th><th>NAMA BARANG</th><th>KERUSAKAN</th><th>QTY</th><th>SN 1</th><th>SN 2 / CASE ID</th><th>SUDAH DIAMBIL/TGL</th><th>KETERANGAN</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+footer(slide.period||'2026')+'</section>';
   }
   return {parseServiceRows:parseServiceRows,parseVendorRows:parseVendorRows,parseComplaintRows:parseComplaintRows,parseWorkbookRows:parseWorkbookRows,parseWorkbook:parseWorkbook,createSlides:createSlides,renderVendorSlide:renderVendorSlide,renderComplaintSlide:renderComplaintSlide,renderServiceSlide:renderServiceSlide};
 });
