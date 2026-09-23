@@ -5,6 +5,7 @@ const adminMatrix = require('./report-admin-matrix.js');
 const cameraVendor = require('./report-camera-vendor.js');
 const cameraReports = require('./report-camera-reports.js');
 const bulkRouter = require('./report-bulk-router.js');
+const liveEdit = require('./report-live-edit.js');
 
 const phone = ui.getPreviewLayout(390, 10);
 assert.strictEqual(phone.canvasWidth, 1600);
@@ -158,5 +159,18 @@ assert(html.includes('id="bulkModeSelect"'),'Input Banyak harus punya pilihan fo
 assert(html.includes('function bulkTargetTypeForMode(mode)'),'UI harus menentukan target divisi dari format input');
 assert(html.includes('bulkTargetTypeForMode(bulkModeSelect.value)'),'Target Aktif harus mengikuti format yang dipilih');
 assert(html.includes('window.BSMBulkRouter.parse'),'import bulk harus memakai router');
+const editStore={};
+liveEdit.setText(editStore,'slide-a',3,'Judul Baru');
+assert.strictEqual(liveEdit.getText(editStore,'slide-a',3),'Judul Baru','edit teks harus tersimpan per slide + index');
+liveEdit.setText(editStore,'slide-b',3,'Teks Slide B');
+assert.strictEqual(liveEdit.getText(editStore,'slide-a',3),'Judul Baru','edit slide lain tidak boleh menimpa slide sebelumnya');
+liveEdit.clearPage(editStore,'slide-a');
+assert.strictEqual(liveEdit.getText(editStore,'slide-a',3),undefined,'reset slide harus menghapus edit slide');
+assert(html.includes('/report-live-edit.js'),'Preview harus memuat helper live edit');
+assert(html.includes('function enableLiveTextEditing()'),'Preview harus mengaktifkan edit teks langsung');
+assert(html.includes('contenteditable="true"'),'teks preview harus dibuat contenteditable');
+assert(html.includes('function applyLiveEditsToNode(root,pageKey)'),'PDF harus dapat menerapkan hasil edit');
+assert(html.includes('applyLiveEditsToNode(node,liveEditPageKey(master[i]))'),'PDF harus memakai edit teks tersimpan');
+assert(html.includes('id="resetSlideTextBtn"'),'harus ada tombol reset teks slide');
 
 console.log('16:9 dashboard mobile/print tests passed');
