@@ -936,6 +936,27 @@
     .cinema-service-slide.slide-fit-tight .cinema-service-table thead th{height:30px!important;font-size:9.5px!important;padding:2px 3px!important}
     .cinema-service-slide.slide-fit-tight .cinema-service-table td{height:24px!important;font-size:9.5px!important;padding:2px 3px!important;line-height:1.08!important}
 
+    /* Gudang Lighting Komplain: readable presentation layout */
+    .lighting-complaint-slide{padding:24px 32px 22px!important}
+    .lighting-complaint-slide h1{font-size:48px!important;margin:0 0 12px 6px!important;line-height:.96!important}
+    .lighting-complaint-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:12px!important}
+    .lighting-complaint-table thead th{height:40px!important;font-size:12px!important;padding:4px 5px!important;line-height:1.08!important}
+    .lighting-complaint-table td{height:38px!important;font-size:12px!important;padding:5px 6px!important;line-height:1.16!important}
+    .lighting-complaint-table .light-no{font-size:13px!important}
+    .lighting-complaint-table .light-qty{font-size:12px!important}
+    .lc-no{width:4%}.lc-date{width:9%}.lc-customer{width:13%}.lc-item{width:17%}.lc-qty{width:5%}.lc-chrono{width:18%}.lc-action{width:13%}.lc-expense{width:8%}.lc-ind{width:8%}.lc-pic{width:5%}
+    .lighting-complaint-slide .light-footer{bottom:18px!important}
+
+    .lighting-complaint-slide.slide-fit-compact{padding:20px 28px 18px!important}
+    .lighting-complaint-slide.slide-fit-compact h1{font-size:42px!important}
+    .lighting-complaint-slide.slide-fit-compact .lighting-complaint-table thead th{height:34px!important;font-size:10.8px!important;padding:3px 4px!important}
+    .lighting-complaint-slide.slide-fit-compact .lighting-complaint-table td{height:31px!important;font-size:10.8px!important;padding:3px 4px!important;line-height:1.1!important}
+
+    .lighting-complaint-slide.slide-fit-tight{padding:17px 24px 16px!important}
+    .lighting-complaint-slide.slide-fit-tight h1{font-size:36px!important}
+    .lighting-complaint-slide.slide-fit-tight .lighting-complaint-table thead th{height:30px!important;font-size:9.8px!important;padding:2px 3px!important}
+    .lighting-complaint-slide.slide-fit-tight .lighting-complaint-table td{height:26px!important;font-size:9.8px!important;padding:2px 3px!important;line-height:1.08!important}
+
     .report.report-dense{padding-top:24px!important}
     .report.report-dense .report-title{font-size:47px}
     .report.report-dense table{font-size:12px}
@@ -2389,7 +2410,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(!file)return;var reader=new FileReader();
         reader.onload=function(ev){try{
           var wb=window.XLSX.read(ev.target.result,{type:"array"}),parsed=window.BSMLightingReports.parseWorkbook(wb);
-          var slides=window.BSMLightingReports.createSlides(parsed,{maxVendorRows:14,maxComplaintRows:14,maxServiceRows:14,period:"JUNI 2026",servicePeriod:"JUNI 2026"});
+          var slides=window.BSMLightingReports.createSlides(parsed,{maxVendorRows:14,maxComplaintRows:9,maxServiceRows:14,period:"JUNI 2026",servicePeriod:"JUNI 2026"});
           if(!slides.length)throw new Error("Tidak ada data Gudang Lighting yang terbaca.");
           state.activeType="gudang-lighting";var section=state.sections["gudang-lighting"];section.slides=slides.map(function(s){s.liveEditId=uid();return s;});
           ensureMasterReports();bindActiveSection(0);state.coverTarget="gudang-lighting";state.activeView=window.BSMReportMaster.findPageIndex(state,"report:gudang-lighting:0");
@@ -2475,7 +2496,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             maxCinemaComplaintRows:15,
             maxCinemaServiceRows:10,
             maxLightingVendorRows:14,
-            maxLightingComplaintRows:14,
+            maxLightingComplaintRows:9,
             maxLightingServiceRows:14
           });
           var targetType=(result.kind.indexOf("camera-")===0)?"gudang-kamera":(result.kind.indexOf("audio-")===0?"gudang-audio":(result.kind.indexOf("cinema-")===0?"gudang-cinema":(result.kind.indexOf("lighting-")===0?"gudang-lighting":(result.kind==="admin-matrix"?"admin":state.activeType))));
@@ -2690,5 +2711,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     })();
   </script>
 </body>
-<!-- report-gudang-build-v30-cinema-service-columns -->
+<!-- report-gudang-build-v31-lighting-complaint-readable -->
 </html>
