@@ -5,9 +5,23 @@
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
   function clean(v){return String(v==null?'':v).replace(/\u00a0/g,' ').trim();}
   function num(v){var n=Number(clean(v).replace(/[^0-9.-]/g,''));return Number.isFinite(n)?n:0;}
+  function splitTsvLine(line){
+    var cells=[],cell='',quoted=false;
+    for(var i=0;i<line.length;i++){
+      var ch=line.charAt(i);
+      if(ch==='"'){
+        if(quoted&&line.charAt(i+1)==='"'){cell+='"';i++;continue;}
+        quoted=!quoted;continue;
+      }
+      if(ch==='\t'&&!quoted){cells.push(clean(cell));cell='';continue;}
+      cell+=ch;
+    }
+    cells.push(clean(cell));
+    return cells;
+  }
   function splitRows(text){
     return String(text||'').replace(/\r/g,'').split('\n').map(function(line){
-      if(line.indexOf('\t')>=0) return line.split('\t').map(clean);
+      if(line.indexOf('\t')>=0) return splitTsvLine(line);
       return line.trim().split(/\s{2,}/).map(clean);
     });
   }
@@ -30,7 +44,7 @@
     var s=upper(text);
     if(/NAMA BARANG/.test(s)&&/QTY/.test(s)&&/HARGA VENDOR/.test(s)) return 'camera-vendor';
     if(/NAMA BARANG/.test(s)&&/(NAMA CLIEN|NAMA CLIENT|NAMA KLIEN)/.test(s)&&/(IDIKASI|INDIKASI)/.test(s)&&/KRONOLOGIS/.test(s)) return 'camera-complaint';
-    if(/MODEL/.test(s)&&/STOK KANTOR/.test(s)&&/DI SERVICE/.test(s)&&/BISA JALAN/.test(s)) return 'camera-service';
+    if(/MODEL/.test(s)&&/STOK KANTOR/.test(s)&&/(DI\s*SERVICE|DISERVICE|\bSERVICE\b)/.test(s)&&/BISA JALAN/.test(s)) return 'camera-service';
     if(/JAM\/TANGGAL/.test(s)&&(/\t1\t/.test(String(text))||/\b1\s+2\s+3\b/.test(s))) return 'admin-matrix';
     return 'generic';
   }
@@ -150,32 +164,108 @@
     flush();
     return pages.length?pages:[[]];
   }
+  function isServiceHeader(r){
+    var joined=upper((r||[]).join(' ')).replace(/\s+/g,' ');
+    return joined.indexOf('MODEL')>=0&&joined.indexOf('TANGGAL')>=0&&joined.indexOf('STOK KANTOR')>=0&&joined.indexOf('BISA JALAN')>=0&&/(DI\s*SERVICE|DISERVICE|\bSERVICE\b)/.test(joined);
+  }
+  function serviceCenterBefore(rows,headerIndex,fallback){
+    for(var i=headerIndex-1;i>=0;i--){
+      var vals=(rows[i]||[]).filter(function(x){return clean(x)!=='';});
+      if(!vals.length) continue;
+      var joined=clean(vals.join(' '));
+      if(/REPORT\s+BARANG\s+YANG\s+DI\s+SERVICE/i.test(joined)) break;
+      if(isServiceHeader(rows[i])) break;
+      if(/^\d+$/.test(clean(vals[0]))) continue;
+      if(/^(NO|MODEL|TANGGAL|STOK KANTOR)/i.test(joined)) continue;
+      return joined;
+    }
+    return clean(fallback||'Sony Center')||'Sony Center';
+  }
+  function normalizeServiceDataRow(row){
+    var cells=(row||[]).map(clean);
+    while(cells.length>8&&cells[3]==='') cells.splice(3,1);
+    if(cells.length>8){
+      var head=cells.slice(0,7),note=cells.slice(7).filter(function(x){return x!=='';}).join(' ');
+      cells=head.concat([note]);
+    }
+    while(cells.length<8) cells.push('');
+    return {
+      no:num(cells[0]),
+      model:clean(cells[1]),
+      date:clean(cells[2]),
+      stock:clean(cells[3]),
+      total:num(cells[4]),
+      inService:num(cells[5]),
+      canRun:num(cells[6]),
+      note:clean(cells[7])||'-'
+    };
+  }
   function parseService(text,opts){
     opts=opts||{};
-    var rows=compact(splitRows(text)),hi=headerIndex(rows,['MODEL','TANGGAL','STOK KANTOR','DI SERVICE','BISA JALAN']);
-    if(hi<0) throw new Error('Header Service belum terbaca.');
-    var h=rows[hi],centerI=findCol(h,[/TEMPAT SERVICE/,/SERVICE CENTER/]),modelI=findCol(h,[/^MODEL$/]),dateI=findCol(h,[/^TANGGAL$/]),stockI=findCol(h,[/STOK KANTOR/,/SN/]),totalI=findCol(h,[/TOTAL UNIT/,/^TOTAL$/]),serviceI=findCol(h,[/DI SERVICE/]),runI=findCol(h,[/BISA JALAN/]),noteI=findCol(h,[/KETERANGAN/]);
-    var centers={};
-    rows.slice(hi+1).forEach(function(r){
-      var model=clean(r[modelI]);if(!model||/^TOTAL\b/i.test(model)) return;
-      var center=centerI>=0?clean(r[centerI]):clean(opts.serviceCenter||'Sony Center');if(!center) center='Sony Center';
-      if(!centers[center]) centers[center]={name:center,groups:[],map:{}};
-      var key=upper(model);
-      var g=centers[center].map[key];
-      if(!g){g={name:model,total:num(r[totalI]),inService:num(r[serviceI]),canRun:num(r[runI]),rows:[]};centers[center].map[key]=g;centers[center].groups.push(g);}
-      if(num(r[totalI])) g.total=num(r[totalI]); if(num(r[serviceI])) g.inService=num(r[serviceI]); if(num(r[runI])) g.canRun=num(r[runI]);
-      g.rows.push({date:clean(r[dateI]),stock:clean(r[stockI]),note:clean(r[noteI])||'-'});
+    var rows=splitRows(text),headers=[];
+    rows.forEach(function(r,i){if(isServiceHeader(r)) headers.push(i);});
+    if(!headers.length) throw new Error('Header Service belum terbaca. Gunakan kolom NO, MODEL, TANGGAL, STOK KANTOR, SERVICE/DISERVICE, BISA JALAN, KETERANGAN.');
+
+    var centers=[],centerMap={};
+    function centerFor(name){
+      var key=upper(name);
+      if(!centerMap[key]){
+        centerMap[key]={name:name,groups:[]};
+        centers.push(centerMap[key]);
+      }
+      return centerMap[key];
+    }
+
+    headers.forEach(function(hi,headerPos){
+      var centerName=serviceCenterBefore(rows,hi,opts.serviceCenter||'Sony Center');
+      var center=centerFor(centerName);
+      var end=headerPos+1<headers.length?headers[headerPos+1]:rows.length;
+      var current=null;
+
+      for(var ri=hi+1;ri<end;ri++){
+        var raw=rows[ri]||[],first=clean(raw[0]);
+        if(!/^\d+$/.test(first)) continue;
+        var item=normalizeServiceDataRow(raw);
+        if(!item.model) continue;
+
+        var newGroup=!current||item.no===1;
+        if(!newGroup&&upper(item.model)!==upper(current.name)&&(item.total||item.inService||item.canRun)) newGroup=true;
+
+        if(newGroup){
+          current={name:item.model,total:item.total,inService:item.inService,canRun:item.canRun,rows:[]};
+          center.groups.push(current);
+        }else{
+          if(item.total) current.total=item.total;
+          if(item.inService) current.inService=item.inService;
+          if(item.canRun) current.canRun=item.canRun;
+        }
+
+        current.rows.push({
+          model:upper(item.model)===upper(current.name)?'':item.model,
+          date:item.date,
+          stock:item.stock,
+          note:item.note
+        });
+      }
     });
+
     var slides=[];
-    Object.keys(centers).forEach(function(name){
-      var pages=paginateService(centers[name].groups,opts.maxServiceUnits||20);
+    centers.forEach(function(center){
+      if(!center.groups.length) return;
+      var pages=paginateService(center.groups,opts.maxServiceUnits||20);
       pages.forEach(function(groups,i){
-        slides.push({template:'camera-service',reportType:'gudang-kamera',department:'KAMERA',month:7,year:2026,subtitle:'Report Barang yang di Service',groups:[],serviceCenter:name,servicePeriod:opts.period||'JULI 2026',serviceGroups:groups,pageNo:i+1,pageTotal:pages.length});
+        slides.push({
+          template:'camera-service',reportType:'gudang-kamera',department:'KAMERA',
+          month:7,year:2026,subtitle:'Report Barang yang di Service',groups:[],
+          serviceCenter:center.name,servicePeriod:opts.period||'JULI 2026',
+          serviceGroups:groups,pageNo:i+1,pageTotal:pages.length
+        });
       });
     });
     if(!slides.length) throw new Error('Data Service belum terbaca.');
     return {kind:'camera-service',slides:slides};
   }
+
   function parseAdmin(text,opts){
     opts=opts||{};
     var rows=splitRows(text),hi=rows.findIndex(function(r){return r.some(function(c){return upper(c)==='JAM/TANGGAL';});});
