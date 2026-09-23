@@ -2311,7 +2311,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             maxServiceUnits:20,
             maxGenericRows:18
           });
-          var targetType=(result.kind.indexOf("camera-")===0)?"gudang-kamera":(result.kind.indexOf("audio-")===0?"gudang-audio":(result.kind==="admin-matrix"?"admin":state.activeType));
+          var targetType=(result.kind.indexOf("camera-")===0)?"gudang-kamera":(result.kind.indexOf("audio-")===0?"gudang-audio":(result.kind.indexOf("cinema-")===0?"gudang-cinema":(result.kind.indexOf("lighting-")===0?"gudang-lighting":(result.kind==="admin-matrix"?"admin":state.activeType))));
           state.activeType=targetType;
           var type=reportType(targetType),section=state.sections[targetType];
           var slides=(result.slides||[]).map(function(report){
@@ -2523,5 +2523,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     })();
   </script>
 </body>
-<!-- report-gudang-build-v24-cinema-lighting-workbooks -->
+<!-- report-gudang-build-v25-cinema-lighting-ready -->
 </html>
