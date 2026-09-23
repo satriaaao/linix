@@ -365,7 +365,7 @@
       if(center.rows.length) centers.push(center);
     });
     if(!centers.length) throw new Error('Data Audio Service belum terbaca.');
-    var slides=[],max=Math.max(5,Number(opts.maxAudioServiceRows||18));
+    var slides=[],max=Math.max(5,Number(opts.maxAudioServiceRows||12));
     centers.forEach(function(center){
       var total=Math.max(1,Math.ceil(center.rows.length/max));
       for(var i=0;i<center.rows.length;i+=max){
