@@ -3,7 +3,7 @@
   if(typeof module==='object'&&module.exports) module.exports=api;
   if(root) root.BSMBulkRouter=api;
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
-  function clean(v){return String(v==null?'':v).replace(/\u00a0/g,' ').trim();}
+  function clean(v){return String(v==null?'':v).replace(/\u00a0/g,' ').replace(/\t+/g,' ').replace(/\s{2,}/g,' ').trim();}
   function num(v){var n=Number(clean(v).replace(/[^0-9.-]/g,''));return Number.isFinite(n)?n:0;}
   function splitTsvLine(line){
     var cells=[],cell='',quoted=false;
