@@ -196,6 +196,23 @@
       opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s;
     }
     .toast.show{opacity:1;transform:none}
+
+    .bulk-section{background:linear-gradient(180deg,#f9fefe,#ffffff)}
+    .bulk-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 8px;border-radius:999px;background:#e8f7f8;color:var(--teal-dark);font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+    .bulk-textarea{width:100%;min-height:210px;resize:vertical;border:1px solid #c8dadd;border-radius:12px;background:#fbfefe;padding:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;line-height:1.5;color:#1e293b;outline:none}
+    .bulk-textarea:focus{border-color:#58aeb4;box-shadow:0 0 0 3px rgba(8,125,134,.10);background:#fff}
+    .bulk-help{margin:8px 0 10px;color:#667786;font-size:10px;line-height:1.45}
+    .bulk-actions{display:flex;gap:8px;align-items:center}
+    .bulk-actions .btn{flex:1;min-height:42px}
+    .carousel-controls{display:flex;align-items:center;gap:7px}
+    .slide-nav-btn{width:34px;height:34px;border:1px solid #cddbdd;background:#fff;border-radius:10px;font-size:18px;font-weight:900;color:#1f2937;display:grid;place-items:center;padding:0}
+    .slide-nav-btn:disabled,.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+    #slideCounter{min-width:76px;text-align:center;font-size:11px;color:#314052}
+    .slide-dots{display:flex;align-items:center;justify-content:center;gap:7px;padding:2px 0 11px}
+    .slide-dot{width:8px;height:8px;border:0;border-radius:999px;background:#bdd1d4;padding:0;transition:.15s}
+    .slide-dot.active{width:24px;background:var(--teal)}
+    .print-stack{display:none}
+
     .mobile-tabs{display:none}
     @media(max-width:980px){
       .topbar{align-items:flex-start;padding:11px 12px}
@@ -204,7 +221,9 @@
       .workspace{display:block;padding:10px}
       .editor{position:static;max-height:none}
       .report-zone{margin-top:12px}
-      .report-toolbar{display:none}
+      .report-toolbar{display:flex;align-items:center;justify-content:center;gap:8px;padding:0 2px}
+      .report-toolbar .hint{display:none}
+      .carousel-controls{width:100%;justify-content:center;flex-wrap:wrap}
       .mobile-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
       .mobile-tab{border:1px solid #cfdcdf;background:#fff;border-radius:10px;padding:9px;font-size:12px;font-weight:850}
       .mobile-tab.active{background:var(--teal);color:white;border-color:var(--teal)}
@@ -234,6 +253,14 @@
       td.no{font-size:16px}
       .report-footer{margin-top:14px;font-size:8px}
     }
+
+    @media print{
+      .report-shell,.slide-dots{display:none!important}
+      .print-stack{display:block!important}
+      .print-stack .report{display:block!important;width:100%!important;min-height:auto!important;margin:0!important;padding:0!important;border:0!important;box-shadow:none!important;page-break-after:always;break-after:page}
+      .print-stack .report:last-child{page-break-after:auto;break-after:auto}
+    }
+
   </style>
 </head>
 <body>
@@ -249,7 +276,7 @@
       <button class="btn" id="saveBtn">Simpan</button>
       <button class="btn" id="csvBtn">Export CSV</button>
       <button class="btn dark" id="printBtn">Print / PDF</button>
-      <button class="btn primary" id="addGroupBtn">+ Tambah Barang</button>
+      <button class="btn primary" id="bulkFocusBtn">+ Input Banyak</button>
     </div>
   </header>
 
@@ -263,7 +290,26 @@
       <div class="panel-head">
         <div class="eyebrow">Editor Report</div>
         <h2>Input Data Gudang</h2>
-        <p>Isi data di sini. Tabel report di sebelah kanan akan berubah otomatis.</p>
+        <p>Bisa tempel banyak data sekaligus, lalu langsung jadi slide preview.</p>
+      </div>
+
+      <div class="section bulk-section" id="bulkSection">
+        <div class="section-title">
+          <strong>Input Banyak Sekaligus</strong>
+          <span class="bulk-badge">Paste Excel / Tabel</span>
+        </div>
+        <textarea class="bulk-textarea" id="bulkInput" placeholder="Tempel data lengkap di sini, contoh:
+
+MBR Report Gudang LIGHTING BSM Rental
+Priode JUNI 2026
+Report Barang Kurang/Ambil Vendor
+No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
+1     1-Jun-26         Spotlight 36&quot;    1    Spotlight 19&quot; DS    133.200
+      22-Jun-26                         1    DS                   166.500"></textarea>
+        <div class="bulk-help">Tempel langsung dari Excel/Spreadsheet atau teks bertabel. Sistem membaca judul, periode, barang, tanggal, QTY, vendor/action, dan harga sekaligus.</div>
+        <div class="bulk-actions">
+          <button class="btn primary" id="importBulkBtn">Masukkan ke Preview</button>
+        </div>
       </div>
 
       <div class="section">
@@ -309,9 +355,16 @@
 
     <main class="report-zone">
       <div class="report-toolbar">
-        <div class="hint">Preview report • scroll horizontal bila layar kecil</div>
+        <div class="hint">Preview slide • geser kiri/kanan untuk pindah report</div>
+        <div class="carousel-controls">
+          <button class="slide-nav-btn" id="prevSlideBtn" aria-label="Slide sebelumnya">‹</button>
+          <strong id="slideCounter">Belum ada slide</strong>
+          <button class="slide-nav-btn" id="nextSlideBtn" aria-label="Slide berikutnya">›</button>
+          <button class="btn ghost-danger" id="deleteSlideBtn">Hapus Slide</button>
+        </div>
         <div class="hint" id="lastSavedText">Belum disimpan manual</div>
       </div>
+      <div class="slide-dots" id="slideDots"></div>
       <div class="report-shell">
         <section class="report" id="report">
           <div class="report-kicker">
@@ -351,389 +404,368 @@
           </div>
         </section>
       </div>
+      <div class="print-stack" id="printStack"></div>
     </main>
   </div>
 
   <div class="toast" id="toast"></div>
 
+  <script src="/report-gudang-parser.js"></script>
   <script>
     (function(){
-      var STORAGE_KEY = "bsm-report-gudang-v1";
+      var STORAGE_KEY = "bsm-report-gudang-v2";
+      var OLD_STORAGE_KEY = "bsm-report-gudang-v1";
       var months = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
       var shortMonths = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
-
-      function uid(){
-        return Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4);
-      }
-
-      function sampleState(){
+    
+      function uid(){ return Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4); }
+      function clone(v){ return JSON.parse(JSON.stringify(v)); }
+      function emptyReport(){ return {department:"LIGHTING",month:6,year:2026,subtitle:"Report Barang Kurang / Ambil Vendor",groups:[]}; }
+      function sampleReport(){
         return {
-          department:"LIGHTING",
-          month:6,
-          year:2026,
-          subtitle:"Report Barang Kurang / Ambil Vendor",
+          department:"LIGHTING",month:6,year:2026,subtitle:"Report Barang Kurang / Ambil Vendor",
           groups:[
-            {
-              id:uid(), name:'Spotlight 36"',
-              rows:[
-                {id:uid(),date:"2026-06-01",qty:1,action:'Spotlight 19" DS',price:133200},
-                {id:uid(),date:"2026-06-22",qty:1,action:"DS",price:166500}
-              ]
-            },
-            {
-              id:uid(), name:"Smoke Gun",
-              rows:[
-                {id:uid(),date:"2026-06-01",qty:1,action:"GEN",price:0},
-                {id:uid(),date:"2026-06-15",qty:1,action:"GEN",price:0},
-                {id:uid(),date:"2026-06-16",qty:1,action:"GEN",price:0},
-                {id:uid(),date:"2026-06-21",qty:1,action:"Panorama",price:0},
-                {id:uid(),date:"2026-06-23",qty:1,action:"Panorama",price:0},
-                {id:uid(),date:"2026-06-25",qty:1,action:"GEN",price:0}
-              ]
-            },
-            {
-              id:uid(), name:"F-Clamp",
-              rows:[
-                {id:uid(),date:"2026-06-01",qty:6,action:"Baraka",price:0},
-                {id:uid(),date:"2026-06-05",qty:4,action:"Baraka",price:0},
-                {id:uid(),date:"2026-06-09",qty:4,action:"Baraka",price:0}
-              ]
-            },
-            {
-              id:uid(), name:"Super Clamp & Magic Arm",
-              rows:[
-                {id:uid(),date:"2026-06-01",qty:4,action:"Baraka",price:0},
-                {id:uid(),date:"2026-06-05",qty:14,action:"6x Panorama, 6x Cuas, 2x GEN",price:0},
-                {id:uid(),date:"2026-06-12",qty:2,action:"DS",price:22200},
-                {id:uid(),date:"2026-06-13",qty:5,action:"Baraka",price:0},
-                {id:uid(),date:"2026-06-14",qty:8,action:"5x Baraka, 3x DOT",price:0}
-              ]
-            }
+            {id:uid(),name:'Spotlight 36"',rows:[
+              {id:uid(),date:"2026-06-01",qty:1,action:'Spotlight 19" DS',price:133200},
+              {id:uid(),date:"2026-06-22",qty:1,action:"DS",price:166500}
+            ]},
+            {id:uid(),name:"Smoke Gun",rows:[
+              {id:uid(),date:"2026-06-01",qty:1,action:"GEN",price:0},
+              {id:uid(),date:"2026-06-15",qty:1,action:"GEN",price:0},
+              {id:uid(),date:"2026-06-16",qty:1,action:"GEN",price:0},
+              {id:uid(),date:"2026-06-21",qty:1,action:"Panorama",price:0},
+              {id:uid(),date:"2026-06-23",qty:1,action:"Panorama",price:0},
+              {id:uid(),date:"2026-06-25",qty:1,action:"GEN",price:0}
+            ]},
+            {id:uid(),name:"F-Clamp",rows:[
+              {id:uid(),date:"2026-06-01",qty:6,action:"Baraka",price:0},
+              {id:uid(),date:"2026-06-05",qty:4,action:"Baraka",price:0},
+              {id:uid(),date:"2026-06-09",qty:4,action:"Baraka",price:0}
+            ]},
+            {id:uid(),name:"Super Clamp & Magic Arm",rows:[
+              {id:uid(),date:"2026-06-01",qty:4,action:"Baraka",price:0},
+              {id:uid(),date:"2026-06-05",qty:14,action:"6x Panorama, 6x Cuas, 2x GEN",price:0},
+              {id:uid(),date:"2026-06-12",qty:2,action:"DS",price:22200},
+              {id:uid(),date:"2026-06-13",qty:5,action:"Baraka",price:0},
+              {id:uid(),date:"2026-06-14",qty:8,action:"5x Baraka, 3x DOT",price:0}
+            ]}
           ]
         };
       }
-
-      var state = loadState() || sampleState();
-
-      var departmentInput = document.getElementById("departmentInput");
-      var monthInput = document.getElementById("monthInput");
-      var yearInput = document.getElementById("yearInput");
-      var subtitleInput = document.getElementById("subtitleInput");
-      var groupsEditor = document.getElementById("groupsEditor");
-      var reportBody = document.getElementById("reportBody");
-
+    
+      function normalizeReport(r){
+        var base=emptyReport(), src=r||{};
+        base.department=src.department||base.department;
+        base.month=Number(src.month||base.month);
+        base.year=Number(src.year||base.year);
+        base.subtitle=src.subtitle||base.subtitle;
+        base.groups=(src.groups||[]).map(function(g){
+          return {id:g.id||uid(),name:g.name||"Nama Alat",rows:(g.rows||[]).map(function(row){
+            return {id:row.id||uid(),date:row.date||"",qty:Number(row.qty||0),action:row.action||"",price:Number(row.price||0)};
+          })};
+        });
+        return base;
+      }
+    
+      function loadState(){
+        try{
+          var raw=localStorage.getItem(STORAGE_KEY);
+          if(raw){
+            var parsed=JSON.parse(raw);
+            if(parsed && parsed.draft && Array.isArray(parsed.slides)){
+              parsed.draft=normalizeReport(parsed.draft);
+              parsed.slides=parsed.slides.map(normalizeReport);
+              parsed.activeSlide=Number.isInteger(parsed.activeSlide)?parsed.activeSlide:-1;
+              if(parsed.activeSlide>=parsed.slides.length) parsed.activeSlide=parsed.slides.length-1;
+              return parsed;
+            }
+          }
+          var old=localStorage.getItem(OLD_STORAGE_KEY);
+          if(old){
+            var legacy=normalizeReport(JSON.parse(old));
+            return {draft:legacy,slides:legacy.groups.length?[clone(legacy)]:[],activeSlide:legacy.groups.length?0:-1};
+          }
+        }catch(e){}
+        return {draft:emptyReport(),slides:[],activeSlide:-1};
+      }
+    
+      var state=loadState();
+      var departmentInput=document.getElementById("departmentInput");
+      var monthInput=document.getElementById("monthInput");
+      var yearInput=document.getElementById("yearInput");
+      var subtitleInput=document.getElementById("subtitleInput");
+      var groupsEditor=document.getElementById("groupsEditor");
+      var reportBody=document.getElementById("reportBody");
+      var bulkInput=document.getElementById("bulkInput");
+      var importBulkBtn=document.getElementById("importBulkBtn");
+      var slideCounter=document.getElementById("slideCounter");
+      var slideDots=document.getElementById("slideDots");
+      var prevSlideBtn=document.getElementById("prevSlideBtn");
+      var nextSlideBtn=document.getElementById("nextSlideBtn");
+      var deleteSlideBtn=document.getElementById("deleteSlideBtn");
+    
       function esc(v){
-        return String(v == null ? "" : v)
-          .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
-          .replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+        return String(v==null?"":v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
       }
-
-      function money(n){
-        n = Number(n || 0);
-        return new Intl.NumberFormat("id-ID").format(n);
-      }
-
+      function money(n){ return new Intl.NumberFormat("id-ID").format(Number(n||0)); }
       function dateDisplay(v){
         if(!v) return "";
-        var parts = String(v).split("-");
-        if(parts.length !== 3) return esc(v);
-        var y = Number(parts[0]), m = Number(parts[1]), d = Number(parts[2]);
-        return d + "-" + shortMonths[m-1] + "-" + String(y).slice(-2);
+        var parts=String(v).split("-");
+        if(parts.length!==3) return esc(v);
+        return Number(parts[2])+"-"+(shortMonths[Number(parts[1])-1]||parts[1])+"-"+String(parts[0]).slice(-2);
       }
-
-      function groupQty(group){
-        return group.rows.reduce(function(sum,row){ return sum + Number(row.qty || 0); },0);
+      function groupQty(group){ return (group.rows||[]).reduce(function(s,r){return s+Number(r.qty||0);},0); }
+      function groupPrice(group){ return (group.rows||[]).reduce(function(s,r){return s+Number(r.price||0);},0); }
+      function ensureIds(report){
+        report.groups.forEach(function(g){ g.id=g.id||uid(); g.rows.forEach(function(r){r.id=r.id||uid();}); });
+        return report;
       }
-
-      function groupPrice(group){
-        return group.rows.reduce(function(sum,row){ return sum + Number(row.price || 0); },0);
-      }
-
+    
       function saveState(showMessage){
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
         if(showMessage){
-          var now = new Date();
-          document.getElementById("lastSavedText").textContent = "Tersimpan " + now.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"});
+          var now=new Date();
+          document.getElementById("lastSavedText").textContent="Tersimpan "+now.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"});
           toast("Data report tersimpan");
         }
       }
-
-      function loadState(){
-        try{
-          var raw = localStorage.getItem(STORAGE_KEY);
-          return raw ? JSON.parse(raw) : null;
-        }catch(e){ return null; }
-      }
-
+      var saveTimer;
+      function autoSave(){ clearTimeout(saveTimer); saveTimer=setTimeout(function(){saveState(false);},220); }
       function toast(message){
-        var el = document.getElementById("toast");
-        el.textContent = message;
-        el.classList.add("show");
-        clearTimeout(window.__toastTimer);
-        window.__toastTimer = setTimeout(function(){ el.classList.remove("show"); },1800);
+        var el=document.getElementById("toast"); el.textContent=message; el.classList.add("show");
+        clearTimeout(window.__toastTimer); window.__toastTimer=setTimeout(function(){el.classList.remove("show");},1900);
       }
-
+    
       function populateHeaderInputs(){
-        monthInput.innerHTML = months.map(function(m,i){
-          return '<option value="' + (i+1) + '">' + m + '</option>';
-        }).join("");
-        departmentInput.value = state.department || "LIGHTING";
-        monthInput.value = state.month || 6;
-        yearInput.value = state.year || 2026;
-        subtitleInput.value = state.subtitle || "";
+        monthInput.innerHTML=months.map(function(m,i){return '<option value="'+(i+1)+'">'+m+'</option>';}).join("");
+        departmentInput.value=state.draft.department||"LIGHTING";
+        monthInput.value=state.draft.month||6;
+        yearInput.value=state.draft.year||2026;
+        subtitleInput.value=state.draft.subtitle||"";
       }
-
+    
+      function syncActiveSlide(){
+        if(state.activeSlide>=0 && state.slides[state.activeSlide]) state.slides[state.activeSlide]=clone(state.draft);
+      }
+    
+      function updateGroupSummary(g){
+        var card=groupsEditor.querySelector('[data-group-card="'+g+'"]');
+        if(!card) return;
+        var qty=card.querySelector('[data-summary="qty"]');
+        var price=card.querySelector('[data-summary="price"]');
+        if(qty) qty.textContent=groupQty(state.draft.groups[g]);
+        if(price){
+          var p=groupPrice(state.draft.groups[g]);
+          price.textContent=p?("Rp "+money(p)):"Belum diisi";
+        }
+      }
+    
       function renderEditor(){
-        document.getElementById("groupCount").textContent = state.groups.length + " barang";
-        if(!state.groups.length){
-          groupsEditor.innerHTML = '<div style="padding:18px 8px;text-align:center;color:#7b8a97;font-size:12px">Belum ada barang.</div>';
+        document.getElementById("groupCount").textContent=state.draft.groups.length+" barang";
+        if(!state.draft.groups.length){
+          groupsEditor.innerHTML='<div style="padding:18px 8px;text-align:center;color:#7b8a97;font-size:12px">Belum ada barang. Bisa input manual atau tempel data banyak di atas.</div>';
           return;
         }
-
-        groupsEditor.innerHTML = state.groups.map(function(group,gIndex){
-          var qtyTotal = groupQty(group);
-          var priceTotal = groupPrice(group);
-
-          var rowsHtml = group.rows.map(function(row,rIndex){
-            return ''
-              + '<div class="row-card" data-row-id="' + esc(row.id) + '">'
-              +   '<div class="row-mini">'
-              +     '<div class="field"><label>Tanggal</label><input class="control row-input" type="date" data-g="' + gIndex + '" data-r="' + rIndex + '" data-field="date" value="' + esc(row.date) + '"></div>'
-              +     '<div class="field"><label>QTY</label><input class="control row-input" type="number" min="0" data-g="' + gIndex + '" data-r="' + rIndex + '" data-field="qty" value="' + esc(row.qty) + '"></div>'
-              +   '</div>'
-              +   '<div class="field" style="margin-bottom:8px"><label>Action / Vendor</label><input class="control row-input" data-g="' + gIndex + '" data-r="' + rIndex + '" data-field="action" value="' + esc(row.action) + '" placeholder="GEN / Baraka / Panorama"></div>'
-              +   '<div class="field"><label>Harga Sewa (Rp)</label><input class="control row-input" type="number" min="0" step="100" data-g="' + gIndex + '" data-r="' + rIndex + '" data-field="price" value="' + (Number(row.price)||"") + '" placeholder="0"></div>'
-              +   '<div class="row-actions"><span class="tiny">Baris ' + (rIndex+1) + '</span><button class="icon-btn delete-row" data-g="' + gIndex + '" data-r="' + rIndex + '" title="Hapus baris">×</button></div>'
-              + '</div>';
+        groupsEditor.innerHTML=state.draft.groups.map(function(group,gIndex){
+          var rowsHtml=group.rows.map(function(row,rIndex){
+            return '<div class="row-card" data-row-id="'+esc(row.id)+'">'
+              +'<div class="row-mini">'
+              +'<div class="field"><label>Tanggal</label><input class="control row-input" type="date" data-g="'+gIndex+'" data-r="'+rIndex+'" data-field="date" value="'+esc(row.date)+'"></div>'
+              +'<div class="field"><label>QTY</label><input class="control row-input" type="number" min="0" data-g="'+gIndex+'" data-r="'+rIndex+'" data-field="qty" value="'+esc(row.qty)+'"></div>'
+              +'</div>'
+              +'<div class="field" style="margin-bottom:8px"><label>Action / Vendor</label><input class="control row-input" data-g="'+gIndex+'" data-r="'+rIndex+'" data-field="action" value="'+esc(row.action)+'" placeholder="GEN / Baraka / Panorama"></div>'
+              +'<div class="field"><label>Harga Sewa (Rp)</label><input class="control row-input" type="number" min="0" step="100" data-g="'+gIndex+'" data-r="'+rIndex+'" data-field="price" value="'+(Number(row.price)||"")+'" placeholder="0"></div>'
+              +'<div class="row-actions"><span class="tiny">Baris '+(rIndex+1)+'</span><button class="icon-btn delete-row" data-g="'+gIndex+'" data-r="'+rIndex+'" title="Hapus baris">×</button></div>'
+              +'</div>';
           }).join("");
-
-          return ''
-            + '<div class="group-card">'
-            +   '<div class="group-top">'
-            +     '<div class="group-index">' + (gIndex+1) + '</div>'
-            +     '<input class="control group-name" data-g="' + gIndex + '" value="' + esc(group.name) + '" placeholder="Nama alat">'
-            +     '<button class="icon-btn delete-group" data-g="' + gIndex + '" title="Hapus barang">×</button>'
-            +   '</div>'
-            +   '<div class="rows">' + rowsHtml
-            +     '<button class="add-row add-row-btn" data-g="' + gIndex + '">+ Tambah Baris Penyewaan</button>'
-            +     '<div class="summary-strip">'
-            +       '<div class="summary-box"><span>Total QTY</span><b>' + qtyTotal + '</b></div>'
-            +       '<div class="summary-box"><span>Total Sewa</span><b>' + (priceTotal ? "Rp " + money(priceTotal) : "Belum diisi") + '</b></div>'
-            +     '</div>'
-            +   '</div>'
-            + '</div>';
+          var priceTotal=groupPrice(group);
+          return '<div class="group-card" data-group-card="'+gIndex+'">'
+            +'<div class="group-top"><div class="group-index">'+(gIndex+1)+'</div>'
+            +'<input class="control group-name" data-g="'+gIndex+'" value="'+esc(group.name)+'" placeholder="Nama alat">'
+            +'<button class="icon-btn delete-group" data-g="'+gIndex+'" title="Hapus barang">×</button></div>'
+            +'<div class="rows">'+rowsHtml
+            +'<button class="add-row add-row-btn" data-g="'+gIndex+'">+ Tambah Baris Penyewaan</button>'
+            +'<div class="summary-strip"><div class="summary-box"><span>Total QTY</span><b data-summary="qty">'+groupQty(group)+'</b></div>'
+            +'<div class="summary-box"><span>Total Sewa</span><b data-summary="price">'+(priceTotal?("Rp "+money(priceTotal)):"Belum diisi")+'</b></div></div>'
+            +'</div></div>';
         }).join("");
-
+    
         Array.prototype.forEach.call(document.querySelectorAll(".group-name"),function(input){
           input.addEventListener("input",function(){
-            var g = Number(this.getAttribute("data-g"));
-            state.groups[g].name = this.value;
-            renderReport();
-            autoSave();
+            var g=Number(this.dataset.g); state.draft.groups[g].name=this.value; syncActiveSlide(); renderReport(); autoSave();
           });
         });
-
         Array.prototype.forEach.call(document.querySelectorAll(".row-input"),function(input){
           input.addEventListener("input",function(){
-            var g = Number(this.getAttribute("data-g"));
-            var r = Number(this.getAttribute("data-r"));
-            var field = this.getAttribute("data-field");
-            var value = this.value;
-            if(field === "qty" || field === "price") value = Number(value || 0);
-            state.groups[g].rows[r][field] = value;
-            renderReport();
-            if(field === "qty" || field === "price") renderEditorSoon();
-            autoSave();
+            var g=Number(this.dataset.g),r=Number(this.dataset.r),field=this.dataset.field,value=this.value;
+            if(field==="qty"||field==="price") value=Number(value||0);
+            state.draft.groups[g].rows[r][field]=value; syncActiveSlide(); renderReport(); updateGroupSummary(g); autoSave();
           });
         });
-
         Array.prototype.forEach.call(document.querySelectorAll(".delete-row"),function(btn){
           btn.addEventListener("click",function(){
-            var g = Number(this.getAttribute("data-g"));
-            var r = Number(this.getAttribute("data-r"));
-            state.groups[g].rows.splice(r,1);
-            if(!state.groups[g].rows.length){
-              state.groups[g].rows.push({id:uid(),date:"",qty:1,action:"",price:0});
-            }
-            renderAll();
-            autoSave();
+            var g=Number(this.dataset.g),r=Number(this.dataset.r); state.draft.groups[g].rows.splice(r,1);
+            if(!state.draft.groups[g].rows.length) state.draft.groups[g].rows.push({id:uid(),date:"",qty:1,action:"",price:0});
+            syncActiveSlide(); renderAll(); autoSave();
           });
         });
-
         Array.prototype.forEach.call(document.querySelectorAll(".delete-group"),function(btn){
           btn.addEventListener("click",function(){
-            var g = Number(this.getAttribute("data-g"));
-            state.groups.splice(g,1);
-            renderAll();
-            autoSave();
+            state.draft.groups.splice(Number(this.dataset.g),1); syncActiveSlide(); renderAll(); autoSave();
           });
         });
-
         Array.prototype.forEach.call(document.querySelectorAll(".add-row-btn"),function(btn){
           btn.addEventListener("click",function(){
-            var g = Number(this.getAttribute("data-g"));
-            state.groups[g].rows.push({id:uid(),date:"",qty:1,action:"",price:0});
-            renderAll();
-            autoSave();
+            state.draft.groups[Number(this.dataset.g)].rows.push({id:uid(),date:"",qty:1,action:"",price:0}); syncActiveSlide(); renderAll(); autoSave();
           });
         });
       }
-
-      var editorTimer;
-      function renderEditorSoon(){
-        clearTimeout(editorTimer);
-        editorTimer = setTimeout(function(){ renderEditor(); },160);
-      }
-
-      var saveTimer;
-      function autoSave(){
-        clearTimeout(saveTimer);
-        saveTimer = setTimeout(function(){ saveState(false); },300);
-      }
-
-      function renderReport(){
-        var dep = String(state.department || "LIGHTING").trim() || "LIGHTING";
-        var month = Number(state.month || 1);
-        var year = Number(state.year || new Date().getFullYear());
-
-        document.getElementById("kickerDepartment").textContent = dep.toUpperCase();
-        document.getElementById("titleDepartment").textContent = dep.toUpperCase() + " BSM RENTAL";
-        document.getElementById("periodLabel").textContent = months[month-1] + " " + year;
-        document.getElementById("subtitleLabel").textContent = state.subtitle || "Report Barang Kurang / Ambil Vendor";
-        document.getElementById("footerDepartment").textContent = dep.charAt(0).toUpperCase() + dep.slice(1).toLowerCase();
-        document.getElementById("footerMonth").textContent = months[month-1];
-        document.getElementById("footerYear").textContent = year;
-
-        if(!state.groups.length){
-          reportBody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:34px;color:#7a8995">Belum ada data barang</td></tr>';
-          return;
-        }
-
-        var html = "";
-        state.groups.forEach(function(group,gIndex){
-          var rows = group.rows && group.rows.length ? group.rows : [{date:"",qty:0,action:"",price:0}];
+    
+      function buildRowsHtml(report){
+        if(!report.groups.length) return '<tr><td colspan="6" style="text-align:center;padding:34px;color:#7a8995">Belum ada data barang</td></tr>';
+        var html="";
+        report.groups.forEach(function(group,gIndex){
+          var rows=group.rows.length?group.rows:[{date:"",qty:0,action:"",price:0}];
           rows.forEach(function(row,rIndex){
-            html += "<tr>";
-            if(rIndex === 0){
-              html += '<td class="no" rowspan="' + (rows.length + 1) + '">' + (gIndex+1) + "</td>";
-            }
-            html += '<td class="date">' + esc(dateDisplay(row.date)) + "</td>";
-            html += "<td>" + (rIndex === 0 ? esc(group.name) : "") + "</td>";
-            html += '<td class="qty">' + esc(row.qty || "") + "</td>";
-            html += "<td>" + esc(row.action || "") + "</td>";
-            html += '<td class="price">' + (Number(row.price) ? money(row.price) : "") + "</td>";
-            html += "</tr>";
+            html+="<tr>";
+            if(rIndex===0) html+='<td class="no" rowspan="'+(rows.length+1)+'">'+(gIndex+1)+"</td>";
+            html+='<td class="date">'+esc(dateDisplay(row.date))+"</td>";
+            html+="<td>"+(rIndex===0?esc(group.name):"")+"</td>";
+            html+='<td class="qty">'+esc(row.qty||"")+"</td>";
+            html+="<td>"+esc(row.action||"")+"</td>";
+            html+='<td class="price">'+(Number(row.price)?money(row.price):"")+"</td></tr>";
           });
-
-          var priceTotal = groupPrice(group);
-          html += '<tr class="total-row">';
-          html += '<td colspan="2" class="total-label">Total</td>';
-          html += '<td class="qty">' + groupQty(group) + "</td>";
-          html += "<td></td>";
-          html += '<td class="total-price">Total Sewa = ' + (priceTotal ? "Rp. " + money(priceTotal) : '<span class="empty-price">Rp. —</span>') + "</td>";
-          html += "</tr>";
+          var priceTotal=groupPrice(group);
+          html+='<tr class="total-row"><td colspan="2" class="total-label">Total</td><td class="qty">'+groupQty(group)+'</td><td></td>'
+            +'<td class="total-price">Total Sewa = '+(priceTotal?("Rp. "+money(priceTotal)):'<span class="empty-price">Rp. —</span>')+'</td></tr>';
         });
-        reportBody.innerHTML = html;
+        return html;
       }
-
-      function renderAll(){
-        populateHeaderInputs();
-        renderEditor();
-        renderReport();
+    
+      function renderReport(){
+        var report=state.draft,dep=String(report.department||"LIGHTING").trim()||"LIGHTING",month=Number(report.month||1),year=Number(report.year||new Date().getFullYear());
+        document.getElementById("kickerDepartment").textContent=dep.toUpperCase();
+        document.getElementById("titleDepartment").textContent=dep.toUpperCase()+" BSM RENTAL";
+        document.getElementById("periodLabel").textContent=months[month-1]+" "+year;
+        document.getElementById("subtitleLabel").textContent=report.subtitle||"Report Barang Kurang / Ambil Vendor";
+        document.getElementById("footerDepartment").textContent=dep.charAt(0).toUpperCase()+dep.slice(1).toLowerCase();
+        document.getElementById("footerMonth").textContent=months[month-1];
+        document.getElementById("footerYear").textContent=year;
+        reportBody.innerHTML=buildRowsHtml(report);
       }
-
+    
+      function renderSlideNav(){
+        var count=state.slides.length;
+        slideCounter.textContent=count?(state.activeSlide+1)+" / "+count:"Belum ada slide";
+        prevSlideBtn.disabled=count<2; nextSlideBtn.disabled=count<2; deleteSlideBtn.disabled=!count;
+        importBulkBtn.textContent=count?"+ Tambah Slide ke Preview":"Masukkan ke Preview";
+        slideDots.innerHTML=count?state.slides.map(function(_,i){return '<button class="slide-dot '+(i===state.activeSlide?'active':'')+'" data-slide="'+i+'" aria-label="Slide '+(i+1)+'"></button>';}).join(""):'';
+        Array.prototype.forEach.call(slideDots.querySelectorAll(".slide-dot"),function(dot){
+          dot.addEventListener("click",function(){loadSlide(Number(this.dataset.slide));});
+        });
+      }
+    
+      function renderAll(){ populateHeaderInputs(); renderEditor(); renderReport(); renderSlideNav(); }
+    
+      function loadSlide(index){
+        if(index<0||index>=state.slides.length) return;
+        state.activeSlide=index; state.draft=clone(state.slides[index]); renderAll(); saveState(false);
+      }
+      function changeSlide(delta){
+        if(state.slides.length<2) return;
+        var next=(state.activeSlide+delta+state.slides.length)%state.slides.length; loadSlide(next);
+      }
+      function setMobileTab(preview){
+        document.body.classList.toggle("mobile-preview",!!preview);
+        Array.prototype.forEach.call(document.querySelectorAll(".mobile-tab"),function(x){x.classList.toggle("active",(x.dataset.tab==="preview")===!!preview);});
+        if(preview) renderReport();
+      }
+    
+      function importBulk(){
+        var raw=bulkInput.value.trim();
+        if(!raw){toast("Tempel data report dulu"); bulkInput.focus(); return;}
+        try{
+          if(!window.BSMReportParser||typeof window.BSMReportParser.parseBulkText!=="function") throw new Error("Parser belum termuat. Refresh halaman lalu coba lagi.");
+          var parsed=ensureIds(normalizeReport(window.BSMReportParser.parseBulkText(raw)));
+          state.draft=clone(parsed); state.slides.push(clone(parsed)); state.activeSlide=state.slides.length-1;
+          renderAll(); saveState(false); setMobileTab(true); bulkInput.value="";
+          toast("Slide "+state.slides.length+" ditambahkan ke preview");
+        }catch(err){ toast(err&&err.message?err.message:"Data belum bisa dibaca"); }
+      }
+    
       function addGroup(){
-        state.groups.push({
-          id:uid(),
-          name:"Nama Alat Baru",
-          rows:[{id:uid(),date:"",qty:1,action:"",price:0}]
-        });
-        renderAll();
-        autoSave();
-        if(window.innerWidth < 981) window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"});
+        state.draft.groups.push({id:uid(),name:"Nama Alat Baru",rows:[{id:uid(),date:"",qty:1,action:"",price:0}]});
+        syncActiveSlide(); renderAll(); autoSave();
       }
-
-      departmentInput.addEventListener("input",function(){
-        state.department = this.value;
-        renderReport();
-        autoSave();
-      });
-      monthInput.addEventListener("change",function(){
-        state.month = Number(this.value);
-        renderReport();
-        autoSave();
-      });
-      yearInput.addEventListener("input",function(){
-        state.year = Number(this.value || new Date().getFullYear());
-        renderReport();
-        autoSave();
-      });
-      subtitleInput.addEventListener("input",function(){
-        state.subtitle = this.value;
-        renderReport();
-        autoSave();
-      });
-
-      document.getElementById("addGroupBtn").addEventListener("click",addGroup);
+    
+      function staticReportHtml(report,index,total){
+        var dep=String(report.department||"LIGHTING").trim()||"LIGHTING",m=Number(report.month||1),y=Number(report.year||new Date().getFullYear());
+        return '<section class="report print-report">'
+          +'<div class="report-kicker"><span class="circle-slash"></span><div class="kicker-lines"><div>// LAPORAN GUDANG</div><div class="teal-line">// REPORT '+esc(dep.toUpperCase())+'</div></div></div>'
+          +'<h1 class="report-title">MBR REPORT GUDANG <span class="accent">'+esc(dep.toUpperCase())+' BSM RENTAL</span></h1>'
+          +'<div class="report-meta"><div>Priode '+esc(months[m-1]+" "+y)+'</div><div>'+esc(report.subtitle||"Report Barang Kurang / Ambil Vendor")+'</div></div>'
+          +'<div class="table-wrap"><table><thead><tr><th>No</th><th>TGL Penyewaan</th><th>Nama Alat</th><th>QTY</th><th>Action</th><th>Harga Sewa</th></tr></thead><tbody>'+buildRowsHtml(report)+'</tbody></table></div>'
+          +'<div class="report-footer"><div>Laporan Gudang '+esc(dep.charAt(0).toUpperCase()+dep.slice(1).toLowerCase())+' BSM Rental</div><div class="footer-line"></div><div>// '+esc(months[m-1])+' '+y+(total>1?' • '+index+'/'+total:'')+'</div></div>'
+          +'</section>';
+      }
+      function renderPrintStack(){
+        var list=state.slides.length?state.slides:[state.draft];
+        document.getElementById("printStack").innerHTML=list.map(function(r,i){return staticReportHtml(r,i+1,list.length);}).join("");
+      }
+    
+      departmentInput.addEventListener("input",function(){state.draft.department=this.value;syncActiveSlide();renderReport();autoSave();});
+      monthInput.addEventListener("change",function(){state.draft.month=Number(this.value);syncActiveSlide();renderReport();autoSave();});
+      yearInput.addEventListener("input",function(){state.draft.year=Number(this.value||new Date().getFullYear());syncActiveSlide();renderReport();autoSave();});
+      subtitleInput.addEventListener("input",function(){state.draft.subtitle=this.value;syncActiveSlide();renderReport();autoSave();});
+    
+      importBulkBtn.addEventListener("click",importBulk);
+      document.getElementById("bulkFocusBtn").addEventListener("click",function(){document.getElementById("bulkSection").scrollIntoView({behavior:"smooth",block:"start"});setMobileTab(false);setTimeout(function(){bulkInput.focus();},350);});
       document.getElementById("addGroupInline").addEventListener("click",addGroup);
-      document.getElementById("saveBtn").addEventListener("click",function(){ saveState(true); });
-      document.getElementById("printBtn").addEventListener("click",function(){ window.print(); });
+      document.getElementById("saveBtn").addEventListener("click",function(){saveState(true);});
+      document.getElementById("printBtn").addEventListener("click",function(){renderPrintStack();setTimeout(function(){window.print();},50);});
       document.getElementById("loadSampleBtn").addEventListener("click",function(){
-        if(confirm("Muat ulang data contoh JUNI 2026? Data sekarang akan diganti.")){
-          state = sampleState();
-          renderAll();
-          saveState(true);
+        if(confirm("Muat data contoh JUNI 2026 sebagai slide baru?")){
+          var report=sampleReport(); state.draft=clone(report); state.slides.push(clone(report)); state.activeSlide=state.slides.length-1; renderAll(); saveState(true); setMobileTab(true);
         }
       });
       document.getElementById("clearBtn").addEventListener("click",function(){
-        if(confirm("Kosongkan semua daftar barang?")){
-          state.groups = [];
-          renderAll();
-          saveState(true);
-        }
+        if(confirm("Kosongkan semua data dan semua slide?")){state={draft:emptyReport(),slides:[],activeSlide:-1};renderAll();saveState(true);setMobileTab(false);}
       });
-
       document.getElementById("csvBtn").addEventListener("click",function(){
-        var lines = [["No","TGL Penyewaan","Nama Alat","QTY","Action","Harga Sewa"]];
-        state.groups.forEach(function(group,gIndex){
-          group.rows.forEach(function(row,rIndex){
-            lines.push([
-              rIndex === 0 ? gIndex+1 : "",
-              dateDisplay(row.date),
-              rIndex === 0 ? group.name : "",
-              row.qty || "",
-              row.action || "",
-              Number(row.price || 0) || ""
-            ]);
-          });
-          lines.push(["Total","","",groupQty(group),"","Total Sewa = Rp. " + money(groupPrice(group))]);
+        var report=state.draft,lines=[["No","TGL Penyewaan","Nama Alat","QTY","Action","Harga Sewa"]];
+        report.groups.forEach(function(group,gIndex){
+          group.rows.forEach(function(row,rIndex){lines.push([rIndex===0?gIndex+1:"",dateDisplay(row.date),rIndex===0?group.name:"",row.qty||"",row.action||"",Number(row.price||0)||""]);});
+          lines.push(["Total","","",groupQty(group),"","Total Sewa = Rp. "+money(groupPrice(group))]);
         });
-        var csv = lines.map(function(row){
-          return row.map(function(v){ return '"' + String(v).replace(/"/g,'""') + '"'; }).join(",");
-        }).join("\n");
-        var blob = new Blob(["\ufeff" + csv],{type:"text/csv;charset=utf-8"});
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement("a");
-        a.href = url;
-        a.download = "report-gudang-" + months[(state.month||1)-1].toLowerCase() + "-" + state.year + ".csv";
-        a.click();
-        URL.revokeObjectURL(url);
-        toast("CSV berhasil dibuat");
+        var csv=lines.map(function(row){return row.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(",");}).join("\n");
+        var blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");
+        a.href=url;a.download="report-gudang-"+months[(report.month||1)-1].toLowerCase()+"-"+report.year+".csv";a.click();URL.revokeObjectURL(url);toast("CSV slide aktif berhasil dibuat");
       });
-
-      Array.prototype.forEach.call(document.querySelectorAll(".mobile-tab"),function(btn){
-        btn.addEventListener("click",function(){
-          var preview = this.getAttribute("data-tab") === "preview";
-          document.body.classList.toggle("mobile-preview",preview);
-          Array.prototype.forEach.call(document.querySelectorAll(".mobile-tab"),function(x){ x.classList.remove("active"); });
-          this.classList.add("active");
-          if(preview) renderReport();
-        });
+    
+      prevSlideBtn.addEventListener("click",function(){changeSlide(-1);});
+      nextSlideBtn.addEventListener("click",function(){changeSlide(1);});
+      deleteSlideBtn.addEventListener("click",function(){
+        if(state.activeSlide<0||!state.slides.length) return;
+        if(!confirm("Hapus slide "+(state.activeSlide+1)+"?")) return;
+        state.slides.splice(state.activeSlide,1);
+        if(state.slides.length){state.activeSlide=Math.min(state.activeSlide,state.slides.length-1);state.draft=clone(state.slides[state.activeSlide]);}
+        else{state.activeSlide=-1;state.draft=emptyReport();}
+        renderAll();saveState(false);toast("Slide dihapus");
       });
-
+    
+      Array.prototype.forEach.call(document.querySelectorAll(".mobile-tab"),function(btn){btn.addEventListener("click",function(){setMobileTab(this.dataset.tab==="preview");});});
+    
+      var touchStartX=null;
+      document.querySelector(".report-shell").addEventListener("touchstart",function(e){touchStartX=e.changedTouches&&e.changedTouches[0]?e.changedTouches[0].clientX:null;},{passive:true});
+      document.querySelector(".report-shell").addEventListener("touchend",function(e){
+        if(touchStartX==null||!e.changedTouches||!e.changedTouches[0]) return;
+        var dx=e.changedTouches[0].clientX-touchStartX; touchStartX=null;
+        if(Math.abs(dx)>55) changeSlide(dx<0?1:-1);
+      },{passive:true});
+    
       renderAll();
     })();
   </script>
 </body>
-<!-- report-gudang-build-v4 -->
+<!-- report-gudang-build-v5-bulk-slides -->
 </html>
