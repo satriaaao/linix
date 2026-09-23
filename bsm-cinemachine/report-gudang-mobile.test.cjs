@@ -6,6 +6,7 @@ const cameraVendor = require('./report-camera-vendor.js');
 const cameraReports = require('./report-camera-reports.js');
 const bulkRouter = require('./report-bulk-router.js');
 const liveEdit = require('./report-live-edit.js');
+const slideFit = require('./report-slide-fit.js');
 const audioReports = require('./report-audio-reports.js');
 const cinemaReports = require('./report-cinema-reports.js');
 const lightingReports = require('./report-lighting-reports.js');
@@ -325,6 +326,19 @@ assert(html.includes('template==="cinema-service"'),'Preview harus mengenali Cin
 assert(html.includes('template==="lighting-service"'),'Preview harus mengenali Lighting Service');
 assert(html.includes('window.BSMCinemaReports.createSlides'),'Import Cinema harus membuat slide');
 assert(html.includes('window.BSMLightingReports.createSlides'),'Import Lighting harus membuat slide');
+
+assert.strictEqual(slideFit.level({rootWidth:1600,rootHeight:900,contentBottom:700,footerTop:820}),'normal','slide yang lega tidak perlu dipadatkan');
+assert.strictEqual(slideFit.level({rootWidth:1600,rootHeight:900,contentBottom:814,footerTop:820}),'compact','slide dekat footer harus compact');
+assert.strictEqual(slideFit.level({rootWidth:1600,rootHeight:900,contentBottom:845,footerTop:820}),'tight','slide yang melewati footer harus tight');
+assert.strictEqual(slideFit.level({rootWidth:1610,rootHeight:900,contentBottom:700,footerTop:820}),'compact','overflow horizontal harus dipadatkan');
+
+assert(html.includes('/report-slide-fit.js'),'halaman harus memuat helper safe fit');
+assert(html.includes('function ensureSlideSafeFit(root)'),'Preview harus punya pemeriksaan safe fit');
+assert(html.includes('slide-fit-compact'),'harus ada mode compact');
+assert(html.includes('slide-fit-tight'),'harus ada mode tight');
+assert(html.includes('ensureSlideSafeFit(currentSlideRoot())'),'Preview harus menjalankan safe fit');
+assert(html.includes('ensureSlideSafeFit(node)'),'PDF harus menjalankan safe fit sebelum capture');
+assert(html.includes('overflow-wrap:anywhere'),'teks tabel panjang harus bisa wrap tanpa memotong horizontal');
 
 
 const cinemaServiceRows=[
