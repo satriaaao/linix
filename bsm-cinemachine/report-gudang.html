@@ -634,11 +634,11 @@
       body.presentation-mode #previewPage,
       body.presentation-mode .preview-stage{height:100vh!important}
     }
-    .cover-slide,.report,.admin-matrix-slide{
+    .cover-slide,.report,.admin-matrix-slide,.camera-vendor-slide{
       width:1600px!important;height:900px!important;min-height:900px!important;max-height:900px!important;
       aspect-ratio:16/9;overflow:hidden!important;
     }
-    #adminMatrixHost{width:1600px;height:900px}
+    #adminMatrixHost,#cameraVendorHost{width:1600px;height:900px}
     .admin-matrix-slide{
       position:relative;background:#fff;color:#15394b;padding:20px 28px 18px;font-family:Arial,Helvetica,sans-serif;
       box-sizing:border-box;
@@ -684,6 +684,44 @@
     .admin-matrix-footer{position:relative;display:flex;align-items:center;gap:14px;margin:11px 3px 0;font-family:monospace;font-size:10px;letter-spacing:.07em;color:#244f63}
     .admin-matrix-footer i{height:1px;background:#8eaeb9;flex:1}
     .admin-matrix-footer strong{font-size:11px;white-space:nowrap}
+
+    .camera-vendor-slide{
+      position:relative;background:#fff;color:#213247;padding:26px 42px 22px;
+      font-family:Arial,Helvetica,sans-serif;box-sizing:border-box;
+    }
+    .camera-vendor-grid{
+      position:absolute;inset:0;pointer-events:none;opacity:.42;
+      background-image:linear-gradient(rgba(42,154,176,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(42,154,176,.08) 1px,transparent 1px);
+      background-size:28px 28px;
+    }
+    .camera-vendor-kicker{position:relative;font-family:monospace;font-size:15px;letter-spacing:.18em;line-height:1.75;margin:0 0 8px 6px;color:#344861}
+    .camera-vendor-kicker .accent{color:#0e809c}
+    .camera-vendor-slide h1{position:relative;margin:0 0 15px 6px;font-size:54px;line-height:.96;font-weight:950;letter-spacing:-.035em;color:#070707}
+    .camera-vendor-slide h1:after{content:"";color:#0e84a1}
+    .camera-vendor-table-wrap{position:relative;border:1px solid #b8dce5;background:rgba(255,255,255,.95)}
+    .camera-vendor-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:13px;line-height:1.05}
+    .camera-vendor-table th,.camera-vendor-table td{border:1px solid #c5e2e8;height:26px;padding:0 10px;box-sizing:border-box;vertical-align:middle}
+    .camera-vendor-table thead th{height:39px;background:#def3f8;color:#12617a;font-size:13px;font-weight:950;letter-spacing:.03em;text-align:center}
+    .cv-col-no{width:6.5%}.cv-col-name{width:22%}.cv-col-qty{width:9%}.cv-col-date{width:14%}.cv-col-note{width:34%}.cv-col-price{width:14.5%}
+    .camera-vendor-no{text-align:center;background:#f6fbfc;color:#0d6f87;font-weight:950}
+    .camera-vendor-no b{font-size:34px}
+    .camera-vendor-name{font-size:14px;padding-left:30px!important}
+    .camera-vendor-qty{text-align:center;padding:2px 6px!important}
+    .camera-vendor-qty span{display:block;background:#cbeef6;color:#08708b;border-radius:4px;padding:4px 2px;font-size:15px;font-weight:950}
+    .camera-vendor-date{text-align:center;font-variant-numeric:tabular-nums}
+    .camera-vendor-note{font-size:12px}
+    .camera-vendor-price{text-align:center}
+    .camera-vendor-total-row td{height:31px;background:#e6f6f9;color:#0d637b;font-weight:950;text-align:center}
+    .camera-vendor-total-label{font-size:15px}
+    .camera-vendor-grand{
+      position:relative;margin:9px 0 0 auto;width:275px;height:35px;display:flex;align-items:center;justify-content:space-between;
+      padding:0 16px;border:1px solid #b8dce5;background:#d8f2f7;color:#0b6077;font-size:12px;font-weight:950;
+    }
+    .camera-vendor-grand b{font-size:20px;color:#075f78}
+    .camera-vendor-footer{position:absolute;left:48px;right:48px;bottom:24px;display:flex;align-items:flex-end;gap:20px;font-family:monospace;color:#324a64}
+    .camera-vendor-footer>div{min-width:245px}.camera-vendor-footer strong{display:block;font-size:12px;letter-spacing:.08em}.camera-vendor-footer small{display:block;margin-top:8px;font-size:9px;letter-spacing:.15em}
+    .camera-vendor-footer i{height:1px;background:#7e99a8;flex:1;margin-bottom:11px}.camera-vendor-footer>b{font-size:14px;white-space:nowrap;margin-bottom:3px}
+
     .report.report-dense{padding-top:24px!important}
     .report.report-dense .report-title{font-size:47px}
     .report.report-dense table{font-size:12px}
@@ -717,7 +755,7 @@
       .print-stack{display:block!important;margin:0!important;padding:0!important}
       .print-page{display:block!important;width:13.333in!important;height:7.5in!important;overflow:hidden!important;margin:0!important}
       .print-canvas{display:block!important;width:1600px!important;height:900px!important;transform:scale(.8)!important;transform-origin:top left!important}
-      .print-canvas .cover-slide,.print-canvas .report,.print-canvas .admin-matrix-slide{
+      .print-canvas .cover-slide,.print-canvas .report,.print-canvas .admin-matrix-slide,.print-canvas .camera-vendor-slide{
         display:block!important;width:1600px!important;height:900px!important;min-height:900px!important;margin:0!important;
         border:0!important;box-shadow:none!important;zoom:1!important;transform:none!important;
       }
@@ -874,6 +912,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           <div class="preview-canvas" id="previewCanvas">
             <div id="coverSlideHost"></div>
             <div id="adminMatrixHost"></div>
+            <div id="cameraVendorHost"></div>
             <section class="report" id="report">
               <div class="report-kicker">
                 <span class="circle-slash"></span>
@@ -936,6 +975,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-cover.js"></script>
   <script src="/report-gudang-master.js"></script>
   <script src="/report-admin-matrix.js"></script>
+  <script src="/report-camera-vendor.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
@@ -992,6 +1032,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         base.template=src.template||"";
         base.reportType=src.reportType||"";
         base.matrix=src.matrix?clone(src.matrix):null;
+        base.cameraVendor=src.cameraVendor?clone(src.cameraVendor):null;
         base.groups=(src.groups||[]).map(function(g){
           return {id:g.id||uid(),name:g.name||"Nama Alat",rows:(g.rows||[]).map(function(row){
             return {id:row.id||uid(),date:row.date||"",qty:Number(row.qty||0),action:row.action||"",price:Number(row.price||0)};
@@ -1031,6 +1072,9 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
       if(!window.BSMAdminMatrix||typeof window.BSMAdminMatrix.renderSlide!=="function"){
         throw new Error("Admin MBR matrix helper tidak termuat");
+      }
+      if(!window.BSMCameraVendor||typeof window.BSMCameraVendor.renderSlide!=="function"){
+        throw new Error("Gudang Kamera vendor helper tidak termuat");
       }
       var REPORT_TYPES=window.BSMReportMaster.REPORT_TYPES;
       var storedCover=state.cover||{};
@@ -1080,6 +1124,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var coverEditorHost=document.getElementById("coverEditorHost");
       var coverSlideHost=document.getElementById("coverSlideHost");
       var adminMatrixHost=document.getElementById("adminMatrixHost");
+      var cameraVendorHost=document.getElementById("cameraVendorHost");
       var reportInfoSection=document.getElementById("reportInfoSection");
       var reportItemsSection=document.getElementById("reportItemsSection");
       var reportEl=document.getElementById("report");
@@ -1140,6 +1185,12 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             matrixSlide.template="admin-matrix";matrixSlide.reportType="admin";matrixSlide.matrix=matrixSlide.matrix||clone(window.BSMAdminMatrix.DATA);
             var useful=section.slides.filter(function(r){return (r.groups||[]).length>0;});
             section.slides=[matrixSlide].concat(useful);
+          }else if(type.id==="gudang-kamera"){
+            var cameraIndex=section.slides.findIndex(function(r){return r.template==="camera-vendor";});
+            var cameraSlide=cameraIndex>=0?section.slides.splice(cameraIndex,1)[0]:window.BSMCameraVendor.createSlide();
+            cameraSlide.template="camera-vendor";cameraSlide.reportType="gudang-kamera";cameraSlide.cameraVendor=cameraSlide.cameraVendor||clone(window.BSMCameraVendor.DATA);
+            var cameraUseful=section.slides.filter(function(r){return (r.groups||[]).length>0;});
+            section.slides=[cameraSlide].concat(cameraUseful);
           }else if(!section.slides.length){
             section.slides.push(ensureIds(emptyReportForType(type.id)));
           }
@@ -1263,6 +1314,15 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         }
       }
 
+      function renderCameraVendorSlide(){
+        var page=currentMasterPage();
+        if(page.kind==="report"&&page.report&&page.report.template==="camera-vendor"){
+          cameraVendorHost.innerHTML=window.BSMCameraVendor.renderSlide(page.report.cameraVendor||window.BSMCameraVendor.DATA,esc);
+        }else{
+          cameraVendorHost.innerHTML="";
+        }
+      }
+
       function renderCoverEditor(){
         var c=editableCover(),logo=c.logo||{image:"",width:180,x:0,y:0};
         var coverTitle=document.getElementById("coverPageTitle"),coverSub=document.getElementById("coverPageSub");
@@ -1319,26 +1379,33 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
 
       function applyEditorMode(){
         coverEditorSection.classList.add("active");
-        var adminMatrix=state.draft&&state.draft.template==="admin-matrix";
-        if(reportInfoSection) reportInfoSection.style.display=adminMatrix?"none":"";
+        var special=state.draft&&(state.draft.template==="admin-matrix"||state.draft.template==="camera-vendor");
+        if(reportInfoSection) reportInfoSection.style.display=special?"none":"";
         if(reportItemsSection) reportItemsSection.style.display="";
         var add=document.getElementById("addGroupInline");
-        if(add) add.style.display=adminMatrix?"none":"";
+        if(add) add.style.display=special?"none":"";
       }
 
       function applyPreviewMode(){
         var page=currentMasterPage();
         var coverMode=page.kind==="master-cover"||page.kind==="section-cover";
         var adminMode=page.kind==="report"&&page.report&&page.report.template==="admin-matrix";
+        var cameraMode=page.kind==="report"&&page.report&&page.report.template==="camera-vendor";
         coverSlideHost.style.display=coverMode?"block":"none";
         adminMatrixHost.style.display=adminMode?"block":"none";
-        reportEl.style.display=(coverMode||adminMode)?"none":"block";
+        cameraVendorHost.style.display=cameraMode?"block":"none";
+        reportEl.style.display=(coverMode||adminMode||cameraMode)?"none":"block";
       }
 
       function renderEditor(){
         if(state.draft&&state.draft.template==="admin-matrix"){
           document.getElementById("groupCount").textContent="Matrix Admin Juni 2026";
           groupsEditor.innerHTML='<div class="editor-empty"><strong>DATA MBR ADMIN JUNI 2026</strong><br><br>Template matrix Admin sudah dimuat ke Preview Master dan PDF. Gunakan Preview Master untuk melihat tabel 1–30, Delivery, Jemputan, Surat Jalan, KET, dan Catatan.</div>';
+          return;
+        }
+        if(state.draft&&state.draft.template==="camera-vendor"){
+          document.getElementById("groupCount").textContent="Vendor / Back Up • Total 93";
+          groupsEditor.innerHTML='<div class="editor-empty"><strong>AMBIL ALAT VENDOR / BACK UP</strong><br><br>Gudang Kamera: Sony FX3 total 67 + Sony a7 III total 26 = <strong>93</strong>. Slide khusus ini sudah masuk Preview Master, Presentasi, dan PDF 16:9.</div>';
           return;
         }
         document.getElementById("groupCount").textContent=state.draft.groups.length+" item";
@@ -1733,6 +1800,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         renderReport();
         renderCoverSlide();
         renderAdminMatrixSlide();
+        renderCameraVendorSlide();
         renderSlideNav();
         applyEditorMode();
         applyPreviewMode();
@@ -1798,6 +1866,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     
       function staticReportHtml(report,index,total,typeId){
         if(report&&report.template==="admin-matrix") return window.BSMAdminMatrix.renderSlide(report.matrix||window.BSMAdminMatrix.DATA,esc);
+        if(report&&report.template==="camera-vendor") return window.BSMCameraVendor.renderSlide(report.cameraVendor||window.BSMCameraVendor.DATA,esc);
         var type=reportType(typeId||report.reportType),dep=String(report.department||type.department).trim()||type.department,m=Number(report.month||1),y=Number(report.year||new Date().getFullYear());
         var warehouse=String(type.id).indexOf("gudang-")===0;
         var rowCount=(report.groups||[]).reduce(function(sum,g){return sum+(g.rows||[]).length+1;},0);
@@ -1926,5 +1995,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     })();
   </script>
 </body>
-<!-- report-gudang-build-v11-admin-matrix-balanced -->
+<!-- report-gudang-build-v12-camera-vendor -->
 </html>
