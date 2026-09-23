@@ -402,7 +402,7 @@
       for(var j=hi+1;j<end;j++){var r=rows[j]||[];if(/^\d+$/.test(clean(r[0]))||(!clean(r[0])&&clean(r[1])&&clean(r[2])))data.push({no:num(r[0])||'',date:clean(r[1]),item:clean(r[2]),damage:clean(r[3]),qty:clean(r[4]),sn1:clean(r[5]),sn2:clean(r[6]),takenDate:clean(r[7]),note:clean(r[8])});}
       if(data.length)centers.push({name:name,rows:data});
     });
-    var max=Math.max(5,Number(opts.maxCinemaServiceRows||18));centers.forEach(function(center){var total=Math.max(1,Math.ceil(center.rows.length/max));for(var i=0;i<center.rows.length;i+=max)slides.push({template:'cinema-service',reportType:'gudang-cinema',department:'CINEMA',groups:[],serviceCenter:center.name,cinemaServiceRows:center.rows.slice(i,i+max),pageNo:Math.floor(i/max)+1,pageTotal:total,period:opts.servicePeriod||'2026'});});
+    var max=Math.max(5,Number(opts.maxCinemaServiceRows||10));centers.forEach(function(center){var total=Math.max(1,Math.ceil(center.rows.length/max));for(var i=0;i<center.rows.length;i+=max)slides.push({template:'cinema-service',reportType:'gudang-cinema',department:'CINEMA',groups:[],serviceCenter:center.name,cinemaServiceRows:center.rows.slice(i,i+max),pageNo:Math.floor(i/max)+1,pageTotal:total,period:opts.servicePeriod||'2026'});});
     return {kind:'cinema-service',slides:slides};
   }
   function parseLightingVendor(text,opts){
