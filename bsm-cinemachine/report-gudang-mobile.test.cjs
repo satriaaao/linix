@@ -1,6 +1,7 @@
 const assert = require('assert');
 const fs = require('fs');
 const ui = require('./report-gudang-ui.js');
+const adminMatrix = require('./report-admin-matrix.js');
 
 const phone = ui.getPreviewLayout(390, 10);
 assert.strictEqual(phone.canvasWidth, 1600);
@@ -57,5 +58,14 @@ assert(html.includes('id="adminMatrixHost"'),'Preview harus punya host khusus ma
 assert(html.includes('template==="admin-matrix"'),'render harus mengenali template matrix Admin');
 assert(html.includes('window.BSMAdminMatrix.renderSlide'),'Preview/PDF Admin harus memakai renderer matrix');
 assert(html.includes('DATA MBR ADMIN'),'judul Admin MBR harus tersedia');
+const adminHtml = adminMatrix.renderSlide(adminMatrix.DATA);
+assert(adminHtml.includes('<colgroup>'),'matrix Admin harus memakai colgroup agar lebar kolom stabil');
+assert.strictEqual((adminHtml.match(/class="admin-col-day"/g)||[]).length,30,'harus ada tepat 30 kolom tanggal dengan lebar sama');
+assert(adminHtml.includes('class="admin-col-group"'),'kolom Grup harus punya lebar eksplisit');
+assert(adminHtml.includes('class="admin-col-shift"'),'kolom Shift harus punya lebar eksplisit');
+assert(adminHtml.includes('class="admin-col-time"'),'kolom Jam/Tanggal harus punya lebar eksplisit');
+assert(adminHtml.includes('class="admin-col-total"'),'kolom Total harus punya lebar eksplisit');
+assert(adminHtml.includes('class="admin-col-ket"'),'kolom Ket harus punya lebar eksplisit');
+assert(html.includes('.admin-col-day{width:2.45%}'),'CSS tanggal harus sama rata 1-30');
 
 console.log('16:9 dashboard mobile/print tests passed');
