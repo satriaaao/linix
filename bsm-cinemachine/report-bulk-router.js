@@ -45,6 +45,9 @@
     if(/NAMA BARANG/.test(s)&&/QTY/.test(s)&&/HARGA VENDOR/.test(s)) return 'camera-vendor';
     if(/NAMA BARANG/.test(s)&&/(NAMA CLIEN|NAMA CLIENT|NAMA KLIEN)/.test(s)&&/(IDIKASI|INDIKASI)/.test(s)&&/KRONOLOGIS/.test(s)) return 'camera-complaint';
     if(/MODEL/.test(s)&&/STOK KANTOR/.test(s)&&/(DI\s*SERVICE|DISERVICE|\bSERVICE\b)/.test(s)&&/BISA JALAN/.test(s)) return 'camera-service';
+    if(/TGL PENYEWAAN/.test(s)&&/DURASI SEWA/.test(s)&&/NAMA ALAT/.test(s)&&/UPGRADE/.test(s)&&/VENDOR/.test(s)) return 'audio-vendor';
+    if(/TGL PENYEWAAN/.test(s)&&/INDIKASI/.test(s)&&/NAMA ALAT/.test(s)&&/KRONOLOGIS/.test(s)&&/ACTION/.test(s)) return 'audio-complaint';
+    if(/NAMA BARANG/.test(s)&&/KERUSAKAN/.test(s)&&/SERIAL NUMBER/.test(s)&&/CASE ID/.test(s)) return 'audio-service';
     if(/JAM\/TANGGAL/.test(s)&&(/\t1\t/.test(String(text))||/\b1\s+2\s+3\b/.test(s))) return 'admin-matrix';
     return 'generic';
   }
@@ -266,6 +269,98 @@
     return {kind:'camera-service',slides:slides};
   }
 
+  function parseAudioVendor(text,opts){
+    opts=opts||{};
+    var rows=compact(splitRows(text)),hi=headerIndex(rows,['TGL','NAMA ALAT','QTY']);
+    if(hi<0) throw new Error('Header Audio Vendor belum terbaca.');
+    var h=rows[hi],dateI=findCol(h,[/TGL/]),durI=findCol(h,[/DURASI/]),nameI=findCol(h,[/NAMA ALAT/]),qtyI=findCol(h,[/^QTY$/]),upI=findCol(h,[/UPGRADE/]),vendorI=findCol(h,[/^VENDOR$/]),priceI=findCol(h,[/HARGA SEWA VENDOR/,/HARGA VENDOR/]);
+    var groups=[],buf=[];
+    function finish(total){
+      if(!buf.length) return;
+      groups.push({name:buf[0].item,rows:buf,total:clean(total)||String(buf.reduce(function(s,r){return s+num(r.qty);},0))+' unit'});
+      buf=[];
+    }
+    rows.slice(hi+1).forEach(function(r){
+      var name=clean(r[nameI]);
+      if(!name) return;
+      if(/^TOTAL$/i.test(name)){finish(r[qtyI]);return;}
+      buf.push({date:clean(r[dateI]),duration:clean(r[durI]),item:name,qty:clean(r[qtyI]),upgrade:clean(r[upI]),vendor:clean(r[vendorI]),price:clean(r[priceI])});
+    });
+    finish('');
+    if(!groups.length) throw new Error('Data Audio Vendor belum terbaca.');
+    var pages=paginateGroups(groups,opts.maxAudioVendorRows||16);
+    return {kind:'audio-vendor',slides:pages.filter(function(x){return x.length;}).map(function(gs,i){
+      return {template:'audio-vendor',reportType:'gudang-audio',department:'AUDIO',groups:[],audioVendorGroups:gs,pageNo:i+1,pageTotal:pages.length,period:opts.period||'JUNI 2026'};
+    })};
+  }
+
+  function parseAudioComplaint(text,opts){
+    opts=opts||{};
+    var rows=compact(splitRows(text)),hi=headerIndex(rows,['INDIKASI','NAMA ALAT','QTY','KRONOLOGIS']);
+    if(hi<0) throw new Error('Header Audio Komplain belum terbaca.');
+    var h=rows[hi],dateI=findCol(h,[/TGL/,/TANGGAL/]),indI=findCol(h,[/INDIKASI/]),nameI=findCol(h,[/NAMA ALAT/]),qtyI=findCol(h,[/^QTY$/]),chronI=findCol(h,[/KRONOLOGIS/]),actionI=findCol(h,[/^ACTION$/]),picI=findCol(h,[/PIC/]),clientI=findCol(h,[/NAMA CLIENT/,/NAMA KLIEN/,/NAMA CLIEN/]);
+    var groups=[],buf=[];
+    function finish(total){
+      if(!buf.length) return;
+      groups.push({name:buf[0].item,rows:buf,total:clean(total)||String(buf.reduce(function(s,r){return s+num(r.qty);},0))+' unit'});
+      buf=[];
+    }
+    rows.slice(hi+1).forEach(function(r){
+      var name=clean(r[nameI]);
+      if(!name) return;
+      if(/^TOTAL$/i.test(name)){finish(r[qtyI]);return;}
+      buf.push({date:clean(r[dateI]),indication:clean(r[indI]),item:name,qty:clean(r[qtyI]),chronology:clean(r[chronI]),action:clean(r[actionI]),pic:clean(r[picI]),client:clean(r[clientI])});
+    });
+    finish('');
+    if(!groups.length) throw new Error('Data Audio Komplain belum terbaca.');
+    var pages=paginateGroups(groups,opts.maxAudioComplaintRows||16);
+    return {kind:'audio-complaint',slides:pages.filter(function(x){return x.length;}).map(function(gs,i){
+      return {template:'audio-complaint',reportType:'gudang-audio',department:'AUDIO',groups:[],audioComplaintGroups:gs,pageNo:i+1,pageTotal:pages.length,period:opts.period||'JUNI 2026'};
+    })};
+  }
+
+  function isAudioServiceHeader(row){
+    var s=upper((row||[]).join(' | '));
+    return s.indexOf('NAMA BARANG')>=0&&s.indexOf('KERUSAKAN')>=0&&s.indexOf('SERIAL NUMBER')>=0&&s.indexOf('CASE ID')>=0;
+  }
+  function audioCenterBefore(rows,hi){
+    for(var i=hi-1;i>=0;i--){
+      var vals=(rows[i]||[]).filter(function(x){return clean(x)!=='';});
+      if(!vals.length) continue;
+      var s=clean(vals.join(' '));
+      if(/MBR ALAT-ALAT YANG DI SERVICE GUDANG AUDIO/i.test(s)||/^ALAT-ALAT YANG DI SERVICE$/i.test(s)) continue;
+      if(isAudioServiceHeader(rows[i])) continue;
+      return s;
+    }
+    return 'SERVICE CENTER';
+  }
+  function parseAudioService(text,opts){
+    opts=opts||{};
+    var rows=splitRows(text),headers=[];
+    rows.forEach(function(r,i){if(isAudioServiceHeader(r)) headers.push(i);});
+    if(!headers.length) throw new Error('Header Audio Service belum terbaca.');
+    var centers=[];
+    headers.forEach(function(hi,pos){
+      var center={name:audioCenterBefore(rows,hi),rows:[]},end=pos+1<headers.length?headers[pos+1]:rows.length;
+      for(var i=hi+1;i<end;i++){
+        var r=rows[i]||[];
+        if(!/^\d+$/.test(clean(r[0]))) continue;
+        while(r.length<9) r.push('');
+        center.rows.push({no:num(r[0]),date:clean(r[1]),item:clean(r[2]),damage:clean(r[3]),qty:clean(r[4]),sn:clean(r[5]),caseId:clean(r[6]),takenDate:clean(r[7]),note:clean(r[8])});
+      }
+      if(center.rows.length) centers.push(center);
+    });
+    if(!centers.length) throw new Error('Data Audio Service belum terbaca.');
+    var slides=[],max=Math.max(5,Number(opts.maxAudioServiceRows||18));
+    centers.forEach(function(center){
+      var total=Math.max(1,Math.ceil(center.rows.length/max));
+      for(var i=0;i<center.rows.length;i+=max){
+        slides.push({template:'audio-service',reportType:'gudang-audio',department:'AUDIO',groups:[],serviceCenter:center.name,audioServiceRows:center.rows.slice(i,i+max),pageNo:Math.floor(i/max)+1,pageTotal:total,period:opts.servicePeriod||'2026'});
+      }
+    });
+    return {kind:'audio-service',slides:slides};
+  }
+
   function parseAdmin(text,opts){
     opts=opts||{};
     var rows=splitRows(text),hi=rows.findIndex(function(r){return r.some(function(c){return upper(c)==='JAM/TANGGAL';});});
@@ -315,10 +410,13 @@
     if(kind==='camera-vendor') return parseVendor(text,opts);
     if(kind==='camera-complaint') return parseComplaint(text,opts);
     if(kind==='camera-service') return parseService(text,opts);
+    if(kind==='audio-vendor') return parseAudioVendor(text,opts);
+    if(kind==='audio-complaint') return parseAudioComplaint(text,opts);
+    if(kind==='audio-service') return parseAudioService(text,opts);
     if(kind==='admin-matrix') return parseAdmin(text,opts);
     if(typeof opts.genericParser!=='function') throw new Error('Parser generic belum tersedia.');
     var parsed=opts.genericParser(text);
     return {kind:'generic',slides:paginateGeneric(parsed,opts.maxGenericRows||18)};
   }
-  return {detectKind:detectKind,parse:parse,parseVendor:parseVendor,parseComplaint:parseComplaint,parseService:parseService,parseAdmin:parseAdmin,paginateGeneric:paginateGeneric};
+  return {detectKind:detectKind,parse:parse,parseVendor:parseVendor,parseComplaint:parseComplaint,parseService:parseService,parseAudioVendor:parseAudioVendor,parseAudioComplaint:parseAudioComplaint,parseAudioService:parseAudioService,parseAdmin:parseAdmin,paginateGeneric:paginateGeneric};
 });
