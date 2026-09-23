@@ -584,6 +584,56 @@
     }
     .preview-viewport{position:relative;margin:0 auto;overflow:hidden;background:#fff;box-shadow:0 10px 30px rgba(15,23,42,.12)}
     .preview-canvas{position:absolute;left:0;top:0;width:1600px;height:900px;transform-origin:top left}
+    .presentation-controls{display:none}
+    body.presentation-mode{overflow:hidden!important;background:#05080d!important}
+    body.presentation-mode .topbar,
+    body.presentation-mode .editor,
+    body.presentation-mode .rg-sidebar-scrim,
+    body.presentation-mode .mobile-tabs,
+    body.presentation-mode .report-toolbar,
+    body.presentation-mode .slide-dots{display:none!important}
+    body.presentation-mode .workspace{
+      display:block!important;max-width:none!important;width:100vw!important;height:100dvh!important;
+      margin:0!important;padding:0!important;
+    }
+    body.presentation-mode .dashboard-main,
+    body.presentation-mode #previewPage{
+      display:block!important;width:100vw!important;height:100dvh!important;max-width:none!important;
+      margin:0!important;padding:0!important;background:#05080d!important;overflow:hidden!important;
+    }
+    body.presentation-mode .dashboard-page:not(#previewPage){display:none!important}
+    body.presentation-mode .preview-stage{
+      position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;
+      display:flex!important;align-items:center!important;justify-content:center!important;
+      padding:0!important;margin:0!important;border:0!important;border-radius:0!important;
+      background:#05080d!important;box-shadow:none!important;overflow:hidden!important;z-index:500!important;
+    }
+    body.presentation-mode .preview-viewport{
+      margin:0!important;box-shadow:0 0 70px rgba(0,0,0,.45)!important;background:#fff!important;
+    }
+    body.presentation-mode .presentation-controls{
+      position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));z-index:540;
+      transform:translateX(-50%);display:flex;align-items:center;gap:8px;
+      padding:7px 9px;border:1px solid rgba(255,255,255,.16);border-radius:16px;
+      background:rgba(8,12,18,.72);backdrop-filter:blur(16px);box-shadow:0 12px 38px rgba(0,0,0,.32);
+      opacity:1;transition:opacity .2s ease,transform .2s ease;
+    }
+    body.presentation-mode.presentation-controls-hidden .presentation-controls{
+      opacity:0;pointer-events:none;transform:translate(-50%,10px);
+    }
+    .presentation-btn{
+      min-width:40px;height:40px;border:1px solid rgba(255,255,255,.18);border-radius:11px;
+      background:rgba(255,255,255,.10);color:#fff;font-weight:850;padding:0 12px;
+    }
+    .presentation-btn:hover{background:rgba(255,255,255,.18)}
+    .presentation-counter{min-width:150px;text-align:center;color:#fff;font-size:11px;font-weight:850;white-space:nowrap}
+    .presentation-exit{background:#fff;color:#111827;border-color:#fff}
+    @supports not (height:100dvh){
+      body.presentation-mode .workspace,
+      body.presentation-mode .dashboard-main,
+      body.presentation-mode #previewPage,
+      body.presentation-mode .preview-stage{height:100vh!important}
+    }
     .cover-slide,.report{
       width:1600px!important;height:900px!important;min-height:900px!important;max-height:900px!important;
       aspect-ratio:16/9;overflow:hidden!important;
@@ -768,6 +818,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           <strong id="slideCounter">Belum ada slide</strong>
           <button class="slide-nav-btn" id="nextSlideBtn" aria-label="Slide berikutnya">›</button>
           <button class="btn ghost-danger" id="deleteSlideBtn">Hapus Slide</button>
+          <button class="btn dark" id="presentationBtn">⛶ Presentasi</button>
         </div>
         <div class="hint" id="lastSavedText">Belum disimpan manual</div>
       </div>
@@ -803,6 +854,12 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             </section>
           </div>
         </div>
+      </div>
+      <div class="presentation-controls" id="presentationControls" aria-label="Kontrol presentasi">
+        <button class="presentation-btn" id="presentationPrevBtn" aria-label="Slide sebelumnya">‹</button>
+        <div class="presentation-counter" id="presentationCounter">1 / 1</div>
+        <button class="presentation-btn" id="presentationNextBtn" aria-label="Slide berikutnya">›</button>
+        <button class="presentation-btn presentation-exit" id="presentationExitBtn">Keluar</button>
       </div>
       </section>
 
@@ -959,6 +1016,12 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var prevSlideBtn=document.getElementById("prevSlideBtn");
       var nextSlideBtn=document.getElementById("nextSlideBtn");
       var deleteSlideBtn=document.getElementById("deleteSlideBtn");
+      var presentationBtn=document.getElementById("presentationBtn");
+      var presentationPrevBtn=document.getElementById("presentationPrevBtn");
+      var presentationNextBtn=document.getElementById("presentationNextBtn");
+      var presentationExitBtn=document.getElementById("presentationExitBtn");
+      var presentationCounter=document.getElementById("presentationCounter");
+      var presentationHideTimer=null;
       var coverEditorSection=document.getElementById("coverEditorSection");
       var coverEditorHost=document.getElementById("coverEditorHost");
       var coverSlideHost=document.getElementById("coverSlideHost");
@@ -1514,6 +1577,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       function renderSlideNav(){
         var pages=masterPages(),count=pages.length,current=currentMasterPage();
         slideCounter.textContent=(state.activeView+1)+" / "+count+" • "+(current.label||"Master");
+        if(presentationCounter) presentationCounter.textContent=(state.activeView+1)+" / "+count+" • "+(current.label||"Master");
         prevSlideBtn.disabled=count<2;
         nextSlideBtn.disabled=count<2;
         deleteSlideBtn.disabled=current.kind!=="report";
@@ -1528,15 +1592,55 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     
       function updatePreviewScale(){
         if(!previewViewport||!previewCanvas) return;
-        var page=document.getElementById("previewPage");
-        var available=(page&&page.clientWidth)||window.innerWidth||1600;
-        var pad=window.innerWidth<=980?8:24;
-        var layout=window.BSMReportUI.getPreviewLayout(available,pad);
+        var presentation=document.body.classList.contains("presentation-mode");
+        var layout;
+        if(presentation){
+          var vw=Math.max(1,window.innerWidth||document.documentElement.clientWidth||1600);
+          var vh=Math.max(1,window.innerHeight||document.documentElement.clientHeight||900);
+          var scale=Math.min(vw/1600,vh/900);
+          layout={scale:scale,viewportWidth:1600*scale,viewportHeight:900*scale,canvasWidth:1600,canvasHeight:900};
+        }else{
+          var page=document.getElementById("previewPage");
+          var available=(page&&page.clientWidth)||window.innerWidth||1600;
+          var pad=window.innerWidth<=980?8:24;
+          layout=window.BSMReportUI.getPreviewLayout(available,pad);
+        }
         previewViewport.style.width=layout.viewportWidth+"px";
         previewViewport.style.height=layout.viewportHeight+"px";
         previewCanvas.style.width=layout.canvasWidth+"px";
         previewCanvas.style.height=layout.canvasHeight+"px";
         previewCanvas.style.transform="scale("+layout.scale+")";
+      }
+
+      function showPresentationControls(){
+        if(!document.body.classList.contains("presentation-mode")) return;
+        document.body.classList.remove("presentation-controls-hidden");
+        clearTimeout(presentationHideTimer);
+        presentationHideTimer=setTimeout(function(){
+          if(document.body.classList.contains("presentation-mode")) document.body.classList.add("presentation-controls-hidden");
+        },2600);
+      }
+
+      function enterPresentation(){
+        showPage("preview");
+        document.body.classList.add("presentation-mode");
+        document.body.classList.remove("presentation-controls-hidden");
+        requestAnimationFrame(updatePreviewScale);
+        showPresentationControls();
+        if(document.documentElement.requestFullscreen && !document.fullscreenElement){
+          var request=document.documentElement.requestFullscreen();
+          if(request&&typeof request.catch==="function") request.catch(function(){requestAnimationFrame(updatePreviewScale);});
+        }
+      }
+
+      function exitPresentation(){
+        document.body.classList.remove("presentation-mode","presentation-controls-hidden");
+        clearTimeout(presentationHideTimer);
+        if(document.fullscreenElement && document.exitFullscreen){
+          var exiting=document.exitFullscreen();
+          if(exiting&&typeof exiting.catch==="function") exiting.catch(function(){});
+        }
+        requestAnimationFrame(updatePreviewScale);
       }
 
       function renderAll(){
@@ -1679,6 +1783,10 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
 
       prevSlideBtn.addEventListener("click",function(){changeSlide(-1);});
       nextSlideBtn.addEventListener("click",function(){changeSlide(1);});
+      presentationBtn.addEventListener("click",enterPresentation);
+      presentationPrevBtn.addEventListener("click",function(){changeSlide(-1);showPresentationControls();});
+      presentationNextBtn.addEventListener("click",function(){changeSlide(1);showPresentationControls();});
+      presentationExitBtn.addEventListener("click",exitPresentation);
       deleteSlideBtn.addEventListener("click",function(){
         var page=currentMasterPage();
         if(page.kind!=="report") return;
@@ -1700,17 +1808,37 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       menuToggle.addEventListener("click",function(){document.body.classList.toggle("sidebar-open");});
       sidebarScrim.addEventListener("click",closeSidebar);
       window.addEventListener("resize",function(){requestAnimationFrame(updatePreviewScale);});
-      document.addEventListener("keydown",function(e){if(e.key==="Escape"){closeModal();closeSidebar();}});
+      document.addEventListener("fullscreenchange",function(){
+        if(!document.fullscreenElement&&document.body.classList.contains("presentation-mode")){
+          document.body.classList.remove("presentation-mode","presentation-controls-hidden");
+          clearTimeout(presentationHideTimer);
+          requestAnimationFrame(updatePreviewScale);
+        }
+      });
+      document.addEventListener("mousemove",showPresentationControls,{passive:true});
+      document.addEventListener("touchstart",showPresentationControls,{passive:true});
+      document.addEventListener("keydown",function(e){
+        if(document.body.classList.contains("presentation-mode")){
+          if(e.key==="ArrowRight"||e.key==="PageDown"||e.key===" "){e.preventDefault();changeSlide(1);showPresentationControls();return;}
+          if(e.key==="ArrowLeft"||e.key==="PageUp"){e.preventDefault();changeSlide(-1);showPresentationControls();return;}
+          if(e.key==="Escape"){exitPresentation();return;}
+        }
+        if(e.key==="Escape"){closeModal();closeSidebar();}
+      });
 
       var touchStartX=null;
       previewViewport.addEventListener("touchstart",function(e){touchStartX=e.changedTouches&&e.changedTouches[0]?e.changedTouches[0].clientX:null;},{passive:true});
       previewViewport.addEventListener("touchend",function(e){
         if(touchStartX==null||!e.changedTouches||!e.changedTouches[0]) return;
         var dx=e.changedTouches[0].clientX-touchStartX; touchStartX=null;
-        if(Math.abs(dx)>55) changeSlide(dx<0?1:-1);
+        if(Math.abs(dx)>55){changeSlide(dx<0?1:-1);showPresentationControls();}
       },{passive:true});
     
       renderAll();
+      try{
+        var params=new URLSearchParams(window.location.search);
+        if(params.get("mode")==="presentasi") setTimeout(enterPresentation,80);
+      }catch(e){}
     })();
   </script>
 </body>
