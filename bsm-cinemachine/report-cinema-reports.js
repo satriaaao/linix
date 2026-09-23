@@ -40,7 +40,7 @@
       var c=center(current),j=i+1;
       while(j<rows.length&&!isServiceHeader(rows[j])){
         var r=rows[j]||[];
-        if(clean(r[0])&&j+1<rows.length&&isServiceHeader(rows[j+1])) break;
+        if(clean(r[0])&&!/^\d+$/.test(clean(r[0]))&&j+1<rows.length&&isServiceHeader(rows[j+1])) break;
         var numeric=/^\d+$/.test(clean(r[0]));
         var continuation=!clean(r[0])&&clean(r[1])&&clean(r[2]);
         if(numeric||continuation){
