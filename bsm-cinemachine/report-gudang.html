@@ -912,6 +912,30 @@
     .audio-service-slide.slide-fit-tight .audio-service-table thead th{height:30px!important;font-size:9.4px!important;padding:2px 4px!important}
     .audio-service-slide.slide-fit-tight .audio-service-table td{height:24px!important;font-size:9.4px!important;padding:2px 4px!important;line-height:1.08!important}
 
+    /* Gudang Cinema Service: bigger text + proportional columns */
+    .cinema-service-slide{padding:24px 32px 22px!important}
+    .cinema-service-slide h1{font-size:48px!important;margin:0 0 12px 6px!important;line-height:.96!important}
+    .cinema-service-slide h2{top:96px!important;right:36px!important;font-size:17px!important;letter-spacing:.1em!important}
+    .cinema-service-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:12px!important}
+    .cinema-service-table thead th{height:40px!important;font-size:12px!important;padding:4px 5px!important;line-height:1.08!important}
+    .cinema-service-table td{height:34px!important;font-size:12px!important;padding:4px 6px!important;line-height:1.15!important}
+    .cinema-service-table .cin-no{font-size:13px!important}
+    .cinema-service-table .cin-qty{font-size:12px!important}
+    .cs-no{width:4%}.cs-date{width:9%}.cs-item{width:18%}.cs-damage{width:19%}.cs-qty{width:5%}.cs-sn1{width:12%}.cs-sn2{width:12%}.cs-taken{width:10%}.cs-note{width:11%}
+    .cinema-service-slide .cinema-footer{bottom:18px!important}
+
+    .cinema-service-slide.slide-fit-compact{padding:20px 28px 18px!important}
+    .cinema-service-slide.slide-fit-compact h1{font-size:42px!important}
+    .cinema-service-slide.slide-fit-compact h2{font-size:14px!important;top:84px!important;right:30px!important}
+    .cinema-service-slide.slide-fit-compact .cinema-service-table thead th{height:34px!important;font-size:10.5px!important;padding:3px 4px!important}
+    .cinema-service-slide.slide-fit-compact .cinema-service-table td{height:28px!important;font-size:10.5px!important;padding:3px 4px!important;line-height:1.1!important}
+
+    .cinema-service-slide.slide-fit-tight{padding:17px 24px 16px!important}
+    .cinema-service-slide.slide-fit-tight h1{font-size:36px!important}
+    .cinema-service-slide.slide-fit-tight h2{font-size:12px!important;top:74px!important;right:26px!important}
+    .cinema-service-slide.slide-fit-tight .cinema-service-table thead th{height:30px!important;font-size:9.5px!important;padding:2px 3px!important}
+    .cinema-service-slide.slide-fit-tight .cinema-service-table td{height:24px!important;font-size:9.5px!important;padding:2px 3px!important;line-height:1.08!important}
+
     .report.report-dense{padding-top:24px!important}
     .report.report-dense .report-title{font-size:47px}
     .report.report-dense table{font-size:12px}
@@ -2353,7 +2377,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(!file)return;var reader=new FileReader();
         reader.onload=function(ev){try{
           var wb=window.XLSX.read(ev.target.result,{type:"array"}),parsed=window.BSMCinemaReports.parseWorkbook(wb);
-          var slides=window.BSMCinemaReports.createSlides(parsed,{maxVendorRows:14,maxComplaintRows:15,maxServiceRows:15,period:"JUNI 2026",servicePeriod:"2026"});
+          var slides=window.BSMCinemaReports.createSlides(parsed,{maxVendorRows:14,maxComplaintRows:15,maxServiceRows:10,period:"JUNI 2026",servicePeriod:"2026"});
           if(!slides.length)throw new Error("Tidak ada data Gudang Cinema yang terbaca.");
           state.activeType="gudang-cinema";var section=state.sections["gudang-cinema"];section.slides=slides.map(function(s){s.liveEditId=uid();return s;});
           ensureMasterReports();bindActiveSection(0);state.coverTarget="gudang-cinema";state.activeView=window.BSMReportMaster.findPageIndex(state,"report:gudang-cinema:0");
@@ -2449,7 +2473,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             maxAudioServiceRows:12,
             maxCinemaVendorRows:14,
             maxCinemaComplaintRows:15,
-            maxCinemaServiceRows:15,
+            maxCinemaServiceRows:10,
             maxLightingVendorRows:14,
             maxLightingComplaintRows:14,
             maxLightingServiceRows:14
@@ -2666,5 +2690,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     })();
   </script>
 </body>
-<!-- report-gudang-build-v28-audio-service-readable -->
+<!-- report-gudang-build-v29-cinema-service-readable -->
 </html>
