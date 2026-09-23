@@ -584,6 +584,11 @@
     }
     .preview-viewport{position:relative;margin:0 auto;overflow:hidden;background:#fff;box-shadow:0 10px 30px rgba(15,23,42,.12)}
     .preview-canvas{position:absolute;left:0;top:0;width:1600px;height:900px;transform-origin:top left}
+    .live-edit-text[contenteditable="true"]{cursor:text;outline:1px dashed transparent;border-radius:2px;transition:outline-color .12s ease,background .12s ease}
+    .live-edit-text[contenteditable="true"]:hover{outline-color:rgba(8,125,134,.45);background:rgba(8,125,134,.055)}
+    .live-edit-text[contenteditable="true"]:focus{outline:2px solid rgba(8,125,134,.8);background:rgba(255,255,255,.92)}
+    body.presentation-mode .live-edit-text[contenteditable="true"]:focus{outline-color:#22d3ee;box-shadow:0 0 0 2px rgba(34,211,238,.18)}
+    .presentation-edit-hint{color:#d8f7fb;font-size:10px;font-weight:800;white-space:nowrap;padding:0 3px}
     .presentation-controls{display:none}
     body.presentation-mode{overflow:hidden!important;background:#05080d!important}
     body.presentation-mode .topbar,
@@ -956,6 +961,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           <button class="slide-nav-btn" id="nextSlideBtn" aria-label="Slide berikutnya">›</button>
           <button class="btn ghost-danger" id="deleteSlideBtn">Hapus Slide</button>
           <button class="btn dark" id="presentationBtn">⛶ Presentasi</button>
+          <button class="btn" id="resetSlideTextBtn">↺ Reset Teks</button>
         </div>
         <div class="hint" id="lastSavedText">Belum disimpan manual</div>
       </div>
@@ -999,6 +1005,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         <button class="presentation-btn" id="presentationPrevBtn" aria-label="Slide sebelumnya">‹</button>
         <div class="presentation-counter" id="presentationCounter">1 / 1</div>
         <button class="presentation-btn" id="presentationNextBtn" aria-label="Slide berikutnya">›</button>
+        <span class="presentation-edit-hint">Klik teks untuk edit</span>
         <button class="presentation-btn presentation-exit" id="presentationExitBtn">Keluar</button>
       </div>
       </section>
@@ -1032,6 +1039,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-camera-vendor.js"></script>
   <script src="/report-camera-reports.js"></script>
   <script src="/report-bulk-router.js"></script>
+  <script src="/report-live-edit.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
@@ -1164,6 +1172,10 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
       state.sections=window.BSMReportMaster.normalizeSections(state.sections,state.cover,legacySlides);
       state.masterVersion=1;
+      if(!window.BSMReportLiveEdit||typeof window.BSMReportLiveEdit.setText!=="function"){
+        throw new Error("Live edit helper tidak termuat");
+      }
+      state.presentationEdits=window.BSMReportLiveEdit.ensure(state.presentationEdits);
       state.activeType=(state.activeType&&state.sections[state.activeType])?state.activeType:(legacySlides.length?"gudang-lighting":"it");
       state.coverTarget=state.coverTarget||"master";
       var departmentInput=document.getElementById("departmentInput");
@@ -1181,6 +1193,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var prevSlideBtn=document.getElementById("prevSlideBtn");
       var nextSlideBtn=document.getElementById("nextSlideBtn");
       var deleteSlideBtn=document.getElementById("deleteSlideBtn");
+      var resetSlideTextBtn=document.getElementById("resetSlideTextBtn");
       var presentationBtn=document.getElementById("presentationBtn");
       var presentationPrevBtn=document.getElementById("presentationPrevBtn");
       var presentationNextBtn=document.getElementById("presentationNextBtn");
@@ -1270,6 +1283,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           }else if(!section.slides.length){
             section.slides.push(ensureIds(emptyReportForType(type.id)));
           }
+          section.slides.forEach(function(report){report.liveEditId=report.liveEditId||uid();});
         });
       }
       function bindActiveSection(index){
@@ -1286,6 +1300,79 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(!Number.isInteger(state.activeView)||state.activeView<0||state.activeView>=pages.length) state.activeView=0;
         return pages[state.activeView]||pages[0];
       }
+      function liveEditPageKey(page){
+        page=page||currentMasterPage();
+        if(page.kind==="report"&&page.report) return "report:"+(page.report.liveEditId||page.key);
+        return page.key||"master-cover";
+      }
+      function currentSlideRoot(){
+        var page=currentMasterPage();
+        if(page.kind==="master-cover"||page.kind==="section-cover") return coverSlideHost.firstElementChild;
+        if(page.kind==="report"&&page.report){
+          if(page.report.template==="admin-matrix") return adminMatrixHost.firstElementChild;
+          if(page.report.template==="camera-vendor") return cameraVendorHost.firstElementChild;
+          if(page.report.template==="camera-complaint"||page.report.template==="camera-service") return cameraOpsHost.firstElementChild;
+        }
+        return reportEl;
+      }
+      function unwrapLiveEditText(root){
+        if(!root) return;
+        Array.prototype.forEach.call(root.querySelectorAll(".live-edit-text"),function(span){
+          span.replaceWith(document.createTextNode(span.textContent||""));
+        });
+        root.normalize();
+      }
+      function liveEditTextNodes(root){
+        if(!root) return [];
+        var nodes=[],walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null);
+        while(walker.nextNode()){
+          var node=walker.currentNode,parent=node.parentElement;
+          if(!parent||!String(node.nodeValue||"").trim()) continue;
+          if(/^(SCRIPT|STYLE|TEXTAREA|INPUT|SELECT|OPTION|BUTTON)$/i.test(parent.tagName)) continue;
+          if(parent.closest("svg")) continue;
+          nodes.push(node);
+        }
+        return nodes;
+      }
+      function applyLiveEditsToNode(root,pageKey){
+        if(!root) return;
+        unwrapLiveEditText(root);
+        var nodes=liveEditTextNodes(root);
+        nodes.forEach(function(node,index){
+          var value=window.BSMReportLiveEdit.getText(state.presentationEdits,pageKey,index);
+          if(value!==undefined) node.nodeValue=value;
+        });
+      }
+      function enableLiveTextEditing(){
+        var root=currentSlideRoot(),page=currentMasterPage();
+        if(!root||!page) return;
+        var pageKey=liveEditPageKey(page);
+        applyLiveEditsToNode(root,pageKey);
+        var nodes=liveEditTextNodes(root);
+        nodes.forEach(function(node,index){
+          var span=document.createElement("span");
+          span.className="live-edit-text";
+          span.setAttribute("contenteditable","true");
+          span.setAttribute("spellcheck","false");
+          span.dataset.liveEditIndex=String(index);
+          span.textContent=node.nodeValue;
+          node.parentNode.replaceChild(span,node);
+          span.addEventListener("input",function(){
+            window.BSMReportLiveEdit.setText(state.presentationEdits,pageKey,index,this.textContent||"");
+          });
+          span.addEventListener("blur",function(){saveState(false);});
+          span.addEventListener("keydown",function(e){
+            if(e.key==="Enter"){e.preventDefault();this.blur();}
+          });
+          span.addEventListener("paste",function(e){
+            e.preventDefault();
+            var text=((e.clipboardData||window.clipboardData)&&((e.clipboardData||window.clipboardData).getData("text")))||"";
+            text=text.replace(/\s*\n+\s*/g," ");
+            document.execCommand("insertText",false,text);
+          });
+        });
+      }
+
       function editableCover(){
         return state.coverTarget==="master"?state.cover:(state.sections[state.coverTarget]||activeSection()).cover;
       }
@@ -1751,6 +1838,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             stage.innerHTML=pages[i];
             var node=stage.firstElementChild;
             if(!node) throw new Error("Slide PDF tidak ditemukan");
+            applyLiveEditsToNode(node,liveEditPageKey(master[i]));
             node.style.width="1600px";
             node.style.height="900px";
             node.style.minHeight="900px";
@@ -1923,6 +2011,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         renderSlideNav();
         applyEditorMode();
         applyPreviewMode();
+        enableLiveTextEditing();
         renderSlidesPage();
         renderDownloadsPage();
         renderSidebarNav();
@@ -2049,7 +2138,13 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           }
           pages.push('<div class="print-page"><div class="print-canvas">'+coverHtml+'</div></div>');
         });
-        document.getElementById("printStack").innerHTML=pages.join("");
+        var stack=document.getElementById("printStack");
+        stack.innerHTML=pages.join("");
+        var pageEls=stack.querySelectorAll(".print-page");
+        master.forEach(function(page,i){
+          var root=pageEls[i]&&pageEls[i].querySelector(".print-canvas>*");
+          if(root) applyLiveEditsToNode(root,liveEditPageKey(page));
+        });
       }
 
     
@@ -2097,6 +2192,13 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       presentationPrevBtn.addEventListener("click",function(){changeSlide(-1);showPresentationControls();});
       presentationNextBtn.addEventListener("click",function(){changeSlide(1);showPresentationControls();});
       presentationExitBtn.addEventListener("click",exitPresentation);
+      resetSlideTextBtn.addEventListener("click",function(){
+        var key=liveEditPageKey(currentMasterPage());
+        if(!state.presentationEdits[key]){toast("Belum ada edit teks di slide ini");return;}
+        if(!confirm("Reset semua perubahan teks di slide ini?")) return;
+        window.BSMReportLiveEdit.clearPage(state.presentationEdits,key);
+        renderAll();saveState(false);toast("Teks slide dikembalikan");
+      });
       deleteSlideBtn.addEventListener("click",function(){
         var page=currentMasterPage();
         if(page.kind!=="report") return;
@@ -2128,6 +2230,11 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       document.addEventListener("mousemove",showPresentationControls,{passive:true});
       document.addEventListener("touchstart",showPresentationControls,{passive:true});
       document.addEventListener("keydown",function(e){
+        var editing=document.activeElement&&document.activeElement.isContentEditable;
+        if(editing){
+          if(e.key==="Escape"){document.activeElement.blur();showPresentationControls();}
+          return;
+        }
         if(document.body.classList.contains("presentation-mode")){
           if(e.key==="ArrowRight"||e.key==="PageDown"||e.key===" "){e.preventDefault();changeSlide(1);showPresentationControls();return;}
           if(e.key==="ArrowLeft"||e.key==="PageUp"){e.preventDefault();changeSlide(-1);showPresentationControls();return;}
@@ -2137,8 +2244,12 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       });
 
       var touchStartX=null;
-      previewViewport.addEventListener("touchstart",function(e){touchStartX=e.changedTouches&&e.changedTouches[0]?e.changedTouches[0].clientX:null;},{passive:true});
+      previewViewport.addEventListener("touchstart",function(e){
+        if(e.target&&e.target.closest&&e.target.closest('[contenteditable="true"]')){touchStartX=null;return;}
+        touchStartX=e.changedTouches&&e.changedTouches[0]?e.changedTouches[0].clientX:null;
+      },{passive:true});
       previewViewport.addEventListener("touchend",function(e){
+        if(e.target&&e.target.closest&&e.target.closest('[contenteditable="true"]')){touchStartX=null;return;}
         if(touchStartX==null||!e.changedTouches||!e.changedTouches[0]) return;
         var dx=e.changedTouches[0].clientX-touchStartX; touchStartX=null;
         if(Math.abs(dx)>55){changeSlide(dx<0?1:-1);showPresentationControls();}
@@ -2152,5 +2263,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     })();
   </script>
 </body>
-<!-- report-gudang-build-v18-service-multicenter-ready -->
+<!-- report-gudang-build-v19-live-presentation-edit -->
 </html>
