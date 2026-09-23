@@ -544,37 +544,6 @@
       .rg-modal-body{padding-bottom:calc(16px + env(safe-area-inset-bottom))}
     }
 
-    @media print{
-      @page{size:13.333in 7.5in;margin:0}
-      body{background:white}
-      .topbar,.editor,.report-toolbar,.mobile-tabs{display:none!important}
-      .workspace{display:block;max-width:none;padding:0}
-      .report-zone{display:block!important;margin:0}
-      .report-shell{border:0;padding:0;background:white;box-shadow:none;overflow:visible}
-      .report{
-        width:100%;min-height:auto;border:0;box-shadow:none;margin:0;padding:0;
-        background:
-          linear-gradient(rgba(16,119,129,.045) 1px,transparent 1px),
-          linear-gradient(90deg,rgba(16,119,129,.045) 1px,transparent 1px),
-          #fff;
-        background-size:20px 20px;
-      }
-      .report-title{font-size:39px}
-      table{font-size:10px}
-      th,td{padding:4px 6px}
-      thead th{font-size:10px}
-      td.no{font-size:16px}
-      .report-footer{margin-top:14px;font-size:8px}
-    }
-
-    @media print{
-      .report-shell,.slide-dots{display:none!important}
-      .print-stack{display:block!important}
-      .print-stack .report,.print-stack .cover-slide{display:block!important;width:100%!important;min-height:auto!important;height:auto!important;margin:0!important;border:0!important;box-shadow:none!important;page-break-after:always;break-after:page}
-      .print-stack .report{padding:0!important}
-      .print-stack .cover-slide{min-height:180mm!important}
-      .print-stack .report:last-child,.print-stack .cover-slide:last-child{page-break-after:auto;break-after:auto}
-    }
     /* Dashboard pages */
     .dashboard-main{min-width:0}
     .dashboard-page{display:none;min-width:0}
@@ -626,7 +595,7 @@
     .report.report-very-dense .report-footer{margin-top:14px}
     .download-format{display:inline-flex;gap:5px}
     .print-stack{display:none}
-    .print-page{width:13.333in;height:7.5in;overflow:hidden;page-break-after:always;break-after:page;background:#fff}
+    .print-page{width:13.333in;height:7.5in;aspect-ratio:16/9;overflow:hidden;page-break-after:always;break-after:page;background:#fff}
     .print-page:last-child{page-break-after:auto;break-after:auto}
     .print-canvas{width:1600px;height:900px;transform:scale(.8);transform-origin:top left}
     @media(max-width:980px){
