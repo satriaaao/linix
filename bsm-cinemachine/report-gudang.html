@@ -546,7 +546,7 @@
     }
 
     @media print{
-      @page{size:A4 landscape;margin:7mm}
+      @page{size:13.333in 7.5in;margin:0}
       body{background:white}
       .topbar,.editor,.report-toolbar,.mobile-tabs{display:none!important}
       .workspace{display:block;max-width:none;padding:0}
@@ -575,6 +575,83 @@
       .print-stack .report{padding:0!important}
       .print-stack .cover-slide{min-height:180mm!important}
       .print-stack .report:last-child,.print-stack .cover-slide:last-child{page-break-after:auto;break-after:auto}
+    }
+    /* Dashboard pages */
+    .dashboard-main{min-width:0}
+    .dashboard-page{display:none;min-width:0}
+    .dashboard-page.active{display:block}
+    .page-card{
+      border:1px solid rgba(148,163,184,.28);background:rgba(255,255,255,.96);
+      border-radius:16px;box-shadow:var(--shadow);overflow:hidden;
+    }
+    .page-head{
+      min-height:58px;padding:13px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;
+      border-bottom:1px solid #e7edef;background:#fbfdfd;
+    }
+    .page-head h3{margin:0;font-size:15px}
+    .page-head p{margin:3px 0 0;color:var(--muted);font-size:10px}
+    .page-actions{display:flex;gap:7px;flex-wrap:wrap}
+    .page-body{padding:14px}
+    .data-table-wrap{overflow:auto;-webkit-overflow-scrolling:touch;border:1px solid #dbe6e8;border-radius:12px}
+    .data-table{width:100%;min-width:720px;border-collapse:collapse;background:#fff;font-size:11px}
+    .data-table th,.data-table td{border:0;border-bottom:1px solid #e6edef;padding:10px 11px;text-align:left;vertical-align:middle}
+    .data-table th{background:#eef7f8;color:#086e76;font-size:9px;letter-spacing:.07em;text-transform:uppercase;font-weight:900}
+    .data-table tr:last-child td{border-bottom:0}
+    .data-table .row-active td{background:#f0fafb}
+    .table-action{border:1px solid #d9e3e6;background:#fff;color:#334155;border-radius:8px;padding:6px 8px;font-size:10px;font-weight:800}
+    .table-action.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+    .table-action.danger{color:#b42318;border-color:#f1d2ce;background:#fff8f7}
+    .table-action + .table-action{margin-left:5px}
+    .inline-cover-input{width:100%;min-width:180px;border:1px solid #d7e1e4;border-radius:8px;padding:7px 8px;background:#fff}
+    .cover-mini-preview{width:86px;height:50px;object-fit:cover;border-radius:7px;border:1px solid #d7e1e4;background:#f8fbfb}
+    .settings-value{font-variant-numeric:tabular-nums}
+    .empty-table{padding:28px!important;text-align:center!important;color:#7b8a97}
+    .preview-stage{
+      border:1px solid rgba(148,163,184,.28);border-radius:16px;background:#dfe9eb;padding:12px;
+      box-shadow:var(--shadow);overflow:hidden;
+    }
+    .preview-viewport{position:relative;margin:0 auto;overflow:hidden;background:#fff;box-shadow:0 10px 30px rgba(15,23,42,.12)}
+    .preview-canvas{position:absolute;left:0;top:0;width:1600px;height:900px;transform-origin:top left}
+    .cover-slide,.report{
+      width:1600px!important;height:900px!important;min-height:900px!important;max-height:900px!important;
+      aspect-ratio:16/9;overflow:hidden!important;
+    }
+    .report.report-dense{padding-top:24px!important}
+    .report.report-dense .report-title{font-size:47px}
+    .report.report-dense table{font-size:12px}
+    .report.report-dense th,.report.report-dense td{padding:4px 8px}
+    .report.report-very-dense .report-title{font-size:42px}
+    .report.report-very-dense .report-meta{font-size:12px}
+    .report.report-very-dense table{font-size:10px}
+    .report.report-very-dense th,.report.report-very-dense td{padding:3px 6px}
+    .report.report-very-dense .report-footer{margin-top:14px}
+    .download-format{display:inline-flex;gap:5px}
+    .print-stack{display:none}
+    .print-page{width:13.333in;height:7.5in;overflow:hidden;page-break-after:always;break-after:page;background:#fff}
+    .print-page:last-child{page-break-after:auto;break-after:auto}
+    .print-canvas{width:1600px;height:900px;transform:scale(.8);transform-origin:top left}
+    @media(max-width:980px){
+      .page-card{border-radius:13px}
+      .page-head{padding:11px 12px;align-items:flex-start}
+      .page-head h3{font-size:13px}
+      .page-actions .btn{min-height:34px;padding:0 9px;font-size:10px}
+      .page-body{padding:9px}
+      .data-table{min-width:680px;font-size:10px}
+      .data-table th,.data-table td{padding:8px 9px}
+      .preview-stage{padding:5px;border-radius:12px}
+      .report-toolbar{margin-bottom:7px!important}
+    }
+    @media print{
+      @page{size:13.333in 7.5in;margin:0}
+      html,body{margin:0!important;padding:0!important;background:#fff!important}
+      .topbar,.editor,.report-toolbar,.slide-dots,.dashboard-main,.rg-sidebar-scrim,.rg-modal-backdrop{display:none!important}
+      .print-stack{display:block!important;margin:0!important;padding:0!important}
+      .print-page{display:block!important;width:13.333in!important;height:7.5in!important;overflow:hidden!important;margin:0!important}
+      .print-canvas{display:block!important;width:1600px!important;height:900px!important;transform:scale(.8)!important;transform-origin:top left!important}
+      .print-canvas .cover-slide,.print-canvas .report{
+        display:block!important;width:1600px!important;height:900px!important;min-height:900px!important;margin:0!important;
+        border:0!important;box-shadow:none!important;zoom:1!important;transform:none!important;
+      }
     }
 
   </style>
@@ -680,9 +757,39 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       </div>
     </aside>
 
-    <main class="report-zone">
+    <main class="report-zone dashboard-main" id="dashboardMain">
+      <section class="dashboard-page" id="slidesPage">
+        <div class="page-card">
+          <div class="page-head"><div><h3>Daftar Slide</h3><p>Kelola cover dan semua report.</p></div><div class="page-actions"><button class="btn" data-page-download="slides" data-format="xlsx">XLSX</button><button class="btn" data-page-download="slides" data-format="csv">CSV</button></div></div>
+          <div class="page-body"><div class="data-table-wrap"><table class="data-table"><thead><tr><th>No</th><th>Tipe</th><th>Nama</th><th>Periode</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="slidesTableBody"></tbody></table></div></div>
+        </div>
+      </section>
+
+      <section class="dashboard-page" id="coverPage">
+        <div class="page-card">
+          <div class="page-head"><div><h3>Cover Slide 1</h3><p>Semua elemen cover dapat diedit.</p></div><div class="page-actions"><button class="btn" data-page-download="cover" data-format="xlsx">XLSX</button><button class="btn" data-page-download="cover" data-format="csv">CSV</button></div></div>
+          <div class="page-body" id="coverPageMount"></div>
+        </div>
+      </section>
+
+      <section class="dashboard-page" id="bulkPage">
+        <div class="page-card">
+          <div class="page-head"><div><h3>Input Banyak</h3><p>Paste Excel atau tabel untuk membuat slide baru.</p></div></div>
+          <div class="page-body" id="bulkPageMount"></div>
+        </div>
+      </section>
+
+      <section class="dashboard-page" id="tablePage">
+        <div class="page-card">
+          <div class="page-head"><div><h3>Editor Tabel</h3><p>Edit data report aktif langsung di tabel.</p></div><div class="page-actions"><button class="btn" data-page-download="report" data-format="xlsx">XLSX</button><button class="btn" data-page-download="report" data-format="csv">CSV</button></div></div>
+          <div class="page-body" id="tablePageMount"></div>
+        </div>
+      </section>
+
+      <section class="dashboard-page active" id="previewPage">
+        
       <div class="report-toolbar">
-        <div class="hint">Preview slide • geser kiri/kanan untuk pindah report</div>
+        <div class="hint">Preview 16:9 • swipe kiri/kanan untuk pindah slide</div>
         <div class="carousel-controls">
           <button class="slide-nav-btn" id="prevSlideBtn" aria-label="Slide sebelumnya">‹</button>
           <strong id="slideCounter">Belum ada slide</strong>
@@ -692,46 +799,53 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         <div class="hint" id="lastSavedText">Belum disimpan manual</div>
       </div>
       <div class="slide-dots" id="slideDots"></div>
-      <div class="report-shell">
-        <div id="coverSlideHost"></div>
-        <section class="report" id="report">
-          <div class="report-kicker">
-            <span class="circle-slash"></span>
-            <div class="kicker-lines">
-              <div>// LAPORAN GUDANG</div>
-              <div class="teal-line">// REPORT <span id="kickerDepartment">LIGHTING</span></div>
-            </div>
+      <div class="preview-stage">
+        <div class="preview-viewport" id="previewViewport">
+          <div class="preview-canvas" id="previewCanvas">
+            <div id="coverSlideHost"></div>
+            <section class="report" id="report">
+              <div class="report-kicker">
+                <span class="circle-slash"></span>
+                <div class="kicker-lines">
+                  <div>// LAPORAN GUDANG</div>
+                  <div class="teal-line">// REPORT <span id="kickerDepartment">LIGHTING</span></div>
+                </div>
+              </div>
+              <h1 class="report-title">MBR REPORT GUDANG <span class="accent" id="titleDepartment">LIGHTING BSM RENTAL</span></h1>
+              <div class="report-meta">
+                <div>Priode <span id="periodLabel">JUNI 2026</span></div>
+                <div id="subtitleLabel">Report Barang Kurang / Ambil Vendor</div>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>No</th><th>TGL Penyewaan</th><th>Nama Alat</th><th>QTY</th><th>Action</th><th>Harga Sewa</th></tr></thead>
+                  <tbody id="reportBody"></tbody>
+                </table>
+              </div>
+              <div class="report-footer">
+                <div>Laporan Gudang <span id="footerDepartment">Lighting</span> BSM Rental</div>
+                <div class="footer-line"></div>
+                <div>// <span id="footerMonth">JUNI</span> <span id="footerYear">2026</span></div>
+              </div>
+            </section>
           </div>
-
-          <h1 class="report-title">MBR REPORT GUDANG <span class="accent" id="titleDepartment">LIGHTING BSM RENTAL</span></h1>
-          <div class="report-meta">
-            <div>Priode <span id="periodLabel">JUNI 2026</span></div>
-            <div id="subtitleLabel">Report Barang Kurang / Ambil Vendor</div>
-          </div>
-
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>No</th>
-                  <th>TGL Penyewaan</th>
-                  <th>Nama Alat</th>
-                  <th>QTY</th>
-                  <th>Action</th>
-                  <th>Harga Sewa</th>
-                </tr>
-              </thead>
-              <tbody id="reportBody"></tbody>
-            </table>
-          </div>
-
-          <div class="report-footer">
-            <div>Laporan Gudang <span id="footerDepartment">Lighting</span> BSM Rental</div>
-            <div class="footer-line"></div>
-            <div>// <span id="footerMonth">JUNI</span> <span id="footerYear">2026</span></div>
-          </div>
-        </section>
+        </div>
       </div>
+      </section>
+
+      <section class="dashboard-page" id="downloadPage">
+        <div class="page-card">
+          <div class="page-head"><div><h3>Download Data</h3><p>Download data dalam format XLSX atau CSV.</p></div></div>
+          <div class="page-body"><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Data</th><th>Jumlah Baris</th><th>XLSX</th><th>CSV</th></tr></thead><tbody id="downloadTableBody"></tbody></table></div></div>
+        </div>
+      </section>
+
+      <section class="dashboard-page" id="settingsPage">
+        <div class="page-card">
+          <div class="page-head"><div><h3>Pengaturan</h3><p>Data contoh, simpan, dan reset.</p></div></div>
+          <div class="page-body" id="settingsPageMount"></div>
+        </div>
+      </section>
       <div class="print-stack" id="printStack"></div>
     </main>
   </div>
@@ -743,6 +857,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-parser.js"></script>
   <script src="/report-gudang-editor.js"></script>
   <script src="/report-gudang-cover.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="/report-gudang-export.js"></script>
   <script src="/report-gudang-ui.js"></script>
   <script>
     (function(){
@@ -856,6 +972,14 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var reportInfoSection=document.getElementById("reportInfoSection");
       var reportItemsSection=document.getElementById("reportItemsSection");
       var reportEl=document.getElementById("report");
+      var previewViewport=document.getElementById("previewViewport");
+      var previewCanvas=document.getElementById("previewCanvas");
+      var slidesTableBody=document.getElementById("slidesTableBody");
+      var downloadTableBody=document.getElementById("downloadTableBody");
+      var coverPageMount=document.getElementById("coverPageMount");
+      var bulkPageMount=document.getElementById("bulkPageMount");
+      var tablePageMount=document.getElementById("tablePageMount");
+      var settingsPageMount=document.getElementById("settingsPageMount");
       var editorPanel=document.getElementById("editorPanel");
       var sidebarHost=document.getElementById("sidebarHost");
       var sidebarScrim=document.getElementById("sidebarScrim");
@@ -948,66 +1072,54 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
 
       function renderCoverEditor(){
-        coverEditorHost.innerHTML=window.BSMReportCover.renderCoverEditor(state.cover,esc);
-        coverEditorHost.insertAdjacentHTML("beforeend",'<div class="cover-editor-block"><div class="section-title"><strong>Logo Cover</strong><span class="bulk-badge">Upload + Atur</span></div>'+window.BSMReportUI.renderLogoEditor(state.cover.logo)+'</div>');
+        var c=state.cover,logo=c.logo||{image:"",width:180,x:0,y:0};
+        function textRow(label,key,value){
+          return '<tr><td>'+esc(label)+'</td><td><input class="inline-cover-input cover-input" data-cover-field="'+key+'" value="'+esc(value||'')+'"></td><td><span class="tiny">Editable</span></td></tr>';
+        }
+        var rows='';
+        rows+=textRow('Judul Kecil','mainTitle1',c.mainTitle1);
+        rows+=textRow('Judul Utama','mainTitle2',c.mainTitle2);
+        rows+=textRow('Periode','period',c.period);
+        rows+=textRow('Label Kanan 1','titleTop1',c.titleTop1);
+        rows+=textRow('Label Kanan 2','titleTop2',c.titleTop2);
+        rows+=textRow('Item 1','item1',c.item1);
+        rows+=textRow('Item 2','item2',c.item2);
+        rows+=textRow('Item 3','item3',c.item3);
+        rows+=textRow('Footer','footerLeft',c.footerLeft);
+        rows+=textRow('Tagline','footerTagline',c.footerTagline);
+        rows+='<tr><td>Background</td><td>'+(c.image?'<img class="cover-mini-preview" src="'+esc(c.image)+'" alt="Background">':'<span class="tiny">Belum ada</span>')+'</td><td><input id="coverImageInput" type="file" accept="image/*" class="cover-file-input"></td></tr>';
+        rows+='<tr><td>Logo</td><td>'+(logo.image?'<img class="cover-mini-preview" src="'+esc(logo.image)+'" alt="Logo">':'<span class="tiny">Logo default BSM</span>')+'</td><td><input id="coverLogoInput" type="file" accept="image/*" class="cover-file-input"></td></tr>';
+        rows+='<tr><td>Ukuran Logo</td><td class="settings-value"><input type="range" min="80" max="320" value="'+Number(logo.width||180)+'" data-logo-setting="width"> <span data-logo-value="width">'+Number(logo.width||180)+' px</span></td><td></td></tr>';
+        rows+='<tr><td>Posisi X</td><td class="settings-value"><input type="range" min="-200" max="200" value="'+Number(logo.x||0)+'" data-logo-setting="x"> <span data-logo-value="x">'+Number(logo.x||0)+'</span></td><td></td></tr>';
+        rows+='<tr><td>Posisi Y</td><td class="settings-value"><input type="range" min="-200" max="200" value="'+Number(logo.y||0)+'" data-logo-setting="y"> <span data-logo-value="y">'+Number(logo.y||0)+'</span></td><td><button class="table-action" data-reset-logo>Reset Logo</button></td></tr>';
+        coverEditorHost.innerHTML='<div class="data-table-wrap"><table class="data-table"><thead><tr><th>Elemen</th><th>Nilai</th><th>Aksi</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+
         Array.prototype.forEach.call(coverEditorHost.querySelectorAll(".cover-input"),function(input){
           input.addEventListener("input",function(){
-            var key=this.dataset.coverField;
-            state.cover[key]=this.value;
-            renderCoverSlide();
-            autoSave();
+            state.cover[this.dataset.coverField]=this.value;renderCoverSlide();autoSave();
           });
         });
         var imageInput=document.getElementById("coverImageInput");
-        if(imageInput){
-          imageInput.addEventListener("change",function(){
-            var file=this.files&&this.files[0];
-            if(!file) return;
-            resizeCoverImage(file,function(dataUrl){
-              state.cover.image=dataUrl;
-              renderCoverEditor();
-              renderCoverSlide();
-              saveState(false);
-              toast("Gambar Slide 1 diperbarui");
-            });
-          });
-        }
+        if(imageInput) imageInput.addEventListener("change",function(){
+          var file=this.files&&this.files[0]; if(!file) return;
+          resizeCoverImage(file,function(dataUrl){state.cover.image=dataUrl;renderCoverEditor();renderCoverSlide();saveState(false);toast("Gambar Slide 1 diperbarui");});
+        });
         var logoInput=document.getElementById("coverLogoInput");
-        if(logoInput){
-          logoInput.addEventListener("change",function(){
-            var file=this.files&&this.files[0];
-            if(!file) return;
-            var reader=new FileReader();
-            reader.onload=function(ev){
-              state.cover.logo.image=String(ev.target.result||"");
-              renderCoverEditor();
-              renderCoverSlide();
-              saveState(false);
-              toast("Logo Slide 1 diperbarui");
-            };
-            reader.readAsDataURL(file);
-          });
-        }
+        if(logoInput) logoInput.addEventListener("change",function(){
+          var file=this.files&&this.files[0]; if(!file) return;
+          var reader=new FileReader();
+          reader.onload=function(ev){state.cover.logo.image=String(ev.target.result||"");renderCoverEditor();renderCoverSlide();saveState(false);toast("Logo Slide 1 diperbarui");};
+          reader.readAsDataURL(file);
+        });
         Array.prototype.forEach.call(coverEditorHost.querySelectorAll("[data-logo-setting]"),function(input){
           input.addEventListener("input",function(){
-            var key=this.dataset.logoSetting;
-            state.cover.logo[key]=Number(this.value||0);
-            var label=coverEditorHost.querySelector('[data-logo-value="'+key+'"]');
-            if(label) label.textContent=this.value+(key==="width"?" px":"");
-            renderCoverSlide();
-            autoSave();
+            var key=this.dataset.logoSetting;state.cover.logo[key]=Number(this.value||0);
+            var label=coverEditorHost.querySelector('[data-logo-value="'+key+'"]');if(label) label.textContent=this.value+(key==="width"?" px":"");
+            renderCoverSlide();autoSave();
           });
         });
         var resetLogo=coverEditorHost.querySelector("[data-reset-logo]");
-        if(resetLogo){
-          resetLogo.addEventListener("click",function(){
-            state.cover.logo={image:"",width:180,x:0,y:0};
-            renderCoverEditor();
-            renderCoverSlide();
-            saveState(false);
-            toast("Logo direset");
-          });
-        }
+        if(resetLogo) resetLogo.addEventListener("click",function(){state.cover.logo={image:"",width:180,x:0,y:0};renderCoverEditor();renderCoverSlide();saveState(false);toast("Logo direset");});
       }
 
       function applyEditorMode(){
@@ -1125,77 +1237,84 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         document.getElementById("footerMonth").textContent=months[month-1];
         document.getElementById("footerYear").textContent=year;
         reportBody.innerHTML=buildRowsHtml(report);
+        var rowCount=(report.groups||[]).reduce(function(sum,g){return sum+(g.rows||[]).length+1;},0);
+        reportEl.classList.toggle("report-dense",rowCount>16);
+        reportEl.classList.toggle("report-very-dense",rowCount>24);
       }
     
-      function closeSidebar(){
-        document.body.classList.remove("sidebar-open");
+      function closeSidebar(){document.body.classList.remove("sidebar-open");}
+      function closeModal(){modalHost.innerHTML="";}
+
+      function mountDashboardSections(){
+        if(coverEditorSection.parentNode!==coverPageMount) coverPageMount.appendChild(coverEditorSection);
+        if(bulkSection.parentNode!==bulkPageMount) bulkPageMount.appendChild(bulkSection);
+        if(reportInfoSection.parentNode!==tablePageMount) tablePageMount.appendChild(reportInfoSection);
+        if(reportItemsSection.parentNode!==tablePageMount) tablePageMount.appendChild(reportItemsSection);
+        if(dataResetSection.parentNode!==settingsPageMount) settingsPageMount.appendChild(dataResetSection);
+        coverEditorSection.style.display="";
+        bulkSection.style.display="";
+        reportInfoSection.style.display="";
+        reportItemsSection.style.display="";
+        dataResetSection.style.display="";
       }
 
-      function restoreModalNodes(){
-        modalMovedNodes.forEach(function(node){
-          if(node) editorPanel.appendChild(node);
+      function showPage(pageId){
+        activeMenu=pageId;
+        Array.prototype.forEach.call(document.querySelectorAll(".dashboard-page"),function(page){
+          page.classList.toggle("active",page.id===pageId+"Page");
         });
-        modalMovedNodes=[];
-      }
-
-      function closeModal(){
-        restoreModalNodes();
-        modalHost.innerHTML="";
-      }
-
-      function moveToModal(node,body){
-        if(!node||!body) return;
-        body.appendChild(node);
-        node.style.display="";
-        modalMovedNodes.push(node);
-      }
-
-      function slideListHtml(){
-        var total=state.slides.length+1;
-        var html='<div class="rg-slide-list">';
-        for(var i=0;i<total;i++){
-          var label=i===0?"Slide 1 — Cover":"Slide "+(i+1)+" — Report";
-          html+='<div class="rg-slide-row '+(i===state.activeView?"active":"")+'"><strong>'+label+'</strong><button data-select-view="'+i+'">Buka</button></div>';
-        }
-        return html+'</div>';
-      }
-
-      function openEditorModal(kind){
-        closeModal();
-        closeSidebar();
-        activeMenu=kind;
-        if(kind==="cover"&&state.activeView!==0){
-          state.activeView=0;
-          renderAll();
-        }
-        if(kind==="table"&&state.activeView===0&&state.slides.length){
-          state.activeView=1;state.activeSlide=0;state.draft=clone(state.slides[0]);renderAll();
-        }
-        var titles={slides:"Slide",cover:"Edit Cover Slide 1",bulk:"Input Banyak",table:"Editor Tabel"};
-        var initial=kind==="slides"?slideListHtml():"";
-        modalHost.innerHTML=window.BSMReportUI.renderModalShell(kind,titles[kind]||"Editor",initial);
-        var modal=document.getElementById("rgModal");
-        var body=modal.querySelector(".rg-modal-body");
-        if(kind==="cover") moveToModal(coverEditorSection,body);
-        if(kind==="bulk") moveToModal(bulkSection,body);
-        if(kind==="table"){
-          moveToModal(reportInfoSection,body);
-          moveToModal(reportItemsSection,body);
-        }
-        if(kind==="slides"){
-          moveToModal(dataResetSection,body);
-          Array.prototype.forEach.call(body.querySelectorAll("[data-select-view]"),function(btn){
-            btn.addEventListener("click",function(){
-              loadView(Number(this.dataset.selectView));
-              closeModal();
-              activeMenu=state.activeView===0?"cover":"table";
-              renderSidebarNav();
-            });
-          });
-        }
-        modal.querySelector("[data-close-modal]").addEventListener("click",closeModal);
-        modal.addEventListener("click",function(e){if(e.target===modal) closeModal();});
         renderSidebarNav();
+        closeSidebar();
+        if(pageId==="preview") requestAnimationFrame(updatePreviewScale);
+      }
+
+      function renderSlidesPage(){
+        var rows='';
+        rows+='<tr class="'+(state.activeView===0?'row-active':'')+'"><td>1</td><td>Cover</td><td>'+esc(state.cover.mainTitle2||'Cover')+'</td><td>'+esc(state.cover.period||'')+'</td><td>'+(state.activeView===0?'Aktif':'')+'</td><td><button class="table-action primary" data-open-view="0">Buka</button></td></tr>';
+        state.slides.forEach(function(slide,i){
+          var view=i+1,period=(months[(slide.month||1)-1]||'')+' '+(slide.year||'');
+          rows+='<tr class="'+(state.activeView===view?'row-active':'')+'"><td>'+(i+2)+'</td><td>Report</td><td>'+esc(slide.department||'Report')+'</td><td>'+esc(period)+'</td><td>'+(state.activeView===view?'Aktif':'')+'</td><td><button class="table-action primary" data-open-view="'+view+'">Buka</button><button class="table-action" data-duplicate-slide="'+i+'">Duplikat</button><button class="table-action danger" data-remove-slide="'+i+'">Hapus</button></td></tr>';
+        });
+        slidesTableBody.innerHTML=rows;
+        Array.prototype.forEach.call(slidesTableBody.querySelectorAll("[data-open-view]"),function(btn){
+          btn.addEventListener("click",function(){loadView(Number(this.dataset.openView));showPage("preview");});
+        });
+        Array.prototype.forEach.call(slidesTableBody.querySelectorAll("[data-duplicate-slide]"),function(btn){
+          btn.addEventListener("click",function(){
+            var i=Number(this.dataset.duplicateSlide); if(!state.slides[i]) return;
+            state.slides.splice(i+1,0,clone(state.slides[i]));state.activeView=i+2;state.activeSlide=i+1;state.draft=clone(state.slides[i+1]);renderAll();saveState(false);toast("Slide diduplikat");
+          });
+        });
+        Array.prototype.forEach.call(slidesTableBody.querySelectorAll("[data-remove-slide]"),function(btn){
+          btn.addEventListener("click",function(){
+            var i=Number(this.dataset.removeSlide); if(!state.slides[i]||!confirm("Hapus slide report ini?")) return;
+            state.slides.splice(i,1);state.activeView=0;state.activeSlide=-1;renderAll();saveState(false);toast("Slide dihapus");
+          });
+        });
+      }
+
+      function datasetFor(kind){
+        if(!window.BSMReportExport) throw new Error("Export helper belum termuat");
+        if(kind==="slides") return {name:"daftar-slide",rows:window.BSMReportExport.buildSlideRows(state)};
+        if(kind==="cover") return {name:"pengaturan-cover",rows:window.BSMReportExport.buildCoverRows(state.cover)};
+        return {name:"report-"+String(state.draft.department||"aktif").toLowerCase(),rows:window.BSMReportExport.buildReportRows(state.draft)};
+      }
+
+      function downloadData(kind,format){
+        try{
+          var data=datasetFor(kind);window.BSMReportExport.downloadDataset(format,data.name,data.rows);toast((format||"csv").toUpperCase()+" dibuat");
+        }catch(err){toast(err&&err.message?err.message:"Download gagal");}
+      }
+
+      function renderDownloadsPage(){
+        var defs=[["slides","Daftar Slide"],["report","Report Aktif"],["cover","Pengaturan Cover"]];
+        downloadTableBody.innerHTML=defs.map(function(d){
+          var ds=datasetFor(d[0]);
+          return '<tr><td>'+d[1]+'</td><td>'+Math.max(0,ds.rows.length-1)+'</td><td><button class="table-action primary" data-download-kind="'+d[0]+'" data-download-format="xlsx">Download XLSX</button></td><td><button class="table-action" data-download-kind="'+d[0]+'" data-download-format="csv">Download CSV</button></td></tr>';
+        }).join("");
+        Array.prototype.forEach.call(downloadTableBody.querySelectorAll("[data-download-kind]"),function(btn){
+          btn.addEventListener("click",function(){downloadData(this.dataset.downloadKind,this.dataset.downloadFormat);});
+        });
       }
 
       function renderSidebarNav(){
@@ -1203,13 +1322,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         Array.prototype.forEach.call(sidebarHost.querySelectorAll("[data-menu]"),function(btn){
           btn.addEventListener("click",function(){
             var kind=this.dataset.menu;
-            activeMenu=kind;
-            if(kind==="preview"){
-              closeModal();closeSidebar();setMobileTab(true);document.querySelector(".report-zone").scrollIntoView({behavior:"smooth",block:"start"});renderSidebarNav();return;
-            }
-            if(kind==="print"){closeSidebar();document.getElementById("printBtn").click();return;}
-            if(kind==="csv"){closeSidebar();document.getElementById("csvBtn").click();return;}
-            openEditorModal(kind);
+            if(kind==="pdf"){closeSidebar();renderPrintStack();setTimeout(function(){window.print();},60);return;}
+            showPage(kind);
           });
         });
       }
@@ -1229,26 +1343,21 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         });
       }
     
-      function updateMobilePreviewScale(){
-        var shell=document.querySelector(".report-shell");
-        if(!shell) return;
-        var cover=coverSlideHost.querySelector(".cover-slide");
-        var target=state.activeView===0?cover:reportEl;
-        [cover,reportEl].forEach(function(el){
-          if(!el) return;
-          el.style.zoom="";
-          el.style.webkitTextSizeAdjust="";
-        });
-        shell.style.height="";
-        if(window.innerWidth>980||!target) return;
-        var baseWidth=1480;
-        var naturalHeight=Math.max(820,target.scrollHeight||target.offsetHeight||820);
-        var layout=window.BSMReportUI.getMobilePreviewLayout(window.innerWidth,baseWidth,naturalHeight,10);
-        target.style.zoom=String(layout.scale);
-        target.style.webkitTextSizeAdjust="100%";
+      function updatePreviewScale(){
+        if(!previewViewport||!previewCanvas) return;
+        var page=document.getElementById("previewPage");
+        var available=(page&&page.clientWidth)||window.innerWidth||1600;
+        var pad=window.innerWidth<=980?8:24;
+        var layout=window.BSMReportUI.getPreviewLayout(available,pad);
+        previewViewport.style.width=layout.viewportWidth+"px";
+        previewViewport.style.height=layout.viewportHeight+"px";
+        previewCanvas.style.width=layout.canvasWidth+"px";
+        previewCanvas.style.height=layout.canvasHeight+"px";
+        previewCanvas.style.transform="scale("+layout.scale+")";
       }
 
       function renderAll(){
+        mountDashboardSections();
         populateHeaderInputs();
         renderEditor();
         renderCoverEditor();
@@ -1257,8 +1366,10 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         renderSlideNav();
         applyEditorMode();
         applyPreviewMode();
+        renderSlidesPage();
+        renderDownloadsPage();
         renderSidebarNav();
-        requestAnimationFrame(updateMobilePreviewScale);
+        requestAnimationFrame(updatePreviewScale);
       }
     
       function loadView(index){
@@ -1279,10 +1390,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         loadView(next);
       }
       function setMobileTab(preview){
-        document.body.classList.toggle("mobile-preview",!!preview);
-        Array.prototype.forEach.call(document.querySelectorAll(".mobile-tab"),function(x){x.classList.toggle("active",(x.dataset.tab==="preview")===!!preview);});
-        if(preview) renderReport();
-        requestAnimationFrame(updateMobilePreviewScale);
+        if(preview) showPage("preview");
+        else showPage(state.activeView===0?"cover":"table");
       }
     
       function importBulk(){
@@ -1318,9 +1427,11 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           coverHtml=coverHtml.replace('class="cover-slide"','class="cover-slide has-uploaded-logo"');
           coverHtml=coverHtml.replace("</section>",window.BSMReportUI.renderLogoOverlay(state.cover.logo)+"</section>");
         }
-        var reports=state.slides.map(function(r,i){return staticReportHtml(r,i+2,state.slides.length+1);}).join("");
-        document.getElementById("printStack").innerHTML=coverHtml+reports;
+        var pages=['<div class="print-page"><div class="print-canvas">'+coverHtml+'</div></div>'];
+        state.slides.forEach(function(r,i){pages.push('<div class="print-page"><div class="print-canvas">'+staticReportHtml(r,i+2,state.slides.length+1)+'</div></div>');});
+        document.getElementById("printStack").innerHTML=pages.join("");
       }
+
     
       departmentInput.addEventListener("input",function(){state.draft.department=this.value;syncActiveSlide();renderReport();autoSave();});
       monthInput.addEventListener("change",function(){state.draft.month=Number(this.value);syncActiveSlide();renderReport();autoSave();});
@@ -1328,7 +1439,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       subtitleInput.addEventListener("input",function(){state.draft.subtitle=this.value;syncActiveSlide();renderReport();autoSave();});
     
       importBulkBtn.addEventListener("click",importBulk);
-      document.getElementById("bulkFocusBtn").addEventListener("click",function(){openEditorModal("bulk");setTimeout(function(){bulkInput.focus();},200);});
+      document.getElementById("bulkFocusBtn").addEventListener("click",function(){showPage("bulk");setTimeout(function(){bulkInput.focus();},100);});
       document.getElementById("addGroupInline").addEventListener("click",addGroup);
       document.getElementById("saveBtn").addEventListener("click",function(){saveState(true);});
       document.getElementById("printBtn").addEventListener("click",function(){renderPrintStack();setTimeout(function(){window.print();},50);});
@@ -1340,17 +1451,12 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       document.getElementById("clearBtn").addEventListener("click",function(){
         if(confirm("Kosongkan semua data dan semua slide?")){state={draft:emptyReport(),slides:[],activeSlide:-1,activeView:0,cover:window.BSMReportCover.defaultCover()};state.cover.logo={image:"",width:180,x:0,y:0};renderAll();saveState(true);setMobileTab(false);}
       });
-      document.getElementById("csvBtn").addEventListener("click",function(){
-        var report=state.draft,lines=[["No","TGL Penyewaan","Nama Alat","QTY","Action","Harga Sewa"]];
-        report.groups.forEach(function(group,gIndex){
-          group.rows.forEach(function(row,rIndex){lines.push([rIndex===0?gIndex+1:"",dateDisplay(row.date),rIndex===0?group.name:"",row.qty||"",row.action||"",Number(row.price||0)||""]);});
-          lines.push(["Total","","",groupQty(group),"","Total Sewa = Rp. "+money(groupPrice(group))]);
-        });
-        var csv=lines.map(function(row){return row.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(",");}).join("\n");
-        var blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");
-        a.href=url;a.download="report-gudang-"+months[(report.month||1)-1].toLowerCase()+"-"+report.year+".csv";a.click();URL.revokeObjectURL(url);toast("CSV slide aktif berhasil dibuat");
-      });
+      document.getElementById("csvBtn").addEventListener("click",function(){downloadData("report","csv");});
     
+      Array.prototype.forEach.call(document.querySelectorAll("[data-page-download]"),function(btn){
+        btn.addEventListener("click",function(){downloadData(this.dataset.pageDownload,this.dataset.format);});
+      });
+
       prevSlideBtn.addEventListener("click",function(){changeSlide(-1);});
       nextSlideBtn.addEventListener("click",function(){changeSlide(1);});
       deleteSlideBtn.addEventListener("click",function(){
@@ -1375,7 +1481,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     
       menuToggle.addEventListener("click",function(){document.body.classList.toggle("sidebar-open");});
       sidebarScrim.addEventListener("click",closeSidebar);
-      window.addEventListener("resize",function(){requestAnimationFrame(updateMobilePreviewScale);});
+      window.addEventListener("resize",function(){requestAnimationFrame(updatePreviewScale);});
       document.addEventListener("keydown",function(e){if(e.key==="Escape"){closeModal();closeSidebar();}});
 
       var touchStartX=null;
@@ -1390,5 +1496,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     })();
   </script>
 </body>
-<!-- report-gudang-build-v9-mobile-fit-menu -->
+<!-- report-gudang-build-v10-dashboard-16x9 -->
 </html>
