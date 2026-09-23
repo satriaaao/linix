@@ -1,8 +1,8 @@
 (function(root,factory){
-  var api=factory();
+  var api=factory(root);
   if(typeof module==='object'&&module.exports) module.exports=api;
   if(root) root.BSMAudioReports=api;
-})(typeof globalThis!=='undefined'?globalThis:this,function(){
+})(typeof globalThis!=='undefined'?globalThis:this,function(root){
   function clone(v){return JSON.parse(JSON.stringify(v));}
   function clean(v){return String(v==null?'':v).replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim();}
   function upper(v){return clean(v).toUpperCase();}
