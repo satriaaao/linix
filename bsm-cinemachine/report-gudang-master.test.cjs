@@ -1,0 +1,18 @@
+const assert=require('assert');
+const master=require('./report-gudang-master.js');
+assert.deepStrictEqual(master.REPORT_TYPES.map(x=>x.label),['IT','Admin','Gudang Kamera','Gudang Audio','Gudang Lighting','Gudang Cinema','Koordinator Crew','Marketing']);
+const sections=master.createSections({period:'JULI 2026'},[{department:'LIGHTING',groups:[]}]);
+assert.strictEqual(Object.keys(sections).length,8);
+assert.strictEqual(sections['gudang-lighting'].slides.length,1);
+assert.strictEqual(sections.admin.cover.mainTitle2,'ADMIN');
+sections.it.slides.push({department:'IT',groups:[]});
+sections.marketing.slides.push({department:'MARKETING',groups:[]});
+const pages=master.flattenMaster({cover:{mainTitle2:'PT BLUE STAR MEDIA'},sections});
+assert.strictEqual(pages[0].kind,'master-cover');
+assert.strictEqual(pages[1].kind,'section-cover');
+assert.strictEqual(pages[1].typeId,'it');
+assert.strictEqual(pages[2].kind,'report');
+assert.strictEqual(pages.filter(x=>x.kind==='section-cover').length,8);
+assert.strictEqual(pages.filter(x=>x.kind==='report').length,3);
+assert.strictEqual(pages.length,12);
+console.log('master report model tests passed');
