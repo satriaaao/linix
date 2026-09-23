@@ -57,6 +57,8 @@
     var data=input&&input.title?input:DATA;
     esc=esc||escDefault;
     var days=Array.from({length:30},function(_,i){return '<th class="admin-day-head">'+(i+1)+'</th>';}).join('');
+    var dayCols=Array.from({length:30},function(){return '<col class="admin-col-day">';}).join('');
+    var colgroup='<colgroup><col class="admin-col-group"><col class="admin-col-shift"><col class="admin-col-time">'+dayCols+'<col class="admin-col-total"><col class="admin-col-ket"></colgroup>';
     var body='';
     data.delivery.forEach(function(row,i){
       body+='<tr class="admin-detail-row">';
@@ -78,7 +80,7 @@
       +'<div class="admin-matrix-grid"></div>'
       +'<div class="admin-matrix-kicker"><div>// LAPORAN ADMIN</div><div class="accent">// DATA MBR</div></div>'
       +'<h1>'+esc(data.title)+' <span>'+esc(data.period)+'</span></h1>'
-      +'<div class="admin-matrix-table-wrap"><table class="admin-matrix-table"><thead><tr><th>Grup</th><th>Shift</th><th>JAM/TANGGAL</th>'+days+'<th>TOTAL</th><th>KET</th></tr></thead><tbody>'+body+'</tbody></table></div>'
+      +'<div class="admin-matrix-table-wrap"><table class="admin-matrix-table">'+colgroup+'<thead><tr><th>Grup</th><th>Shift</th><th>JAM/TANGGAL</th>'+days+'<th>TOTAL</th><th>KET</th></tr></thead><tbody>'+body+'</tbody></table></div>'
       +'<div class="admin-matrix-bottom"><div class="admin-box"><h3>KET</h3><div class="admin-summary-row"><span>DRIVER</span><b>-</b></div><div class="admin-summary-row"><span>DELIVERY</span><b>'+esc(data.totals.delivery)+'</b></div><div class="admin-summary-row"><span>JEMPUTAN</span><b>'+esc(data.totals.jemputan)+'</b></div><div class="admin-summary-row strong"><span>TOTAL ANTARAN DAN JEMPUTAN</span><b>'+esc(data.totals.combined)+'</b></div><div class="admin-summary-row strong"><span>TOTAL SELURUH SURAT JALAN</span><b>'+esc(data.totals.suratJalan)+'</b></div></div>'
       +'<div class="admin-box admin-notes"><h3>CATATAN</h3>'+notes+'</div></div>'
       +'<div class="admin-matrix-footer"><span>LAPORAN ADMIN DATA MBR &nbsp; | &nbsp; AKURAT, TERKONTROL, SIAP MENDUKUNG SETIAP PRODUKSI.</span><i></i><strong>// JUNI 2026</strong></div>'
