@@ -52,5 +52,10 @@ assert(html.includes('e.key==="ArrowRight"'),'keyboard kanan harus pindah slide'
 assert(html.includes('e.key==="ArrowLeft"'),'keyboard kiri harus pindah slide');
 assert(html.includes('e.key==="Escape"'),'Escape harus keluar mode presentasi');
 assert(html.includes('presentation-controls'),'harus ada kontrol presentasi yang tipis');
+assert(html.includes('/report-admin-matrix.js'),'Admin harus memuat helper matrix khusus');
+assert(html.includes('id="adminMatrixHost"'),'Preview harus punya host khusus matrix Admin');
+assert(html.includes('template==="admin-matrix"'),'render harus mengenali template matrix Admin');
+assert(html.includes('window.BSMAdminMatrix.renderSlide'),'Preview/PDF Admin harus memakai renderer matrix');
+assert(html.includes('DATA MBR ADMIN'),'judul Admin MBR harus tersedia');
 
 console.log('16:9 dashboard mobile/print tests passed');
