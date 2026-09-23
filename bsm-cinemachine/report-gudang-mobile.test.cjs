@@ -118,6 +118,10 @@ const vendorSlides=bulkRouter.parse(vendorPaste,{typeId:'gudang-kamera',maxVendo
 assert.strictEqual(vendorSlides.kind,'camera-vendor');
 assert.strictEqual(vendorSlides.slides.length,2,'vendor harus auto pecah jika melewati batas');
 assert.strictEqual(vendorSlides.slides[0].cameraVendor.groups[0].total,7);
+const typoGroupPaste='NAMA BARANG\tQTY\tTANGGAL\tKETERANGAN\tHARGA VENDOR\nSony a6700\t3\t06 Juni 2026\tRSC\t\nSony a6600\t4\t07 Juni 2026\tUp a7c II\t\nSony a6700\t11\t09 Juni 2026\tBackup\t\nTotal\t18\t\t\t';
+const typoParsed=bulkRouter.parse(typoGroupPaste,{typeId:'gudang-kamera',maxVendorRows:20});
+assert.strictEqual(typoParsed.slides[0].cameraVendor.groups.length,1,'baris sebelum Total tetap satu grup walau nama typo/variasi');
+assert.strictEqual(typoParsed.slides[0].cameraVendor.groups[0].total,18);
 const complaintPaste='NAMA BARANG\tNAMA CLIEN\tTANGGAL\tINDIKASI\tKRONOLOGIS\tPIC\nSony A\tClient\t01/06/2026\tTrouble\tError\tRian';
 assert.strictEqual(bulkRouter.detectKind(complaintPaste,'gudang-kamera'),'camera-complaint');
 const servicePaste='TEMPAT SERVICE\tMODEL\tTANGGAL\tSTOK KANTOR / SN\tTOTAL UNIT\tDI SERVICE\tBISA JALAN\tKETERANGAN\nSony Center\tSony FX3\t01/06/2026\t123\t31\t15\t16\tHDMI Rusak';
