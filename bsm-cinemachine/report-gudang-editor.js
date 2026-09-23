@@ -10,7 +10,7 @@
     var groupQty=helpers.groupQty||function(g){return (g.rows||[]).reduce(function(s,r){return s+Number(r.qty||0);},0);};
     var groupPrice=helpers.groupPrice||function(g){return (g.rows||[]).reduce(function(s,r){return s+Number(r.price||0);},0);};
     if(!groups||!groups.length){
-      return '<div class="editor-empty">Belum ada barang. Bisa input manual atau tempel data banyak di atas.</div>';
+      return '<div class="editor-empty">Belum ada item report. Bisa input manual atau tempel data banyak.</div>';
     }
     var body='';
     groups.forEach(function(group,gIndex){
@@ -31,10 +31,10 @@
       body+='<td class="editor-total-qty">'+groupQty(group)+'</td>';
       body+='<td class="editor-total-label">Total Sewa</td>';
       body+='<td class="editor-total-price">Rp '+money(groupPrice(group))+'</td>';
-      body+='<td class="editor-actions"><button class="editor-mini-btn danger" data-delete-group="'+gIndex+'" title="Hapus barang">×</button></td>';
+      body+='<td class="editor-actions"><button class="editor-mini-btn danger" data-delete-group="'+gIndex+'" title="Hapus item">×</button></td>';
       body+='</tr>';
     });
-    return '<div class="editor-table-wrap"><table class="editor-table"><thead><tr><th>No</th><th>Tanggal</th><th>Nama Alat</th><th>QTY</th><th>Action / Vendor</th><th>Harga Sewa</th><th></th></tr></thead><tbody>'+body+'</tbody></table></div>';
+    return '<div class="editor-table-wrap"><table class="editor-table"><thead><tr><th>No</th><th>Tanggal</th><th>Item / Temuan</th><th>QTY</th><th>Action</th><th>Nilai</th><th></th></tr></thead><tbody>'+body+'</tbody></table></div>';
   }
   return {renderEditableTable:renderEditableTable};
 });
