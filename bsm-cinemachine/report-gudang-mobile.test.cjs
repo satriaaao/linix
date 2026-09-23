@@ -3,6 +3,7 @@ const fs = require('fs');
 const ui = require('./report-gudang-ui.js');
 const adminMatrix = require('./report-admin-matrix.js');
 const cameraVendor = require('./report-camera-vendor.js');
+const cameraReports = require('./report-camera-reports.js');
 
 const phone = ui.getPreviewLayout(390, 10);
 assert.strictEqual(phone.canvasWidth, 1600);
@@ -80,5 +81,27 @@ assert(cameraHtml.includes('>67<'),'total FX3 harus 67');
 assert(cameraHtml.includes('>26<'),'total a7 III harus 26');
 assert(cameraHtml.includes('TOTAL KESELURUHAN'),'harus ada total keseluruhan');
 assert(cameraHtml.includes('>93<'),'total keseluruhan harus 93');
+const complaintPages=cameraReports.paginateComplaints(Array.from({length:41},(_,i)=>({no:i+1})),20);
+assert.deepStrictEqual(complaintPages.map(x=>x.length),[20,20,1],'komplain harus auto split setiap 20 baris');
+const servicePages=cameraReports.paginateService([
+  {name:'Model A',rows:Array.from({length:5},()=>({}))},
+  {name:'Model B',rows:Array.from({length:15},()=>({}))}
+],20);
+assert.strictEqual(servicePages.length,2,'service harus auto split saat grup + subtotal melewati batas');
+assert.strictEqual(servicePages[0][0].name,'Model A');
+assert.strictEqual(servicePages[1][0].name,'Model B');
+const complaintSlides=cameraReports.createComplaintSlides();
+assert(complaintSlides.length>=1);
+assert(complaintSlides.every(x=>x.template==='camera-complaint'));
+const serviceSlides=cameraReports.createServiceSlides();
+assert(serviceSlides.length>=2,'Sony Center harus otomatis terpecah menjadi beberapa slide');
+assert(serviceSlides.every(x=>x.template==='camera-service'));
+assert(serviceSlides.every(x=>x.serviceCenter==='Sony Center'));
+assert(html.includes('/report-camera-reports.js'),'Gudang Kamera harus memuat helper komplain/service');
+assert(html.includes('id="cameraOpsHost"'),'Preview harus punya host komplain/service');
+assert(html.includes('template==="camera-complaint"'),'Preview harus mengenali slide komplain');
+assert(html.includes('template==="camera-service"'),'Preview harus mengenali slide service');
+assert(html.includes('window.BSMCameraReports.renderComplaintSlide'),'renderer komplain harus terpasang');
+assert(html.includes('window.BSMCameraReports.renderServiceSlide'),'renderer service harus terpasang');
 
 console.log('16:9 dashboard mobile/print tests passed');
