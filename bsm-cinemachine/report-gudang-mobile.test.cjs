@@ -6,6 +6,7 @@ const cameraVendor = require('./report-camera-vendor.js');
 const cameraReports = require('./report-camera-reports.js');
 const bulkRouter = require('./report-bulk-router.js');
 const liveEdit = require('./report-live-edit.js');
+const audioReports = require('./report-audio-reports.js');
 
 const phone = ui.getPreviewLayout(390, 10);
 assert.strictEqual(phone.canvasWidth, 1600);
@@ -172,5 +173,46 @@ assert(html.includes('contenteditable="true"'),'teks preview harus dibuat conten
 assert(html.includes('function applyLiveEditsToNode(root,pageKey)'),'PDF harus dapat menerapkan hasil edit');
 assert(html.includes('applyLiveEditsToNode(node,liveEditPageKey(master[i]))'),'PDF harus memakai edit teks tersimpan');
 assert(html.includes('id="resetSlideTextBtn"'),'harus ada tombol reset teks slide');
+
+const audioServiceRows=[
+  ['MBR ALAT-ALAT YANG DI SERVICE GUDANG AUDIO','','','','','','','','',''],
+  ['PT. BURSA KAMERA','','','','','','','','',''],
+  ['NO','TANGGAL','NAMA BARANG','KERUSAKAN','QTY','SERIAL NUMBER/SN','CASE ID','SUDAH DI AMBIL/TGL','KETERANGAN',''],
+  [1,'24 november 2023',"atomos sumo 19''",'monitor tidak nyala',1,'SN1','','','',''],
+  ['Rudy TILTA/VITESSE','','','','','','','','',''],
+  ['NO','TANGGAL','NAMA BARANG','KERUSAKAN','QTY','SERIAL NUMBER/SN','CASE ID','SUDAH DI AMBIL/TGL','KETERANGAN',''],
+  [1,'10 februari 2021','atomos ninja v','LCD Pecah',1,'SN2','','','','']
+];
+const audioSheet2Rows=[
+  ['Periode TGL 01-30 juni 2026','','','','','','','',''],
+  ['Report Barang Kurang / Ambil Vendor','','','','','','','',''],
+  ['NO','TGL penyewaan','Durasi Sewa','Nama Alat','QTY','Upgrade','Vendor','harga sewa vendor',''],
+  ['', '13 juni 2026','1 hari','atomos ninja v','3 unit','','panorama','',''],
+  ['', '', '', 'total','3 unit','','','',''],
+  ['Report Barang Bermasalah / Komplain','','','','','','','',''],
+  ['NO','TGL penyewaan','Indikasi','Nama Alat','QTY','Kronologis','Action','Pic yang menyiapkan','nama client'],
+  ['', '12 juni 2026','trouble','atomos hdr','1 unit','overheat','dicek trouble','aldi','pt badan geo'],
+  ['', '', '', 'total','1 unit','','','','']
+];
+const audioParsed=audioReports.parseWorkbookRows(audioServiceRows,audioSheet2Rows);
+assert.strictEqual(audioParsed.serviceCenters.length,2,'Audio service harus dipisah per tempat service');
+assert.strictEqual(audioParsed.vendorGroups.length,1,'Audio vendor harus terbaca dari Sheet2');
+assert.strictEqual(audioParsed.complaintGroups.length,1,'Audio komplain harus terbaca dari Sheet2');
+const audioSlides=audioReports.createSlides(audioParsed,{maxServiceRows:1,maxVendorRows:1,maxComplaintRows:1});
+assert(audioSlides.some(x=>x.template==='audio-vendor'),'harus ada slide Audio Vendor');
+assert(audioSlides.some(x=>x.template==='audio-complaint'),'harus ada slide Audio Komplain');
+assert(audioSlides.filter(x=>x.template==='audio-service').length>=2,'service Audio harus jadi slide per tempat');
+assert(audioReports.renderVendorSlide(audioSlides.find(x=>x.template==='audio-vendor')).includes('REPORT BARANG KURANG'));
+assert(audioReports.renderComplaintSlide(audioSlides.find(x=>x.template==='audio-complaint')).includes('REPORT BARANG BERMASALAH'));
+assert(audioReports.renderServiceSlide(audioSlides.find(x=>x.template==='audio-service')).includes('ALAT-ALAT YANG DI SERVICE'));
+
+assert(html.includes('/report-audio-reports.js'),'Gudang Audio harus memuat helper khusus');
+assert(html.includes('id="audioReportHost"'),'Preview harus punya host Gudang Audio');
+assert(html.includes('id="audioExcelInput"'),'Input Banyak harus punya Import Excel Gudang Audio');
+assert(html.includes('template==="audio-vendor"'),'Preview harus mengenali Audio Vendor');
+assert(html.includes('template==="audio-complaint"'),'Preview harus mengenali Audio Komplain');
+assert(html.includes('template==="audio-service"'),'Preview harus mengenali Audio Service');
+assert(html.includes('window.BSMAudioReports.createSlides'),'Import Excel harus membuat slide Audio');
+assert(html.includes('window.BSMAudioReports.renderServiceSlide'),'PDF/Preview harus memakai renderer Audio');
 
 console.log('16:9 dashboard mobile/print tests passed');
