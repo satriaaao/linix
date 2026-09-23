@@ -67,10 +67,6 @@
   ],
   "rewrites": [
     {
-      "source": "/report-gudang",
-      "destination": "/report-gudang.html"
-    },
-    {
       "source": "/cms",
       "destination": "/cms.html"
     },
@@ -108,6 +104,11 @@
     }
   ],
   "redirects": [
+    {
+      "source": "/report-gudang",
+      "destination": "/report-gudang.html",
+      "permanent": false
+    },
     {
       "source": "/qr",
       "destination": "/qr-code",
