@@ -2663,7 +2663,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
     
       function staticReportHtml(report,index,total,typeId){
-        if(report&&report.template==="it-omset") return window.BSMITOmset.renderSlide(report.omset||window.BSMITOmset.DATA);\n        if(report&&report.template==="it-product") return window.BSMITOmset.renderProductSlide(report.products||window.BSMITOmset.PRODUCT_DATA);
+        if(report&&report.template==="it-omset") return window.BSMITOmset.renderSlide(report.omset||window.BSMITOmset.DATA);
+        if(report&&report.template==="it-product") return window.BSMITOmset.renderProductSlide(report.products||window.BSMITOmset.PRODUCT_DATA);
         if(report&&report.template==="admin-matrix") return window.BSMAdminMatrix.renderSlide(report.matrix||window.BSMAdminMatrix.DATA,esc);
         if(report&&report.template==="camera-vendor") return window.BSMCameraVendor.renderSlide(report.cameraVendor||window.BSMCameraVendor.DATA,esc);
         if(report&&report.template==="camera-complaint") return window.BSMCameraReports.renderComplaintSlide(report,esc);
