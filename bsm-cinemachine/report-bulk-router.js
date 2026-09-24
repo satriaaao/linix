@@ -52,6 +52,7 @@
       if(/NAMA CUSTOMER/.test(s)&&/KRONOLOGI/.test(s)&&/PENGELUARAN/.test(s)&&/INDIKASI/.test(s)) return 'lighting-complaint';
       if(/NAMA ALAT/.test(s)&&/TEMPAT SERVICE/.test(s)&&/TANGGAL SERVICE/.test(s)&&/INDIKASI RUSAK/.test(s)) return 'lighting-service';
     }
+    if(typeId==='koordinator-crew'&&/NAMA CREW BSM/.test(s)&&/TOTAL HARIAN/.test(s)) return 'crew-matrix';
     if(typeId==='gudang-audio'){
       if(/TGL PENYEWAAN/.test(s)&&/DURASI SEWA/.test(s)&&/NAMA ALAT/.test(s)&&/UPGRADE/.test(s)&&/VENDOR/.test(s)) return 'audio-vendor';
       if(/TGL PENYEWAAN/.test(s)&&/INDIKASI/.test(s)&&/NAMA ALAT/.test(s)&&/KRONOLOGIS/.test(s)&&/ACTION/.test(s)) return 'audio-complaint';
@@ -484,6 +485,10 @@
     if(kind==='lighting-complaint') return parseLightingComplaint(text,opts);
     if(kind==='lighting-service') return parseLightingService(text,opts);
     if(kind==='admin-matrix') return parseAdmin(text,opts);
+    if(kind==='crew-matrix'){
+      if(typeof globalThis==='undefined'||!globalThis.BSMCrewReports||typeof globalThis.BSMCrewReports.parseText!=='function') throw new Error('Parser Koordinator Crew belum termuat.');
+      return globalThis.BSMCrewReports.parseText(text,opts);
+    }
     if(typeof opts.genericParser!=='function') throw new Error('Parser generic belum tersedia.');
     var parsed=opts.genericParser(text);
     return {kind:'generic',slides:paginateGeneric(parsed,opts.maxGenericRows||18)};
