@@ -526,6 +526,7 @@
       .slide-dots{padding:1px 0 7px!important;gap:6px!important}
       .slide-dot{width:7px!important;height:7px!important}
       .slide-dot.active{width:22px!important}
+      #presentationBtn,#resetSlideTextBtn{grid-column:span 2;width:100%;min-width:0;white-space:nowrap;padding:10px 8px!important;font-size:12px!important}
       .report-shell{
         width:100%!important;
         max-width:100%!important;
@@ -1504,6 +1505,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var coverEditorSection=document.getElementById("coverEditorSection");
       var coverEditorHost=document.getElementById("coverEditorHost");
       var coverSlideHost=document.getElementById("coverSlideHost");
+      var itOmsetHost=document.getElementById("itOmsetHost");
+      var itProductHost=document.getElementById("itProductHost");
       var adminMatrixHost=document.getElementById("adminMatrixHost");
       var cameraVendorHost=document.getElementById("cameraVendorHost");
       var cameraOpsHost=document.getElementById("cameraOpsHost");
@@ -1704,8 +1707,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           span.addEventListener("paste",function(e){
             e.preventDefault();
             var text=((e.clipboardData||window.clipboardData)&&((e.clipboardData||window.clipboardData).getData("text")))||"";
-            text=text.replace(/\s*
-+\s*/g," ");
+            text=text.replace(/\s*[\r\n]+\s*/g," ");
             document.execCommand("insertText",false,text);
           });
         });
@@ -2460,10 +2462,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         var type=reportType(targetType);
         bulkContextText.textContent=type.label+" • "+(bulkModeSelect.options[bulkModeSelect.selectedIndex]?bulkModeSelect.options[bulkModeSelect.selectedIndex].text:"Auto Detect");
         if(targetType==="gudang-kamera"){
-          bulkInput.placeholder="Paste tabel Kamera dari Excel. Contoh Vendor:
-NAMA BARANG\tQTY\tTANGGAL\tKETERANGAN\tHARGA VENDOR
-Sony FX3\t4\t05 Juni 2026\t2xkopafi,2xDs\t
-Total\t4";
+          bulkInput.placeholder="Paste tabel Kamera dari Excel. Contoh Vendor:\nNAMA BARANG\tQTY\tTANGGAL\tKETERANGAN\tHARGA VENDOR\nSony FX3\t4\t05 Juni 2026\t2xkopafi,2xDs\t\nTotal\t4";
         }else if(targetType==="gudang-audio"){
           bulkInput.placeholder="Paste tabel Gudang Audio dari Excel, atau gunakan Import Workbook Gudang Audio di bawah. Format didukung: Barang Kurang/Vendor, Komplain, dan Service.";
         }else if(targetType==="gudang-cinema"){
