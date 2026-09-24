@@ -1024,7 +1024,9 @@
       }
     }
 
-  \n.it-product-slide{position:relative;width:1480px;height:820px;padding:28px 34px 24px;background:#fbfdfd;overflow:hidden;color:#182235}.it-product-slide h1{margin:5px 0 4px;font-size:50px;line-height:1;font-weight:950;letter-spacing:-.035em}.it-product-slide h1 span{color:#087d86}.it-product-chart{position:relative;margin-top:12px;border:1px solid #cbdde2;background:rgba(255,255,255,.8);height:270px;padding:12px 15px}.it-product-chart header{display:flex;justify-content:space-between;color:#087d86;font-size:15px;letter-spacing:.12em}.it-product-chart header small{font-size:9px;color:#7b8794}.it-product-svg{width:100%;height:205px;margin-top:5px}.it-product-svg .product-line{stroke:#087d86}.it-product-svg .p1{stroke:#111827}.it-product-svg .p2{stroke:#8793a1}.it-product-svg .p3{stroke:#4b5563}.it-product-svg .p4{stroke:#0f9da7}.it-product-svg circle{fill:#fff;stroke:#087d86;stroke-width:3;cursor:pointer}.it-product-table-wrap{margin-top:12px;border:1px solid #cbdde2;overflow:hidden}.it-product-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10px}.it-product-table th,.it-product-table td{border-right:1px solid #dbe5e7;border-bottom:1px solid #dbe5e7;padding:6px 4px;text-align:center;white-space:nowrap}.it-product-table th{background:#e3f2f4;color:#086e76;font-size:9px;text-transform:uppercase}.it-product-table th:nth-child(1){width:34px}.it-product-table th:nth-child(2){width:270px;text-align:left}.it-product-table .product-name{text-align:left;font-weight:750;overflow:hidden;text-overflow:ellipsis}.it-product-table .pending{color:#9aa6b2;background:#f7f9fa}.it-product-slide .omset-footer{position:absolute;left:34px;right:34px;bottom:18px}.it-product-slide .omset-months{padding-left:15px;padding-right:12px}\n</style>
+  
+.it-product-slide{position:relative;width:1480px;height:820px;padding:28px 34px 24px;background:#fbfdfd;overflow:hidden;color:#182235}.it-product-slide h1{margin:5px 0 4px;font-size:50px;line-height:1;font-weight:950;letter-spacing:-.035em}.it-product-slide h1 span{color:#087d86}.it-product-chart{position:relative;margin-top:12px;border:1px solid #cbdde2;background:rgba(255,255,255,.8);height:270px;padding:12px 15px}.it-product-chart header{display:flex;justify-content:space-between;color:#087d86;font-size:15px;letter-spacing:.12em}.it-product-chart header small{font-size:9px;color:#7b8794}.it-product-svg{width:100%;height:205px;margin-top:5px}.it-product-svg .product-line{stroke:#087d86}.it-product-svg .p1{stroke:#111827}.it-product-svg .p2{stroke:#8793a1}.it-product-svg .p3{stroke:#4b5563}.it-product-svg .p4{stroke:#0f9da7}.it-product-svg circle{fill:#fff;stroke:#087d86;stroke-width:3;cursor:pointer}.it-product-table-wrap{margin-top:12px;border:1px solid #cbdde2;overflow:hidden}.it-product-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10px}.it-product-table th,.it-product-table td{border-right:1px solid #dbe5e7;border-bottom:1px solid #dbe5e7;padding:6px 4px;text-align:center;white-space:nowrap}.it-product-table th{background:#e3f2f4;color:#086e76;font-size:9px;text-transform:uppercase}.it-product-table th:nth-child(1){width:34px}.it-product-table th:nth-child(2){width:270px;text-align:left}.it-product-table .product-name{text-align:left;font-weight:750;overflow:hidden;text-overflow:ellipsis}.it-product-table .pending{color:#9aa6b2;background:#f7f9fa}.it-product-slide .omset-footer{position:absolute;left:34px;right:34px;bottom:18px}.it-product-slide .omset-months{padding-left:15px;padding-right:12px}
+</style>
 </head>
 <body>
   <header class="topbar">
@@ -1555,7 +1557,9 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           var section=state.sections[type.id];
           if(type.id==="it"){
             var hasOmset=(section.slides||[]).some(function(r){return r.template==="it-omset";});
-            if(!hasOmset)section.slides.unshift(window.BSMITOmset.createSlide());\n            var hasProducts=(section.slides||[]).some(function(r){return r.template==="it-product";});\n            if(!hasProducts)section.slides.push(window.BSMITOmset.createProductSlide());
+            if(!hasOmset)section.slides.unshift(window.BSMITOmset.createSlide());
+            var hasProducts=(section.slides||[]).some(function(r){return r.template==="it-product";});
+            if(!hasProducts)section.slides.push(window.BSMITOmset.createProductSlide());
           }
           section.slides=(section.slides||[]).map(function(report){
             var normalized=normalizeReport(report);
@@ -1691,7 +1695,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           span.addEventListener("paste",function(e){
             e.preventDefault();
             var text=((e.clipboardData||window.clipboardData)&&((e.clipboardData||window.clipboardData).getData("text")))||"";
-            text=text.replace(/\s*\n+\s*/g," ");
+            text=text.replace(/\s*
++\s*/g," ");
             document.execCommand("insertText",false,text);
           });
         });
@@ -2435,7 +2440,10 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         var type=reportType(targetType);
         bulkContextText.textContent=type.label+" • "+(bulkModeSelect.options[bulkModeSelect.selectedIndex]?bulkModeSelect.options[bulkModeSelect.selectedIndex].text:"Auto Detect");
         if(targetType==="gudang-kamera"){
-          bulkInput.placeholder="Paste tabel Kamera dari Excel. Contoh Vendor:\nNAMA BARANG\tQTY\tTANGGAL\tKETERANGAN\tHARGA VENDOR\nSony FX3\t4\t05 Juni 2026\t2xkopafi,2xDs\t\nTotal\t4";
+          bulkInput.placeholder="Paste tabel Kamera dari Excel. Contoh Vendor:
+NAMA BARANG\tQTY\tTANGGAL\tKETERANGAN\tHARGA VENDOR
+Sony FX3\t4\t05 Juni 2026\t2xkopafi,2xDs\t
+Total\t4";
         }else if(targetType==="gudang-audio"){
           bulkInput.placeholder="Paste tabel Gudang Audio dari Excel, atau gunakan Import Workbook Gudang Audio di bawah. Format didukung: Barang Kurang/Vendor, Komplain, dan Service.";
         }else if(targetType==="gudang-cinema"){
