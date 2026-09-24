@@ -493,5 +493,23 @@
     var parsed=opts.genericParser(text);
     return {kind:'generic',slides:paginateGeneric(parsed,opts.maxGenericRows||18)};
   }
-  return {detectKind:detectKind,parse:parse,parseVendor:parseVendor,parseComplaint:parseComplaint,parseService:parseService,parseAudioVendor:parseAudioVendor,parseAudioComplaint:parseAudioComplaint,parseAudioService:parseAudioService,parseCinemaVendor:parseCinemaVendor,parseCinemaComplaint:parseCinemaComplaint,parseCinemaService:parseCinemaService,parseLightingVendor:parseLightingVendor,parseLightingComplaint:parseLightingComplaint,parseLightingService:parseLightingService,parseAdmin:parseAdmin,paginateGeneric:paginateGeneric};
+  function workbookSheetText(XLSX,ws){
+    var rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:''});
+    return rows.map(function(r){return (r||[]).map(clean).join('\t');}).join('\n');
+  }
+  function parseCameraWorkbook(workbook,XLSX,opts){
+    opts=opts||{};if(!workbook||!XLSX)throw new Error('Workbook Gudang Kamera belum tersedia.');
+    var slides=[],names=workbook.SheetNames||[];
+    names.forEach(function(name){
+      var text=workbookSheetText(XLSX,workbook.Sheets[name]);if(!clean(text))return;
+      var kind=detectKind(text,'gudang-kamera'),result=null;
+      if(kind==='camera-vendor')result=parseVendor(text,{maxVendorRows:opts.maxVendorRows||15,period:opts.period||'JUNI 2026'});
+      else if(kind==='camera-service')result=parseService(text,{maxServiceUnits:opts.maxServiceUnits||17,period:opts.servicePeriod||'JULI 2026'});
+      else if(kind==='camera-complaint')result=parseComplaint(text,{maxComplaintRows:opts.maxComplaintRows||16});
+      if(result&&result.slides)slides=slides.concat(result.slides);
+    });
+    if(!slides.length)throw new Error('Tidak ada data Gudang Kamera yang terbaca.');
+    return {slides:slides};
+  }
+  return {detectKind:detectKind,parse:parse,parseCameraWorkbook:parseCameraWorkbook,parseVendor:parseVendor,parseComplaint:parseComplaint,parseService:parseService,parseAudioVendor:parseAudioVendor,parseAudioComplaint:parseAudioComplaint,parseAudioService:parseAudioService,parseCinemaVendor:parseCinemaVendor,parseCinemaComplaint:parseCinemaComplaint,parseCinemaService:parseCinemaService,parseLightingVendor:parseLightingVendor,parseLightingComplaint:parseLightingComplaint,parseLightingService:parseLightingService,parseAdmin:parseAdmin,paginateGeneric:paginateGeneric};
 });
