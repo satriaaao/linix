@@ -1092,6 +1092,11 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       22-Jun-26                         1    DS                   166.500"></textarea>
         <div class="bulk-help">Tempel langsung dari Excel / Google Sheets. Auto Detect mengenali format report. Data panjang otomatis dipecah menjadi beberapa slide 16:9.</div>
         <div class="field" style="margin-top:10px">
+          <label>Import Workbook Gudang Kamera</label>
+          <input class="control" id="cameraExcelInput" type="file" accept=".xlsx,.xls" />
+          <div class="tiny" style="margin-top:5px">Membaca sekaligus Ambil Alat Vendor / Back Up, Service per tempat, dan Report Komplain dari workbook Gudang Kamera.</div>
+        </div>
+        <div class="field" style="margin-top:10px">
           <label>Import Workbook Koordinator Crew</label>
           <input class="control" id="crewExcelInput" type="file" accept=".xlsx,.xls" />
           <div class="tiny" style="margin-top:5px">Membaca Matrix Crew BSM, Driver Logistik, Crew Capai Target, dan Crew Kontrak sekaligus.</div>
@@ -1454,6 +1459,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var bulkInput=document.getElementById("bulkInput");
       var bulkModeSelect=document.getElementById("bulkModeSelect");
       var bulkContextText=document.getElementById("bulkContextText");
+      var cameraExcelInput=document.getElementById("cameraExcelInput");
       var audioExcelInput=document.getElementById("audioExcelInput");
       var cinemaExcelInput=document.getElementById("cinemaExcelInput");
       var lightingExcelInput=document.getElementById("lightingExcelInput");
@@ -2421,6 +2427,21 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         reader.onerror=function(){toast("File Excel Koordinator Crew gagal dibaca");};reader.readAsArrayBuffer(file);
       }
 
+      function importCameraWorkbook(file){
+        if(!file)return;var reader=new FileReader();
+        reader.onload=function(ev){try{
+          if(!window.XLSX)throw new Error("Parser Excel belum termuat.");
+          if(!window.BSMBulkRouter||typeof window.BSMBulkRouter.parseCameraWorkbook!=="function")throw new Error("Parser workbook Gudang Kamera belum termuat. Refresh halaman.");
+          var wb=window.XLSX.read(ev.target.result,{type:"array"});
+          var result=window.BSMBulkRouter.parseCameraWorkbook(wb,window.XLSX,{maxVendorRows:15,maxComplaintRows:16,maxServiceUnits:17,period:"JUNI 2026",servicePeriod:"JULI 2026"});
+          var slides=result.slides||[];if(!slides.length)throw new Error("Tidak ada data Gudang Kamera yang terbaca.");
+          state.activeType="gudang-kamera";var section=state.sections["gudang-kamera"];section.slides=slides.map(function(s){s.liveEditId=uid();return s;});
+          ensureMasterReports();bindActiveSection(0);state.coverTarget="gudang-kamera";state.activeView=window.BSMReportMaster.findPageIndex(state,"report:gudang-kamera:0");
+          renderAll();saveState(false);showPage("preview");toast(slides.length+" slide Gudang Kamera berhasil dibuat");
+        }catch(err){console.error(err);toast(err&&err.message?err.message:"Workbook Gudang Kamera gagal dibaca");}finally{cameraExcelInput.value="";}};
+        reader.onerror=function(){toast("File Excel Gudang Kamera gagal dibaca");};reader.readAsArrayBuffer(file);
+      }
+
       function importAudioWorkbook(file){
         if(!file) return;
         var reader=new FileReader();
@@ -2662,6 +2683,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     
       importBulkBtn.addEventListener("click",importBulk);
       if(bulkModeSelect) bulkModeSelect.addEventListener("change",updateBulkContext);
+      if(cameraExcelInput) cameraExcelInput.addEventListener("change",function(){importCameraWorkbook(this.files&&this.files[0]);});
       if(audioExcelInput) audioExcelInput.addEventListener("change",function(){importAudioWorkbook(this.files&&this.files[0]);});
       if(cinemaExcelInput) cinemaExcelInput.addEventListener("change",function(){importCinemaWorkbook(this.files&&this.files[0]);});
       if(lightingExcelInput) lightingExcelInput.addEventListener("change",function(){importLightingWorkbook(this.files&&this.files[0]);});
@@ -2774,5 +2796,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     })();
   </script>
 </body>
-<!-- report-gudang-build-v34-koordinator-crew-live -->
+<!-- report-gudang-build-v32-camera-workbook -->
 </html>
