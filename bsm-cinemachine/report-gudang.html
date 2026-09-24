@@ -1413,6 +1413,9 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       if(!window.BSMLightingReports||typeof window.BSMLightingReports.createSlides!=="function"){
         throw new Error("Gudang Lighting helper tidak termuat");
       }
+      if(!window.BSMCrewReports||typeof window.BSMCrewReports.createSlides!=="function"){
+        throw new Error("Koordinator Crew helper tidak termuat");
+      }
       var REPORT_TYPES=window.BSMReportMaster.REPORT_TYPES;
       var storedCover=state.cover||{};
       state.cover=window.BSMReportCover.normalizeCover(storedCover);
@@ -1454,6 +1457,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var audioExcelInput=document.getElementById("audioExcelInput");
       var cinemaExcelInput=document.getElementById("cinemaExcelInput");
       var lightingExcelInput=document.getElementById("lightingExcelInput");
+      var crewExcelInput=document.getElementById("crewExcelInput");
       var importBulkBtn=document.getElementById("importBulkBtn");
       var slideCounter=document.getElementById("slideCounter");
       var slideDots=document.getElementById("slideDots");
@@ -1476,6 +1480,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var audioReportHost=document.getElementById("audioReportHost");
       var cinemaReportHost=document.getElementById("cinemaReportHost");
       var lightingReportHost=document.getElementById("lightingReportHost");
+      var crewReportHost=document.getElementById("crewReportHost");
       var reportInfoSection=document.getElementById("reportInfoSection");
       var reportItemsSection=document.getElementById("reportItemsSection");
       var reportEl=document.getElementById("report");
@@ -1562,6 +1567,10 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             var lightingSpecial=section.slides.filter(function(r){return r.template==="lighting-vendor"||r.template==="lighting-complaint"||r.template==="lighting-service";});
             var lightingUseful=section.slides.filter(function(r){return r.template!=="lighting-vendor"&&r.template!=="lighting-complaint"&&r.template!=="lighting-service"&&(r.groups||[]).length>0;});
             section.slides=lightingSpecial.length?lightingSpecial.concat(lightingUseful):(lightingUseful.length?lightingUseful:[ensureIds(emptyReportForType(type.id))]);
+          }else if(type.id==="koordinator-crew"){
+            var crewSpecial=section.slides.filter(function(r){return r.template==="crew-matrix"||r.template==="crew-summary";});
+            var crewUseful=section.slides.filter(function(r){return r.template!=="crew-matrix"&&r.template!=="crew-summary"&&(r.groups||[]).length>0;});
+            section.slides=crewSpecial.length?crewSpecial.concat(crewUseful):(crewUseful.length?crewUseful:[ensureIds(emptyReportForType(type.id))]);
           }else if(!section.slides.length){
             section.slides.push(ensureIds(emptyReportForType(type.id)));
           }
@@ -1597,6 +1606,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           if(page.report.template==="audio-vendor"||page.report.template==="audio-complaint"||page.report.template==="audio-service") return audioReportHost.firstElementChild;
           if(page.report.template==="cinema-vendor"||page.report.template==="cinema-complaint"||page.report.template==="cinema-service") return cinemaReportHost.firstElementChild;
           if(page.report.template==="lighting-vendor"||page.report.template==="lighting-complaint"||page.report.template==="lighting-service") return lightingReportHost.firstElementChild;
+          if(page.report.template==="crew-matrix"||page.report.template==="crew-summary") return crewReportHost.firstElementChild;
         }
         return reportEl;
       }
@@ -1835,6 +1845,12 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         else if(page.kind==="report"&&page.report&&page.report.template==="cinema-service") cinemaReportHost.innerHTML=window.BSMCinemaReports.renderServiceSlide(page.report,esc);
         else cinemaReportHost.innerHTML="";
       }
+      function renderCrewSlide(){
+        var page=currentMasterPage();
+        if(page.kind==="report"&&page.report&&page.report.template==="crew-matrix") crewReportHost.innerHTML=window.BSMCrewReports.renderMatrixSlide(page.report,esc);
+        else if(page.kind==="report"&&page.report&&page.report.template==="crew-summary") crewReportHost.innerHTML=window.BSMCrewReports.renderSummarySlide(page.report,esc);
+        else crewReportHost.innerHTML="";
+      }
       function renderLightingSlide(){
         var page=currentMasterPage();
         if(page.kind==="report"&&page.report&&page.report.template==="lighting-vendor") lightingReportHost.innerHTML=window.BSMLightingReports.renderVendorSlide(page.report,esc);
@@ -1915,6 +1931,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         var audioMode=page.kind==="report"&&page.report&&(page.report.template==="audio-vendor"||page.report.template==="audio-complaint"||page.report.template==="audio-service");
         var cinemaMode=page.kind==="report"&&page.report&&(page.report.template==="cinema-vendor"||page.report.template==="cinema-complaint"||page.report.template==="cinema-service");
         var lightingMode=page.kind==="report"&&page.report&&(page.report.template==="lighting-vendor"||page.report.template==="lighting-complaint"||page.report.template==="lighting-service");
+        var crewMode=page.kind==="report"&&page.report&&(page.report.template==="crew-matrix"||page.report.template==="crew-summary");
         coverSlideHost.style.display=coverMode?"block":"none";
         adminMatrixHost.style.display=adminMode?"block":"none";
         cameraVendorHost.style.display=cameraMode?"block":"none";
@@ -1922,10 +1939,15 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         audioReportHost.style.display=audioMode?"block":"none";
         cinemaReportHost.style.display=cinemaMode?"block":"none";
         lightingReportHost.style.display=lightingMode?"block":"none";
-        reportEl.style.display=(coverMode||adminMode||cameraMode||cameraOpsMode||audioMode||cinemaMode||lightingMode)?"none":"block";
+        crewReportHost.style.display=crewMode?"block":"none";
+        reportEl.style.display=(coverMode||adminMode||cameraMode||cameraOpsMode||audioMode||cinemaMode||lightingMode||crewMode)?"none":"block";
       }
 
       function renderEditor(){
+        if(state.draft&&(state.draft.template==="crew-matrix"||state.draft.template==="crew-summary")){
+          document.getElementById("groupCount").textContent=state.draft.template==="crew-summary"?"Ringkasan Crew":"Matrix Crew • "+(state.draft.pageNo||1)+"/"+(state.draft.pageTotal||1);
+          groupsEditor.innerHTML='<div class="editor-empty"><strong>MBR KOORDINATOR CREW</strong><br><br>Matrix Crew BSM, Driver Logistik, Crew Capai Target, dan Crew Kontrak sudah masuk Preview Master. Teks juga dapat diedit langsung saat Preview/Presentasi.</div>';return;
+        }
         if(state.draft&&state.draft.template==="admin-matrix"){
           document.getElementById("groupCount").textContent="Matrix Admin Juni 2026";
           groupsEditor.innerHTML='<div class="editor-empty"><strong>DATA MBR ADMIN JUNI 2026</strong><br><br>Template matrix Admin sudah dimuat ke Preview Master dan PDF. Gunakan Preview Master untuk melihat tabel 1–30, Delivery, Jemputan, Surat Jalan, KET, dan Catatan.</div>';
@@ -2379,6 +2401,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           bulkInput.placeholder="Paste tabel Gudang Lighting atau gunakan Import Workbook Gudang Lighting. Format: Alat Kurang/Vendor, Komplain, Service.";
         }else if(targetType==="admin"){
           bulkInput.placeholder="Paste matrix Admin dari Excel, termasuk header JAM/TANGGAL, tanggal 1-30, TOTAL dan KET.";
+        }else if(targetType==="koordinator-crew"){
+          bulkInput.placeholder="Paste Matrix Koordinator Crew dari Excel: Nama CREW BSM, tanggal 26-25, Total Harian/Kontrak/Menolak, Driver Logistik, Crew Capai Target, dan Crew Kontrak.";
         }else{
           bulkInput.placeholder="Paste tabel "+type.label+" dari Excel / Google Sheets. Pilih Auto Detect atau Report Umum.";
         }
@@ -2452,6 +2476,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         renderAudioSlide();
         renderCinemaSlide();
         renderLightingSlide();
+        renderCrewSlide();
         renderSlideNav();
         applyEditorMode();
         applyPreviewMode();
@@ -2577,6 +2602,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(report&&report.template==="lighting-vendor") return window.BSMLightingReports.renderVendorSlide(report,esc);
         if(report&&report.template==="lighting-complaint") return window.BSMLightingReports.renderComplaintSlide(report,esc);
         if(report&&report.template==="lighting-service") return window.BSMLightingReports.renderServiceSlide(report,esc);
+        if(report&&report.template==="crew-matrix") return window.BSMCrewReports.renderMatrixSlide(report,esc);
+        if(report&&report.template==="crew-summary") return window.BSMCrewReports.renderSummarySlide(report,esc);
         var type=reportType(typeId||report.reportType),dep=String(report.department||type.department).trim()||type.department,m=Number(report.month||1),y=Number(report.year||new Date().getFullYear());
         var warehouse=String(type.id).indexOf("gudang-")===0;
         var rowCount=(report.groups||[]).reduce(function(sum,g){return sum+(g.rows||[]).length+1;},0);
