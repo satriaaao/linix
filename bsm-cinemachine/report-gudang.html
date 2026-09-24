@@ -639,11 +639,11 @@
       body.presentation-mode #previewPage,
       body.presentation-mode .preview-stage{height:100vh!important}
     }
-    .cover-slide,.report,.admin-matrix-slide,.camera-vendor-slide,.camera-complaint-slide,.camera-service-slide,.audio-vendor-slide,.audio-complaint-slide,.audio-service-slide,.cinema-vendor-slide,.cinema-complaint-slide,.cinema-service-slide,.lighting-vendor-slide,.lighting-complaint-slide,.lighting-service-slide,.crew-matrix-slide,.crew-summary-slide{
+    .cover-slide,.report,.it-omset-slide,.admin-matrix-slide,.camera-vendor-slide,.camera-complaint-slide,.camera-service-slide,.audio-vendor-slide,.audio-complaint-slide,.audio-service-slide,.cinema-vendor-slide,.cinema-complaint-slide,.cinema-service-slide,.lighting-vendor-slide,.lighting-complaint-slide,.lighting-service-slide,.crew-matrix-slide,.crew-summary-slide{
       width:1600px!important;height:900px!important;min-height:900px!important;max-height:900px!important;
       aspect-ratio:16/9;overflow:hidden!important;
     }
-    #adminMatrixHost,#cameraVendorHost,#cameraOpsHost,#audioReportHost,#cinemaReportHost,#lightingReportHost,#crewReportHost{width:1600px;height:900px}
+    #itOmsetHost,#adminMatrixHost,#cameraVendorHost,#cameraOpsHost,#audioReportHost,#cinemaReportHost,#lightingReportHost,#crewReportHost{width:1600px;height:900px}
     .admin-matrix-slide{
       position:relative;background:#fff;color:#15394b;padding:20px 28px 18px;font-family:Arial,Helvetica,sans-serif;
       box-sizing:border-box;
@@ -936,6 +936,22 @@
     .cinema-service-slide.slide-fit-tight .cinema-service-table thead th{height:30px!important;font-size:9.5px!important;padding:2px 3px!important}
     .cinema-service-slide.slide-fit-tight .cinema-service-table td{height:24px!important;font-size:9.5px!important;padding:2px 3px!important;line-height:1.08!important}
 
+    /* IT — Pertumbuhan Omset */
+    .it-omset-slide{position:relative;background:#fff;color:#202733;padding:28px 38px 24px;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box}
+    .it-omset-grid{position:absolute;inset:0;pointer-events:none;opacity:.45;background-image:linear-gradient(rgba(42,154,176,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(42,154,176,.08) 1px,transparent 1px);background-size:28px 28px}
+    .omset-kicker{position:relative;font-family:monospace;font-size:15px;letter-spacing:.19em;line-height:1.8}.omset-kicker .accent{color:#087d86}
+    .it-omset-slide h1{position:relative;margin:4px 0 8px;font-size:67px;line-height:.95;letter-spacing:-.04em;color:#050505}.it-omset-slide h1 span{color:#087d86}
+    .omset-desc{position:relative;margin:0 0 15px;max-width:1260px;font-family:monospace;font-size:16px;line-height:1.45;color:#4b5563}
+    .omset-main{position:relative;display:grid;grid-template-columns:1.12fr .88fr;gap:16px;height:365px}.omset-panel{position:relative;border:1px solid #cbdde2;background:rgba(255,255,255,.95);padding:13px 16px}
+    .omset-panel header{display:flex;justify-content:space-between;align-items:center;font-family:monospace;letter-spacing:.16em;color:#087d86}.omset-panel header b{font-size:18px}.omset-panel header small{font-size:10px;color:#7b8794}
+    .it-omset-svg{display:block;width:100%;height:240px;margin-top:8px;overflow:visible}.it-omset-svg .grid{stroke:#d9e3e7;stroke-width:1}.it-omset-svg text{font:11px Arial;fill:#596574}
+    .omset-point{cursor:pointer;transition:r .12s,stroke-width .12s}.omset-point:hover,.omset-point:focus{r:8;stroke:#fff;stroke-width:3;outline:none}
+    .omset-months{display:grid;grid-template-columns:repeat(12,1fr);margin:0 5px 0 31px;text-align:center;font-size:11px}.omset-legend{display:flex;justify-content:center;gap:34px;margin-top:11px;font-size:12px}.omset-legend span:nth-child(3){color:#087d86}
+    .omset-tooltip{position:absolute;z-index:5;pointer-events:none;background:#111827;color:#fff;border-radius:9px;padding:8px 10px;font-size:12px;font-weight:800;box-shadow:0 8px 20px rgba(15,23,42,.2)}
+    .omset-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px}.omset-table th,.omset-table td{border:1px solid #d8e3e6;height:25px;padding:3px 8px;text-align:right}.omset-table th{background:#edf5f7;text-align:center}.omset-table td:first-child{text-align:center;font-weight:800}.omset-table td:last-child{color:#087d86;font-weight:800}
+    .omset-cards{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px}.omset-card{height:130px;border:1px solid #cbdde2;padding:17px 20px;background:rgba(255,255,255,.96)}.omset-card span{display:block;font-family:monospace;font-size:15px;letter-spacing:.13em}.omset-card strong{display:block;margin:10px 0 7px;color:#087d86;font-size:32px;line-height:1}.omset-card small{font-family:monospace;font-size:10px;letter-spacing:.18em;color:#6b7280}
+    .omset-footer{position:absolute;left:38px;right:38px;bottom:17px;display:flex;align-items:center;gap:18px;font-family:monospace;font-size:10px;letter-spacing:.13em;color:#4b5563}.omset-footer i{height:1px;background:#9aa9b1;flex:1}
+
     /* Koordinator Crew */
     .crew-matrix-slide,.crew-summary-slide{position:relative;background:#fff;color:#15394b;padding:24px 30px 22px;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box}
     .crew-grid{position:absolute;inset:0;pointer-events:none;opacity:.42;background-image:linear-gradient(rgba(42,154,176,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(42,154,176,.08) 1px,transparent 1px);background-size:28px 28px}
@@ -1211,6 +1227,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         <div class="preview-viewport" id="previewViewport">
           <div class="preview-canvas" id="previewCanvas">
             <div id="coverSlideHost"></div>
+            <div id="itOmsetHost"></div>
             <div id="adminMatrixHost"></div>
             <div id="cameraVendorHost"></div>
             <div id="cameraOpsHost"></div>
@@ -1281,6 +1298,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-cover.js"></script>
   <script src="/report-gudang-master.js"></script>
   <script src="/report-admin-matrix.js"></script>
+  <script src="/report-it-omset.js"></script>
   <script src="/report-camera-vendor.js"></script>
   <script src="/report-camera-reports.js"></script>
   <script src="/report-audio-reports.js"></script>
@@ -1534,6 +1552,10 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       function activeSection(){ return state.sections[state.activeType]||state.sections.it; }
       function ensureMasterReports(){
         REPORT_TYPES.forEach(function(type){
+          if(type.id==="it"){
+            var hasOmset=section.slides.some(function(r){return r.template==="it-omset";});
+            if(!hasOmset)section.slides.unshift(window.BSMITOmset.createSlide());
+          }
           var section=state.sections[type.id];
           section.slides=(section.slides||[]).map(function(report){
             var normalized=normalizeReport(report);
@@ -1606,6 +1628,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         var page=currentMasterPage();
         if(page.kind==="master-cover"||page.kind==="section-cover") return coverSlideHost.firstElementChild;
         if(page.kind==="report"&&page.report){
+          if(page.report.template==="it-omset") return itOmsetHost.firstElementChild;
           if(page.report.template==="admin-matrix") return adminMatrixHost.firstElementChild;
           if(page.report.template==="camera-vendor") return cameraVendorHost.firstElementChild;
           if(page.report.template==="camera-complaint"||page.report.template==="camera-service") return cameraOpsHost.firstElementChild;
@@ -1802,6 +1825,18 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         }
       }
 
+      function renderITOmsetSlide(){
+        var page=currentMasterPage();
+        if(page.kind==="report"&&page.report&&page.report.template==="it-omset"){
+          itOmsetHost.innerHTML=window.BSMITOmset.renderSlide(page.report.omset||window.BSMITOmset.DATA);
+          var tip=itOmsetHost.querySelector(".omset-tooltip");
+          Array.prototype.forEach.call(itOmsetHost.querySelectorAll(".omset-point"),function(point){
+            function show(){if(!tip)return;tip.hidden=false;tip.textContent=point.dataset.month+" "+point.dataset.year+" • "+window.BSMITOmset.rupiah(Number(point.dataset.value));tip.style.left=Math.min(650,Number(point.getAttribute("cx"))+28)+"px";tip.style.top=Math.max(70,Number(point.getAttribute("cy"))+115)+"px";}
+            point.addEventListener("click",show);point.addEventListener("mouseenter",show);point.addEventListener("focus",show);point.addEventListener("mouseleave",function(){if(tip)tip.hidden=true;});point.addEventListener("blur",function(){if(tip)tip.hidden=true;});
+          });
+        }else itOmsetHost.innerHTML="";
+      }
+
       function renderAdminMatrixSlide(){
         var page=currentMasterPage();
         if(page.kind==="report"&&page.report&&page.report.template==="admin-matrix"){
@@ -1931,6 +1966,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       function applyPreviewMode(){
         var page=currentMasterPage();
         var coverMode=page.kind==="master-cover"||page.kind==="section-cover";
+        var itOmsetMode=page.kind==="report"&&page.report&&page.report.template==="it-omset";
         var adminMode=page.kind==="report"&&page.report&&page.report.template==="admin-matrix";
         var cameraMode=page.kind==="report"&&page.report&&page.report.template==="camera-vendor";
         var cameraOpsMode=page.kind==="report"&&page.report&&(page.report.template==="camera-complaint"||page.report.template==="camera-service");
@@ -1939,6 +1975,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         var lightingMode=page.kind==="report"&&page.report&&(page.report.template==="lighting-vendor"||page.report.template==="lighting-complaint"||page.report.template==="lighting-service");
         var crewMode=page.kind==="report"&&page.report&&(page.report.template==="crew-matrix"||page.report.template==="crew-summary");
         coverSlideHost.style.display=coverMode?"block":"none";
+        itOmsetHost.style.display=itOmsetMode?"block":"none";
         adminMatrixHost.style.display=adminMode?"block":"none";
         cameraVendorHost.style.display=cameraMode?"block":"none";
         cameraOpsHost.style.display=cameraOpsMode?"block":"none";
@@ -1946,7 +1983,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         cinemaReportHost.style.display=cinemaMode?"block":"none";
         lightingReportHost.style.display=lightingMode?"block":"none";
         crewReportHost.style.display=crewMode?"block":"none";
-        reportEl.style.display=(coverMode||adminMode||cameraMode||cameraOpsMode||audioMode||cinemaMode||lightingMode||crewMode)?"none":"block";
+        reportEl.style.display=(coverMode||itOmsetMode||adminMode||cameraMode||cameraOpsMode||audioMode||cinemaMode||lightingMode||crewMode)?"none":"block";
       }
 
       function renderEditor(){
@@ -2504,6 +2541,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         renderCoverEditor();
         renderReport();
         renderCoverSlide();
+        renderITOmsetSlide();
         renderAdminMatrixSlide();
         renderCameraVendorSlide();
         renderCameraOpsSlide();
@@ -2625,6 +2663,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
     
       function staticReportHtml(report,index,total,typeId){
+        if(report&&report.template==="it-omset") return window.BSMITOmset.renderSlide(report.omset||window.BSMITOmset.DATA);
         if(report&&report.template==="admin-matrix") return window.BSMAdminMatrix.renderSlide(report.matrix||window.BSMAdminMatrix.DATA,esc);
         if(report&&report.template==="camera-vendor") return window.BSMCameraVendor.renderSlide(report.cameraVendor||window.BSMCameraVendor.DATA,esc);
         if(report&&report.template==="camera-complaint") return window.BSMCameraReports.renderComplaintSlide(report,esc);
