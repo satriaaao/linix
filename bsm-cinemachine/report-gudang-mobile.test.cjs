@@ -10,6 +10,7 @@ const slideFit = require('./report-slide-fit.js');
 const audioReports = require('./report-audio-reports.js');
 const cinemaReports = require('./report-cinema-reports.js');
 const lightingReports = require('./report-lighting-reports.js');
+const crewReports = require('./report-crew-reports.js');
 
 const phone = ui.getPreviewLayout(390, 10);
 assert.strictEqual(phone.canvasWidth, 1600);
@@ -462,3 +463,28 @@ assert.strictEqual(bulkRouter.detectKind(lightingServicePaste,'gudang-lighting')
 assert.strictEqual(bulkRouter.parse(lightingServicePaste,{typeId:'gudang-lighting',mode:'lighting-service'}).slides[0].lightingServiceGroups[0].name,'Aputure 600d');
 
 console.log('16:9 dashboard mobile/print tests passed');
+
+// Koordinator Crew: matrix harian + driver + summary harus punya template khusus.
+const crewPaste=[
+  'Nama CREW BSM\t26\t27\t28\t29\t30\t31\t1\t2\t3\t4\t5\t6\t7\t8\t9\t10\t11\t12\t13\t14\t15\t16\t17\t18\t19\t20\t21\t22\t23\t24\t25\tTotal Harian\tTotal Kontrak\tTotal Menolak',
+  'ADNIN\tK\tK\tK\tK\tK\tK\tK\tK\tK\tK\tK\tK\tK\tK\tK\tK\tK\tK\tK\tK\tK\tK\tK\t\t\t\t\t\t\t\t\t23\t23',
+  '',
+  'Nama Driver Logistik\t26\t27\t28\t29\t30\t31\t1\t2\t3\t4\t5\t6\t7\t8\t9\t10\t11\t12\t13\t14\t15\t16\t17\t18\t19\t20\t21\t22\t23\t24\t25\tTotal Harian\tTotal Kontrak\tTotal Jalan',
+  'ADIT\t\t\t\t\tJ\t\t\tJ\tJ\tJ\tJ\tJ\t\tJ\tJ\t\tJ\tJ\tJ\tJ\tJ\tJ\tJ\t\tJ\tJ\t\t\tJ\t\t\t18\t\t18',
+  '',
+  '\tCREW CAPAI TARGET\t\t\t\t\t\t\t\t\tCREW KONTRAK',
+  '\tNO\tNAMA\t\t\t\tX\t\t\t\tNO\tNAMA',
+  '\t1\tAJI\t\t\t\t20\t\t\t\t1\tADNIN'
+].join('\n');
+assert.strictEqual(bulkRouter.detectKind(crewPaste,'koordinator-crew'),'crew-matrix');
+const crewParsed=crewReports.parseText(crewPaste,{period:'JUNI 2026',maxCrewRows:18,maxDriverRows:18});
+assert(crewParsed.slides.some(x=>x.template==='crew-matrix'),'Koordinator Crew harus membuat slide matrix');
+assert(crewParsed.slides.some(x=>x.template==='crew-summary'),'Koordinator Crew harus membuat slide summary');
+const crewMatrixHtml=crewReports.renderMatrixSlide(crewParsed.slides.find(x=>x.template==='crew-matrix'));
+assert(crewMatrixHtml.includes('<colgroup>'),'matrix crew harus pakai colgroup');
+assert(crewMatrixHtml.includes('Total Harian'),'matrix crew harus punya total');
+assert(html.includes('/report-crew-reports.js'),'halaman harus memuat helper Koordinator Crew');
+assert(html.includes('id="crewReportHost"'),'Preview harus punya host Koordinator Crew');
+assert(html.includes('id="crewExcelInput"'),'Input Banyak harus mendukung upload Excel Koordinator Crew');
+assert(html.includes('maxCrewRows:18'),'import Koordinator Crew harus auto split');
+assert(html.includes('.crew-matrix-slide'),'CSS slide Koordinator Crew harus tersedia');
