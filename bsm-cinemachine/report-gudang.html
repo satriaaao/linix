@@ -1230,6 +1230,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           <div class="preview-canvas" id="previewCanvas">
             <div id="coverSlideHost"></div>
             <div id="itOmsetHost"></div>
+            <div id="itProductHost"></div>
             <div id="adminMatrixHost"></div>
             <div id="cameraVendorHost"></div>
             <div id="cameraOpsHost"></div>
@@ -1640,6 +1641,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(page.kind==="master-cover"||page.kind==="section-cover") return coverSlideHost.firstElementChild;
         if(page.kind==="report"&&page.report){
           if(page.report.template==="it-omset") return itOmsetHost.firstElementChild;
+          if(page.report.template==="it-product") return itProductHost.firstElementChild;
           if(page.report.template==="admin-matrix") return adminMatrixHost.firstElementChild;
           if(page.report.template==="camera-vendor") return cameraVendorHost.firstElementChild;
           if(page.report.template==="camera-complaint"||page.report.template==="camera-service") return cameraOpsHost.firstElementChild;
@@ -1847,6 +1849,15 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             point.addEventListener("click",show);point.addEventListener("mouseenter",show);point.addEventListener("focus",show);point.addEventListener("mouseleave",function(){if(tip)tip.hidden=true;});point.addEventListener("blur",function(){if(tip)tip.hidden=true;});
           });
         }else itOmsetHost.innerHTML="";
+      }
+
+      function renderITProductSlide(){
+        var page=currentMasterPage();
+        if(page.kind==="report"&&page.report&&page.report.template==="it-product"){
+          itProductHost.innerHTML=window.BSMITOmset.renderProductSlide(page.report.products||window.BSMITOmset.PRODUCT_DATA);
+        }else{
+          itProductHost.innerHTML="";
+        }
       }
 
       function renderAdminMatrixSlide(){
@@ -2557,6 +2568,7 @@ Total\t4";
         renderReport();
         renderCoverSlide();
         renderITOmsetSlide();
+        renderITProductSlide();
         renderAdminMatrixSlide();
         renderCameraVendorSlide();
         renderCameraOpsSlide();
