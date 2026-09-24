@@ -639,11 +639,11 @@
       body.presentation-mode #previewPage,
       body.presentation-mode .preview-stage{height:100vh!important}
     }
-    .cover-slide,.report,.it-omset-slide,.admin-matrix-slide,.camera-vendor-slide,.camera-complaint-slide,.camera-service-slide,.audio-vendor-slide,.audio-complaint-slide,.audio-service-slide,.cinema-vendor-slide,.cinema-complaint-slide,.cinema-service-slide,.lighting-vendor-slide,.lighting-complaint-slide,.lighting-service-slide,.crew-matrix-slide,.crew-summary-slide{
+    .cover-slide,.report,.it-omset-slide,.it-product-slide,.admin-matrix-slide,.camera-vendor-slide,.camera-complaint-slide,.camera-service-slide,.audio-vendor-slide,.audio-complaint-slide,.audio-service-slide,.cinema-vendor-slide,.cinema-complaint-slide,.cinema-service-slide,.lighting-vendor-slide,.lighting-complaint-slide,.lighting-service-slide,.crew-matrix-slide,.crew-summary-slide{
       width:1600px!important;height:900px!important;min-height:900px!important;max-height:900px!important;
       aspect-ratio:16/9;overflow:hidden!important;
     }
-    #itOmsetHost,#adminMatrixHost,#cameraVendorHost,#cameraOpsHost,#audioReportHost,#cinemaReportHost,#lightingReportHost,#crewReportHost{width:1600px;height:900px}
+    #itOmsetHost,#itProductHost,#adminMatrixHost,#cameraVendorHost,#cameraOpsHost,#audioReportHost,#cinemaReportHost,#lightingReportHost,#crewReportHost{width:1600px;height:900px}
     .admin-matrix-slide{
       position:relative;background:#fff;color:#15394b;padding:20px 28px 18px;font-family:Arial,Helvetica,sans-serif;
       box-sizing:border-box;
@@ -1018,7 +1018,7 @@
       .print-stack{display:block!important;margin:0!important;padding:0!important}
       .print-page{display:block!important;width:13.333in!important;height:7.5in!important;overflow:hidden!important;margin:0!important}
       .print-canvas{display:block!important;width:1600px!important;height:900px!important;transform:scale(.8)!important;transform-origin:top left!important}
-      .print-canvas .cover-slide,.print-canvas .report,.print-canvas .admin-matrix-slide,.print-canvas .camera-vendor-slide,.print-canvas .camera-complaint-slide,.print-canvas .camera-service-slide,.print-canvas .audio-vendor-slide,.print-canvas .audio-complaint-slide,.print-canvas .audio-service-slide,.print-canvas .cinema-vendor-slide,.print-canvas .cinema-complaint-slide,.print-canvas .cinema-service-slide,.print-canvas .lighting-vendor-slide,.print-canvas .lighting-complaint-slide,.print-canvas .lighting-service-slide{
+      .print-canvas .cover-slide,.print-canvas .report,.print-canvas .it-omset-slide,.print-canvas .it-product-slide,.print-canvas .admin-matrix-slide,.print-canvas .camera-vendor-slide,.print-canvas .camera-complaint-slide,.print-canvas .camera-service-slide,.print-canvas .audio-vendor-slide,.print-canvas .audio-complaint-slide,.print-canvas .audio-service-slide,.print-canvas .cinema-vendor-slide,.print-canvas .cinema-complaint-slide,.print-canvas .cinema-service-slide,.print-canvas .lighting-vendor-slide,.print-canvas .lighting-complaint-slide,.print-canvas .lighting-service-slide,.print-canvas .crew-matrix-slide,.print-canvas .crew-summary-slide{
         display:block!important;width:1600px!important;height:900px!important;min-height:900px!important;margin:0!important;
         border:0!important;box-shadow:none!important;zoom:1!important;transform:none!important;
       }
@@ -1504,8 +1504,6 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var coverEditorSection=document.getElementById("coverEditorSection");
       var coverEditorHost=document.getElementById("coverEditorHost");
       var coverSlideHost=document.getElementById("coverSlideHost");
-      var itOmsetHost=document.getElementById("itOmsetHost");
-      var itProductHost=document.getElementById("itProductHost");
       var adminMatrixHost=document.getElementById("adminMatrixHost");
       var cameraVendorHost=document.getElementById("cameraVendorHost");
       var cameraOpsHost=document.getElementById("cameraOpsHost");
@@ -1992,6 +1990,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         var page=currentMasterPage();
         var coverMode=page.kind==="master-cover"||page.kind==="section-cover";
         var itOmsetMode=page.kind==="report"&&page.report&&page.report.template==="it-omset";
+        var itProductMode=page.kind==="report"&&page.report&&page.report.template==="it-product";
         var adminMode=page.kind==="report"&&page.report&&page.report.template==="admin-matrix";
         var cameraMode=page.kind==="report"&&page.report&&page.report.template==="camera-vendor";
         var cameraOpsMode=page.kind==="report"&&page.report&&(page.report.template==="camera-complaint"||page.report.template==="camera-service");
@@ -2001,6 +2000,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         var crewMode=page.kind==="report"&&page.report&&(page.report.template==="crew-matrix"||page.report.template==="crew-summary");
         coverSlideHost.style.display=coverMode?"block":"none";
         itOmsetHost.style.display=itOmsetMode?"block":"none";
+        itProductHost.style.display=itProductMode?"block":"none";
         adminMatrixHost.style.display=adminMode?"block":"none";
         cameraVendorHost.style.display=cameraMode?"block":"none";
         cameraOpsHost.style.display=cameraOpsMode?"block":"none";
@@ -2008,7 +2008,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         cinemaReportHost.style.display=cinemaMode?"block":"none";
         lightingReportHost.style.display=lightingMode?"block":"none";
         crewReportHost.style.display=crewMode?"block":"none";
-        reportEl.style.display=(coverMode||itOmsetMode||adminMode||cameraMode||cameraOpsMode||audioMode||cinemaMode||lightingMode||crewMode)?"none":"block";
+        reportEl.style.display=(coverMode||itOmsetMode||itProductMode||adminMode||cameraMode||cameraOpsMode||audioMode||cinemaMode||lightingMode||crewMode)?"none":"block";
       }
 
       function renderEditor(){
