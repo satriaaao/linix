@@ -1552,11 +1552,11 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       function activeSection(){ return state.sections[state.activeType]||state.sections.it; }
       function ensureMasterReports(){
         REPORT_TYPES.forEach(function(type){
+          var section=state.sections[type.id];
           if(type.id==="it"){
-            var hasOmset=section.slides.some(function(r){return r.template==="it-omset";});
+            var hasOmset=(section.slides||[]).some(function(r){return r.template==="it-omset";});
             if(!hasOmset)section.slides.unshift(window.BSMITOmset.createSlide());
           }
-          var section=state.sections[type.id];
           section.slides=(section.slides||[]).map(function(report){
             var normalized=normalizeReport(report);
             normalized.reportType=type.id;
