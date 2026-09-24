@@ -639,11 +639,11 @@
       body.presentation-mode #previewPage,
       body.presentation-mode .preview-stage{height:100vh!important}
     }
-    .cover-slide,.report,.admin-matrix-slide,.camera-vendor-slide,.camera-complaint-slide,.camera-service-slide,.audio-vendor-slide,.audio-complaint-slide,.audio-service-slide,.cinema-vendor-slide,.cinema-complaint-slide,.cinema-service-slide,.lighting-vendor-slide,.lighting-complaint-slide,.lighting-service-slide{
+    .cover-slide,.report,.admin-matrix-slide,.camera-vendor-slide,.camera-complaint-slide,.camera-service-slide,.audio-vendor-slide,.audio-complaint-slide,.audio-service-slide,.cinema-vendor-slide,.cinema-complaint-slide,.cinema-service-slide,.lighting-vendor-slide,.lighting-complaint-slide,.lighting-service-slide,.crew-matrix-slide,.crew-summary-slide{
       width:1600px!important;height:900px!important;min-height:900px!important;max-height:900px!important;
       aspect-ratio:16/9;overflow:hidden!important;
     }
-    #adminMatrixHost,#cameraVendorHost,#cameraOpsHost,#audioReportHost,#cinemaReportHost,#lightingReportHost{width:1600px;height:900px}
+    #adminMatrixHost,#cameraVendorHost,#cameraOpsHost,#audioReportHost,#cinemaReportHost,#lightingReportHost,#crewReportHost{width:1600px;height:900px}
     .admin-matrix-slide{
       position:relative;background:#fff;color:#15394b;padding:20px 28px 18px;font-family:Arial,Helvetica,sans-serif;
       box-sizing:border-box;
@@ -936,6 +936,18 @@
     .cinema-service-slide.slide-fit-tight .cinema-service-table thead th{height:30px!important;font-size:9.5px!important;padding:2px 3px!important}
     .cinema-service-slide.slide-fit-tight .cinema-service-table td{height:24px!important;font-size:9.5px!important;padding:2px 3px!important;line-height:1.08!important}
 
+    /* Koordinator Crew */
+    .crew-matrix-slide,.crew-summary-slide{position:relative;background:#fff;color:#15394b;padding:24px 30px 22px;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box}
+    .crew-grid{position:absolute;inset:0;pointer-events:none;opacity:.42;background-image:linear-gradient(rgba(42,154,176,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(42,154,176,.08) 1px,transparent 1px);background-size:28px 28px}
+    .crew-kicker{position:relative;font-family:monospace;font-size:14px;letter-spacing:.15em;line-height:1.55;margin:0 0 4px 6px}.crew-kicker .accent{color:#1586a0}
+    .crew-matrix-slide h1,.crew-summary-slide h1{position:relative;margin:0 0 14px 6px;font-size:42px;line-height:1;font-weight:950;letter-spacing:-.035em;color:#050505}.crew-matrix-slide h1 span,.crew-summary-slide h1 span{color:#1082a1}
+    .crew-table-wrap{position:relative;border:1px solid #b8dce5;background:rgba(255,255,255,.96)}
+    .crew-matrix-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:12px;line-height:1}.crew-matrix-table th,.crew-matrix-table td{border:1px solid #c5e2e8;text-align:center;height:34px;padding:2px;box-sizing:border-box;overflow:hidden;white-space:nowrap}
+    .crew-matrix-table thead th{height:40px;background:#def3f8;color:#174b62;font-weight:900;font-size:11px}.crew-name-col{width:12%}.crew-day-col{width:2.05%}.crew-total-col{width:8.15%}
+    .crew-matrix-table .crew-name{text-align:left;padding-left:10px;font-weight:900;font-size:12px}.crew-mark{font-weight:950;font-size:13px}.crew-mark.is-j{background:#d8f3f8;color:#075e75}.crew-mark.is-k{background:#fff0c7;color:#7a5500}.crew-total{background:#eef9fb;font-weight:950}.crew-total-head{font-size:9px!important;white-space:normal!important;line-height:1.05}
+    .crew-footer{position:absolute;left:36px;right:36px;bottom:18px;display:flex;align-items:center;gap:14px;font-family:monospace;font-size:11px;letter-spacing:.08em}.crew-footer i{height:1px;background:#8eaeb9;flex:1}.crew-footer b{white-space:nowrap}
+    .crew-summary-grid{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:26px}.crew-summary-card{border:1px solid #b8dce5;background:rgba(255,255,255,.96)}.crew-summary-card h2{margin:0;padding:14px 18px;background:#d8f2f7;color:#0c6178;font-size:24px}.crew-summary-card table{width:100%;border-collapse:collapse;font-size:16px}.crew-summary-card th,.crew-summary-card td{height:31px;border:1px solid #d5e9ed;padding:4px 12px}.crew-summary-card th{background:#eef9fb;text-align:left}.crew-summary-card td:first-child,.crew-summary-card th:first-child{width:55px;text-align:center}
+
     /* Gudang Lighting Komplain: readable presentation layout */
     .lighting-complaint-slide{padding:24px 32px 22px!important}
     .lighting-complaint-slide h1{font-size:48px!important;margin:0 0 12px 6px!important;line-height:.96!important}
@@ -1062,6 +1074,7 @@
               <option value="lighting-complaint">Lighting — Komplain</option>
               <option value="lighting-service">Lighting — Service</option>
               <option value="admin-matrix">Admin — Matrix Harian</option>
+              <option value="crew-matrix">Koordinator Crew — Matrix Harian</option>
             </select>
           </div>
           <div class="field">
@@ -1078,6 +1091,11 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
 1     1-Jun-26         Spotlight 36&quot;    1    Spotlight 19&quot; DS    133.200
       22-Jun-26                         1    DS                   166.500"></textarea>
         <div class="bulk-help">Tempel langsung dari Excel / Google Sheets. Auto Detect mengenali format report. Data panjang otomatis dipecah menjadi beberapa slide 16:9.</div>
+        <div class="field" style="margin-top:10px">
+          <label>Import Workbook Koordinator Crew</label>
+          <input class="control" id="crewExcelInput" type="file" accept=".xlsx,.xls" />
+          <div class="tiny" style="margin-top:5px">Membaca Matrix Crew BSM, Driver Logistik, Crew Capai Target, dan Crew Kontrak sekaligus.</div>
+        </div>
         <div class="field" style="margin-top:10px">
           <label>Import Workbook Gudang Audio</label>
           <input class="control" id="audioExcelInput" type="file" accept=".xlsx,.xls" />
@@ -1194,6 +1212,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             <div id="audioReportHost"></div>
             <div id="cinemaReportHost"></div>
             <div id="lightingReportHost"></div>
+            <div id="crewReportHost"></div>
             <section class="report" id="report">
               <div class="report-kicker">
                 <span class="circle-slash"></span>
@@ -1262,6 +1281,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-audio-reports.js"></script>
   <script src="/report-cinema-reports.js"></script>
   <script src="/report-lighting-reports.js"></script>
+  <script src="/report-crew-reports.js"></script>
   <script src="/report-bulk-router.js"></script>
   <script src="/report-live-edit.js"></script>
   <script src="/report-slide-fit.js"></script>
@@ -2711,5 +2731,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     })();
   </script>
 </body>
-<!-- report-gudang-build-v31-lighting-complaint-readable -->
+<!-- report-gudang-build-v32-koordinator-crew -->
 </html>
