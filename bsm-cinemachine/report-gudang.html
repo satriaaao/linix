@@ -1423,6 +1423,9 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       if(!window.BSMAdminMatrix||typeof window.BSMAdminMatrix.renderSlide!=="function"){
         throw new Error("Admin MBR matrix helper tidak termuat");
       }
+      if(!window.BSMITOmset||typeof window.BSMITOmset.createSlide!=="function"||typeof window.BSMITOmset.createProductSlide!=="function"||typeof window.BSMITOmset.renderSlide!=="function"||typeof window.BSMITOmset.renderProductSlide!=="function"){
+        throw new Error("IT omset/product helper tidak termuat");
+      }
       if(!window.BSMCameraVendor||typeof window.BSMCameraVendor.renderSlide!=="function"){
         throw new Error("Gudang Kamera vendor helper tidak termuat");
       }
@@ -1555,6 +1558,10 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       function ensureMasterReports(){
         REPORT_TYPES.forEach(function(type){
           var section=state.sections[type.id];
+          if(!section){
+            section=state.sections[type.id]={slides:[],draft:emptyReportForType(type.id),activeSlide:-1};
+          }
+          if(!Array.isArray(section.slides)) section.slides=[];
           if(type.id==="it"){
             var hasOmset=(section.slides||[]).some(function(r){return r.template==="it-omset";});
             if(!hasOmset)section.slides.unshift(window.BSMITOmset.createSlide());
