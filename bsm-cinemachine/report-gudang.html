@@ -1405,7 +1405,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
 
       <section class="dashboard-page" id="tablePage">
         <div class="page-card">
-          <div class="page-head"><div><h3 id="tablePageTitle">Editor Report</h3><p id="tablePageSub">Data report terpisah per jenis.</p></div><div class="page-actions"><button class="btn primary" id="addReportSlideBtn">+ Slide Report</button><button class="btn" data-page-download="report" data-format="xlsx">XLSX</button><button class="btn" data-page-download="report" data-format="csv">CSV</button></div></div>
+          <div class="page-head"><div><h3 id="tablePageTitle">Editor Report</h3><p id="tablePageSub">Data report terpisah per jenis.</p></div><div class="page-actions"><button class="btn primary" id="manualBulkTopBtn">+ Input Banyak</button><button class="btn" id="addReportSlideBtn">+ Slide Report</button><button class="btn" data-page-download="report" data-format="xlsx">XLSX</button><button class="btn" data-page-download="report" data-format="csv">CSV</button></div></div>
           <div class="page-body" id="tablePageMount"><div id="manualTableMount"></div></div>
         </div>
       </section>
@@ -4040,6 +4040,10 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       document.getElementById("bulkFocusBtn").addEventListener("click",function(){showPage("bulk");setTimeout(function(){bulkInput.focus();},100);});
       document.getElementById("addGroupInline").addEventListener("click",addGroup);
       document.getElementById("addReportSlideBtn").addEventListener("click",addReportSlide);
+      document.getElementById("manualBulkTopBtn").addEventListener("click",function(){
+        if(!window.BSMManualSheets){toast("Input Manual belum siap");return;}
+        openManualBulkModal();
+      });
       document.getElementById("saveBtn").addEventListener("click",function(){saveState(true);});
       document.getElementById("printBtn").addEventListener("click",function(){downloadPdf16x9();});
       document.getElementById("clearBtn").addEventListener("click",function(){
@@ -4188,5 +4192,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   </script>
   <!-- auth-scope-v2 -->
 </body>
-<!-- report-gudang-build-v33-adaptive-manual-excel -->
+<!-- report-gudang-build-v34-visible-input-banyak -->
 </html>
