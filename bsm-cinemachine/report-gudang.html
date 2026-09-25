@@ -1723,9 +1723,66 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var remoteVersion=0;
       var remoteSaveTimer=null;
       var installPrompt=null;
+      var userCache=[];
+      var ROLE_PRESETS={
+        manager:['data.read','data.write','preview.view','reports.list','cover.edit','input.bulk','input.manual','downloads.data','downloads.pdf','settings.manage','install.app'],
+        editor:['data.read','data.write','preview.view','reports.list','cover.edit','input.bulk','input.manual','downloads.data','downloads.pdf','install.app'],
+        viewer:['data.read','preview.view','reports.list','downloads.pdf','install.app'],
+        custom:[]
+      };
+      var MODULE_PERMISSIONS=[
+        {key:'data.read',label:'Lihat Data',note:'Membaca data report dari SQL'},
+        {key:'data.write',label:'Tambah / Edit Data',note:'Menyimpan perubahan report'},
+        {key:'data.clear',label:'Hapus Semua Data',note:'Mengosongkan seluruh data report'},
+        {key:'preview.view',label:'Preview Master',note:'Melihat preview dan presentasi'},
+        {key:'reports.list',label:'Jenis Report',note:'Melihat daftar jenis report'},
+        {key:'cover.edit',label:'Cover Master',note:'Mengubah cover dan judul'},
+        {key:'input.bulk',label:'Input Banyak',note:'Paste / upload data massal'},
+        {key:'input.manual',label:'Input Manual / Tabel',note:'Edit tabel seperti Excel'},
+        {key:'downloads.data',label:'Download Data',note:'XLSX dan CSV'},
+        {key:'downloads.pdf',label:'Download PDF',note:'PDF presentasi 16:9'},
+        {key:'settings.manage',label:'Pengaturan',note:'Mengakses pengaturan aplikasi'},
+        {key:'accounts.manage',label:'Kelola Akun & Role',note:'Tambah akun dan atur akses'},
+        {key:'install.app',label:'Install Aplikasi',note:'Pasang PWA ke perangkat'}
+      ];
     
       function esc(v){
         return String(v==null?"":v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+      }
+      function userPermissions(){
+        if(!currentUser)return [];
+        if(String(currentUser.role||"").toLowerCase()==="admin")return ["*"];
+        return Array.isArray(currentUser.permissions)?currentUser.permissions:[];
+      }
+      function hasPermission(key){
+        if(!cloudConfigured)return true;
+        if(!currentUser)return false;
+        if(String(currentUser.role||"").toLowerCase()==="admin")return true;
+        var list=userPermissions();
+        return list.indexOf("*")>=0||list.indexOf(key)>=0;
+      }
+      function canAccessReport(typeId){return hasPermission("report."+typeId);}
+      function allowedReportTypes(){return REPORT_TYPES.filter(function(type){return canAccessReport(type.id);});}
+      function rolePreset(role){
+        role=String(role||"custom").toLowerCase();
+        if(role==="admin")return ["*"];
+        var base=(ROLE_PRESETS[role]||[]).slice();
+        if(role==="manager"||role==="editor"||role==="viewer"){
+          REPORT_TYPES.forEach(function(type){base.push("report."+type.id);});
+        }
+        return Array.from(new Set(base));
+      }
+      function menuPermission(kind){
+        return {
+          preview:'preview.view',types:'reports.list',cover:'cover.edit','master-cover':'cover.edit',
+          bulk:'input.bulk',table:'input.manual',downloads:'downloads.data',pdf:'downloads.pdf',
+          settings:'settings.manage',users:'accounts.manage',install:'install.app'
+        }[kind]||"";
+      }
+      function canOpenPage(kind){
+        if(kind==="account")return true;
+        var perm=menuPermission(kind);
+        return !perm||hasPermission(perm);
       }
       function money(n){ return new Intl.NumberFormat("id-ID").format(Number(n||0)); }
       function dateDisplay(v){
@@ -1773,7 +1830,16 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         state.activeSlide=i;
         state.draft=clone(section.slides[i]||emptyReportForType(state.activeType));
       }
-      function masterPages(){ return window.BSMReportMaster.flattenMaster(state); }
+      function masterPages(){
+        var pages=window.BSMReportMaster.flattenMaster(state);
+        if(!cloudConfigured||!currentUser)return pages;
+        pages=pages.filter(function(page){
+          if(page.kind==="master-cover")return hasPermission("preview.view");
+          if(page.kind==="section-cover"||page.kind==="report")return canAccessReport(page.typeId);
+          return true;
+        });
+        return pages.length?pages:[{kind:"master-cover",key:"master-cover",label:"Cover Master",cover:state.cover||{}}];
+      }
       function currentMasterPage(){
         var pages=masterPages();
         if(!Number.isInteger(state.activeView)||state.activeView<0||state.activeView>=pages.length) state.activeView=0;
@@ -1901,6 +1967,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         state.activeView=window.BSMReportMaster.findPageIndex(state,key);
       }
       function openReportType(typeId,showEditor){
+        if(!canAccessReport(typeId)){toast("Role akun ini tidak memiliki akses ke report tersebut");return;}
         if(!state.sections[typeId]) return;
         state.activeType=typeId;
         bindActiveSection(0);
@@ -2575,6 +2642,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
 
       function showPage(pageId){
+        if(!canOpenPage(pageId)){toast("Akses modul ini tidak diberikan untuk role akun Anda");return;}
         activeMenu=pageId;
         Array.prototype.forEach.call(document.querySelectorAll(".dashboard-page"),function(page){
           page.classList.toggle("active",page.id===pageId+"Page");
@@ -2582,10 +2650,12 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         renderSidebarNav();
         closeSidebar();
         if(pageId==="preview") requestAnimationFrame(updatePreviewScale);
+        if(pageId==="users")renderUsersPage();
       }
 
       function renderSlidesPage(){
-        var rows=REPORT_TYPES.map(function(type,i){
+        var visibleTypes=allowedReportTypes();
+        var rows=visibleTypes.map(function(type,i){
           var section=state.sections[type.id],count=(section.slides||[]).length,active=state.activeType===type.id;
           return '<tr class="'+(active?'row-active':'')+'"><td>'+(i+1)+'</td><td>Jenis Report</td><td><strong>'+esc(type.label)+'</strong></td><td>'+count+' slide report</td><td>'+(active?'Aktif':'Terpisah')+'</td><td><button class="table-action" data-open-cover-type="'+type.id+'">Judul</button><button class="table-action primary" data-open-type="'+type.id+'">Buka Report</button><button class="table-action" data-preview-type="'+type.id+'">Preview</button></td></tr>';
         }).join("");
@@ -2867,8 +2937,10 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
 
       function renderSidebarNav(){
-        sidebarHost.innerHTML=window.BSMReportUI.renderSidebar(activeMenu,REPORT_TYPES,state.activeType,state.coverTarget);
+        sidebarHost.innerHTML=window.BSMReportUI.renderSidebar(activeMenu,allowedReportTypes(),state.activeType,state.coverTarget);
         Array.prototype.forEach.call(sidebarHost.querySelectorAll("[data-menu]"),function(btn){
+          var kind=btn.dataset.menu;
+          if(!canOpenPage(kind)){btn.remove();return;}
           btn.addEventListener("click",function(){
             var kind=this.dataset.menu;
             if(kind==="pdf"){closeSidebar();downloadPdf16x9();return;}
@@ -2879,6 +2951,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           });
         });
         Array.prototype.forEach.call(sidebarHost.querySelectorAll("[data-report-type]"),function(btn){
+          if(!canAccessReport(btn.dataset.reportType)){btn.remove();return;}
           btn.addEventListener("click",function(){openReportType(this.dataset.reportType,true);});
         });
       }
