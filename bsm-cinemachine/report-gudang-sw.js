@@ -1,4 +1,4 @@
-const CACHE='bsm-report-gudang-v13';
+const CACHE='bsm-report-gudang-v15';
 const SHELL=[
   '/report-gudang.html',
   '/report-gudang.webmanifest',
