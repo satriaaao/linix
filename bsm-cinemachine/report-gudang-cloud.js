@@ -55,6 +55,10 @@
   function changePassword(currentPassword,newPassword){
     return request('change-password',{method:'POST',body:{currentPassword:currentPassword,newPassword:newPassword}});
   }
+  function listUsers(){return request('users');}
+  function createUser(payload){return request('users',{method:'POST',body:payload||{}});}
+  function updateUser(payload){return request('users',{method:'PUT',body:payload||{}});}
+  function deleteUser(id){return request('users',{method:'DELETE',body:{id:id}});}
 
   root.BSMReportCloud={
     apiPath:API_PATH,
@@ -67,6 +71,10 @@
     getState:getState,
     saveState:saveState,
     clearState:clearState,
-    changePassword:changePassword
+    changePassword:changePassword,
+    listUsers:listUsers,
+    createUser:createUser,
+    updateUser:updateUser,
+    deleteUser:deleteUser
   };
 })(typeof window!=='undefined'?window:this);
