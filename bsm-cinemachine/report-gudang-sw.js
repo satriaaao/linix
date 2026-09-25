@@ -1,4 +1,4 @@
-const CACHE='bsm-report-gudang-v6';
+const CACHE='bsm-report-gudang-v10';
 const SHELL=[
   '/report-gudang.html',
   '/report-gudang.webmanifest',
@@ -13,7 +13,9 @@ const SHELL=[
   '/report-live-edit.js',
   '/report-slide-fit.js',
   '/report-it-products.js',
-  '/report-it-omset.js'
+  '/report-it-omset.js',
+  '/report-manual-sheets.js',
+  '/report-lighting-reports.js'
 ];
 
 self.addEventListener('install',event=>{
