@@ -300,6 +300,8 @@
     .manual-slide-table .manual-slide-total .manual-slide-no{background:#c6e5e8!important;color:#087d86}
     .manual-grid-medium .manual-slide-table{font-size:11px}.manual-grid-medium .manual-slide-table th,.manual-grid-medium .manual-slide-table td{padding:7px 5px}
     .manual-grid-dense .manual-slide-table{font-size:9px}.manual-grid-dense .manual-slide-table th,.manual-grid-dense .manual-slide-table td{padding:6px 3px}.manual-grid-dense .manual-slide-table .manual-slide-no{width:34px}
+    .manual-grid-ultra h1{font-size:34px}.manual-grid-ultra .manual-slide-sub{font-size:9px}.manual-grid-ultra .manual-slide-table{font-size:7.5px;table-layout:fixed}.manual-grid-ultra .manual-slide-table th,.manual-grid-ultra .manual-slide-table td{padding:5px 2px;overflow-wrap:anywhere}.manual-grid-ultra .manual-slide-table .manual-slide-no{width:28px}
+    .manual-bulk-modal{width:min(820px,94vw)}.manual-bulk-drop{border:1px dashed #9fc7cc;border-radius:14px;background:#f6fbfb;padding:14px}.manual-bulk-drop textarea{width:100%;min-height:190px;resize:vertical;border:1px solid #cbdadd;border-radius:10px;padding:11px;font:11px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;background:#fff}.manual-bulk-file{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;margin-top:12px}.manual-bulk-file label{font-size:10px;font-weight:900;color:#526574}.manual-bulk-file input{display:block;width:100%;margin-top:5px}.manual-bulk-note{font-size:10px;line-height:1.5;color:#64748b;margin:0 0 10px}.manual-bulk-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}@media(max-width:700px){.manual-bulk-file{grid-template-columns:1fr}.manual-bulk-actions{flex-direction:column-reverse}.manual-bulk-actions .btn{width:100%}}
     .manual-slide-footer{position:absolute;left:38px;right:38px;bottom:24px;display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;border-top:1px solid #7b8c94;padding-top:10px;font:800 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.07em}.manual-slide-footer i{height:1px;background:#a3b2b8}
     @media(max-width:700px){.manual-workbook-head{display:block}.manual-head-actions{justify-content:flex-start;margin-top:12px}.manual-period-picker{width:100%;flex-wrap:wrap}.manual-sheet-tab{min-width:145px}.manual-grid-scroll{max-height:55vh}.manual-toolbar-spacer{display:none}.manual-toolbar>span{width:100%}.period-search{min-width:135px;max-width:160px}}
 
@@ -933,6 +935,8 @@
     .cin-complaint-table{font-size:9.5px}.cin-service-table{font-size:9.5px}
     .light-vendor-table th:nth-child(1){width:5%}.light-vendor-table th:nth-child(2){width:13%}.light-vendor-table th:nth-child(3){width:25%}.light-vendor-table th:nth-child(4){width:7%}.light-vendor-table th:nth-child(5){width:22%}.light-vendor-table th:nth-child(6){width:18%}.light-vendor-table th:nth-child(7){width:10%}
     .light-complaint-table,.light-service-table{font-size:9.5px}
+    .light-service-table th:nth-child(1){width:5%}.light-service-table th:nth-child(2){width:16%}.light-service-table th:nth-child(3){width:14%}.light-service-table th:nth-child(4){width:14%}.light-service-table th:nth-child(5){width:15%}.light-service-table th:nth-child(6){width:14%}.light-service-table th:nth-child(7){width:22%}
+    .light-service-table th,.light-service-table td{overflow-wrap:break-word!important;word-break:normal!important}
     .cinema-footer,.light-footer{position:absolute;left:46px;right:46px;bottom:22px;display:flex;align-items:flex-end;gap:20px;font-family:monospace;color:#324a64}
     .cinema-footer>div,.light-footer>div{min-width:245px}.cinema-footer strong,.light-footer strong{display:block;font-size:12px;letter-spacing:.08em}.cinema-footer small,.light-footer small{display:block;margin-top:8px;font-size:9px;letter-spacing:.15em}
     .cinema-footer i,.light-footer i{height:1px;background:#7e99a8;flex:1;margin-bottom:11px}.cinema-footer>b,.light-footer>b{font-size:14px;white-space:nowrap;margin-bottom:3px}
@@ -2542,6 +2546,82 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(first>=0){showPage("preview");toast(slides.length+" slide manual "+reportType(typeId).label+" diperbarui");}
         else toast("Isi minimal satu baris data sebelum membuat preview");
       }
+      function manualImportKey(value){
+        return String(value==null?"":value).toLowerCase().replace(/[^a-z0-9]+/g,"");
+      }
+      function cleanImportMatrix(matrix){
+        matrix=(matrix||[]).map(function(row){return (row||[]).map(function(v){return String(v==null?"":v).trim();});});
+        while(matrix.length&&matrix[0].every(function(v){return !v;}))matrix.shift();
+        while(matrix.length&&matrix[matrix.length-1].every(function(v){return !v;}))matrix.pop();
+        if(!matrix.length)return [];
+        var headerIndex=-1;
+        for(var i=0;i<Math.min(25,matrix.length);i++){
+          var nonEmpty=matrix[i].filter(function(v){return v!=="";}).length;
+          if(nonEmpty>=2){headerIndex=i;break;}
+        }
+        if(headerIndex<0)return [];
+        matrix=matrix.slice(headerIndex);
+        var width=0;
+        matrix.forEach(function(row){for(var j=row.length-1;j>=0;j--){if(row[j]!==""){width=Math.max(width,j+1);break;}}});
+        return matrix.map(function(row){var out=row.slice(0,width);while(out.length<width)out.push("");return out;});
+      }
+      function findManualSheetForExcel(book,typeId,name){
+        var key=manualImportKey(name),defs=window.BSMManualSheets.allSheetDefs(typeId,book);
+        var direct=defs.find(function(d){return manualImportKey(d.id)===key||manualImportKey(d.label)===key;});
+        if(direct)return direct.id;
+        if(/service|servis/.test(key)){var s=defs.find(function(d){return d.id==="service";});if(s)return s.id;}
+        if(/komplain|complaint|trouble/.test(key)){var k=defs.find(function(d){return d.id==="komplain";});if(k)return k.id;}
+        if(/vendor|alatkurang|barangkurang|backup/.test(key)){var v=defs.find(function(d){return d.id==="vendor";});if(v)return v.id;}
+        return "";
+      }
+      function importMatrixToManualSheet(book,typeId,sheetId,matrix){
+        matrix=cleanImportMatrix(matrix);
+        if(matrix.length<2)throw new Error("Tabel Excel harus memiliki header dan minimal satu baris data");
+        var labels=matrix[0].map(function(v,i){return String(v||"").trim()||("Kolom "+(i+1));});
+        var rows=matrix.slice(1).filter(function(row){return row.some(function(v){return String(v||"").trim()!=="");});
+        window.BSMManualSheets.replaceSheetSchema(book,typeId,sheetId,labels,rows,book.activePeriod);
+        return rows.length;
+      }
+      function importManualWorkbookFile(file){
+        if(!file)return;
+        if(!window.XLSX){toast("Parser Excel belum siap");return;}
+        var reader=new FileReader();
+        reader.onload=function(ev){
+          try{
+            var wb=window.XLSX.read(ev.target.result,{type:"array",cellDates:true}),book=currentManualBook(),typeId=state.activeType,imported=0,firstId="";
+            wb.SheetNames.forEach(function(name){
+              var matrix=window.XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:"",raw:false,dateNF:"dd-mmm-yy"});
+              matrix=cleanImportMatrix(matrix);if(matrix.length<2)return;
+              var sheetId=findManualSheetForExcel(book,typeId,name);
+              if(!sheetId)sheetId=window.BSMManualSheets.createSheet(book,typeId,name||"Import Excel");
+              if(!firstId)firstId=sheetId;
+              imported+=importMatrixToManualSheet(book,typeId,sheetId,matrix);
+            });
+            if(!firstId)throw new Error("Tidak ada tabel yang dapat dibaca dari file Excel");
+            book.activeSheet=firstId;renderManualWorkbook();markManualDirty();saveState(false);applyManualPreview();updateBulkContext();closeModal();
+            toast(imported+" baris Excel masuk • kolom & preview disesuaikan otomatis");
+          }catch(err){console.error(err);toast(err&&err.message?err.message:"Excel gagal dibaca");}
+        };
+        reader.readAsArrayBuffer(file);
+      }
+      function openManualBulkModal(){
+        var book=currentManualBook(),def=window.BSMManualSheets.sheetDef(state.activeType,book.activeSheet,book);
+        modalHost.innerHTML='<div class="rg-modal-backdrop" data-manual-bulk-backdrop><div class="rg-modal-card manual-bulk-modal" role="dialog" aria-modal="true" aria-label="Input Banyak Manual"><div class="rg-modal-head"><strong>Input Banyak • '+esc(def.label)+'</strong><button class="rg-modal-close" type="button" data-manual-bulk-close>×</button></div><div class="rg-modal-body"><p class="manual-bulk-note"><strong>Otomatis mengikuti Excel.</strong> Jika header/kolom berbeda, tabel dan Preview akan menyesuaikan. Jika nama sheet Excel tidak cocok dengan tabel yang ada, sistem otomatis membuat tabel baru.</p><div class="manual-bulk-drop"><textarea data-manual-bulk-text placeholder="Paste dari Excel di sini. Baris pertama = nama kolom.&#10;&#10;Contoh:&#10;Nama Alat&#9;SN Lampu&#9;Tempat Service&#9;Tanggal Service&#9;Indikasi Rusak"></textarea><div class="manual-bulk-file"><label>Atau upload Excel (.xlsx / .xls)<input type="file" accept=".xlsx,.xls,.xlsm" data-manual-bulk-file></label><span class="tiny">Semua sheet Excel yang berisi tabel akan dibaca.</span></div></div><div class="manual-bulk-actions"><button class="btn" type="button" data-manual-bulk-cancel>Batal</button><button class="btn primary" type="button" data-manual-bulk-import>Masukkan ke Tabel & Preview</button></div></div></div></div>';
+        var close=function(){closeModal();};
+        modalHost.querySelector("[data-manual-bulk-close]").addEventListener("click",close);
+        modalHost.querySelector("[data-manual-bulk-cancel]").addEventListener("click",close);
+        modalHost.querySelector("[data-manual-bulk-backdrop]").addEventListener("click",function(e){if(e.target===this)close();});
+        var fileInput=modalHost.querySelector("[data-manual-bulk-file]");
+        fileInput.addEventListener("change",function(){var file=this.files&&this.files[0];if(file)importManualWorkbookFile(file);});
+        modalHost.querySelector("[data-manual-bulk-import]").addEventListener("click",function(){
+          try{
+            var raw=modalHost.querySelector("[data-manual-bulk-text]").value.trim();if(!raw){toast("Paste data atau pilih file Excel");return;}
+            var matrix=splitBulkRows(raw),count=importMatrixToManualSheet(book,state.activeType,book.activeSheet,matrix);
+            renderManualWorkbook();markManualDirty();saveState(false);applyManualPreview();updateBulkContext();closeModal();
+            toast(count+" baris masuk • tabel & preview sudah menyesuaikan");
+          }catch(err){toast(err&&err.message?err.message:"Data tidak dapat dibaca");}
+        });
+      }
       function renderManualWorkbook(){
         if(!manualTableMount)return;
         var book=currentManualBook();
@@ -2560,6 +2640,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         Array.prototype.forEach.call(manualTableMount.querySelectorAll("[data-manual-sheet]"),function(btn){
           btn.addEventListener("click",function(){book.activeSheet=this.dataset.manualSheet;renderManualWorkbook();saveState(false);updateBulkContext();});
         });
+        var bulkManualBtn=manualTableMount.querySelector("[data-manual-bulk]");
+        if(bulkManualBtn)bulkManualBtn.addEventListener("click",openManualBulkModal);
         var addSheetBtn=manualTableMount.querySelector("[data-manual-add-sheet]");
         if(addSheetBtn)addSheetBtn.addEventListener("click",function(){
           var name=prompt("Nama tabel baru", "Tabel Baru");
@@ -4106,5 +4188,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   </script>
   <!-- auth-scope-v2 -->
 </body>
-<!-- report-gudang-build-v32-camera-workbook -->
+<!-- report-gudang-build-v33-adaptive-manual-excel -->
 </html>
