@@ -253,10 +253,18 @@
     .manual-kicker{font-size:9px;font-weight:950;letter-spacing:.17em;color:#087d86}.manual-head-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
     .manual-save-badge{min-height:30px;display:inline-flex;align-items:center;padding:0 10px;border:1px solid #cfe6da;background:#effaf4;color:#157347;border-radius:999px;font-size:9px;font-weight:900}
     .manual-save-badge.dirty{border-color:#f1dfae;background:#fff9e8;color:#8a5a00}
-    .manual-sheet-tabs{display:flex;gap:0;overflow-x:auto;background:#f3f7f8;border-bottom:1px solid #dbe5e7;padding:0 10px}
-    .manual-sheet-tab{border:0;border-right:1px solid #dce6e8;background:transparent;min-width:170px;padding:11px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;color:#4d5d6b;font-size:10px;font-weight:850}
-    .manual-sheet-tab:first-child{border-left:1px solid #dce6e8}.manual-sheet-tab b{min-width:22px;height:20px;padding:0 6px;border-radius:999px;background:#e4edef;display:grid;place-items:center;font-size:9px}
+    .manual-sheet-tabs{display:flex;gap:0;overflow-x:auto;background:#f3f7f8;border-bottom:1px solid #dbe5e7;padding:0 10px;align-items:stretch}
+    .manual-sheet-tab-wrap{display:flex;align-items:stretch;position:relative;border-right:1px solid #dce6e8}
+    .manual-sheet-tab{border:0;background:transparent;min-width:170px;padding:11px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;color:#4d5d6b;font-size:10px;font-weight:850}
+    .manual-sheet-tab-wrap:first-child{border-left:1px solid #dce6e8}.manual-sheet-tab b{min-width:22px;height:20px;padding:0 6px;border-radius:999px;background:#e4edef;display:grid;place-items:center;font-size:9px}
     .manual-sheet-tab.active{background:#fff;color:#087d86;box-shadow:inset 0 -3px 0 #087d86}.manual-sheet-tab.active b{background:#daf1f2;color:#05636a}
+    .manual-sheet-remove{width:28px;border:0;border-left:1px solid #e4e9ea;background:#fff8f7;color:#b42318;font-size:15px;font-weight:950}
+    .manual-add-sheet{border:0;border-left:1px solid #dce6e8;background:#e9f7f8;color:#06747c;min-width:105px;padding:0 14px;font-size:10px;font-weight:950;white-space:nowrap}
+    .manual-col-head{display:flex;align-items:center;justify-content:space-between;gap:5px;padding:5px 6px}
+    .manual-col-head .manual-col-name{padding:0;overflow:hidden;text-overflow:ellipsis}
+    .manual-col-tools{display:flex;gap:3px;opacity:.45;transition:opacity .15s}.manual-grid-table thead th:hover .manual-col-tools{opacity:1}
+    .manual-col-tools button{width:21px;height:21px;border:1px solid #cbdadd;border-radius:6px;background:#fff;color:#526572;font-size:10px;font-weight:950;padding:0}
+    .manual-col-tools button:last-child{color:#b42318;border-color:#efcfcb;background:#fff8f7}
     .manual-toolbar{display:flex;align-items:center;gap:7px;padding:10px 12px;background:#fff;border-bottom:1px solid #e4ecee;flex-wrap:wrap}
     .manual-toolbar .btn{min-height:32px;padding:0 10px;font-size:10px}.manual-toolbar-spacer{flex:1}.manual-toolbar>span{font-size:9px;color:#748391}
     .manual-grid-scroll{width:100%;overflow:auto;max-height:58vh;background:#fff;overscroll-behavior:contain}
@@ -1238,6 +1246,7 @@
             <select class="control" id="bulkModeSelect">
               <option value="auto">Auto Detect</option>
               <option value="generic">Report Umum</option>
+              <option value="manual-sheet">Tabel Manual Aktif — Kolom Tersimpan</option>
               <option value="camera-vendor">Kamera — Vendor / Back Up</option>
               <option value="camera-complaint">Kamera — Komplain</option>
               <option value="camera-service">Kamera — Service</option>
@@ -2466,11 +2475,66 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         var book=currentManualBook();
         manualTableMount.innerHTML=window.BSMManualSheets.renderEditor(state.activeType,book);
         Array.prototype.forEach.call(manualTableMount.querySelectorAll("[data-manual-sheet]"),function(btn){
-          btn.addEventListener("click",function(){book.activeSheet=this.dataset.manualSheet;renderManualWorkbook();saveState(false);});
+          btn.addEventListener("click",function(){book.activeSheet=this.dataset.manualSheet;renderManualWorkbook();saveState(false);updateBulkContext();});
+        });
+        var addSheetBtn=manualTableMount.querySelector("[data-manual-add-sheet]");
+        if(addSheetBtn)addSheetBtn.addEventListener("click",function(){
+          var name=prompt("Nama tabel baru", "Tabel Baru");
+          if(name==null)return;
+          name=String(name).trim();
+          if(!name){toast("Nama tabel wajib diisi");return;}
+          window.BSMManualSheets.createSheet(book,state.activeType,name);
+          renderManualWorkbook();markManualDirty();saveState(false);updateBulkContext();
+          toast('Tabel "'+name+'" ditambahkan');
+        });
+        Array.prototype.forEach.call(manualTableMount.querySelectorAll("[data-manual-delete-sheet]"),function(btn){
+          btn.addEventListener("click",function(e){
+            e.preventDefault();e.stopPropagation();
+            var id=this.dataset.manualDeleteSheet;
+            var def=window.BSMManualSheets.sheetDef(state.activeType,id,book);
+            if(!confirm('Hapus tabel "'+(def&&def.label||id)+'" beserta datanya?'))return;
+            if(window.BSMManualSheets.deleteSheet(book,state.activeType,id)){
+              renderManualWorkbook();markManualDirty();saveState(false);updateBulkContext();toast("Tabel dihapus");
+            }
+          });
+        });
+        var addColumnBtn=manualTableMount.querySelector("[data-manual-add-column]");
+        if(addColumnBtn)addColumnBtn.addEventListener("click",function(){
+          var label=prompt("Nama kolom baru", "Kolom Baru");
+          if(label==null)return;
+          label=String(label).trim();
+          if(!label){toast("Nama kolom wajib diisi");return;}
+          window.BSMManualSheets.addColumn(book,state.activeType,book.activeSheet,label);
+          renderManualWorkbook();markManualDirty();saveState(false);updateBulkContext();
+          toast('Kolom "'+label+'" ditambahkan dan disimpan');
+        });
+        Array.prototype.forEach.call(manualTableMount.querySelectorAll("[data-manual-rename-col]"),function(btn){
+          btn.addEventListener("click",function(){
+            var key=this.dataset.manualRenameCol,def=window.BSMManualSheets.sheetDef(state.activeType,book.activeSheet,book);
+            var col=(def.columns||[]).find(function(c){return c[0]===key;});
+            if(!col)return;
+            var label=prompt("Ubah nama kolom",col[1]);
+            if(label==null)return;
+            label=String(label).trim();
+            if(!label){toast("Nama kolom wajib diisi");return;}
+            window.BSMManualSheets.renameColumn(book,state.activeType,book.activeSheet,key,label);
+            renderManualWorkbook();markManualDirty();saveState(false);updateBulkContext();
+          });
+        });
+        Array.prototype.forEach.call(manualTableMount.querySelectorAll("[data-manual-delete-col]"),function(btn){
+          btn.addEventListener("click",function(){
+            var key=this.dataset.manualDeleteCol,def=window.BSMManualSheets.sheetDef(state.activeType,book.activeSheet,book),col=(def.columns||[]).find(function(c){return c[0]===key;});
+            if(!col)return;
+            if((def.columns||[]).length<=1){toast("Minimal satu kolom harus tetap ada");return;}
+            if(!confirm('Hapus kolom "'+col[1]+'" beserta isinya?'))return;
+            window.BSMManualSheets.deleteColumn(book,state.activeType,book.activeSheet,key);
+            renderManualWorkbook();markManualDirty();saveState(false);updateBulkContext();
+            toast("Kolom dihapus");
+          });
         });
         Array.prototype.forEach.call(manualTableMount.querySelectorAll(".manual-cell"),function(input){
           input.addEventListener("input",function(){
-            var def=window.BSMManualSheets.sheetDef(state.activeType,book.activeSheet),r=Number(this.dataset.manualRow),key=this.dataset.manualKey;
+            var def=window.BSMManualSheets.sheetDef(state.activeType,book.activeSheet,book),r=Number(this.dataset.manualRow),key=this.dataset.manualKey;
             var sheet=book.sheets[book.activeSheet];if(!sheet||!sheet.rows[r])return;
             sheet.rows[r][key]=this.value;markManualDirty();autoSave();
           });
@@ -2479,7 +2543,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             if(!text||(!/[\t\n\r]/.test(text)))return;
             e.preventDefault();
             var startRow=Number(this.dataset.manualRow),startCol=Number(this.dataset.manualCol);
-            var def=window.BSMManualSheets.sheetDef(state.activeType,book.activeSheet),sheet=book.sheets[book.activeSheet];
+            var def=window.BSMManualSheets.sheetDef(state.activeType,book.activeSheet,book),sheet=book.sheets[book.activeSheet];
             var matrix=String(text).replace(/\r/g,"").split("\n");
             if(matrix.length&&matrix[matrix.length-1]==="")matrix.pop();
             matrix.forEach(function(line,ri){
@@ -2505,14 +2569,14 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         });
         Array.prototype.forEach.call(manualTableMount.querySelectorAll("[data-manual-add]"),function(btn){
           btn.addEventListener("click",function(){
-            var count=Math.max(1,Number(this.dataset.manualAdd||1)),def=window.BSMManualSheets.sheetDef(state.activeType,book.activeSheet),sheet=book.sheets[book.activeSheet];
+            var count=Math.max(1,Number(this.dataset.manualAdd||1)),def=window.BSMManualSheets.sheetDef(state.activeType,book.activeSheet,book),sheet=book.sheets[book.activeSheet];
             for(var i=0;i<count;i++)sheet.rows.push(window.BSMManualSheets.emptyRow(def));
             renderManualWorkbook();markManualDirty();autoSave();
           });
         });
         Array.prototype.forEach.call(manualTableMount.querySelectorAll("[data-manual-delete]"),function(btn){
           btn.addEventListener("click",function(){
-            var row=Number(this.dataset.manualDelete),def=window.BSMManualSheets.sheetDef(state.activeType,book.activeSheet),sheet=book.sheets[book.activeSheet];
+            var row=Number(this.dataset.manualDelete),def=window.BSMManualSheets.sheetDef(state.activeType,book.activeSheet,book),sheet=book.sheets[book.activeSheet];
             sheet.rows.splice(row,1);if(!sheet.rows.length)sheet.rows.push(window.BSMManualSheets.emptyRow(def));
             renderManualWorkbook();markManualDirty();autoSave();
           });
@@ -2527,7 +2591,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         var clear=manualTableMount.querySelector("[data-manual-clear]");
         if(clear)clear.addEventListener("click",function(){
           if(!confirm("Kosongkan seluruh isi sheet ini?"))return;
-          var def=window.BSMManualSheets.sheetDef(state.activeType,book.activeSheet),sheet=book.sheets[book.activeSheet];
+          var def=window.BSMManualSheets.sheetDef(state.activeType,book.activeSheet,book),sheet=book.sheets[book.activeSheet];
           sheet.rows=[];for(var i=0;i<6;i++)sheet.rows.push(window.BSMManualSheets.emptyRow(def));
           renderManualWorkbook();markManualDirty();autoSave();
         });
@@ -3274,6 +3338,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
 
       function bulkTargetTypeForMode(mode){
+        if(mode==="manual-sheet") return state.activeType;
         if(mode==="camera-vendor"||mode==="camera-complaint"||mode==="camera-service") return "gudang-kamera";
         if(mode==="audio-vendor"||mode==="audio-complaint"||mode==="audio-service") return "gudang-audio";
         if(mode==="cinema-vendor"||mode==="cinema-complaint"||mode==="cinema-service") return "gudang-cinema";
@@ -3285,6 +3350,13 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(!bulkModeSelect||!bulkContextText||!bulkInput) return;
         var targetType=bulkTargetTypeForMode(bulkModeSelect.value);
         var type=reportType(targetType);
+        if(bulkModeSelect.value==="manual-sheet"){
+          var book=currentManualBook(),def=window.BSMManualSheets.sheetDef(targetType,book.activeSheet,book);
+          var labels=(def.columns||[]).map(function(c){return c[1];});
+          bulkContextText.textContent=type.label+" • "+def.label+" • "+labels.length+" kolom tersimpan";
+          bulkInput.placeholder=labels.join("\t")+"\n"+labels.map(function(){return "data";}).join("\t")+"\n\nPaste dari Excel mengikuti kolom tabel manual aktif. Header yang baru juga bisa otomatis dibuat menjadi kolom baru.";
+          return;
+        }
         bulkContextText.textContent=type.label+" • "+(bulkModeSelect.options[bulkModeSelect.selectedIndex]?bulkModeSelect.options[bulkModeSelect.selectedIndex].text:"Auto Detect");
         if(targetType==="gudang-kamera"){
           bulkInput.placeholder="Paste tabel Kamera dari Excel. Contoh Vendor:\nNAMA BARANG\tQTY\tTANGGAL\tKETERANGAN\tHARGA VENDOR\nSony FX3\t4\t05 Juni 2026\t2xkopafi,2xDs\t\nTotal\t4";
@@ -3469,13 +3541,62 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         else showPage(currentMasterPage().kind==="report"?"table":"cover");
       }
     
+      function bulkCellKey(v){
+        return String(v==null?"":v).toLowerCase().replace(/[^a-z0-9]+/g,"").trim();
+      }
+      function splitBulkRows(raw){
+        return String(raw||"").replace(/\r/g,"").split("\n").filter(function(line){return line.trim()!=="";}).map(function(line){
+          if(line.indexOf("\t")>=0)return line.split("\t");
+          if(line.indexOf(";")>=0)return line.split(";");
+          return line.split(/\s{2,}/);
+        });
+      }
+      function importBulkToManualSheet(raw){
+        var book=currentManualBook(),typeId=state.activeType,def=window.BSMManualSheets.sheetDef(typeId,book.activeSheet,book),sheet=book.sheets[book.activeSheet];
+        var matrix=splitBulkRows(raw);
+        if(!matrix.length)throw new Error("Data tidak terbaca");
+        var first=matrix[0],existing=(def.columns||[]).slice(),labelMap={};
+        existing.forEach(function(c){labelMap[bulkCellKey(c[0])]=c[0];labelMap[bulkCellKey(c[1])]=c[0];});
+        var matchCount=first.filter(function(v){return !!labelMap[bulkCellKey(v)];}).length;
+        var hasHeader=matchCount>0 || first.some(function(v){return /[a-zA-Z]/.test(String(v||""));})&&matrix.length>1;
+        var keys=[];
+        if(hasHeader){
+          first.forEach(function(header,i){
+            var label=String(header||"").trim()||("Kolom "+(i+1)),normalized=bulkCellKey(label),key=labelMap[normalized];
+            if(!key){
+              key=window.BSMManualSheets.addColumn(book,typeId,book.activeSheet,label);
+              labelMap[normalized]=key;
+            }
+            keys.push(key);
+          });
+          matrix=matrix.slice(1);
+        }else{
+          keys=existing.map(function(c){return c[0];}).slice(0,first.length);
+          while(keys.length<first.length){
+            var label="Kolom "+(keys.length+1);
+            keys.push(window.BSMManualSheets.addColumn(book,typeId,book.activeSheet,label));
+          }
+        }
+        def=window.BSMManualSheets.sheetDef(typeId,book.activeSheet,book);
+        var start=0;
+        while(start<sheet.rows.length&&!window.BSMManualSheets.rowEmpty(sheet.rows[start],def))start++;
+        matrix.forEach(function(values,ri){
+          var target=start+ri;
+          while(sheet.rows.length<=target)sheet.rows.push(window.BSMManualSheets.emptyRow(def));
+          keys.forEach(function(key,ci){if(key)sheet.rows[target][key]=String(values[ci]==null?"":values[ci]).trim();});
+        });
+        renderManualWorkbook();saveState(false);applyManualPreview();updateBulkContext();bulkInput.value="";
+        toast(matrix.length+" baris masuk ke "+def.label);
+      }
+
       function importBulk(){
         var raw=bulkInput.value.trim();
         if(!raw){toast("Tempel data report dulu"); bulkInput.focus(); return;}
         try{
+          var mode=bulkModeSelect?bulkModeSelect.value:"auto";
+          if(mode==="manual-sheet"){importBulkToManualSheet(raw);return;}
           if(!window.BSMReportParser||typeof window.BSMReportParser.parseBulkText!=="function") throw new Error("Parser generic belum termuat.");
           if(!window.BSMBulkRouter||typeof window.BSMBulkRouter.parse!=="function") throw new Error("Bulk router belum termuat. Refresh halaman lalu coba lagi.");
-          var mode=bulkModeSelect?bulkModeSelect.value:"auto";
           var result=window.BSMBulkRouter.parse(raw,{
             typeId:state.activeType,
             mode:mode,
