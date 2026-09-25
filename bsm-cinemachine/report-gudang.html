@@ -252,6 +252,13 @@
     .manual-workbook-head h3{margin:4px 0 3px;font-size:22px;letter-spacing:-.03em}.manual-workbook-head p{margin:0;color:#64748b;font-size:11px;line-height:1.5}
     .manual-kicker{font-size:9px;font-weight:950;letter-spacing:.17em;color:#087d86}.manual-head-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
     .manual-save-badge{min-height:30px;display:inline-flex;align-items:center;padding:0 10px;border:1px solid #cfe6da;background:#effaf4;color:#157347;border-radius:999px;font-size:9px;font-weight:900}
+    .manual-period-picker{display:flex;align-items:flex-end;gap:6px;padding:6px 8px;border:1px solid #d8e5e7;border-radius:12px;background:#fff}
+    .manual-period-picker label{display:grid;gap:3px;font-size:8px;font-weight:900;color:#71818e;text-transform:uppercase;letter-spacing:.06em}
+    .manual-period-picker select,.manual-period-picker input{height:30px;border:1px solid #d7e3e5;border-radius:8px;background:#f9fcfc;padding:0 8px;font-size:10px;font-weight:850;color:#22303e;outline:none}
+    .manual-period-picker select{min-width:116px}.manual-period-picker input{width:74px}
+    .manual-period-picker>span{align-self:center;padding:0 4px;color:#087d86;font-size:10px;font-weight:950;white-space:nowrap}
+    .period-search{min-width:160px;max-width:220px;background:#fff!important;color:#22303e!important;border:1px solid #d3e1e4!important}
+    .presentation-period-search{min-width:150px;height:38px;border-radius:9px;border:1px solid rgba(255,255,255,.24);background:#172033;color:#fff;padding:0 10px;font-size:10px;font-weight:850}
     .manual-save-badge.dirty{border-color:#f1dfae;background:#fff9e8;color:#8a5a00}
     .manual-sheet-tabs{display:flex;gap:0;overflow-x:auto;background:#f3f7f8;border-bottom:1px solid #dbe5e7;padding:0 10px;align-items:stretch}
     .manual-sheet-tab-wrap{display:flex;align-items:stretch;position:relative;border-right:1px solid #dce6e8}
@@ -294,7 +301,7 @@
     .manual-grid-medium .manual-slide-table{font-size:11px}.manual-grid-medium .manual-slide-table th,.manual-grid-medium .manual-slide-table td{padding:7px 5px}
     .manual-grid-dense .manual-slide-table{font-size:9px}.manual-grid-dense .manual-slide-table th,.manual-grid-dense .manual-slide-table td{padding:6px 3px}.manual-grid-dense .manual-slide-table .manual-slide-no{width:34px}
     .manual-slide-footer{position:absolute;left:38px;right:38px;bottom:24px;display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;border-top:1px solid #7b8c94;padding-top:10px;font:800 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.07em}.manual-slide-footer i{height:1px;background:#a3b2b8}
-    @media(max-width:700px){.manual-workbook-head{display:block}.manual-head-actions{justify-content:flex-start;margin-top:12px}.manual-sheet-tab{min-width:145px}.manual-grid-scroll{max-height:55vh}.manual-toolbar-spacer{display:none}.manual-toolbar>span{width:100%}}
+    @media(max-width:700px){.manual-workbook-head{display:block}.manual-head-actions{justify-content:flex-start;margin-top:12px}.manual-period-picker{width:100%;flex-wrap:wrap}.manual-sheet-tab{min-width:145px}.manual-grid-scroll{max-height:55vh}.manual-toolbar-spacer{display:none}.manual-toolbar>span{width:100%}.period-search{min-width:135px;max-width:160px}}
 
     .cover-editor-section{display:none}
     .cover-editor-section.active{display:block}
@@ -1390,6 +1397,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           <button class="slide-nav-btn" id="prevSlideBtn" aria-label="Slide sebelumnya">‹</button>
           <strong id="slideCounter">Belum ada slide</strong>
           <button class="slide-nav-btn" id="nextSlideBtn" aria-label="Slide berikutnya">›</button>
+          <select class="btn period-search" id="previewPeriodSearch" aria-label="Cari slide berdasarkan bulan"><option value="">Cari Bulan...</option></select>
           <button class="btn ghost-danger" id="deleteSlideBtn">Hapus Slide</button>
           <button class="btn" id="itColumnsBtn" style="display:none">Hapus Kolom</button>
           <button class="btn dark" id="presentationBtn">⛶ Presentasi</button>
@@ -1443,6 +1451,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       <div class="presentation-controls" id="presentationControls" aria-label="Kontrol presentasi">
         <button class="presentation-btn" id="presentationPrevBtn" aria-label="Slide sebelumnya">‹</button>
         <div class="presentation-counter" id="presentationCounter">1 / 1</div>
+        <select class="presentation-period-search" id="presentationPeriodSearch" aria-label="Cari bulan presentasi"><option value="">Cari Bulan...</option></select>
         <button class="presentation-btn" id="presentationNextBtn" aria-label="Slide berikutnya">›</button>
         <span class="presentation-edit-hint">Klik teks untuk edit</span>
         <button class="presentation-btn presentation-exit" id="presentationExitBtn">Keluar</button>
@@ -2436,7 +2445,11 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
 
       function currentManualBook(){
-        var book=window.BSMManualSheets.ensureBook(state.manualSheets,state.activeType,6);
+        var preferred="";
+        if(state.draft&&state.draft.year&&state.draft.month){
+          preferred=String(state.draft.year)+"-"+String(state.draft.month).padStart(2,"0");
+        }
+        var book=window.BSMManualSheets.ensureBook(state.manualSheets,state.activeType,6,preferred);
         state.manualSheets[state.activeType]=book;
         return book;
       }
@@ -2454,7 +2467,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
       function applyManualPreview(){
         var typeId=state.activeType,book=currentManualBook(),section=state.sections[typeId];
-        var slides=window.BSMManualSheets.buildSlides(typeId,book,{period:(state.draft&&state.draft.year?String(state.draft.year):"2026")});
+        var slides=window.BSMManualSheets.buildSlides(typeId,book,{});
         section.slides=(section.slides||[]).filter(function(s){return s.template!=="manual-grid";});
         slides.forEach(function(s){s.liveEditId=uid();section.slides.push(s);});
         ensureMasterReports();
@@ -2474,6 +2487,17 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(!manualTableMount)return;
         var book=currentManualBook();
         manualTableMount.innerHTML=window.BSMManualSheets.renderEditor(state.activeType,book);
+        var monthSelect=manualTableMount.querySelector("[data-manual-month]");
+        var yearInput=manualTableMount.querySelector("[data-manual-year]");
+        function switchManualPeriod(){
+          var month=monthSelect?Number(monthSelect.value||1):1,year=yearInput?Number(yearInput.value||new Date().getFullYear()):new Date().getFullYear();
+          year=Math.max(2020,Math.min(2100,year||new Date().getFullYear()));
+          window.BSMManualSheets.setPeriod(book,state.activeType,String(year)+"-"+String(month).padStart(2,"0"),6);
+          renderManualWorkbook();saveState(false);updateBulkContext();
+          toast("Bulan input: "+window.BSMManualSheets.periodLabel(book.activePeriod));
+        }
+        if(monthSelect)monthSelect.addEventListener("change",switchManualPeriod);
+        if(yearInput)yearInput.addEventListener("change",switchManualPeriod);
         Array.prototype.forEach.call(manualTableMount.querySelectorAll("[data-manual-sheet]"),function(btn){
           btn.addEventListener("click",function(){book.activeSheet=this.dataset.manualSheet;renderManualWorkbook();saveState(false);updateBulkContext();});
         });
@@ -3268,10 +3292,56 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         });
       }
 
+      function pagePeriodKey(page){
+        if(!page||page.kind!=="report"||!page.report)return "";
+        var report=page.report;
+        if(report.manualPeriodKey)return String(report.manualPeriodKey);
+        if(report.year&&report.month){
+          var month=Number(report.month);
+          if(month>=1&&month<=12)return String(report.year)+"-"+String(month).padStart(2,"0");
+        }
+        var text=String(report.period||report.subtitle||"").toLowerCase();
+        var names=window.BSMManualSheets&&window.BSMManualSheets.MONTH_NAMES||[];
+        for(var i=0;i<names.length;i++){
+          if(text.indexOf(String(names[i]).toLowerCase())>=0){
+            var y=text.match(/20\d{2}/);if(y)return y[0]+"-"+String(i+1).padStart(2,"0");
+          }
+        }
+        return "";
+      }
+      function periodSearchOptions(pages){
+        var seen={},items=[];
+        (pages||[]).forEach(function(page){
+          var key=pagePeriodKey(page);
+          if(!key||seen[key])return;
+          seen[key]=true;
+          var label=window.BSMManualSheets&&window.BSMManualSheets.periodLabel?window.BSMManualSheets.periodLabel(key):key;
+          items.push({key:key,label:label});
+        });
+        items.sort(function(a,b){return a.key.localeCompare(b.key);});
+        return items;
+      }
+      function updatePeriodSearch(pages){
+        var options=periodSearchOptions(pages),currentKey=pagePeriodKey(currentMasterPage());
+        [previewPeriodSearch,presentationPeriodSearch].forEach(function(select){
+          if(!select)return;
+          var previous=select.value;
+          select.innerHTML='<option value="">Cari Bulan...</option>'+options.map(function(item){return '<option value="'+esc(item.key)+'">'+esc(item.label)+'</option>';}).join("");
+          if(options.some(function(item){return item.key===currentKey;}))select.value=currentKey;
+          else if(options.some(function(item){return item.key===previous;}))select.value=previous;
+        });
+      }
+      function jumpToPeriod(key){
+        if(!key)return;
+        var pages=masterPages(),index=pages.findIndex(function(page){return pagePeriodKey(page)===key;});
+        if(index<0){toast("Belum ada slide untuk bulan tersebut");return;}
+        loadView(index);
+      }
       function renderSlideNav(){
         var pages=masterPages(),count=pages.length,current=currentMasterPage();
         slideCounter.textContent=(state.activeView+1)+" / "+count+" • "+(current.label||"Master");
         if(presentationCounter) presentationCounter.textContent=(state.activeView+1)+" / "+count+" • "+(current.label||"Master");
+        updatePeriodSearch(pages);
         prevSlideBtn.disabled=count<2;
         nextSlideBtn.disabled=count<2;
         deleteSlideBtn.disabled=current.kind!=="report";
@@ -3353,8 +3423,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(bulkModeSelect.value==="manual-sheet"){
           var book=currentManualBook(),def=window.BSMManualSheets.sheetDef(targetType,book.activeSheet,book);
           var labels=(def.columns||[]).map(function(c){return c[1];});
-          bulkContextText.textContent=type.label+" • "+def.label+" • "+labels.length+" kolom tersimpan";
-          bulkInput.placeholder=labels.join("\t")+"\n"+labels.map(function(){return "data";}).join("\t")+"\n\nPaste dari Excel mengikuti kolom tabel manual aktif. Header yang baru juga bisa otomatis dibuat menjadi kolom baru.";
+          bulkContextText.textContent=type.label+" • "+def.label+" • "+window.BSMManualSheets.periodLabel(book.activePeriod)+" • "+labels.length+" kolom";
+          bulkInput.placeholder=labels.join("\t")+"\n"+labels.map(function(){return "data";}).join("\t")+"\n\nData masuk ke "+window.BSMManualSheets.periodLabel(book.activePeriod)+". Paste dari Excel mengikuti kolom tabel manual aktif. Header baru otomatis menjadi kolom baru.";
           return;
         }
         bulkContextText.textContent=type.label+" • "+(bulkModeSelect.options[bulkModeSelect.selectedIndex]?bulkModeSelect.options[bulkModeSelect.selectedIndex].text:"Auto Detect");
@@ -3755,6 +3825,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
 
       prevSlideBtn.addEventListener("click",function(){changeSlide(-1);});
       nextSlideBtn.addEventListener("click",function(){changeSlide(1);});
+      if(previewPeriodSearch)previewPeriodSearch.addEventListener("change",function(){jumpToPeriod(this.value);});
+      if(presentationPeriodSearch)presentationPeriodSearch.addEventListener("change",function(){jumpToPeriod(this.value);showPresentationControls();});
       presentationBtn.addEventListener("click",enterPresentation);
       if(itColumnsBtn) itColumnsBtn.addEventListener("click",openITColumnsModal);
       presentationPrevBtn.addEventListener("click",function(){changeSlide(-1);showPresentationControls();});
