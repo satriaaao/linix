@@ -1049,6 +1049,15 @@
     .it-products-table .up,.it-products-table .it-growth.up .it-pct{color:#15803d}
     .it-products-table .down,.it-products-table .it-growth.down .it-pct{color:#b91c1c}
     .it-products-table .it-status{font-weight:900;letter-spacing:.02em}
+    .it-products-table th:first-child,.it-products-table td:first-child{width:52px}
+    .it-no-cell{white-space:nowrap}
+    .it-no-cell>span{display:inline-block;min-width:16px;text-align:center;font-weight:800}
+    .it-col-head{display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap}
+    .it-edit-control{display:inline-grid;place-items:center;border:1px solid #fecaca;background:#fff5f5;color:#b91c1c;border-radius:5px;width:17px;height:17px;padding:0;font-size:12px;font-weight:950;line-height:1;cursor:pointer;vertical-align:middle}
+    .it-edit-control:hover{background:#fee2e2;border-color:#fca5a5}
+    .it-row-delete{margin-right:4px}
+    .it-col-delete{flex:0 0 auto}
+    body.presentation-mode .it-edit-control{display:none!important}
     .it-pending{color:#94a3b8}
     .it-column-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0 16px}
     .it-column-option{display:flex;align-items:center;gap:9px;border:1px solid #d6e2e5;border-radius:11px;padding:10px 11px;background:#fbfefe;font-size:12px;font-weight:800;color:#263547}
@@ -1896,14 +1905,70 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         }else itOmsetHost.innerHTML="";
       }
 
+      function rebuildITProductSlides(section,hiddenMonths){
+        if(!section)return;
+        var products=[];
+        var first=-1,last=-1;
+        (section.slides||[]).forEach(function(slide,i){
+          if(slide&&slide.template==="it-product"){
+            if(first<0)first=i;last=i;
+            products=products.concat(slide.products||[]);
+          }
+        });
+        if(first<0)return;
+        var before=section.slides.slice(0,first),after=section.slides.slice(last+1);
+        var rebuilt=products.length?window.BSMITProducts.createSlides(products):[];
+        rebuilt.forEach(function(slide){
+          slide.hiddenMonths=(hiddenMonths||[]).slice();
+          slide.liveEditId=uid();
+        });
+        section.slides=before.concat(rebuilt,after);
+      }
+
       function renderITProductSlide(){
         var page=currentMasterPage();
         if(page.kind==="report"&&page.report&&page.report.template==="it-product"){
-          itProductHost.innerHTML=window.BSMITProducts.renderSlide(page.report);
-          itProductHost.querySelectorAll('[data-detail]').forEach(function(point){
-            function show(){itProductHost.querySelector('.it-products-detail').textContent=point.dataset.detail;}
-            point.addEventListener('click',show);point.addEventListener('focus',show);point.addEventListener('mouseenter',show);
-            point.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();show();}});
+          itProductHost.innerHTML=window.BSMITProducts.renderSlide(page.report,{editable:true});
+
+          Array.prototype.forEach.call(itProductHost.querySelectorAll("[data-it-delete-row]"),function(btn){
+            btn.addEventListener("click",function(e){
+              e.preventDefault();e.stopPropagation();
+              var rowIndex=Number(this.dataset.itDeleteRow);
+              var section=state.sections[page.typeId],report=section&&section.slides?page.reportIndex<section.slides.length?section.slides[page.reportIndex]:null:null;
+              if(!report||!Array.isArray(report.products)||rowIndex<0||rowIndex>=report.products.length)return;
+              var product=report.products[rowIndex];
+              if(!confirm('Hapus baris "'+String(product.name||"produk")+'"?'))return;
+              var hidden=(report.hiddenMonths||[]).slice();
+              report.products.splice(rowIndex,1);
+              rebuildITProductSlides(section,hidden);
+              ensureMasterReports();
+              var nextIndex=Math.max(0,Math.min(page.reportIndex,(section.slides||[]).length-1));
+              bindActiveSection(nextIndex);
+              state.activeView=window.BSMReportMaster.findPageIndex(state,"report:"+page.typeId+":"+nextIndex);
+              renderAll();saveState(false);toast("Baris produk dihapus");
+            });
+          });
+
+          Array.prototype.forEach.call(itProductHost.querySelectorAll("[data-it-delete-col]"),function(btn){
+            btn.addEventListener("click",function(e){
+              e.preventDefault();e.stopPropagation();
+              var monthIndex=Number(this.dataset.itDeleteCol);
+              var section=state.sections[page.typeId];
+              var report=section&&section.slides?page.reportIndex<section.slides.length?section.slides[page.reportIndex]:null:null;
+              if(!report)return;
+              var latest=Number.isInteger(report.latestMonth)?report.latestMonth:-1;
+              var visible=window.BSMITProducts.visibleMonthIndexes(report,latest);
+              if(visible.length<=1){toast("Minimal satu kolom bulan harus tetap tampil");return;}
+              var months=window.BSMITProducts.MONTHS||[];
+              if(!confirm("Hapus kolom "+(months[monthIndex]||"bulan ini")+" dari semua slide Analisis Produk?"))return;
+              (section.slides||[]).forEach(function(slide){
+                if(slide.template!=="it-product")return;
+                var hidden=Array.isArray(slide.hiddenMonths)?slide.hiddenMonths.slice():[];
+                if(hidden.indexOf(monthIndex)<0)hidden.push(monthIndex);
+                slide.hiddenMonths=hidden;
+              });
+              renderAll();saveState(false);toast("Kolom "+(months[monthIndex]||"bulan")+" disembunyikan");
+            });
           });
         }else{
           itProductHost.innerHTML="";
