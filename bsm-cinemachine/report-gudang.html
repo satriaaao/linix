@@ -949,6 +949,11 @@
     .camera-vendor-table-wrap,.camera-complaint-wrap,.camera-service-wrap,
     .audio-table-wrap,.cin-wrap,.light-wrap{max-width:100%}
 
+    /* Larger readable preview; safe-fit rules below compact only when a dense slide needs it. */
+    :is(.camera-vendor-slide,.camera-complaint-slide,.camera-service-slide,.audio-vendor-slide,.audio-complaint-slide,.audio-service-slide,.cinema-vendor-slide,.cinema-complaint-slide,.cinema-service-slide,.lighting-vendor-slide,.lighting-complaint-slide,.lighting-service-slide) h1{font-size:47px!important;line-height:.96!important}
+    :is(.camera-vendor-slide,.camera-complaint-slide,.camera-service-slide,.audio-vendor-slide,.audio-complaint-slide,.audio-service-slide,.cinema-vendor-slide,.cinema-complaint-slide,.cinema-service-slide,.lighting-vendor-slide,.lighting-complaint-slide,.lighting-service-slide) table th{font-size:11.5px;line-height:1.08;padding:4px 6px}
+    :is(.camera-vendor-slide,.camera-complaint-slide,.camera-service-slide,.audio-vendor-slide,.audio-complaint-slide,.audio-service-slide,.cinema-vendor-slide,.cinema-complaint-slide,.cinema-service-slide,.lighting-vendor-slide,.lighting-complaint-slide,.lighting-service-slide) table td{font-size:11.5px;line-height:1.12;padding:4px 6px}
+
     :is(.camera-vendor-slide,.camera-complaint-slide,.camera-service-slide,.audio-vendor-slide,.audio-complaint-slide,.audio-service-slide,.cinema-vendor-slide,.cinema-complaint-slide,.cinema-service-slide,.lighting-vendor-slide,.lighting-complaint-slide,.lighting-service-slide).slide-fit-compact{
       padding-top:18px!important;padding-left:30px!important;padding-right:30px!important;padding-bottom:18px!important;
     }
@@ -1186,12 +1191,13 @@
   </style>
 </head>
 <body>
-  <div class="auth-gate" id="authGate" hidden>
+  <div class="auth-gate" id="authGate">
     <div class="auth-card">
       <div class="auth-logo">BSM</div>
-      <h1>Login Report Gudang</h1>
-      <p>Data report tersimpan di database SQL. Masuk untuk membuka aplikasi dan menyinkronkan data.</p>
+      <h1 id="authTitle">Login Report Gudang</h1>
+      <p id="authDescription">Wajib login untuk membuka sistem. Data report tersimpan di database online.</p>
       <form class="auth-form" id="authForm">
+        <label id="authDisplayNameLabel" hidden>Nama Admin<input id="authDisplayName" autocomplete="name" placeholder="Contoh: Admin BSM"></label>
         <label>Username<input id="authUsername" autocomplete="username" value="admin" required></label>
         <label>Password<input id="authPassword" type="password" autocomplete="current-password" required></label>
         <div class="auth-error" id="authError"></div>
@@ -1404,7 +1410,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       <section class="dashboard-page active" id="previewPage">
         
       <div class="report-toolbar">
-        <div class="hint">Preview Master 16:9 • semua jenis report digabung berurutan</div>
+        <div class="hint" id="previewScopeHint">Preview 16:9 • hanya report yang diizinkan untuk akun ini</div>
         <div class="carousel-controls">
           <button class="slide-nav-btn" id="prevSlideBtn" aria-label="Slide sebelumnya">‹</button>
           <strong id="slideCounter">Belum ada slide</strong>
@@ -1742,6 +1748,10 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var dbStatus=document.getElementById("dbStatus");
       var authGate=document.getElementById("authGate");
       var authForm=document.getElementById("authForm");
+      var authTitle=document.getElementById("authTitle");
+      var authDescription=document.getElementById("authDescription");
+      var authDisplayNameLabel=document.getElementById("authDisplayNameLabel");
+      var authDisplayName=document.getElementById("authDisplayName");
       var authUsername=document.getElementById("authUsername");
       var authPassword=document.getElementById("authPassword");
       var authError=document.getElementById("authError");
@@ -1913,9 +1923,6 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         role=String(role||"custom").toLowerCase();
         if(role==="admin")return ["*"];
         var base=(ROLE_PRESETS[role]||[]).slice();
-        if(role==="manager"||role==="editor"||role==="viewer"){
-          REPORT_TYPES.forEach(function(type){base.push("report."+type.id);});
-        }
         return Array.from(new Set(base));
       }
       function menuPermission(kind){
@@ -1979,10 +1986,11 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       function masterPages(){
         var pages=window.BSMReportMaster.flattenMaster(state);
         if(!cloudConfigured||!currentUser)return pages;
+        var isAdmin=String(currentUser.role||"").toLowerCase()==="admin";
         pages=pages.filter(function(page){
-          if(page.kind==="master-cover")return hasPermission("preview.view");
+          if(page.kind==="master-cover")return isAdmin&&hasPermission("preview.view");
           if(page.kind==="section-cover"||page.kind==="report")return canAccessReport(page.typeId);
-          return true;
+          return false;
         });
         return pages.length?pages:[{kind:"master-cover",key:"master-cover",label:"Cover Master",cover:state.cover||{}}];
       }
@@ -3091,14 +3099,19 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       function updateAccountUi(){
         if(accountBtn)accountBtn.textContent=currentUser?(currentUser.displayName||currentUser.username||"Akun"):"Login / Akun";
       }
-      function showAuthGate(message){
-        if(authGate)authGate.hidden=false;
+      function showAuthGate(message,mode){
+        mode=mode||"login";
+        if(authGate){authGate.hidden=false;authGate.dataset.mode=mode;}
+        if(authTitle)authTitle.textContent=mode==="setup"?"Buat Admin Pertama":"Login Report Gudang";
+        if(authDescription)authDescription.textContent=mode==="setup"?"Database online sudah aktif. Buat akun Admin pertama sebelum sistem dapat dibuka.":"Wajib login untuk membuka sistem. Data dan preview mengikuti akses akun.";
+        if(authDisplayNameLabel)authDisplayNameLabel.hidden=mode!=="setup";
+        if(authDisplayName)authDisplayName.required=mode==="setup";
         if(authError)authError.textContent=message||"";
         if(authPassword)authPassword.value="";
         if(authUsername&&!authUsername.value)authUsername.value="admin";
       }
       function hideAuthGate(){
-        if(authGate)authGate.hidden=true;
+        if(authGate){authGate.hidden=true;authGate.dataset.mode="";}
         if(authError)authError.textContent="";
       }
       function openAccountModal(){
@@ -3113,7 +3126,9 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(close)close.addEventListener("click",closeModal);
         if(logout)logout.addEventListener("click",async function(){
           try{if(localMode)localLogout();else await cloud.logout();}catch(_){}
-          currentUser=null;cloudReady=false;closeModal();updateAccountUi();showAuthGate(localMode?"Mode lokal aktif. Silakan login kembali.":"Silakan login kembali.");
+          currentUser=null;cloudReady=false;
+          try{localStorage.removeItem(STORAGE_KEY);sessionStorage.removeItem("bsm-report-cloud-version");}catch(_){}
+          closeModal();updateAccountUi();showAuthGate("Silakan login kembali.","login");
         });
         if(change)change.addEventListener("click",async function(){
           var oldInput=modalHost.querySelector("[data-current-password]");
@@ -3215,13 +3230,21 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if((!cloudConfigured&&!localMode)||!currentUser||!hasPermission("accounts.manage")){toast("Akses manajemen akun tidak tersedia");return;}
         var editing=!!user,firstLocal=localMode&&!localUsers().length,firstOnline=!!(currentUser&&currentUser.bootstrap),role=String(user&&user.role||((firstLocal||firstOnline)?"admin":"editor")).toLowerCase();
         var selected=editing?(Array.isArray(user.permissions)?user.permissions:rolePreset(role)):rolePreset(role);
-        modalHost.innerHTML='<div class="rg-modal-backdrop" data-user-backdrop><div class="rg-modal-card" role="dialog" aria-modal="true" aria-label="Akun & Role Akses"><div class="rg-modal-head"><strong>'+(editing?'Edit Akun':'Tambah Akun')+'</strong><button class="rg-modal-close" type="button" data-user-close>×</button></div><div class="rg-modal-body"><div class="account-form-grid"><label>Nama Akun<input data-user-name value="'+esc(user&&user.displayName||"")+'" placeholder="Contoh: Admin Gudang"></label><label>Username<input data-user-username value="'+esc(user&&user.username||"")+'" placeholder="admin.gudang" autocomplete="off"></label><label>Role<select data-user-role><option value="admin">Admin</option><option value="manager">Manager</option><option value="editor">Editor</option><option value="viewer">Viewer</option><option value="custom">Custom</option></select></label><label>Status<select data-user-active><option value="1">Aktif</option><option value="0">Non Aktif</option></select></label><label class="full">Password<input data-user-password type="password" autocomplete="new-password" placeholder="'+(editing?'Kosongkan jika tidak ingin mengganti password':'Minimal 10 karakter')+'"></label></div><div class="role-preset-note">Role menentukan akses awal. Centang/lepaskan akses di bawah untuk membuat kombinasi akses sesuai kebutuhan.</div><div data-permission-list>'+permissionOptionsHtml(selected)+'</div><div class="user-modal-actions"><button class="btn" type="button" data-user-cancel>Batal</button><button class="btn primary" type="button" data-user-save>'+(editing?'Simpan Perubahan':'Tambah Akun')+'</button></div></div></div></div>';
+        modalHost.innerHTML='<div class="rg-modal-backdrop" data-user-backdrop><div class="rg-modal-card" role="dialog" aria-modal="true" aria-label="Akun & Role Akses"><div class="rg-modal-head"><strong>'+(editing?'Edit Akun':'Tambah Akun')+'</strong><button class="rg-modal-close" type="button" data-user-close>×</button></div><div class="rg-modal-body"><div class="account-form-grid"><label>Nama Akun<input data-user-name value="'+esc(user&&user.displayName||"")+'" placeholder="Contoh: Admin Gudang"></label><label>Username<input data-user-username value="'+esc(user&&user.username||"")+'" placeholder="admin.gudang" autocomplete="off"></label><label>Role<select data-user-role><option value="admin">Admin</option><option value="manager">Manager</option><option value="editor">Editor</option><option value="viewer">Viewer</option><option value="custom">Custom</option></select></label><label>Status<select data-user-active><option value="1">Aktif</option><option value="0">Non Aktif</option></select></label><label class="full">Password<input data-user-password type="password" autocomplete="new-password" placeholder="'+(editing?'Kosongkan jika tidak ingin mengganti password':'Minimal 10 karakter')+'"></label></div><div class="role-preset-note"><strong>Akses dipisahkan per divisi.</strong> Untuk akun Gudang Kamera, centang hanya <strong>Gudang Kamera</strong>; data dan Preview akun itu tidak akan memuat report divisi lain.</div><label class="full" style="margin-top:12px">Preset Report Utama<select data-user-report-preset><option value="">Atur manual</option><option value="it">IT</option><option value="admin">Admin</option><option value="gudang-kamera">Gudang Kamera</option><option value="gudang-audio">Gudang Audio</option><option value="gudang-lighting">Gudang Lighting</option><option value="gudang-cinema">Gudang Cinema</option><option value="koordinator-crew">Koordinator Crew</option><option value="marketing">Marketing</option></select></label><div data-permission-list>'+permissionOptionsHtml(selected)+'</div><div class="user-modal-actions"><button class="btn" type="button" data-user-cancel>Batal</button><button class="btn primary" type="button" data-user-save>'+(editing?'Simpan Perubahan':'Tambah Akun')+'</button></div></div></div></div>';
         var card=modalHost.querySelector(".rg-modal-card"),roleSelect=card.querySelector("[data-user-role]"),activeSelect=card.querySelector("[data-user-active]");
         roleSelect.value=role;activeSelect.value=user&&user.isActive===false?"0":"1";
         setPermissionChecks(card,selected,role==="admin");
         roleSelect.addEventListener("change",function(){
           var preset=rolePreset(this.value);
           setPermissionChecks(card,preset,this.value==="admin");
+        });
+        var reportPreset=card.querySelector("[data-user-report-preset]");
+        if(reportPreset)reportPreset.addEventListener("change",function(){
+          var target=this.value;
+          if(!target)return;
+          Array.prototype.forEach.call(card.querySelectorAll('[data-role-permission^="report."]'),function(input){
+            input.checked=input.dataset.rolePermission==="report."+target;
+          });
         });
         var close=function(){closeModal();};
         modalHost.querySelector("[data-user-close]").addEventListener("click",close);
@@ -3287,25 +3310,25 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
       async function initializeCloud(){
         if(!cloud){
-          cloudConfigured=false;initializeLocalAccess();return;
+          cloudConfigured=false;cloudReady=false;currentUser=null;updateAccountUi();
+          if(dbStatus)dbStatus.textContent="SQL tidak tersedia";
+          showAuthGate("Backend database online tidak tersedia. Sistem dikunci sampai koneksi pulih.","login");
+          return;
         }
         try{
           if(dbStatus)dbStatus.textContent="Memeriksa SQL...";
           var health=await cloud.health();
           cloudConfigured=!!(health&&health.configured&&health.database);
           if(!cloudConfigured){
-            initializeLocalAccess();return;
+            cloudReady=false;currentUser=null;localMode=false;updateAccountUi();
+            if(dbStatus)dbStatus.textContent="SQL Offline";
+            showAuthGate("Database online belum siap. Sistem tidak dapat dibuka dalam mode lokal.","login");
+            return;
           }
           if(!health.adminConfigured){
-            localMode=false;
-            cloudReady=false;
-            currentUser={id:0,username:"setup-admin",displayName:"Setup Admin Online",role:"admin",permissions:["*"],isActive:true,bootstrap:true};
-            updateAccountUi();
-            hideAuthGate();
-            if(dbStatus)dbStatus.textContent="SQL Online • Buat Admin";
-            activeMenu="users";
-            renderAll();
-            showPage("users");
+            localMode=false;cloudReady=false;currentUser=null;updateAccountUi();
+            if(dbStatus)dbStatus.textContent="SQL Online • Setup Admin";
+            showAuthGate("Buat akun Admin Online pertama untuk mengaktifkan sistem.","setup");
             return;
           }
           if(!cloud.getToken()){
@@ -3357,8 +3380,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             if(dbStatus)dbStatus.textContent="SQL perlu login";
             showAuthGate("Sesi habis. Silakan login kembali.");
           }else{
-            hideAuthGate();
             if(dbStatus)dbStatus.textContent="SQL tidak dapat dihubungi";
+            showAuthGate("Database online sedang tidak dapat dihubungi. Akses sistem dikunci sampai koneksi kembali.","login");
             console.warn("SQL sync unavailable",err);
           }
         }
@@ -4014,13 +4037,21 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         try{
           authSubmit.disabled=true;authSubmit.textContent="Masuk...";
           authError.textContent="";
-          if(localMode&&!cloudConfigured){
-            var localResult=await localLogin(authUsername.value,authPassword.value);
-            currentUser=localResult.user||null;hideAuthGate();updateAccountUi();renderAll();showPage(activeMenu);
+          if(!cloud||!cloudConfigured){showAuthGate("Database online belum siap. Sistem tetap dikunci.","login");return;}
+          if(authGate&&authGate.dataset.mode==="setup"){
+            var boot=await cloud.bootstrapUser({
+              displayName:(authDisplayName&&authDisplayName.value||"").trim(),
+              username:authUsername.value,
+              password:authPassword.value,
+              role:"admin",permissions:["*"],isActive:true
+            });
+            currentUser=boot.user||null;cloudReady=true;localMode=false;
+            try{sessionStorage.removeItem("bsm-report-cloud-version");localStorage.removeItem(STORAGE_KEY);}catch(_){}
+            await initializeCloud();
           }else{
-            if(!cloud||!cloudConfigured){showAuthGate("Database SQL belum disambungkan.");return;}
             var result=await cloud.login(authUsername.value,authPassword.value);
             currentUser=result.user||null;
+            try{sessionStorage.removeItem("bsm-report-cloud-version");localStorage.removeItem(STORAGE_KEY);}catch(_){}
             await initializeCloud();
           }
         }catch(err){showAuthGate(err&&err.message?err.message:"Login gagal");}
