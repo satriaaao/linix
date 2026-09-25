@@ -397,6 +397,45 @@
       +'<div class="manual-workbook-foot"><span><strong>'+dataRows(book,typeId,active.id,book.activePeriod).length+'</strong> baris • <strong>'+esc(periodLabel(book.activePeriod))+'</strong></span><span>Sheet: <strong>'+esc(active.label)+'</strong></span></div>'
       +'</div>';
   }
+  function slideRowLimit(colCount){
+    colCount=Number(colCount||0);
+    if(colCount>14)return 14;
+    if(colCount>11)return 16;
+    if(colCount>8)return 18;
+    if(colCount>6)return 19;
+    return 21;
+  }
+  function slideCellText(value){
+    return String(value==null?'':value).replace(/\s+/g,' ').trim();
+  }
+  function slideLooksAmount(value){
+    var text=slideCellText(value);
+    if(!text||text==='-'||text==='—')return false;
+    return /^(?:rp\s*)?[+-]?[\d.,]+(?:\s*(?:jt|juta|rb|ribu|k|m))?$/i.test(text)&&/\d/.test(text);
+  }
+  function slideColumnKind(col,rows){
+    var label=slideCellText(col&&col[1]).toLowerCase(),key=slideCellText(col&&col[0]).toLowerCase();
+    if(/nama|produk|product|item|deskripsi|description|keterangan|indikasi|kronologi|catatan|remark|action|client|pelanggan|vendor|pic/.test(label+' '+key))return 'text';
+    var values=(rows||[]).map(function(row){return slideCellText(row&&row[col[0]]);}).filter(Boolean);
+    var amountHits=values.filter(slideLooksAmount).length;
+    var currencyHits=values.filter(function(v){return /^rp\s*/i.test(v);}).length;
+    if(currencyHits>0||(values.length>=2&&amountHits/values.length>=.72&&values.some(function(v){return /[.,]/.test(v);})))return 'money';
+    if(label.length<=3||/^(no|qty|jumlah|sn|kode|status|bulan|tahun|month|year)$/i.test(label))return 'short';
+    return 'default';
+  }
+  function slideColumnWidths(cols,rows){
+    var kinds=(cols||[]).map(function(col){return slideColumnKind(col,rows);});
+    var weights=(cols||[]).map(function(col,i){
+      var label=slideCellText(col&&col[1]),kind=kinds[i],maxLen=label.length;
+      (rows||[]).slice(0,40).forEach(function(row){maxLen=Math.max(maxLen,slideCellText(row&&row[col[0]]).length);});
+      if(kind==='text')return Math.min(6.2,4.8+Math.min(1.4,maxLen/55));
+      if(kind==='money')return 2.15;
+      if(kind==='short')return .62;
+      return Math.min(2.35,1.05+Math.min(1.3,maxLen/22));
+    });
+    var total=weights.reduce(function(sum,w){return sum+w;},0)||1,usable=96.6;
+    return weights.map(function(w){return (usable*w/total).toFixed(2)+'%';});
+  }
   function buildSlides(typeId,book,opts){
     opts=opts||{};
     var type=typeDef(typeId),slides=[];
@@ -413,8 +452,7 @@
           return row;
         });
         var colCount=(def.columns||[]).length;
-        var adaptiveSize=colCount>14?8:(colCount>10?9:(colCount>7?10:Number(def.pageSize||10)));
-        var size=Math.max(3,adaptiveSize),pages=Math.ceil(displayRows.length/size);
+        var size=Math.max(3,slideRowLimit(colCount)),pages=Math.ceil(displayRows.length/size);
         for(var i=0;i<displayRows.length;i+=size){
           slides.push({
             template:'manual-grid',
@@ -440,20 +478,26 @@
   }
   function renderSlide(report,escapeFn){
     report=report||{};var e=escapeFn||esc,cols=report.manualColumns||[],rows=report.manualRows||[];
-    var count=cols.length,dense=count>12?' manual-grid-ultra':(count>9?' manual-grid-dense':(count>7?' manual-grid-medium':''));
-    var head='<th class="manual-slide-no">No</th>'+cols.map(function(c){return '<th>'+e(c[1])+'</th>';}).join('');
+    var count=cols.length,dense=count>14?' manual-grid-ultra':(count>11?' manual-grid-dense':(count>8?' manual-grid-medium':''));
+    var kinds=cols.map(function(c){return slideColumnKind(c,rows);});
+    var widths=slideColumnWidths(cols,rows);
+    var colgroup='<colgroup><col class="manual-slide-no-col">'+cols.map(function(c,i){return '<col style="width:'+widths[i]+'">';}).join('')+'</colgroup>';
+    var head='<th class="manual-slide-no">No</th>'+cols.map(function(c,i){return '<th class="manual-col-'+kinds[i]+'">'+e(c[1])+'</th>';}).join('');
     var visibleNo=0;
     var body=rows.map(function(row){
       var total=!!(row&&row.__autoTotal);
       if(!total)visibleNo++;
-      return '<tr class="'+(total?'manual-slide-total':'')+'"><td class="manual-slide-no">'+(total?'Σ':visibleNo)+'</td>'+cols.map(function(c){return '<td>'+e(row&&row[c[0]]!=null?row[c[0]]:'')+'</td>';}).join('')+'</tr>';
+      return '<tr class="'+(total?'manual-slide-total':'')+'"><td class="manual-slide-no">'+(total?'Σ':visibleNo)+'</td>'+cols.map(function(c,i){
+        return '<td class="manual-col-'+kinds[i]+'">'+e(row&&row[c[0]]!=null?row[c[0]]:'')+'</td>';
+      }).join('')+'</tr>';
     }).join('');
-    var suffix=(report.pageTotal||1)>1?' ('+(report.pageNo||1)+'/'+report.pageTotal+')':'';
+    var pageTotal=Number(report.pageTotal||1),pageNo=Number(report.pageNo||1);
+    var pageBadge=pageTotal>1?'<div class="manual-slide-page">HALAMAN '+pageNo+' / '+pageTotal+'</div>':'';
     return '<section class="manual-grid-slide'+dense+'"><div class="manual-slide-grid"></div>'
       +'<div class="manual-slide-kicker"><div>// INPUT MANUAL</div><div class="accent">// '+e(String(report.reportType||'REPORT').toUpperCase())+'</div></div>'
-      +'<h1>'+e(report.manualTitle||'REPORT')+' <span>'+e(report.department||'BSM RENTAL')+'</span>'+suffix+'</h1>'
-      +'<div class="manual-slide-sub">Tabel manual • data tersimpan per report</div>'
-      +'<div class="manual-slide-table-wrap"><table class="manual-slide-table"><thead><tr>'+head+'</tr></thead><tbody>'+body+'</tbody></table></div>'
+      +'<div class="manual-slide-title-row"><h1>'+e(report.manualTitle||'REPORT')+' <span>'+e(report.department||'BSM RENTAL')+'</span></h1>'+pageBadge+'</div>'
+      +'<div class="manual-slide-sub">Tabel Excel • '+count+' kolom • '+rows.filter(function(r){return !(r&&r.__autoTotal);}).length+' baris pada halaman ini</div>'
+      +'<div class="manual-slide-table-wrap"><table class="manual-slide-table">'+colgroup+'<thead><tr>'+head+'</tr></thead><tbody>'+body+'</tbody></table></div>'
       +'<div class="manual-slide-footer"><strong>MBR PT BLUE STAR MEDIA</strong><i></i><b>// '+e(report.period||'2026')+'</b></div>'
       +'</section>';
   }
