@@ -1984,7 +1984,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       if(state.activeView<0||state.activeView>=masterPages().length) state.activeView=0;
     
       async function persistRemoteState(showMessage,keepalive){
-        if(!cloudReady||!cloud)return;
+        if(!cloudReady||!cloud||!hasPermission("data.write"))return;
         try{
           if(dbStatus)dbStatus.textContent="Menyimpan SQL...";
           var result=await cloud.saveState(state,!!keepalive);
@@ -3010,25 +3010,37 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           if(dbStatus)dbStatus.textContent="Menghubungkan SQL...";
           var me=await cloud.me();
           currentUser=me.user||null;
-          updateAccountUi();
-          var remote=await cloud.getState();
-          remoteVersion=Number(remote.version||0);
-          var applied="";
-          try{applied=sessionStorage.getItem("bsm-report-cloud-version")||"";}catch(_){}
-          if(remote.exists&&remote.state&&String(remoteVersion)!==applied){
-            localStorage.setItem(STORAGE_KEY,JSON.stringify(remote.state));
-            try{sessionStorage.setItem("bsm-report-cloud-version",String(remoteVersion));}catch(_){}
-            location.reload();
-            return;
-          }
           cloudReady=true;
-          hideAuthGate();
-          if(!remote.exists){
-            await persistRemoteState(false,false);
-          }else{
-            try{sessionStorage.setItem("bsm-report-cloud-version",String(remoteVersion));}catch(_){}
+          updateAccountUi();
+          var remote={exists:false,state:null,version:0};
+          if(hasPermission("data.read")){
+            remote=await cloud.getState();
+            remoteVersion=Number(remote.version||0);
+            var applied="";
+            try{applied=sessionStorage.getItem("bsm-report-cloud-version")||"";}catch(_){}
+            if(remote.exists&&remote.state&&String(remoteVersion)!==applied){
+              localStorage.setItem(STORAGE_KEY,JSON.stringify(remote.state));
+              try{sessionStorage.setItem("bsm-report-cloud-version",String(remoteVersion));}catch(_){}
+              location.reload();
+              return;
+            }
+            if(!remote.exists&&hasPermission("data.write")){
+              await persistRemoteState(false,false);
+            }else if(remote.exists){
+              try{sessionStorage.setItem("bsm-report-cloud-version",String(remoteVersion));}catch(_){}
+            }
           }
+          hideAuthGate();
           if(dbStatus)dbStatus.textContent="SQL tersambung";
+          if(!canOpenPage(activeMenu)){
+            if(hasPermission("accounts.manage"))activeMenu="users";
+            else if(hasPermission("preview.view"))activeMenu="preview";
+            else if(hasPermission("reports.list"))activeMenu="types";
+            else if(hasPermission("input.manual"))activeMenu="table";
+            else if(hasPermission("settings.manage"))activeMenu="settings";
+          }
+          renderAll();
+          showPage(activeMenu);
           if(currentUser&&currentUser.mustChangePassword)setTimeout(openAccountModal,250);
         }catch(err){
           cloudReady=false;currentUser=null;updateAccountUi();
@@ -3533,6 +3545,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       });
       try{if(localStorage.getItem("bsm-report-sidebar-collapsed")==="1"&&window.innerWidth>980)document.body.classList.add("sidebar-collapsed");}catch(_){}
       if(accountBtn)accountBtn.addEventListener("click",openAccountModal);
+      if(addUserBtn)addUserBtn.addEventListener("click",function(){openUserEditor(null);});
       if(installAppBtn)installAppBtn.addEventListener("click",installReportApp);
       window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();installPrompt=e;if(installAppBtn)installAppBtn.style.display="inline-flex";});
       window.addEventListener("appinstalled",function(){installPrompt=null;if(installAppBtn)installAppBtn.style.display="none";toast("Aplikasi BSM Report terpasang");});
@@ -3595,7 +3608,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       });
       window.addEventListener("online",function(){if(cloudReady)persistRemoteState(false,false);});
       setInterval(async function(){
-        if(!cloudReady||document.visibilityState!=="visible")return;
+        if(!cloudReady||!hasPermission("data.read")||document.visibilityState!=="visible")return;
         try{
           var remote=await cloud.getState();
           var applied="";
