@@ -523,6 +523,7 @@
         border-radius:12px!important;font-size:0!important;
       }
       #deleteSlideBtn:after{content:"×";font-size:20px;font-weight:800;line-height:1}
+      #itColumnsBtn{grid-column:span 4;width:100%;min-width:0;white-space:nowrap;padding:10px 8px!important;font-size:12px!important}
       .slide-dots{padding:1px 0 7px!important;gap:6px!important}
       .slide-dot{width:7px!important;height:7px!important}
       .slide-dot.active{width:22px!important}
@@ -1041,8 +1042,20 @@
     .it-products-table thead th{background:#e3f2f4;color:#086e76;height:32px}
     .it-products-table th:first-child,.it-products-table td:first-child{width:35px}
     .it-products-table th:nth-child(2){width:270px;text-align:left;font-size:12px;overflow-wrap:anywhere}
-    .it-products-table small{display:block;font-size:10px;margin-top:4px;min-height:12px}
-    .it-products-table .up{color:#15803d}.it-products-table .down{color:#b91c1c}.it-pending{color:#94a3b8}
+    .it-products-table .it-value{display:block;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05}
+    .it-products-table .it-growth{display:flex;align-items:center;justify-content:center;gap:4px;margin-top:3px;min-height:11px;font-size:9px;line-height:1;white-space:nowrap}
+    .it-products-table .it-growth .it-vs{color:#94a3b8;font-weight:650}
+    .it-products-table .it-growth .it-pct{font-weight:900}
+    .it-products-table .up,.it-products-table .it-growth.up .it-pct{color:#15803d}
+    .it-products-table .down,.it-products-table .it-growth.down .it-pct{color:#b91c1c}
+    .it-products-table .it-status{font-weight:900;letter-spacing:.02em}
+    .it-pending{color:#94a3b8}
+    .it-column-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0 16px}
+    .it-column-option{display:flex;align-items:center;gap:9px;border:1px solid #d6e2e5;border-radius:11px;padding:10px 11px;background:#fbfefe;font-size:12px;font-weight:800;color:#263547}
+    .it-column-option input{width:18px;height:18px;accent-color:#087d86}
+    .it-column-actions{display:flex;gap:8px}
+    .it-column-actions .btn{flex:1}
+    @media(max-width:600px){.it-column-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
   </style>
 </head>
 <body>
@@ -1241,6 +1254,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           <strong id="slideCounter">Belum ada slide</strong>
           <button class="slide-nav-btn" id="nextSlideBtn" aria-label="Slide berikutnya">›</button>
           <button class="btn ghost-danger" id="deleteSlideBtn">Hapus Slide</button>
+          <button class="btn" id="itColumnsBtn" style="display:none">Hapus Kolom</button>
           <button class="btn dark" id="presentationBtn">⛶ Presentasi</button>
           <button class="btn" id="resetSlideTextBtn">↺ Reset Teks</button>
         </div>
@@ -1521,6 +1535,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var prevSlideBtn=document.getElementById("prevSlideBtn");
       var nextSlideBtn=document.getElementById("nextSlideBtn");
       var deleteSlideBtn=document.getElementById("deleteSlideBtn");
+      var itColumnsBtn=document.getElementById("itColumnsBtn");
       var resetSlideTextBtn=document.getElementById("resetSlideTextBtn");
       var presentationBtn=document.getElementById("presentationBtn");
       var presentationPrevBtn=document.getElementById("presentationPrevBtn");
@@ -2026,6 +2041,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         var coverMode=page.kind==="master-cover"||page.kind==="section-cover";
         var itOmsetMode=page.kind==="report"&&page.report&&page.report.template==="it-omset";
         var itProductMode=page.kind==="report"&&page.report&&page.report.template==="it-product";
+        if(itColumnsBtn) itColumnsBtn.style.display=itProductMode?"":"none";
         var adminMode=page.kind==="report"&&page.report&&page.report.template==="admin-matrix";
         var cameraMode=page.kind==="report"&&page.report&&page.report.template==="camera-vendor";
         var cameraOpsMode=page.kind==="report"&&page.report&&(page.report.template==="camera-complaint"||page.report.template==="camera-service");
@@ -2210,6 +2226,37 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     
       function closeSidebar(){document.body.classList.remove("sidebar-open");}
       function closeModal(){modalHost.innerHTML="";}
+
+      function openITColumnsModal(){
+        var page=currentMasterPage();
+        if(!(page.kind==="report"&&page.report&&page.report.template==="it-product")) return;
+        var report=page.report,months=window.BSMITProducts.MONTHS||["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+        var latest=Number.isInteger(report.latestMonth)?report.latestMonth:-1;
+        if(latest<0)(report.products||[]).forEach(function(r){(r.values||[]).forEach(function(v,i){if(v!=null)latest=Math.max(latest,i);});});
+        var hidden=Array.isArray(report.hiddenMonths)?report.hiddenMonths.map(Number):[];
+        var options="";
+        for(var i=0;i<=latest;i++){
+          options+='<label class="it-column-option"><input type="checkbox" data-it-month="'+i+'" '+(hidden.indexOf(i)<0?'checked':'')+'><span>'+esc(months[i])+'</span></label>';
+        }
+        modalHost.innerHTML='<div class="rg-modal-backdrop" data-it-columns-backdrop><div class="rg-modal-card" role="dialog" aria-modal="true" aria-label="Atur kolom Analisis Produk"><div class="rg-modal-head"><strong>Hapus / Tampilkan Kolom</strong><button class="rg-modal-close" type="button" data-it-columns-close aria-label="Tutup">×</button></div><div class="rg-modal-body"><p class="tiny" style="margin:0 0 8px;line-height:1.55">Hilangkan centang untuk menghapus kolom dari semua slide Analisis Produk IT. Data asli tetap tersimpan dan kolom bisa ditampilkan lagi.</p><div class="it-column-grid">'+options+'</div><div class="it-column-actions"><button class="btn" type="button" data-it-columns-all>Tampilkan Semua</button><button class="btn primary" type="button" data-it-columns-save>Simpan Kolom</button></div></div></div></div>';
+        var backdrop=modalHost.querySelector("[data-it-columns-backdrop]");
+        var closeBtn=modalHost.querySelector("[data-it-columns-close]");
+        var allBtn=modalHost.querySelector("[data-it-columns-all]");
+        var saveBtn=modalHost.querySelector("[data-it-columns-save]");
+        if(backdrop)backdrop.addEventListener("click",function(e){if(e.target===backdrop)closeModal();});
+        if(closeBtn)closeBtn.addEventListener("click",closeModal);
+        if(allBtn)allBtn.addEventListener("click",function(){Array.prototype.forEach.call(modalHost.querySelectorAll("[data-it-month]"),function(input){input.checked=true;});});
+        if(saveBtn)saveBtn.addEventListener("click",function(){
+          var checks=Array.prototype.slice.call(modalHost.querySelectorAll("[data-it-month]"));
+          var visible=checks.filter(function(input){return input.checked;});
+          if(!visible.length){toast("Minimal satu kolom bulan harus tetap tampil");return;}
+          var nextHidden=checks.filter(function(input){return !input.checked;}).map(function(input){return Number(input.dataset.itMonth);});
+          var section=state.sections.it;
+          (section.slides||[]).forEach(function(slide){if(slide.template==="it-product")slide.hiddenMonths=nextHidden.slice();});
+          closeModal();renderAll();saveState(false);
+          toast(nextHidden.length?nextHidden.length+" kolom disembunyikan":"Semua kolom ditampilkan");
+        });
+      }
 
       function mountDashboardSections(){
         if(coverEditorSection.parentNode!==coverPageMount) coverPageMount.appendChild(coverEditorSection);
@@ -2846,6 +2893,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       prevSlideBtn.addEventListener("click",function(){changeSlide(-1);});
       nextSlideBtn.addEventListener("click",function(){changeSlide(1);});
       presentationBtn.addEventListener("click",enterPresentation);
+      if(itColumnsBtn) itColumnsBtn.addEventListener("click",openITColumnsModal);
       presentationPrevBtn.addEventListener("click",function(){changeSlide(-1);showPresentationControls();});
       presentationNextBtn.addEventListener("click",function(){changeSlide(1);showPresentationControls();});
       presentationExitBtn.addEventListener("click",exitPresentation);
