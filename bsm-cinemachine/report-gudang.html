@@ -1554,6 +1554,10 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         base.year=Number(src.year||base.year);
         base.subtitle=src.subtitle||base.subtitle;
         base.template=src.template||"";
+        base.sourceName=src.sourceName||"";
+        base.htmlSource=typeof src.htmlSource==="string"?src.htmlSource:"";
+        base.htmlContent=typeof src.htmlContent==="string"?src.htmlContent:"";
+        base.liveEditId=src.liveEditId||"";
         base.products=src.products?clone(src.products):null;
         base.omset=src.omset?clone(src.omset):null;
         base.reportType=src.reportType||"";
@@ -1923,6 +1927,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
       function canAccessReport(typeId){return hasPermission("report."+typeId);}
       function allowedReportTypes(){return REPORT_TYPES.filter(function(type){return canAccessReport(type.id);});}
+      function sameUserId(a,b){return String(a==null?"":a)===String(b==null?"":b);}
       function rolePreset(role){
         role=String(role||"custom").toLowerCase();
         if(role==="admin")return ["*"];
@@ -3364,11 +3369,11 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           userStats.innerHTML='<div class="user-stat"><span>Mode</span><strong>Lokal</strong></div><div class="user-stat"><span>Total Akun</span><strong>'+userCache.length+'</strong></div><div class="user-stat"><span>Akun Aktif</span><strong>'+activeLocal+'</strong></div><div class="user-stat"><span>Admin</span><strong>'+adminsLocal+'</strong></div>';
           usersTableBody.innerHTML=userCache.map(function(user){
             var role=String(user.role||"custom").toLowerCase(),permissions=Array.isArray(user.permissions)?user.permissions:[],access=role==="admin"?"Semua akses":permissions.length+" akses";
-            var isSelf=currentUser&&Number(currentUser.id)===Number(user.id);
+            var isSelf=currentUser&&sameUserId(currentUser.id,user.id);
             return '<tr><td><strong>'+esc(user.displayName||user.username)+'</strong>'+(isSelf?'<div class="tiny">Akun aktif sekarang</div>':'')+'</td><td>'+esc(user.username)+'</td><td><span class="role-badge '+esc(role)+'">'+esc(role)+'</span></td><td><span class="user-status '+(user.isActive===false?'off':'')+'">'+(user.isActive===false?'Non Aktif':'Aktif')+'</span></td><td>'+esc(access)+'</td><td><button class="table-action primary" data-edit-user="'+user.id+'">Edit</button>'+(isSelf?'':'<button class="table-action" data-delete-user="'+user.id+'">Hapus</button>')+'</td></tr>';
           }).join("")||'<tr><td colspan="6" style="padding:28px;text-align:center;color:#64748b">Belum ada akun. Klik <strong>+ Tambah Akun</strong> untuk membuat akun pertama. Akun pertama otomatis menjadi Admin.</td></tr>';
-          Array.prototype.forEach.call(usersTableBody.querySelectorAll("[data-edit-user]"),function(btn){btn.addEventListener("click",function(){var id=Number(this.dataset.editUser),user=userCache.find(function(x){return Number(x.id)===id;});openUserEditor(user);});});
-          Array.prototype.forEach.call(usersTableBody.querySelectorAll("[data-delete-user]"),function(btn){btn.addEventListener("click",async function(){var id=Number(this.dataset.deleteUser),user=userCache.find(function(x){return Number(x.id)===id;});if(!user||!confirm('Hapus akun "'+(user.displayName||user.username)+'"?'))return;try{this.disabled=true;await localDeleteUser(id);toast("Akun lokal dihapus");await renderUsersPage();}catch(err){toast(err.message||"Gagal menghapus akun");this.disabled=false;}});});
+          Array.prototype.forEach.call(usersTableBody.querySelectorAll("[data-edit-user]"),function(btn){btn.addEventListener("click",function(){var id=String(this.dataset.editUser||""),user=userCache.find(function(x){return sameUserId(x.id,id);});if(!user){toast("Akun tidak ditemukan");return;}openUserEditor(user);});});
+          Array.prototype.forEach.call(usersTableBody.querySelectorAll("[data-delete-user]"),function(btn){btn.addEventListener("click",async function(){var id=String(this.dataset.deleteUser||""),user=userCache.find(function(x){return sameUserId(x.id,id);});if(!user||!confirm('Hapus akun "'+(user.displayName||user.username)+'"?'))return;try{this.disabled=true;await localDeleteUser(id);toast("Akun lokal dihapus");await renderUsersPage();}catch(err){toast(err.message||"Gagal menghapus akun");this.disabled=false;}});});
           return;
         }
         if(!cloudConfigured){
@@ -3397,15 +3402,15 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           usersTableBody.innerHTML=userCache.map(function(user){
             var role=String(user.role||"custom").toLowerCase(),permissions=Array.isArray(user.permissions)?user.permissions:[];
             var access=role==="admin"?"Semua akses":permissions.length+" akses";
-            var isSelf=currentUser&&Number(currentUser.id)===Number(user.id);
+            var isSelf=currentUser&&sameUserId(currentUser.id,user.id);
             return '<tr><td><strong>'+esc(user.displayName||user.username)+'</strong>'+(isSelf?'<div class="tiny">Akun aktif sekarang</div>':'')+'</td><td>'+esc(user.username)+'</td><td><span class="role-badge '+esc(role)+'">'+esc(role)+'</span></td><td><span class="user-status '+(user.isActive===false?'off':'')+'">'+(user.isActive===false?'Non Aktif':'Aktif')+'</span></td><td>'+esc(access)+'</td><td><button class="table-action primary" data-edit-user="'+user.id+'">Edit</button>'+(isSelf?'':'<button class="table-action" data-delete-user="'+user.id+'">Hapus</button>')+'</td></tr>';
           }).join("")||'<tr><td colspan="6" style="padding:28px;text-align:center;color:#64748b">Belum ada akun.</td></tr>';
           Array.prototype.forEach.call(usersTableBody.querySelectorAll("[data-edit-user]"),function(btn){
-            btn.addEventListener("click",function(){var id=Number(this.dataset.editUser),user=userCache.find(function(x){return Number(x.id)===id;});openUserEditor(user);});
+            btn.addEventListener("click",function(){var id=String(this.dataset.editUser||""),user=userCache.find(function(x){return sameUserId(x.id,id);});if(!user){toast("Akun tidak ditemukan");return;}openUserEditor(user);});
           });
           Array.prototype.forEach.call(usersTableBody.querySelectorAll("[data-delete-user]"),function(btn){
             btn.addEventListener("click",async function(){
-              var id=Number(this.dataset.deleteUser),user=userCache.find(function(x){return Number(x.id)===id;});
+              var id=String(this.dataset.deleteUser||""),user=userCache.find(function(x){return sameUserId(x.id,id);});
               if(!user||!confirm('Hapus akun "'+(user.displayName||user.username)+'"?'))return;
               try{this.disabled=true;await cloud.deleteUser(id);toast("Akun dihapus");await renderUsersPage();}
               catch(err){toast(err&&err.message?err.message:"Gagal menghapus akun");this.disabled=false;}
@@ -3419,7 +3424,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if((!cloudConfigured&&!localMode)||!currentUser||!hasPermission("accounts.manage")){toast("Akses manajemen akun tidak tersedia");return;}
         var editing=!!user,firstLocal=localMode&&!localUsers().length,firstOnline=!!(currentUser&&currentUser.bootstrap),role=String(user&&user.role||((firstLocal||firstOnline)?"admin":"editor")).toLowerCase();
         var selected=editing?(Array.isArray(user.permissions)?user.permissions:rolePreset(role)):rolePreset(role);
-        modalHost.innerHTML='<div class="rg-modal-backdrop" data-user-backdrop><div class="rg-modal-card" role="dialog" aria-modal="true" aria-label="Akun & Role Akses"><div class="rg-modal-head"><strong>'+(editing?'Edit Akun':'Tambah Akun')+'</strong><button class="rg-modal-close" type="button" data-user-close>×</button></div><div class="rg-modal-body"><div class="account-form-grid"><label>Nama Akun<input data-user-name value="'+esc(user&&user.displayName||"")+'" placeholder="Contoh: Admin Gudang"></label><label>Username<input data-user-username value="'+esc(user&&user.username||"")+'" placeholder="admin.gudang" autocomplete="off"></label><label>Role<select data-user-role><option value="admin">Admin</option><option value="manager">Manager</option><option value="editor">Editor</option><option value="viewer">Viewer</option><option value="custom">Custom</option></select></label><label>Status<select data-user-active><option value="1">Aktif</option><option value="0">Non Aktif</option></select></label><label class="full">Password<input data-user-password type="password" autocomplete="new-password" placeholder="'+(editing?'Kosongkan jika tidak ingin mengganti password':'Minimal 10 karakter')+'"></label></div><div class="role-preset-note"><strong>Akses dipisahkan per divisi.</strong> Untuk akun Gudang Kamera, centang hanya <strong>Gudang Kamera</strong>; data dan Preview akun itu tidak akan memuat report divisi lain.</div><label class="full" style="margin-top:12px">Preset Report Utama<select data-user-report-preset><option value="">Atur manual</option><option value="it">IT</option><option value="admin">Admin</option><option value="gudang-kamera">Gudang Kamera</option><option value="gudang-audio">Gudang Audio</option><option value="gudang-lighting">Gudang Lighting</option><option value="gudang-cinema">Gudang Cinema</option><option value="koordinator-crew">Koordinator Crew</option><option value="marketing">Marketing</option></select></label><div data-permission-list>'+permissionOptionsHtml(selected)+'</div><div class="user-modal-actions"><button class="btn" type="button" data-user-cancel>Batal</button><button class="btn primary" type="button" data-user-save>'+(editing?'Simpan Perubahan':'Tambah Akun')+'</button></div></div></div></div>';
+        modalHost.innerHTML='<div class="rg-modal-backdrop" data-user-backdrop><div class="rg-modal-card" role="dialog" aria-modal="true" aria-label="Akun & Role Akses"><div class="rg-modal-head"><strong>'+(editing?'Edit Akun':'Tambah Akun')+'</strong><button class="rg-modal-close" type="button" data-user-close>×</button></div><div class="rg-modal-body"><div class="account-form-grid"><label>Nama Akun<input data-user-name value="'+esc(user&&user.displayName||"")+'" placeholder="Contoh: Admin Gudang"></label><label>Username<input data-user-username value="'+esc(user&&user.username||"")+'" placeholder="admin.gudang" autocomplete="off"></label><label>Role<select data-user-role><option value="admin">Admin</option><option value="manager">Manager</option><option value="editor">Editor</option><option value="viewer">Viewer</option><option value="custom">Custom</option></select></label><label>Status<select data-user-active><option value="1">Aktif</option><option value="0">Non Aktif</option></select></label><label class="full">Password<input data-user-password type="password" autocomplete="new-password" placeholder="'+(editing?'Kosongkan jika tidak ingin mengganti password':'Minimal 10 karakter')+'"></label></div><div class="role-preset-note"><strong>Akses dipisahkan per divisi.</strong> Untuk akun Gudang Kamera, centang hanya <strong>Gudang Kamera</strong>; data dan Preview akun itu tidak akan memuat report divisi lain.</div><label class="full" style="margin-top:12px">Preset Report Utama<select data-user-report-preset><option value="">Atur manual</option><option value="it">IT</option><option value="admin">Admin</option><option value="gudang-kamera">Gudang Kamera</option><option value="gudang-audio">Gudang Audio</option><option value="gudang-lighting">Gudang Lighting</option><option value="gudang-cinema">Gudang Cinema</option><option value="koordinator-crew">Koordinator Crew</option><option value="marketing">Marketing</option></select></label><div data-permission-list>'+permissionOptionsHtml(selected)+'</div><div class="auth-error" data-user-form-error aria-live="polite" style="margin-top:12px"></div><div class="user-modal-actions"><button class="btn" type="button" data-user-cancel>Batal</button><button class="btn primary" type="button" data-user-save>'+(editing?'Simpan Perubahan':'Tambah Akun')+'</button></div></div></div></div>';
         var card=modalHost.querySelector(".rg-modal-card"),roleSelect=card.querySelector("[data-user-role]"),activeSelect=card.querySelector("[data-user-active]");
         roleSelect.value=role;activeSelect.value=user&&user.isActive===false?"0":"1";
         setPermissionChecks(card,selected,role==="admin");
@@ -3440,15 +3445,19 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         modalHost.querySelector("[data-user-cancel]").addEventListener("click",close);
         modalHost.querySelector("[data-user-backdrop]").addEventListener("click",function(e){if(e.target===this)close();});
         modalHost.querySelector("[data-user-save]").addEventListener("click",async function(){
-          var btn=this,roleValue=roleSelect.value;
+          var btn=this,roleValue=roleSelect.value,errorBox=card.querySelector("[data-user-form-error]");
           var payload={
             displayName:card.querySelector("[data-user-name]").value.trim(),
-            username:card.querySelector("[data-user-username]").value.trim(),
+            username:card.querySelector("[data-user-username]").value.trim().toLowerCase(),
             role:roleValue,
             isActive:activeSelect.value==="1",
             password:card.querySelector("[data-user-password]").value,
             permissions:roleValue==="admin"?["*"]:selectedPermissionChecks(card)
           };
+          if(errorBox)errorBox.textContent="";
+          var userOk=/^[a-z0-9._-]{3,40}$/.test(payload.username)||/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.username);
+          var validationError=!payload.displayName?"Nama akun wajib diisi":(!userOk?"Username / email tidak valid":((!editing&&payload.password.length<10)?"Password minimal 10 karakter":((editing&&payload.password&&payload.password.length<10)?"Password baru minimal 10 karakter":"")));
+          if(validationError){if(errorBox)errorBox.textContent=validationError;toast(validationError);return;}
           if(editing)payload.id=user.id;
           try{
             btn.disabled=true;btn.textContent="Menyimpan...";
@@ -3471,7 +3480,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
               if(editing)await cloud.updateUser(payload);else await cloud.createUser(payload);
             }
             closeModal();toast(editing?"Akun diperbarui":"Akun berhasil ditambahkan");renderAll();await renderUsersPage();
-          }catch(err){toast(err&&err.message?err.message:"Gagal menyimpan akun");btn.disabled=false;btn.textContent=editing?"Simpan Perubahan":"Tambah Akun";}
+          }catch(err){var message=err&&err.message?err.message:"Gagal menyimpan akun";if(errorBox)errorBox.textContent=message;toast(message);btn.disabled=false;btn.textContent=editing?"Simpan Perubahan":"Tambah Akun";}
         });
       }
       function applyAccessUi(){
@@ -4310,5 +4319,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   </script>
   <!-- auth-scope-v2 -->
 </body>
-<!-- report-gudang-build-v39-html-blob-preview-cache14 -->
+<!-- report-gudang-build-v40-html-normalize-account-fix-cache15 -->
 </html>
