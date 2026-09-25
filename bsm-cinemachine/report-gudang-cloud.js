@@ -40,6 +40,11 @@
   }
 
   function health(){return request('health');}
+  async function bootstrapUser(payload){
+    var data=await request('bootstrap-user',{method:'POST',body:payload||{}});
+    setToken(data.token||'');
+    return data;
+  }
   async function login(username,password){
     var data=await request('login',{method:'POST',body:{username:username,password:password}});
     setToken(data.token||'');
@@ -65,6 +70,7 @@
     getToken:getToken,
     setToken:setToken,
     health:health,
+    bootstrapUser:bootstrapUser,
     login:login,
     logout:logout,
     me:me,
