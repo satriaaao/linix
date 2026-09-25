@@ -1896,6 +1896,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         });
       }
       function enableLiveTextEditing(){
+        if(!hasPermission("data.write"))return;
         var root=currentSlideRoot(),page=currentMasterPage();
         if(!root||!page) return;
         var pageKey=liveEditPageKey(page);
@@ -2288,7 +2289,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         var coverMode=page.kind==="master-cover"||page.kind==="section-cover";
         var itOmsetMode=page.kind==="report"&&page.report&&page.report.template==="it-omset";
         var itProductMode=page.kind==="report"&&page.report&&page.report.template==="it-product";
-        if(itColumnsBtn) itColumnsBtn.style.display=itProductMode?"":"none";
+        if(itColumnsBtn) itColumnsBtn.style.display=(itProductMode&&hasPermission("data.write"))?"":"none";
         var adminMode=page.kind==="report"&&page.report&&page.report.template==="admin-matrix";
         var cameraMode=page.kind==="report"&&page.report&&page.report.template==="camera-vendor";
         var cameraOpsMode=page.kind==="report"&&page.report&&(page.report.template==="camera-complaint"||page.report.template==="camera-service");
@@ -2860,6 +2861,114 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           finally{change.disabled=false;}
         });
       }
+      function permissionOptionsHtml(selected){
+        selected=Array.isArray(selected)?selected:[];
+        function checked(key){return selected.indexOf("*")>=0||selected.indexOf(key)>=0;}
+        var modules=MODULE_PERMISSIONS.map(function(p){
+          return '<label class="permission-option"><input type="checkbox" data-role-permission="'+p.key+'" '+(checked(p.key)?'checked':'')+'><span><strong>'+esc(p.label)+'</strong><small>'+esc(p.note)+'</small></span></label>';
+        }).join("");
+        var reports=REPORT_TYPES.map(function(type){
+          var key="report."+type.id;
+          return '<label class="permission-option"><input type="checkbox" data-role-permission="'+key+'" '+(checked(key)?'checked':'')+'><span><strong>'+esc(type.label)+'</strong><small>Akses data dan slide '+esc(type.label)+'</small></span></label>';
+        }).join("");
+        return '<div class="access-title"><strong>Akses Modul</strong><span>Pilih sesuai kebutuhan akun</span></div><div class="access-grid">'+modules+'</div><div class="access-title"><strong>Akses Jenis Report</strong><span>Per divisi/report</span></div><div class="access-grid">'+reports+'</div>';
+      }
+      function setPermissionChecks(container,permissions,disabled){
+        permissions=Array.isArray(permissions)?permissions:[];
+        Array.prototype.forEach.call(container.querySelectorAll("[data-role-permission]"),function(input){
+          input.checked=permissions.indexOf("*")>=0||permissions.indexOf(input.dataset.rolePermission)>=0;
+          input.disabled=!!disabled;
+        });
+      }
+      function selectedPermissionChecks(container){
+        return Array.prototype.slice.call(container.querySelectorAll("[data-role-permission]:checked")).map(function(input){return input.dataset.rolePermission;});
+      }
+      async function renderUsersPage(){
+        if(!usersTableBody||!userStats)return;
+        if(!cloudConfigured){
+          userStats.innerHTML='<div class="user-stat"><span>Status Database</span><strong>Belum Aktif</strong></div>';
+          usersTableBody.innerHTML='<tr><td colspan="6" style="padding:28px;text-align:center;color:#64748b">Sambungkan database SQL terlebih dahulu untuk memakai modul akun & role akses.</td></tr>';
+          return;
+        }
+        if(!currentUser||!hasPermission("accounts.manage")){
+          userStats.innerHTML="";
+          usersTableBody.innerHTML='<tr><td colspan="6" style="padding:28px;text-align:center;color:#64748b">Role akun ini tidak memiliki akses untuk mengelola akun.</td></tr>';
+          return;
+        }
+        try{
+          usersTableBody.innerHTML='<tr><td colspan="6" style="padding:28px;text-align:center;color:#64748b">Memuat akun...</td></tr>';
+          var result=await cloud.listUsers();
+          userCache=Array.isArray(result.users)?result.users:[];
+          var active=userCache.filter(function(x){return x.isActive!==false;}).length;
+          var admins=userCache.filter(function(x){return String(x.role||"").toLowerCase()==="admin"&&x.isActive!==false;}).length;
+          var custom=userCache.filter(function(x){return String(x.role||"").toLowerCase()==="custom";}).length;
+          userStats.innerHTML='<div class="user-stat"><span>Total Akun</span><strong>'+userCache.length+'</strong></div><div class="user-stat"><span>Akun Aktif</span><strong>'+active+'</strong></div><div class="user-stat"><span>Admin Aktif</span><strong>'+admins+'</strong></div><div class="user-stat"><span>Role Custom</span><strong>'+custom+'</strong></div>';
+          usersTableBody.innerHTML=userCache.map(function(user){
+            var role=String(user.role||"custom").toLowerCase(),permissions=Array.isArray(user.permissions)?user.permissions:[];
+            var access=role==="admin"?"Semua akses":permissions.length+" akses";
+            var isSelf=currentUser&&Number(currentUser.id)===Number(user.id);
+            return '<tr><td><strong>'+esc(user.displayName||user.username)+'</strong>'+(isSelf?'<div class="tiny">Akun aktif sekarang</div>':'')+'</td><td>'+esc(user.username)+'</td><td><span class="role-badge '+esc(role)+'">'+esc(role)+'</span></td><td><span class="user-status '+(user.isActive===false?'off':'')+'">'+(user.isActive===false?'Non Aktif':'Aktif')+'</span></td><td>'+esc(access)+'</td><td><button class="table-action primary" data-edit-user="'+user.id+'">Edit</button>'+(isSelf?'':'<button class="table-action" data-delete-user="'+user.id+'">Hapus</button>')+'</td></tr>';
+          }).join("")||'<tr><td colspan="6" style="padding:28px;text-align:center;color:#64748b">Belum ada akun.</td></tr>';
+          Array.prototype.forEach.call(usersTableBody.querySelectorAll("[data-edit-user]"),function(btn){
+            btn.addEventListener("click",function(){var id=Number(this.dataset.editUser),user=userCache.find(function(x){return Number(x.id)===id;});openUserEditor(user);});
+          });
+          Array.prototype.forEach.call(usersTableBody.querySelectorAll("[data-delete-user]"),function(btn){
+            btn.addEventListener("click",async function(){
+              var id=Number(this.dataset.deleteUser),user=userCache.find(function(x){return Number(x.id)===id;});
+              if(!user||!confirm('Hapus akun "'+(user.displayName||user.username)+'"?'))return;
+              try{this.disabled=true;await cloud.deleteUser(id);toast("Akun dihapus");await renderUsersPage();}
+              catch(err){toast(err&&err.message?err.message:"Gagal menghapus akun");this.disabled=false;}
+            });
+          });
+        }catch(err){
+          usersTableBody.innerHTML='<tr><td colspan="6" style="padding:28px;text-align:center;color:#b42318">'+esc(err&&err.message?err.message:"Gagal memuat akun")+'</td></tr>';
+        }
+      }
+      function openUserEditor(user){
+        if(!cloudConfigured||!currentUser||!hasPermission("accounts.manage")){toast("Akses manajemen akun tidak tersedia");return;}
+        var editing=!!user,role=String(user&&user.role||"editor").toLowerCase();
+        var selected=editing?(Array.isArray(user.permissions)?user.permissions:rolePreset(role)):rolePreset(role);
+        modalHost.innerHTML='<div class="rg-modal-backdrop" data-user-backdrop><div class="rg-modal-card" role="dialog" aria-modal="true" aria-label="Akun & Role Akses"><div class="rg-modal-head"><strong>'+(editing?'Edit Akun':'Tambah Akun')+'</strong><button class="rg-modal-close" type="button" data-user-close>×</button></div><div class="rg-modal-body"><div class="account-form-grid"><label>Nama Akun<input data-user-name value="'+esc(user&&user.displayName||"")+'" placeholder="Contoh: Admin Gudang"></label><label>Username<input data-user-username value="'+esc(user&&user.username||"")+'" placeholder="admin.gudang" autocomplete="off"></label><label>Role<select data-user-role><option value="admin">Admin</option><option value="manager">Manager</option><option value="editor">Editor</option><option value="viewer">Viewer</option><option value="custom">Custom</option></select></label><label>Status<select data-user-active><option value="1">Aktif</option><option value="0">Non Aktif</option></select></label><label class="full">Password<input data-user-password type="password" autocomplete="new-password" placeholder="'+(editing?'Kosongkan jika tidak ingin mengganti password':'Minimal 10 karakter')+'"></label></div><div class="role-preset-note">Role menentukan akses awal. Centang/lepaskan akses di bawah untuk membuat kombinasi akses sesuai kebutuhan.</div><div data-permission-list>'+permissionOptionsHtml(selected)+'</div><div class="user-modal-actions"><button class="btn" type="button" data-user-cancel>Batal</button><button class="btn primary" type="button" data-user-save>'+(editing?'Simpan Perubahan':'Tambah Akun')+'</button></div></div></div></div>';
+        var card=modalHost.querySelector(".rg-modal-card"),roleSelect=card.querySelector("[data-user-role]"),activeSelect=card.querySelector("[data-user-active]");
+        roleSelect.value=role;activeSelect.value=user&&user.isActive===false?"0":"1";
+        setPermissionChecks(card,selected,role==="admin");
+        roleSelect.addEventListener("change",function(){
+          var preset=rolePreset(this.value);
+          setPermissionChecks(card,preset,this.value==="admin");
+        });
+        var close=function(){closeModal();};
+        modalHost.querySelector("[data-user-close]").addEventListener("click",close);
+        modalHost.querySelector("[data-user-cancel]").addEventListener("click",close);
+        modalHost.querySelector("[data-user-backdrop]").addEventListener("click",function(e){if(e.target===this)close();});
+        modalHost.querySelector("[data-user-save]").addEventListener("click",async function(){
+          var btn=this,roleValue=roleSelect.value;
+          var payload={
+            displayName:card.querySelector("[data-user-name]").value.trim(),
+            username:card.querySelector("[data-user-username]").value.trim(),
+            role:roleValue,
+            isActive:activeSelect.value==="1",
+            password:card.querySelector("[data-user-password]").value,
+            permissions:roleValue==="admin"?["*"]:selectedPermissionChecks(card)
+          };
+          if(editing)payload.id=user.id;
+          try{
+            btn.disabled=true;btn.textContent="Menyimpan...";
+            if(editing)await cloud.updateUser(payload);else await cloud.createUser(payload);
+            closeModal();toast(editing?"Akun diperbarui":"Akun berhasil ditambahkan");await renderUsersPage();
+          }catch(err){toast(err&&err.message?err.message:"Gagal menyimpan akun");btn.disabled=false;btn.textContent=editing?"Simpan Perubahan":"Tambah Akun";}
+        });
+      }
+      function applyAccessUi(){
+        var write=hasPermission("data.write");
+        var save=document.getElementById("saveBtn"),addSlide=document.getElementById("addReportSlideBtn"),clear=document.getElementById("clearBtn");
+        if(save)save.style.display=write?"":"none";
+        if(addSlide)addSlide.style.display=write?"":"none";
+        if(clear)clear.style.display=hasPermission("data.clear")?"":"none";
+        if(deleteSlideBtn)deleteSlideBtn.style.display=write?"":"none";
+        if(resetSlideTextBtn)resetSlideTextBtn.style.display=write?"":"none";
+        if(addUserBtn)addUserBtn.style.display=hasPermission("accounts.manage")?"":"none";
+      }
+
       async function installReportApp(){
         if(installPrompt){
           installPrompt.prompt();
@@ -3185,6 +3294,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         renderSlidesPage();
         renderDownloadsPage();
         renderSidebarNav();
+        applyAccessUi();
         updateBulkContext();
         requestAnimationFrame(function(){
           ensureSlideSafeFit(currentSlideRoot());
