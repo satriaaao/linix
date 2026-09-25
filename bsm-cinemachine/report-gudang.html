@@ -108,6 +108,17 @@
     .account-user{padding:12px;border:1px solid #d9e5e7;border-radius:12px;background:#f7fbfb}
     .account-user strong{display:block;font-size:14px}.account-user span{font-size:11px;color:#64748b}
     .account-password{display:grid;gap:8px}.account-password input{width:100%;min-height:40px;border:1px solid #d5e0e3;border-radius:10px;padding:8px 10px}
+    .user-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+    .user-stat{padding:14px;border:1px solid #d9e5e7;border-radius:14px;background:#f8fbfb}.user-stat span{display:block;font-size:9px;font-weight:900;color:#6b7a88;text-transform:uppercase;letter-spacing:.08em}.user-stat strong{display:block;margin-top:4px;font-size:22px;color:#0f172a}
+    .role-badge{display:inline-flex;align-items:center;justify-content:center;min-height:24px;padding:0 9px;border-radius:999px;background:#e7f5f6;color:#066a72;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.06em}
+    .role-badge.admin{background:#e9e8ff;color:#5146a7}.role-badge.viewer{background:#f0f3f5;color:#52616f}.role-badge.editor{background:#eaf8ef;color:#247a42}.role-badge.manager{background:#fff4dc;color:#8a5a00}
+    .user-status{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:850}.user-status:before{content:"";width:7px;height:7px;border-radius:50%;background:#22c55e}.user-status.off{color:#9a5450}.user-status.off:before{background:#d95c52}
+    .account-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.account-form-grid .full{grid-column:1/-1}.account-form-grid label{display:grid;gap:6px;font-size:10px;font-weight:900;color:#526171;text-transform:uppercase;letter-spacing:.06em}.account-form-grid input,.account-form-grid select{width:100%;min-height:42px;border:1px solid #d5e0e3;border-radius:10px;padding:8px 10px;background:#fff;color:#14202f;outline:none}
+    .role-preset-note{margin:10px 0 0;padding:10px 12px;border-radius:10px;background:#f4f9fa;border:1px solid #dce9eb;color:#657784;font-size:10px;line-height:1.5}
+    .access-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 0 8px}.access-title strong{font-size:12px}.access-title span{font-size:9px;color:#71818e}
+    .access-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.permission-option{display:flex;align-items:flex-start;gap:9px;padding:10px;border:1px solid #dbe6e8;border-radius:11px;background:#fbfefe;font-size:10px;color:#344454}.permission-option input{width:17px;height:17px;accent-color:#087d86;flex:0 0 auto;margin-top:1px}.permission-option strong{display:block;font-size:10px;color:#243241}.permission-option small{display:block;margin-top:2px;color:#7a8995;font-size:9px;line-height:1.35}
+    .user-modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}.user-modal-actions .btn{min-width:120px}
+    @media(max-width:700px){.user-stats{grid-template-columns:1fr 1fr}.account-form-grid,.access-grid{grid-template-columns:1fr}.user-modal-actions{display:grid;grid-template-columns:1fr 1fr}.user-modal-actions .btn{min-width:0}}
     @media(max-width:980px){
       .desktop-sidebar-toggle{display:none!important}
       body.sidebar-collapsed .workspace{display:block!important;padding:8px!important}
@@ -1442,6 +1453,16 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           <div class="page-body" id="settingsPageMount"></div>
         </div>
       </section>
+
+      <section class="dashboard-page" id="usersPage">
+        <div class="page-card">
+          <div class="page-head"><div><h3>Manajemen Akun & Role Akses</h3><p>Tambah akun, atur role, status, dan akses setiap modul/report.</p></div><div class="page-actions"><button class="btn primary" id="addUserBtn">+ Tambah Akun</button></div></div>
+          <div class="page-body">
+            <div class="user-stats" id="userStats"></div>
+            <div class="data-table-wrap"><table class="data-table"><thead><tr><th>Nama</th><th>Username</th><th>Role</th><th>Status</th><th>Akses</th><th>Aksi</th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
+          </div>
+        </div>
+      </section>
       <div class="print-stack" id="printStack"></div>
     </main>
   </div>
@@ -1674,6 +1695,9 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var bulkPageMount=document.getElementById("bulkPageMount");
       var tablePageMount=document.getElementById("tablePageMount");
       var settingsPageMount=document.getElementById("settingsPageMount");
+      var usersTableBody=document.getElementById("usersTableBody");
+      var userStats=document.getElementById("userStats");
+      var addUserBtn=document.getElementById("addUserBtn");
       var editorPanel=document.getElementById("editorPanel");
       var sidebarHost=document.getElementById("sidebarHost");
       var sidebarScrim=document.getElementById("sidebarScrim");
