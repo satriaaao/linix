@@ -78,17 +78,24 @@
     var g=growth(previous,current);
     return '<small class="it-growth '+g.tone+'"><span class="it-vs">vs '+MONTHS[monthIndex-1]+'</span><span class="it-pct">'+esc(g.label)+'</span></small>';
   }
-  function renderSlide(report){
+  function renderSlide(report,options){
+    options=options||{};
+    var editable=!!options.editable;
     var data=report.products||[],latest=Number.isInteger(report.latestMonth)?report.latestMonth:-1;
     if(latest<0)data.forEach(function(r){r.values.forEach(function(v,i){if(v!=null)latest=Math.max(latest,i);});});
     var visibleIndexes=latest>=0?visibleMonthIndexes(report,latest):[];
     var statusMonth=visibleIndexes.length?visibleIndexes[visibleIndexes.length-1]:-1;
     var rows=data.map(function(r,i){
       var status=statusMonth>0?growth(r.values[statusMonth-1],r.values[statusMonth]):{label:'',status:'',tone:''};
-      return '<tr><td>'+esc(r.no||((report.pageNo-1)*PAGE_SIZE+i+1))+'</td><th scope="row">'+esc(r.name)+'</th>'+visibleIndexes.map(function(monthIndex){var v=r.values[monthIndex];return '<td title="'+esc(v==null?'':'Rp'+v.toLocaleString('id-ID'))+'">'+(v==null?'':'<span class="it-value">'+v.toLocaleString('id-ID',{maximumFractionDigits:0})+'</span>'+comparisonHtml(r.values,monthIndex))+'</td>';}).join('')+'<td class="it-status '+status.tone+'">'+esc(status.status)+'</td></tr>';
+      var rowDelete=editable?'<button type="button" class="it-edit-control it-row-delete" data-it-delete-row="'+i+'" title="Hapus baris '+esc(r.name)+'" aria-label="Hapus baris '+esc(r.name)+'">×</button>':'';
+      return '<tr><td class="it-no-cell">'+rowDelete+'<span>'+esc(r.no||((report.pageNo-1)*PAGE_SIZE+i+1))+'</span></td><th scope="row">'+esc(r.name)+'</th>'+visibleIndexes.map(function(monthIndex){var v=r.values[monthIndex];return '<td title="'+esc(v==null?'':'Rp'+v.toLocaleString('id-ID'))+'">'+(v==null?'':'<span class="it-value">'+v.toLocaleString('id-ID',{maximumFractionDigits:0})+'</span>'+comparisonHtml(r.values,monthIndex))+'</td>';}).join('')+'<td class="it-status '+status.tone+'">'+esc(status.status)+'</td></tr>';
     }).join('');
     var period=statusMonth>=0?'Januari–'+MONTHS[statusMonth]:'Januari';
-    return '<section class="it-product-slide it-products-full"><div class="omset-kicker">LAPORAN IT <span>2026 / '+(report.pageNo||1)+' dari '+(report.pageTotal||1)+'</span></div><h1>Analisis Produk <span>2026</span></h1><p>'+period+' · Rupiah · Perbandingan bulan ke bulan</p><table class="it-products-table"><thead><tr><th>No</th><th>Nama Produk</th>'+visibleIndexes.map(function(monthIndex){return '<th>'+MONTHS[monthIndex]+'</th>';}).join('')+'<th>Status '+(statusMonth>=0?MONTHS[statusMonth]:'')+'</th></tr></thead><tbody>'+rows+'</tbody></table></section>';
+    var monthHeaders=visibleIndexes.map(function(monthIndex){
+      var del=editable?'<button type="button" class="it-edit-control it-col-delete" data-it-delete-col="'+monthIndex+'" title="Hapus kolom '+MONTHS[monthIndex]+'" aria-label="Hapus kolom '+MONTHS[monthIndex]+'">×</button>':'';
+      return '<th><span class="it-col-head">'+MONTHS[monthIndex]+del+'</span></th>';
+    }).join('');
+    return '<section class="it-product-slide it-products-full"><div class="omset-kicker">LAPORAN IT <span>2026 / '+(report.pageNo||1)+' dari '+(report.pageTotal||1)+'</span></div><h1>Analisis Produk <span>2026</span></h1><p>'+period+' · Rupiah · Perbandingan bulan ke bulan</p><table class="it-products-table"><thead><tr><th>No</th><th>Nama Produk</th>'+monthHeaders+'<th>Status '+(statusMonth>=0?MONTHS[statusMonth]:'')+'</th></tr></thead><tbody>'+rows+'</tbody></table></section>';
   }
   return {MONTHS:MONTHS,parseRows:parseRows,parseWorkbook:parseWorkbook,createSlides:createSlides,renderSlide:renderSlide,growth:growth,visibleMonthIndexes:visibleMonthIndexes};
 });
