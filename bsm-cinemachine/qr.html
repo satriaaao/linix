@@ -894,8 +894,16 @@
     $('processCount').textContent='0 / '+total+' QR';
     $('processPercent').textContent='0%';
     $('processBar').style.width='0%';
+
+    const importMode=/Membuat QR Code/i.test(title||'');
+    const stepLabels=importMode
+      ? ['Membaca<br>file','Validasi<br>nomor seri','Membuat QR<br>& preview']
+      : ['Menganalisis<br>data QR','Mengoptimalkan<br>kualitas HD','Menyusun<br>halaman PDF'];
+
     ['processStep1','processStep2','processStep3'].forEach((id,i)=>{
       const el=$(id); if(!el) return;
+      const label=el.querySelector('span:last-child');
+      if(label) label.innerHTML=stepLabels[i];
       el.classList.remove('done','active');
       if(i===0) el.classList.add('active');
     });
@@ -1410,40 +1418,64 @@
     if(!file) return;
 
     const fileType=/\.txt$/i.test(file.name)?'TXT':/\.csv$/i.test(file.name)?'CSV':'Excel';
+    const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+    const importStage=async(pct,text,stageLabel,delay=650)=>{
+      updateProcess(pct,100,text);
+      $('processCount').textContent=stageLabel;
+      await yieldUi();
+      await wait(delay);
+    };
+
     setStatus('AI membaca '+file.name+'…');
     showProcess(
       'AI Sedang Proses Membuat QR Code',
-      'Membaca file '+fileType+' dan mencari nomor seri…',
-      0
+      'AI sedang menyiapkan file '+fileType+'…',
+      100
     );
-    $('processCount').textContent='Membaca file…';
-    await yieldUi();
+    $('processCount').textContent='Tahap 1 / 6';
+    await wait(450);
 
     try{
       let values=[];
 
+      await importStage(
+        12,
+        'AI sedang membuka dan membaca file '+fileType+'…',
+        'Tahap 1 / 6',
+        700
+      );
+
       if(/\.txt$/i.test(file.name)){
         const text=await file.text();
-        $('processText').textContent='AI sedang membaca isi TXT dan mengenali nomor seri…';
-        $('processPercent').textContent='20%';
-        $('processBar').style.width='20%';
-        await yieldUi();
+
+        await importStage(
+          28,
+          'AI membaca isi TXT dan memisahkan setiap nomor seri…',
+          'Tahap 2 / 6',
+          700
+        );
+
         values=parseText(text);
       }else{
         const data=await file.arrayBuffer();
-        $('processText').textContent='AI sedang membaca tabel '+fileType+'…';
-        $('processPercent').textContent='20%';
-        $('processBar').style.width='20%';
-        await yieldUi();
+
+        await importStage(
+          28,
+          'AI sedang membaca struktur tabel '+fileType+'…',
+          'Tahap 2 / 6',
+          750
+        );
 
         const wb=XLSX.read(data,{type:'array'});
         const ws=wb.Sheets[wb.SheetNames[0]];
         const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:''});
 
-        $('processText').textContent='AI mengenali kolom nomor seri secara otomatis…';
-        $('processPercent').textContent='45%';
-        $('processBar').style.width='45%';
-        await yieldUi();
+        await importStage(
+          44,
+          'AI mengenali kolom nomor seri secara otomatis…',
+          'Tahap 3 / 6',
+          800
+        );
 
         values=importRows(rows);
       }
@@ -1451,26 +1483,47 @@
       if(!values.length) throw new Error('Tidak ada nomor seri yang ditemukan');
 
       const total=values.length;
-      const stage2=Math.max(1,Math.min(total-1,Math.round(total*.68)));
-      updateProcess(stage2,total,'AI menyiapkan '+total+' nomor seri menjadi QR Code…');
-      await new Promise(resolve=>setTimeout(resolve,120));
+
+      await importStage(
+        58,
+        'AI memvalidasi '+total+' nomor seri dan membuang data kosong/duplikat…',
+        'Tahap 4 / 6',
+        800
+      );
 
       serials=values;
       els.input.value=values.join('\n');
 
-      updateProcess(Math.max(1,Math.min(total-1,Math.round(total*.86))),total,'AI membuat QR Code dan menyusun preview…');
-      await yieldUi();
-      render();
+      await importStage(
+        74,
+        'AI mulai membuat '+total+' QR Code…',
+        'Tahap 5 / 6',
+        850
+      );
 
-      updateProcess(total,total,'Selesai! '+total+' QR Code berhasil dibuat dari '+fileType+'.');
+      await importStage(
+        88,
+        'AI menyusun QR Code ke preview cetak…',
+        'Tahap 6 / 6',
+        750
+      );
+
+      render();
+      await yieldUi();
+
+      updateProcess(100,100,'Selesai! '+total+' QR Code berhasil dibuat dari '+fileType+'.');
+      $('processCount').textContent=total+' QR selesai';
       setStatus(total+' nomor seri diimpor dari '+file.name+' dan QR berhasil dibuat.');
-      await new Promise(resolve=>setTimeout(resolve,650));
+
+      // Biarkan state 100% terlihat sebentar sebelum popup menutup.
+      await wait(850);
     }catch(err){
       console.error(err);
       $('processText').textContent='File tidak bisa diproses. Periksa format atau kolom nomor seri.';
       $('processPercent').textContent='Gagal';
+      $('processCount').textContent='Proses dihentikan';
       setStatus('File tidak bisa dibaca. Pastikan format Excel/CSV/TXT valid dan berisi nomor seri.');
-      await new Promise(resolve=>setTimeout(resolve,900));
+      await wait(1000);
     }finally{
       hideProcess();
       els.file.value='';
