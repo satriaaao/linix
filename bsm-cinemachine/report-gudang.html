@@ -1788,6 +1788,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var LOCAL_SESSION_KEY="bsm-report-local-session-v1";
       var remoteVersion=0;
       var remoteSaveTimer=null;
+      var cloudRetryTimer=null;
       var installPrompt=null;
       var userCache=[];
       var ROLE_PRESETS={
@@ -3552,6 +3553,13 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(isIos)alert("Di iPhone/iPad: buka menu Share lalu pilih Add to Home Screen / Tambahkan ke Layar Utama.");
         else alert("Gunakan menu browser lalu pilih Install app / Tambahkan ke layar utama.");
       }
+      function clearCloudRetry(){
+        if(cloudRetryTimer){clearTimeout(cloudRetryTimer);cloudRetryTimer=null;}
+      }
+      function scheduleCloudRetry(delayMs){
+        clearCloudRetry();
+        cloudRetryTimer=setTimeout(function(){initializeCloud();},Math.max(15000,Number(delayMs||60000)));
+      }
       async function initializeCloud(){
         if(!cloud){
           cloudConfigured=false;cloudReady=false;currentUser=null;updateAccountUi();
@@ -3604,6 +3612,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
               try{sessionStorage.setItem("bsm-report-cloud-version",String(remoteVersion));}catch(_){}
             }
           }
+          clearCloudRetry();
           hideAuthGate();
           if(dbStatus)dbStatus.textContent="SQL tersambung";
           if(!canOpenPage(activeMenu)){
@@ -3620,12 +3629,19 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           cloudReady=false;currentUser=null;updateAccountUi();
           var status=Number(err&&err.status||0);
           if(status===401){
+            clearCloudRetry();
             if(cloud)cloud.setToken("");
             if(dbStatus)dbStatus.textContent="SQL perlu login";
             showAuthGate("Sesi habis. Silakan login kembali.");
+          }else if(status===402){
+            if(dbStatus)dbStatus.textContent="SQL pause sementara";
+            showAuthGate("Backend database sedang pause karena limit layanan harian. Sistem akan mencoba tersambung kembali otomatis setiap 60 detik. Data di perangkat tidak dihapus.","login");
+            scheduleCloudRetry(60000);
+            console.warn("SQL backend temporarily paused",err);
           }else{
             if(dbStatus)dbStatus.textContent="SQL tidak dapat dihubungi";
-            showAuthGate("Database online sedang tidak dapat dihubungi. Akses sistem dikunci sampai koneksi kembali.","login");
+            showAuthGate("Database online sedang tidak dapat dihubungi. Sistem akan mencoba tersambung kembali otomatis setiap 60 detik.","login");
+            scheduleCloudRetry(60000);
             console.warn("SQL sync unavailable",err);
           }
         }
@@ -4375,5 +4391,4 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   </script>
   <!-- auth-scope-v2 -->
 </body>
-<!-- report-gudang-build-v46-it-upload-monthly-routing-cache21 -->
-</html>
+<!-- report-gudang-build-v47-backend-auto-retry-cache22</html>
