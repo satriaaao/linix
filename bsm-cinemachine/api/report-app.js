@@ -1,4 +1,4 @@
-const TARGET='https://bsm-report-online-db-grm8vt.v2.appdeploy.ai/api/report-app';
+const TARGET='https://api-v2.appdeploy.ai/app/bsm-report-online-db-grm8vt/api/report-app';
 
 module.exports=async function handler(req,res){
   try{
