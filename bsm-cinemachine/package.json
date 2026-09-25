@@ -3,5 +3,11 @@
   "private": true,
   "engines": {
     "node": "22.x"
+  },
+  "scripts": {
+    "start:report-api": "node report-api-server.js"
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
   }
 }
