@@ -58,8 +58,8 @@
         {id:'vendor',label:'Barang Kurang / Vendor',pageSize:11,columns:[
           ['tanggal','Tgl Penyewaan'],['namaAlat','Nama Alat'],['qty','QTY'],['action','Action / Vendor'],['backup','Backup / Upgrade'],['harga','Harga Sewa'],['pic','PIC / Keterangan']
         ]},
-        {id:'service',label:'Barang Service',pageSize:12,columns:[
-          ['namaAlat','Model / Nama Alat'],['tanggal','Tanggal'],['stokSn','Stok Kantor / SN'],['total','Total'],['diService','Di Service'],['bisaJalan','Bisa Jalan'],['keterangan','Keterangan']
+        {id:'service',label:'Barang Service',pageSize:14,columns:[
+          ['namaAlat','Nama Alat'],['snLampu','SN Lampu'],['snControl','SN Control Box'],['serviceCenter','Tempat Service'],['tanggal','Tanggal Service'],['damage','Indikasi Rusak']
         ]},
         {id:'komplain',label:'Komplain',pageSize:8,columns:[
           ['tanggal','Tanggal'],['customer','Nama Customer'],['namaAlat','Nama Alat'],['qty','QTY'],['indikasi','Indikasi'],['kronologi','Kronologi'],['tindakan','Tindakan'],['pengeluaran','Pengeluaran'],['pic','PIC']
@@ -317,6 +317,30 @@
     if(custom)custom.columns=clone(sheet.columns);
     return true;
   }
+  function replaceSheetSchema(book,typeId,sheetId,labels,matrixRows,periodKey){
+    if(!book||!book.sheets)throw new Error('Workbook manual belum siap');
+    var def=sheetDef(typeId,sheetId,book),sheet=book.sheets[sheetId];
+    if(!sheet)throw new Error('Sheet tidak ditemukan');
+    var seen={},columns=(labels||[]).map(function(label,i){
+      var text=String(label==null?'':label).trim()||('Kolom '+(i+1));
+      var base=slug(text),key=base,n=2;
+      while(seen[key]){key=base+'_'+n;n++;}
+      seen[key]=true;return [key,text];
+    });
+    if(!columns.length)columns=[['kolom_1','Kolom 1']];
+    sheet.columns=clone(columns);
+    var custom=(book.customSheets||[]).find(function(s){return s.id===sheetId;});
+    if(custom)custom.columns=clone(columns);
+    var key=normalizePeriodKey(periodKey||book.activePeriod);
+    book.activePeriod=key;
+    if(!sheet.periodRows||typeof sheet.periodRows!=='object')sheet.periodRows={};
+    sheet.periodRows[key]=(matrixRows||[]).map(function(values){
+      var row={};columns.forEach(function(col,i){row[col[0]]=String(values&&values[i]!=null?values[i]:'').trim();});return row;
+    });
+    while(sheet.periodRows[key].length<6)sheet.periodRows[key].push(emptyRow({columns:columns}));
+    sheet.rows=sheet.periodRows[key];
+    return columns;
+  }
   function colLetter(index){
     var n=Number(index)+1,s='';
     while(n>0){n--;s=String.fromCharCode(65+(n%26))+s;n=Math.floor(n/26);}
@@ -350,7 +374,7 @@
     return '<div class="manual-workbook-card">'
       +'<div class="manual-workbook-head"><div><div class="manual-kicker">INPUT MANUAL • EXCEL MODE</div><h3>'+esc(def.label)+'</h3><p>'+(isWarehouse(typeId)?'Nama alat yang sama otomatis dikelompokkan dan dibuat baris TOTAL seperti laporan gudang.':'Setiap report memiliki tabelnya sendiri. Ketik langsung atau paste blok sel dari Excel / Google Sheets.')+'</p></div><div class="manual-head-actions"><div class="manual-period-picker"><label>Bulan<select data-manual-month>'+periodOptions+'</select></label><label>Tahun<input type="number" min="2020" max="2100" value="'+period.year+'" data-manual-year></label><span>'+esc(periodLabel(book.activePeriod))+'</span></div><span class="manual-save-badge" data-manual-status>Tersimpan otomatis</span><button type="button" class="btn primary" data-manual-preview>Perbarui Preview</button></div></div>'
       +'<div class="manual-sheet-tabs">'+tabs+'<button type="button" class="manual-add-sheet" data-manual-add-sheet>+ Tabel</button></div>'
-      +'<div class="manual-toolbar"><button type="button" class="btn" data-manual-add="1">+ 1 Baris</button><button type="button" class="btn" data-manual-add="10">+ 10 Baris</button><button type="button" class="btn primary" data-manual-add-column>+ Kolom</button><button type="button" class="btn" data-manual-export>XLSX</button><button type="button" class="btn ghost-danger" data-manual-clear>Kosongkan Tabel</button><div class="manual-toolbar-spacer"></div><span>Struktur kolom tersimpan otomatis dan bisa dipakai di Input Banyak.</span></div>'
+      +'<div class="manual-toolbar"><button type="button" class="btn primary" data-manual-bulk>+ Input Banyak / Excel</button><button type="button" class="btn" data-manual-add="1">+ 1 Baris</button><button type="button" class="btn" data-manual-add="10">+ 10 Baris</button><button type="button" class="btn primary" data-manual-add-column>+ Kolom</button><button type="button" class="btn" data-manual-export>XLSX</button><button type="button" class="btn ghost-danger" data-manual-clear>Kosongkan Tabel</button><div class="manual-toolbar-spacer"></div><span>Struktur kolom tersimpan otomatis dan bisa dipakai di Input Banyak.</span></div>'
       +'<div class="manual-grid-scroll"><table class="manual-grid-table"><thead><tr>'+heads+'</tr></thead><tbody>'+rows+'</tbody></table></div>'
       +'<div class="manual-workbook-foot"><span><strong>'+dataRows(book,typeId,active.id,book.activePeriod).length+'</strong> baris • <strong>'+esc(periodLabel(book.activePeriod))+'</strong></span><span>Sheet: <strong>'+esc(active.label)+'</strong></span></div>'
       +'</div>';
@@ -370,7 +394,9 @@
           if(entry.kind==='total')row.__autoTotal=true;
           return row;
         });
-        var size=Math.max(3,Number(def.pageSize||10)),pages=Math.ceil(displayRows.length/size);
+        var colCount=(def.columns||[]).length;
+        var adaptiveSize=colCount>14?8:(colCount>10?9:(colCount>7?10:Number(def.pageSize||10)));
+        var size=Math.max(3,adaptiveSize),pages=Math.ceil(displayRows.length/size);
         for(var i=0;i<displayRows.length;i+=size){
           slides.push({
             template:'manual-grid',
@@ -396,7 +422,7 @@
   }
   function renderSlide(report,escapeFn){
     report=report||{};var e=escapeFn||esc,cols=report.manualColumns||[],rows=report.manualRows||[];
-    var count=cols.length,dense=count>9?' manual-grid-dense':(count>7?' manual-grid-medium':'');
+    var count=cols.length,dense=count>12?' manual-grid-ultra':(count>9?' manual-grid-dense':(count>7?' manual-grid-medium':''));
     var head='<th class="manual-slide-no">No</th>'+cols.map(function(c){return '<th>'+e(c[1])+'</th>';}).join('');
     var visibleNo=0;
     var body=rows.map(function(row){
@@ -420,5 +446,5 @@
     rows.forEach(function(r){matrix.push(def.columns.map(function(c){return r[c[0]]||'';}));});
     return {name:(typeDef(typeId).label+'-'+def.label).replace(/[^a-z0-9]+/gi,'-').toLowerCase(),rows:matrix};
   }
-  return {TYPES:TYPES,MONTH_NAMES:MONTH_NAMES,typeDef:typeDef,sheetDef:sheetDef,allSheetDefs:allSheetDefs,emptyRow:emptyRow,ensureBook:ensureBook,setPeriod:setPeriod,periodKeys:periodKeys,periodParts:periodParts,periodLabel:periodLabel,normalizePeriodKey:normalizePeriodKey,rowEmpty:rowEmpty,dataRows:dataRows,isWarehouse:isWarehouse,groupedWarehouseEntries:groupedWarehouseEntries,createSheet:createSheet,deleteSheet:deleteSheet,addColumn:addColumn,renameColumn:renameColumn,deleteColumn:deleteColumn,renderEditor:renderEditor,buildSlides:buildSlides,renderSlide:renderSlide,exportMatrix:exportMatrix,colLetter:colLetter};
+  return {TYPES:TYPES,MONTH_NAMES:MONTH_NAMES,typeDef:typeDef,sheetDef:sheetDef,allSheetDefs:allSheetDefs,emptyRow:emptyRow,ensureBook:ensureBook,setPeriod:setPeriod,periodKeys:periodKeys,periodParts:periodParts,periodLabel:periodLabel,normalizePeriodKey:normalizePeriodKey,rowEmpty:rowEmpty,dataRows:dataRows,isWarehouse:isWarehouse,groupedWarehouseEntries:groupedWarehouseEntries,createSheet:createSheet,deleteSheet:deleteSheet,addColumn:addColumn,renameColumn:renameColumn,deleteColumn:deleteColumn,replaceSheetSchema:replaceSheetSchema,renderEditor:renderEditor,buildSlides:buildSlides,renderSlide:renderSlide,exportMatrix:exportMatrix,colLetter:colLetter};
 });
