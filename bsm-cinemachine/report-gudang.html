@@ -3124,6 +3124,11 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           usersTableBody.innerHTML='<tr><td colspan="6" style="padding:28px;text-align:center;color:#64748b">Role akun ini tidak memiliki akses untuk mengelola akun.</td></tr>';
           return;
         }
+        if(currentUser.bootstrap){
+          userStats.innerHTML='<div class="user-stat"><span>Status Database</span><strong>ONLINE</strong></div><div class="user-stat"><span>Akun Admin</span><strong>0</strong></div><div class="user-stat"><span>Mode</span><strong>Cloud</strong></div><div class="user-stat"><span>Langkah</span><strong>Buat Admin</strong></div>';
+          usersTableBody.innerHTML='<tr><td colspan="6" style="padding:32px;text-align:center"><strong>Database online sudah aktif.</strong><br><span style="color:#64748b;font-size:11px">Klik <strong>+ Tambah Akun</strong> untuk membuat akun Admin Online pertama.</span></td></tr>';
+          return;
+        }
         try{
           usersTableBody.innerHTML='<tr><td colspan="6" style="padding:28px;text-align:center;color:#64748b">Memuat akun...</td></tr>';
           var result=await cloud.listUsers();
@@ -3155,7 +3160,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
       function openUserEditor(user){
         if((!cloudConfigured&&!localMode)||!currentUser||!hasPermission("accounts.manage")){toast("Akses manajemen akun tidak tersedia");return;}
-        var editing=!!user,firstLocal=localMode&&!localUsers().length,role=String(user&&user.role||(firstLocal?"admin":"editor")).toLowerCase();
+        var editing=!!user,firstLocal=localMode&&!localUsers().length,firstOnline=!!(currentUser&&currentUser.bootstrap),role=String(user&&user.role||((firstLocal||firstOnline)?"admin":"editor")).toLowerCase();
         var selected=editing?(Array.isArray(user.permissions)?user.permissions:rolePreset(role)):rolePreset(role);
         modalHost.innerHTML='<div class="rg-modal-backdrop" data-user-backdrop><div class="rg-modal-card" role="dialog" aria-modal="true" aria-label="Akun & Role Akses"><div class="rg-modal-head"><strong>'+(editing?'Edit Akun':'Tambah Akun')+'</strong><button class="rg-modal-close" type="button" data-user-close>×</button></div><div class="rg-modal-body"><div class="account-form-grid"><label>Nama Akun<input data-user-name value="'+esc(user&&user.displayName||"")+'" placeholder="Contoh: Admin Gudang"></label><label>Username<input data-user-username value="'+esc(user&&user.username||"")+'" placeholder="admin.gudang" autocomplete="off"></label><label>Role<select data-user-role><option value="admin">Admin</option><option value="manager">Manager</option><option value="editor">Editor</option><option value="viewer">Viewer</option><option value="custom">Custom</option></select></label><label>Status<select data-user-active><option value="1">Aktif</option><option value="0">Non Aktif</option></select></label><label class="full">Password<input data-user-password type="password" autocomplete="new-password" placeholder="'+(editing?'Kosongkan jika tidak ingin mengganti password':'Minimal 10 karakter')+'"></label></div><div class="role-preset-note">Role menentukan akses awal. Centang/lepaskan akses di bawah untuk membuat kombinasi akses sesuai kebutuhan.</div><div data-permission-list>'+permissionOptionsHtml(selected)+'</div><div class="user-modal-actions"><button class="btn" type="button" data-user-cancel>Batal</button><button class="btn primary" type="button" data-user-save>'+(editing?'Simpan Perubahan':'Tambah Akun')+'</button></div></div></div></div>';
         var card=modalHost.querySelector(".rg-modal-card"),roleSelect=card.querySelector("[data-user-role]"),activeSelect=card.querySelector("[data-user-active]");
@@ -3185,10 +3190,22 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             if(localMode){
               if(editing)await localUpdateUser(payload);else await localCreateUser(payload);
               updateAccountUi();applyAccessUi();
+            }else if(currentUser&&currentUser.bootstrap&&!editing){
+              payload.role="admin";
+              payload.permissions=["*"];
+              payload.isActive=true;
+              var boot=await cloud.bootstrapUser(payload);
+              currentUser=boot.user||null;
+              cloudReady=true;
+              localMode=false;
+              try{localStorage.removeItem(LOCAL_USERS_KEY);sessionStorage.removeItem(LOCAL_SESSION_KEY);}catch(_){}
+              updateAccountUi();applyAccessUi();
+              await persistRemoteState(false,false);
+              if(dbStatus)dbStatus.textContent="SQL Online";
             }else{
               if(editing)await cloud.updateUser(payload);else await cloud.createUser(payload);
             }
-            closeModal();toast(editing?"Akun diperbarui":"Akun berhasil ditambahkan");await renderUsersPage();
+            closeModal();toast(editing?"Akun diperbarui":"Akun berhasil ditambahkan");renderAll();await renderUsersPage();
           }catch(err){toast(err&&err.message?err.message:"Gagal menyimpan akun");btn.disabled=false;btn.textContent=editing?"Simpan Perubahan":"Tambah Akun";}
         });
       }
@@ -3227,8 +3244,15 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             initializeLocalAccess();return;
           }
           if(!health.adminConfigured){
-            cloudReady=false;currentUser=null;updateAccountUi();hideAuthGate();
-            if(dbStatus)dbStatus.textContent="Admin SQL belum diset";
+            localMode=false;
+            cloudReady=false;
+            currentUser={id:0,username:"setup-admin",displayName:"Setup Admin Online",role:"admin",permissions:["*"],isActive:true,bootstrap:true};
+            updateAccountUi();
+            hideAuthGate();
+            if(dbStatus)dbStatus.textContent="SQL Online • Buat Admin";
+            activeMenu="users";
+            renderAll();
+            showPage("users");
             return;
           }
           if(!cloud.getToken()){
