@@ -329,7 +329,7 @@ module.exports=async function handler(req,res){
               'UPDATE app_users SET username=$1,display_name=$2,role=$3,permissions=$4::jsonb,is_active=$5,password_hash=$6,must_change_password=TRUE,updated_at=NOW() WHERE id=$7',
               [username,displayName,role,JSON.stringify(permissions),isActive,passwordHash(password),id]
             );
-            await getPool().query('DELETE FROM app_sessions WHERE user_id=$1 AND id<>(SELECT id FROM app_sessions WHERE user_id=$1 AND token_hash=$2 LIMIT 1)',[id,tokenHash(u.token)]).catch(()=>{});
+            await getPool().query('DELETE FROM app_sessions WHERE user_id=$1',[id]).catch(()=>{});
           }else{
             await getPool().query(
               'UPDATE app_users SET username=$1,display_name=$2,role=$3,permissions=$4::jsonb,is_active=$5,updated_at=NOW() WHERE id=$6',
