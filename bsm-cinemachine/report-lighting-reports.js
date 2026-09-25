@@ -45,7 +45,11 @@
         }else if(!current){
           current={name:lastName||'Barang Service',rows:[],stockSummary:'',stockTitle:''};
         }
-        current.rows.push({no:num(r[0]),item:name||lastName,snLamp:clean(r[2]),snControl:clean(r[3]),serviceCenter:clean(r[4]),date:excelDate(r[5]),damage:clean(r[6])});
+        var c4=r[4],c5=r[5],c6=r[6],c4s=clean(c4),c5s=clean(c5),looksDate4=(typeof c4==='number'&&c4>30000&&c4<70000)||/^\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}$/.test(c4s),looksDate5=(typeof c5==='number'&&c5>30000&&c5<70000)||/^\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}$/.test(c5s);
+        var serviceCenter='',serviceDate='',damage='';
+        if(looksDate4&&!looksDate5){serviceDate=excelDate(c4);damage=clean(c5)||clean(c6);}
+        else{serviceCenter=c4s;serviceDate=excelDate(c5);damage=clean(c6);}
+        current.rows.push({no:num(r[0]),item:name||lastName,snLamp:clean(r[2]),snControl:clean(r[3]),serviceCenter:serviceCenter,date:serviceDate,damage:damage});
       }else if(/^Stock /i.test(first)&&current){
         if(/^Stock BSM/i.test(first)){current.stockSummary=first;push();}
         else current.stockTitle=first;
