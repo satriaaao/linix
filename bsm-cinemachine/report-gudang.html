@@ -1719,7 +1719,10 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var cloud=window.BSMReportCloud||null;
       var cloudReady=false;
       var cloudConfigured=false;
+      var localMode=false;
       var currentUser=null;
+      var LOCAL_USERS_KEY="bsm-report-local-users-v1";
+      var LOCAL_SESSION_KEY="bsm-report-local-session-v1";
       var remoteVersion=0;
       var remoteSaveTimer=null;
       var installPrompt=null;
@@ -1749,13 +1752,124 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       function esc(v){
         return String(v==null?"":v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
       }
+      function localUsers(){
+        try{
+          var value=JSON.parse(localStorage.getItem(LOCAL_USERS_KEY)||"[]");
+          return Array.isArray(value)?value:[];
+        }catch(_){return [];}
+      }
+      function saveLocalUsers(users){
+        localStorage.setItem(LOCAL_USERS_KEY,JSON.stringify(Array.isArray(users)?users:[]));
+      }
+      function localPublicUser(user){
+        if(!user)return null;
+        return {id:user.id,username:user.username,displayName:user.displayName,role:user.role,permissions:Array.isArray(user.permissions)?user.permissions:[],mustChangePassword:!!user.mustChangePassword,isActive:user.isActive!==false,local:true};
+      }
+      function localSalt(){
+        var bytes=new Uint8Array(16);crypto.getRandomValues(bytes);
+        return Array.prototype.map.call(bytes,function(b){return b.toString(16).padStart(2,"0");}).join("");
+      }
+      async function localPasswordHash(password,salt){
+        if(!(window.crypto&&crypto.subtle))throw new Error("Browser tidak mendukung penyimpanan password lokal");
+        var enc=new TextEncoder();
+        var key=await crypto.subtle.importKey("raw",enc.encode(String(password||"")),{name:"PBKDF2"},false,["deriveBits"]);
+        var bits=await crypto.subtle.deriveBits({name:"PBKDF2",salt:enc.encode(String(salt||"")),iterations:100000,hash:"SHA-256"},key,256);
+        return Array.prototype.map.call(new Uint8Array(bits),function(b){return b.toString(16).padStart(2,"0");}).join("");
+      }
+      async function localCreateUser(payload){
+        var users=localUsers(),username=String(payload.username||"").trim().toLowerCase(),displayName=String(payload.displayName||"").trim(),password=String(payload.password||"");
+        if(!/^[a-z0-9._-]{3,40}$/.test(username))throw new Error("Username minimal 3 karakter dan hanya huruf kecil, angka, titik, garis bawah, atau strip");
+        if(!displayName)throw new Error("Nama akun wajib diisi");
+        if(password.length<10)throw new Error("Password minimal 10 karakter");
+        if(users.some(function(x){return x.username===username;}))throw new Error("Username sudah digunakan");
+        var first=users.length===0,role=first?"admin":String(payload.role||"editor").toLowerCase();
+        var salt=localSalt(),hash=await localPasswordHash(password,salt);
+        var user={id:Date.now()+Math.floor(Math.random()*1000),username:username,displayName:displayName,role:role,permissions:role==="admin"?["*"]:(Array.isArray(payload.permissions)?payload.permissions:[]),isActive:first?true:payload.isActive!==false,mustChangePassword:false,salt:salt,passwordHash:hash};
+        users.push(user);saveLocalUsers(users);
+        if(first){
+          sessionStorage.setItem(LOCAL_SESSION_KEY,String(user.id));
+          currentUser=localPublicUser(user);
+        }
+        return {ok:true,user:localPublicUser(user)};
+      }
+      async function localUpdateUser(payload){
+        var users=localUsers(),id=Number(payload.id||0),index=users.findIndex(function(x){return Number(x.id)===id;});
+        if(index<0)throw new Error("Akun tidak ditemukan");
+        var user=users[index],username=String(payload.username==null?user.username:payload.username).trim().toLowerCase(),displayName=String(payload.displayName==null?user.displayName:payload.displayName).trim();
+        if(!/^[a-z0-9._-]{3,40}$/.test(username))throw new Error("Username tidak valid");
+        if(!displayName)throw new Error("Nama akun wajib diisi");
+        if(users.some(function(x,i){return i!==index&&x.username===username;}))throw new Error("Username sudah digunakan");
+        var role=String(payload.role==null?user.role:payload.role).toLowerCase(),isSelf=currentUser&&Number(currentUser.id)===id;
+        if(isSelf&&String(currentUser.role).toLowerCase()==="admin")role="admin";
+        user.username=username;user.displayName=displayName;user.role=role;
+        user.permissions=role==="admin"?["*"]:(Array.isArray(payload.permissions)?payload.permissions:[]);
+        user.isActive=isSelf?true:payload.isActive!==false;
+        var password=String(payload.password||"");
+        if(password){
+          if(password.length<10)throw new Error("Password baru minimal 10 karakter");
+          user.salt=localSalt();user.passwordHash=await localPasswordHash(password,user.salt);
+        }
+        users[index]=user;saveLocalUsers(users);
+        if(isSelf)currentUser=localPublicUser(user);
+        return {ok:true,user:localPublicUser(user)};
+      }
+      async function localDeleteUser(id){
+        id=Number(id||0);
+        if(currentUser&&Number(currentUser.id)===id)throw new Error("Akun yang sedang dipakai tidak dapat dihapus");
+        var users=localUsers(),target=users.find(function(x){return Number(x.id)===id;});
+        if(!target)throw new Error("Akun tidak ditemukan");
+        if(String(target.role).toLowerCase()==="admin"&&users.filter(function(x){return x.isActive!==false&&String(x.role).toLowerCase()==="admin";}).length<=1)throw new Error("Minimal satu akun admin harus tetap aktif");
+        saveLocalUsers(users.filter(function(x){return Number(x.id)!==id;}));
+        return {ok:true};
+      }
+      async function localLogin(username,password){
+        var users=localUsers(),name=String(username||"").trim().toLowerCase();
+        var user=users.find(function(x){return x.username===name&&x.isActive!==false;});
+        if(!user)throw new Error("Username atau password salah");
+        var hash=await localPasswordHash(password,user.salt);
+        if(hash!==user.passwordHash)throw new Error("Username atau password salah");
+        sessionStorage.setItem(LOCAL_SESSION_KEY,String(user.id));
+        currentUser=localPublicUser(user);localMode=true;
+        return {ok:true,user:currentUser};
+      }
+      function localLogout(){
+        sessionStorage.removeItem(LOCAL_SESSION_KEY);currentUser=null;
+      }
+      async function localChangePassword(currentPassword,newPassword){
+        if(!currentUser)throw new Error("Belum login");
+        if(String(newPassword||"").length<10)throw new Error("Password baru minimal 10 karakter");
+        var users=localUsers(),index=users.findIndex(function(x){return Number(x.id)===Number(currentUser.id);});
+        if(index<0)throw new Error("Akun tidak ditemukan");
+        var user=users[index],hash=await localPasswordHash(currentPassword,user.salt);
+        if(hash!==user.passwordHash)throw new Error("Password lama salah");
+        user.salt=localSalt();user.passwordHash=await localPasswordHash(newPassword,user.salt);
+        users[index]=user;saveLocalUsers(users);
+        return {ok:true};
+      }
+      function initializeLocalAccess(){
+        localMode=true;cloudReady=false;
+        var users=localUsers(),sessionId=Number(sessionStorage.getItem(LOCAL_SESSION_KEY)||0);
+        var user=users.find(function(x){return Number(x.id)===sessionId&&x.isActive!==false;});
+        if(user){
+          currentUser=localPublicUser(user);hideAuthGate();
+        }else if(!users.length){
+          currentUser={id:0,username:"local-admin",displayName:"Admin Lokal",role:"admin",permissions:["*"],isActive:true,local:true,bootstrap:true};
+          hideAuthGate();
+        }else{
+          currentUser=null;showAuthGate("Mode lokal aktif. Silakan login.");
+        }
+        updateAccountUi();
+        if(dbStatus)dbStatus.textContent="Mode Lokal • SQL belum aktif";
+        renderAll();
+        if(activeMenu==="users")renderUsersPage();
+      }
       function userPermissions(){
         if(!currentUser)return [];
         if(String(currentUser.role||"").toLowerCase()==="admin")return ["*"];
         return Array.isArray(currentUser.permissions)?currentUser.permissions:[];
       }
       function hasPermission(key){
-        if(!cloudConfigured)return true;
+        if(!cloudConfigured&&!localMode)return true;
         if(!currentUser)return false;
         if(String(currentUser.role||"").toLowerCase()==="admin")return true;
         var list=userPermissions();
@@ -2832,11 +2946,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(authError)authError.textContent="";
       }
       function openAccountModal(){
-        if(!cloudConfigured){
-          toast("Database SQL belum disambungkan");
-          return;
-        }
-        if(!currentUser){showAuthGate("");return;}
+        if(!cloudConfigured&&!localMode){toast("Database SQL belum disambungkan");return;}
+        if(!currentUser){showAuthGate(localMode?"Mode lokal aktif. Silakan login.":"");return;}
         modalHost.innerHTML='<div class="rg-modal-backdrop" data-account-backdrop><div class="rg-modal-card" role="dialog" aria-modal="true" aria-label="Akun"><div class="rg-modal-head"><strong>Login / Akun</strong><button class="rg-modal-close" type="button" data-account-close>×</button></div><div class="rg-modal-body"><div class="account-grid"><div class="account-user"><strong>'+esc(currentUser.displayName||currentUser.username)+'</strong><span>'+esc(currentUser.username)+' • '+esc(currentUser.role||"user")+'</span></div><div class="account-password"><strong style="font-size:12px">Ganti Password</strong><input type="password" data-current-password placeholder="Password lama" autocomplete="current-password"><input type="password" data-new-password placeholder="Password baru minimal 10 karakter" autocomplete="new-password"><button class="btn primary" type="button" data-change-password>Ganti Password</button></div><button class="btn ghost-danger" type="button" data-account-logout>Keluar dari Akun</button></div></div></div></div>';
         var backdrop=modalHost.querySelector("[data-account-backdrop]");
         var close=modalHost.querySelector("[data-account-close]");
@@ -2845,15 +2956,15 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(backdrop)backdrop.addEventListener("click",function(e){if(e.target===backdrop)closeModal();});
         if(close)close.addEventListener("click",closeModal);
         if(logout)logout.addEventListener("click",async function(){
-          try{await cloud.logout();}catch(_){}
-          currentUser=null;cloudReady=false;closeModal();updateAccountUi();showAuthGate("Silakan login kembali.");
+          try{if(localMode)localLogout();else await cloud.logout();}catch(_){}
+          currentUser=null;cloudReady=false;closeModal();updateAccountUi();showAuthGate(localMode?"Mode lokal aktif. Silakan login kembali.":"Silakan login kembali.");
         });
         if(change)change.addEventListener("click",async function(){
           var oldInput=modalHost.querySelector("[data-current-password]");
           var newInput=modalHost.querySelector("[data-new-password]");
           try{
             change.disabled=true;
-            await cloud.changePassword(oldInput.value,newInput.value);
+            if(localMode)await localChangePassword(oldInput.value,newInput.value);else await cloud.changePassword(oldInput.value,newInput.value);
             currentUser.mustChangePassword=false;
             toast("Password berhasil diganti");
             closeModal();
@@ -2885,9 +2996,24 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
       async function renderUsersPage(){
         if(!usersTableBody||!userStats)return;
+        if(!cloudConfigured&&localMode){
+          userCache=localUsers().map(localPublicUser);
+          var activeLocal=userCache.filter(function(x){return x.isActive!==false;}).length;
+          var adminsLocal=userCache.filter(function(x){return String(x.role||"").toLowerCase()==="admin"&&x.isActive!==false;}).length;
+          var customLocal=userCache.filter(function(x){return String(x.role||"").toLowerCase()==="custom";}).length;
+          userStats.innerHTML='<div class="user-stat"><span>Mode</span><strong>Lokal</strong></div><div class="user-stat"><span>Total Akun</span><strong>'+userCache.length+'</strong></div><div class="user-stat"><span>Akun Aktif</span><strong>'+activeLocal+'</strong></div><div class="user-stat"><span>Admin</span><strong>'+adminsLocal+'</strong></div>';
+          usersTableBody.innerHTML=userCache.map(function(user){
+            var role=String(user.role||"custom").toLowerCase(),permissions=Array.isArray(user.permissions)?user.permissions:[],access=role==="admin"?"Semua akses":permissions.length+" akses";
+            var isSelf=currentUser&&Number(currentUser.id)===Number(user.id);
+            return '<tr><td><strong>'+esc(user.displayName||user.username)+'</strong>'+(isSelf?'<div class="tiny">Akun aktif sekarang</div>':'')+'</td><td>'+esc(user.username)+'</td><td><span class="role-badge '+esc(role)+'">'+esc(role)+'</span></td><td><span class="user-status '+(user.isActive===false?'off':'')+'">'+(user.isActive===false?'Non Aktif':'Aktif')+'</span></td><td>'+esc(access)+'</td><td><button class="table-action primary" data-edit-user="'+user.id+'">Edit</button>'+(isSelf?'':'<button class="table-action" data-delete-user="'+user.id+'">Hapus</button>')+'</td></tr>';
+          }).join("")||'<tr><td colspan="6" style="padding:28px;text-align:center;color:#64748b">Belum ada akun. Klik <strong>+ Tambah Akun</strong> untuk membuat akun pertama. Akun pertama otomatis menjadi Admin.</td></tr>';
+          Array.prototype.forEach.call(usersTableBody.querySelectorAll("[data-edit-user]"),function(btn){btn.addEventListener("click",function(){var id=Number(this.dataset.editUser),user=userCache.find(function(x){return Number(x.id)===id;});openUserEditor(user);});});
+          Array.prototype.forEach.call(usersTableBody.querySelectorAll("[data-delete-user]"),function(btn){btn.addEventListener("click",async function(){var id=Number(this.dataset.deleteUser),user=userCache.find(function(x){return Number(x.id)===id;});if(!user||!confirm('Hapus akun "'+(user.displayName||user.username)+'"?'))return;try{this.disabled=true;await localDeleteUser(id);toast("Akun lokal dihapus");await renderUsersPage();}catch(err){toast(err.message||"Gagal menghapus akun");this.disabled=false;}});});
+          return;
+        }
         if(!cloudConfigured){
           userStats.innerHTML='<div class="user-stat"><span>Status Database</span><strong>Belum Aktif</strong></div>';
-          usersTableBody.innerHTML='<tr><td colspan="6" style="padding:28px;text-align:center;color:#64748b">Sambungkan database SQL terlebih dahulu untuk memakai modul akun & role akses.</td></tr>';
+          usersTableBody.innerHTML='<tr><td colspan="6" style="padding:28px;text-align:center;color:#64748b">Database SQL belum aktif.</td></tr>';
           return;
         }
         if(!currentUser||!hasPermission("accounts.manage")){
@@ -2925,8 +3051,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         }
       }
       function openUserEditor(user){
-        if(!cloudConfigured||!currentUser||!hasPermission("accounts.manage")){toast("Akses manajemen akun tidak tersedia");return;}
-        var editing=!!user,role=String(user&&user.role||"editor").toLowerCase();
+        if((!cloudConfigured&&!localMode)||!currentUser||!hasPermission("accounts.manage")){toast("Akses manajemen akun tidak tersedia");return;}
+        var editing=!!user,firstLocal=localMode&&!localUsers().length,role=String(user&&user.role||(firstLocal?"admin":"editor")).toLowerCase();
         var selected=editing?(Array.isArray(user.permissions)?user.permissions:rolePreset(role)):rolePreset(role);
         modalHost.innerHTML='<div class="rg-modal-backdrop" data-user-backdrop><div class="rg-modal-card" role="dialog" aria-modal="true" aria-label="Akun & Role Akses"><div class="rg-modal-head"><strong>'+(editing?'Edit Akun':'Tambah Akun')+'</strong><button class="rg-modal-close" type="button" data-user-close>×</button></div><div class="rg-modal-body"><div class="account-form-grid"><label>Nama Akun<input data-user-name value="'+esc(user&&user.displayName||"")+'" placeholder="Contoh: Admin Gudang"></label><label>Username<input data-user-username value="'+esc(user&&user.username||"")+'" placeholder="admin.gudang" autocomplete="off"></label><label>Role<select data-user-role><option value="admin">Admin</option><option value="manager">Manager</option><option value="editor">Editor</option><option value="viewer">Viewer</option><option value="custom">Custom</option></select></label><label>Status<select data-user-active><option value="1">Aktif</option><option value="0">Non Aktif</option></select></label><label class="full">Password<input data-user-password type="password" autocomplete="new-password" placeholder="'+(editing?'Kosongkan jika tidak ingin mengganti password':'Minimal 10 karakter')+'"></label></div><div class="role-preset-note">Role menentukan akses awal. Centang/lepaskan akses di bawah untuk membuat kombinasi akses sesuai kebutuhan.</div><div data-permission-list>'+permissionOptionsHtml(selected)+'</div><div class="user-modal-actions"><button class="btn" type="button" data-user-cancel>Batal</button><button class="btn primary" type="button" data-user-save>'+(editing?'Simpan Perubahan':'Tambah Akun')+'</button></div></div></div></div>';
         var card=modalHost.querySelector(".rg-modal-card"),roleSelect=card.querySelector("[data-user-role]"),activeSelect=card.querySelector("[data-user-active]");
@@ -2953,7 +3079,12 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           if(editing)payload.id=user.id;
           try{
             btn.disabled=true;btn.textContent="Menyimpan...";
-            if(editing)await cloud.updateUser(payload);else await cloud.createUser(payload);
+            if(localMode){
+              if(editing)await localUpdateUser(payload);else await localCreateUser(payload);
+              updateAccountUi();applyAccessUi();
+            }else{
+              if(editing)await cloud.updateUser(payload);else await cloud.createUser(payload);
+            }
             closeModal();toast(editing?"Akun diperbarui":"Akun berhasil ditambahkan");await renderUsersPage();
           }catch(err){toast(err&&err.message?err.message:"Gagal menyimpan akun");btn.disabled=false;btn.textContent=editing?"Simpan Perubahan":"Tambah Akun";}
         });
@@ -2983,18 +3114,14 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
       async function initializeCloud(){
         if(!cloud){
-          cloudConfigured=false;cloudReady=false;hideAuthGate();
-          if(dbStatus)dbStatus.textContent="SQL belum tersedia";
-          return;
+          cloudConfigured=false;initializeLocalAccess();return;
         }
         try{
           if(dbStatus)dbStatus.textContent="Memeriksa SQL...";
           var health=await cloud.health();
           cloudConfigured=!!(health&&health.configured&&health.database);
           if(!cloudConfigured){
-            cloudReady=false;currentUser=null;updateAccountUi();hideAuthGate();
-            if(dbStatus)dbStatus.textContent="SQL belum disambungkan";
-            return;
+            initializeLocalAccess();return;
           }
           if(!health.adminConfigured){
             cloudReady=false;currentUser=null;updateAccountUi();hideAuthGate();
@@ -3551,13 +3678,18 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       window.addEventListener("appinstalled",function(){installPrompt=null;if(installAppBtn)installAppBtn.style.display="none";toast("Aplikasi BSM Report terpasang");});
       if(authForm)authForm.addEventListener("submit",async function(e){
         e.preventDefault();
-        if(!cloud||!cloudConfigured){showAuthGate("Database SQL belum disambungkan.");return;}
         try{
           authSubmit.disabled=true;authSubmit.textContent="Masuk...";
           authError.textContent="";
-          var result=await cloud.login(authUsername.value,authPassword.value);
-          currentUser=result.user||null;
-          await initializeCloud();
+          if(localMode&&!cloudConfigured){
+            var localResult=await localLogin(authUsername.value,authPassword.value);
+            currentUser=localResult.user||null;hideAuthGate();updateAccountUi();renderAll();showPage(activeMenu);
+          }else{
+            if(!cloud||!cloudConfigured){showAuthGate("Database SQL belum disambungkan.");return;}
+            var result=await cloud.login(authUsername.value,authPassword.value);
+            currentUser=result.user||null;
+            await initializeCloud();
+          }
         }catch(err){showAuthGate(err&&err.message?err.message:"Login gagal");}
         finally{authSubmit.disabled=false;authSubmit.textContent="Masuk";}
       });
