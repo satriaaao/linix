@@ -2637,26 +2637,27 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         var bodyStyle=doc.body?String(doc.body.getAttribute("style")||""):"";
         return styles+'<div class="html-upload-body"'+(bodyStyle?' style="'+esc(bodyStyle)+'"':'')+'>'+(doc.body?doc.body.innerHTML:"")+"</div>";
       }
+      function htmlPreviewSrcdoc(report){
+        var source=String(report&&report.htmlSource||"").trim();
+        if(source)return source;
+        var fallback=String(report&&report.htmlContent||"").trim();
+        if(!fallback)return "";
+        return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0">'+fallback+'</body></html>';
+      }
+      function htmlAttr(value){
+        return String(value==null?"":value).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+      }
       function renderHtmlPreviewSlide(report){
-        var content=String(report&&report.htmlContent||"").trim();
-        if(content)return '<section class="html-preview-slide">'+content+"</section>";
+        var doc=htmlPreviewSrcdoc(report);
+        if(doc)return '<section class="html-preview-slide"><iframe class="html-preview-frame is-ready" sandbox="allow-scripts" referrerpolicy="no-referrer" srcdoc="'+htmlAttr(doc)+'"></iframe></section>';
         return '<section class="html-preview-slide"><div style="display:flex;width:100%;height:100%;align-items:center;justify-content:center;font:700 28px Inter,Arial;color:#64748b">HTML belum dimuat</div></section>';
       }
       function mountHtmlPreview(report){
         htmlPreviewHost.innerHTML="";
         if(!report)return;
         var section=document.createElement("section");section.className="html-preview-slide";
-        var source=String(report.htmlSource||"").trim();
-        var fallback=String(report.htmlContent||"").trim();
-
-        if(fallback){
-          var fallbackLayer=document.createElement("div");
-          fallbackLayer.className="html-preview-fallback";
-          fallbackLayer.innerHTML=fallback;
-          section.appendChild(fallbackLayer);
-        }
-
-        if(source){
+        var doc=htmlPreviewSrcdoc(report);
+        if(doc){
           var frame=document.createElement("iframe");
           frame.className="html-preview-frame";
           frame.setAttribute("sandbox","allow-scripts");
@@ -2664,13 +2665,12 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           frame.setAttribute("loading","eager");
           frame.setAttribute("title",report.sourceName||"HTML Preview IT");
           frame.addEventListener("load",function(){frame.classList.add("is-ready");},{once:true});
-          frame.addEventListener("error",function(){frame.remove();},{once:true});
-
-          // iPad/iPhone Chrome uses WebKit. Sandboxed blob: URLs can render blank there,
-          // so use srcdoc directly. Fallback content remains underneath until load completes.
-          frame.srcdoc=source;
+          frame.addEventListener("error",function(){
+            section.innerHTML='<div style="display:flex;width:100%;height:100%;align-items:center;justify-content:center;font:700 28px Inter,Arial;color:#b42318">HTML gagal dimuat</div>';
+          },{once:true});
+          frame.srcdoc=doc;
           section.appendChild(frame);
-        }else if(!fallback){
+        }else{
           section.innerHTML='<div style="display:flex;width:100%;height:100%;align-items:center;justify-content:center;font:700 28px Inter,Arial;color:#64748b">HTML belum dimuat</div>';
         }
         htmlPreviewHost.appendChild(section);
@@ -4308,5 +4308,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   </script>
   <!-- auth-scope-v2 -->
 </body>
-<!-- report-gudang-build-v41-ios-srcdoc-fallback-cache16 -->
+<!-- report-gudang-build-v42-isolated-html-preview-cache17 -->
 </html>
