@@ -352,7 +352,32 @@
     }
     .process-card h3{position:relative;z-index:2;margin:0;color:#fff;font-size:21px;letter-spacing:-.02em}
     .process-title-accent{background:linear-gradient(90deg,#8cecff,#8db4ff,#b19bff);-webkit-background-clip:text;background-clip:text;color:transparent}
-    .process-card p{position:relative;z-index:2;margin:8px auto 18px;color:#c7d7ee;font-size:12px;line-height:1.55;max-width:390px}
+    .process-card p{position:relative;z-index:2;margin:8px auto 10px;color:#c7d7ee;font-size:12px;line-height:1.55;max-width:390px}
+    .process-ai-status{
+      position:relative;z-index:2;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      margin:0 auto 15px;padding:7px 14px;border-radius:999px;
+      border:1px solid rgba(74,205,255,.62);
+      background:linear-gradient(135deg,rgba(16,72,135,.54),rgba(74,54,153,.40));
+      box-shadow:0 0 18px rgba(45,190,255,.22),inset 0 0 16px rgba(120,100,255,.10);
+      color:#f5f8ff;font-size:13px;font-weight:900;letter-spacing:.01em;
+      animation:processAiStatusPulse 1.8s ease-in-out infinite
+    }
+    .process-ai-status strong{
+      background:linear-gradient(90deg,#39ddff,#a990ff,#ffffff);
+      -webkit-background-clip:text;background-clip:text;color:transparent
+    }
+    .process-ai-status .spark{
+      color:#55ddff;text-shadow:0 0 10px rgba(85,221,255,.85);
+      animation:processAiSpark 1.2s ease-in-out infinite alternate
+    }
+    @keyframes processAiStatusPulse{
+      0%,100%{transform:translateY(0) scale(1);box-shadow:0 0 16px rgba(45,190,255,.18),inset 0 0 16px rgba(120,100,255,.08)}
+      50%{transform:translateY(-1px) scale(1.015);box-shadow:0 0 26px rgba(45,190,255,.34),0 0 34px rgba(121,91,255,.18),inset 0 0 18px rgba(120,100,255,.14)}
+    }
+    @keyframes processAiSpark{
+      from{opacity:.55;transform:scale(.82) rotate(-8deg)}
+      to{opacity:1;transform:scale(1.12) rotate(8deg)}
+    }
     .process-track{
       position:relative;z-index:2;height:13px;border-radius:999px;background:rgba(116,151,205,.19);overflow:hidden;
       border:1px solid rgba(138,187,255,.14);box-shadow:inset 0 1px 4px rgba(0,0,0,.26)
@@ -804,6 +829,7 @@
     </div>
     <h3 id="processTitle">Membuat <span class="process-title-accent">PDF Stiker HD</span></h3>
     <p id="processText">Optimasi otomatis sedang menyusun QR, kualitas, dan tata letak untuk hasil cetak terbaik…</p>
+    <div class="process-ai-status" aria-label="AI Lagi Proses"><span class="spark">✦</span><strong>AI Lagi Proses</strong><span class="spark">✦</span></div>
     <div class="process-track"><div class="process-bar" id="processBar"></div></div>
     <div class="process-bottom">
       <span id="processCount">0 / 0 QR</span>
