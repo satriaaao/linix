@@ -30,7 +30,7 @@
       ['types','Jenis Report'],
       ['master-cover','Cover Master'],
       ['bulk','Input Banyak'],
-      ['table','Editor Report Aktif'],
+      ['table','Input Manual / Tabel'],
       ['downloads','Download Data'],
       ['pdf','Download PDF 16:9'],
       ['settings','Pengaturan'],
