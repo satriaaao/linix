@@ -33,7 +33,9 @@
       ['table','Editor Report Aktif'],
       ['downloads','Download Data'],
       ['pdf','Download PDF 16:9'],
-      ['settings','Pengaturan']
+      ['settings','Pengaturan'],
+      ['account','Login / Akun'],
+      ['install','Install Aplikasi']
     ];
     var html=items.map(function(it){
       var isActive=active===it[0]||(it[0]==='master-cover'&&active==='cover'&&coverTarget==='master');
