@@ -1478,6 +1478,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     (function(){
       var STORAGE_KEY = "bsm-report-gudang-v2";
       var OLD_STORAGE_KEY = "bsm-report-gudang-v1";
+      var FORCE_RESET_KEY = "bsm-report-gudang-reset-20260925-1810";
       var months = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
       var shortMonths = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
     
@@ -1526,6 +1527,15 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     
       function loadState(){
         try{
+          if(localStorage.getItem(FORCE_RESET_KEY)!=="done"){
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(OLD_STORAGE_KEY);
+            localStorage.setItem(FORCE_RESET_KEY,"done");
+            try{
+              sessionStorage.removeItem("bsm-report-cloud-version");
+            }catch(_){}
+            return {draft:emptyReport(),slides:[],activeSlide:-1,manualSheets:{}};
+          }
           var raw=localStorage.getItem(STORAGE_KEY);
           if(raw){
             var parsed=JSON.parse(raw);
@@ -3263,6 +3273,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           cover.mainTitle1="MBR";cover.mainTitle2="PT BLUE STAR MEDIA";cover.titleTop1="// MASTER BUSINESS REVIEW";cover.titleTop2="// MASTER REPORT";
           cover.dataPrefix="DIVISI :";cover.item1="OPERASIONAL";cover.item2="GUDANG";cover.item3="MARKETING";cover.footerRight="// MASTER REPORT";
           cover.logo={image:"",width:180,x:0,y:0};
+          localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem(OLD_STORAGE_KEY);
           state={draft:emptyReport(),slides:[],activeSlide:0,activeView:0,cover:cover,masterVersion:1,activeType:"it",coverTarget:"master",manualSheets:{}};
           state.sections=window.BSMReportMaster.createSections(cover,[]);
           ensureMasterReports();bindActiveSection(0);renderAll();saveState(true);setMobileTab(false);
