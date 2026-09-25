@@ -1027,7 +1027,22 @@
 
   
 .it-product-slide{position:relative;width:1480px;height:820px;padding:28px 34px 24px;background:#fbfdfd;overflow:hidden;color:#182235}.it-product-slide h1{margin:5px 0 4px;font-size:50px;line-height:1;font-weight:950;letter-spacing:-.035em}.it-product-slide h1 span{color:#087d86}.it-product-chart{position:relative;margin-top:12px;border:1px solid #cbdde2;background:rgba(255,255,255,.8);height:270px;padding:12px 15px}.it-product-chart header{display:flex;justify-content:space-between;color:#087d86;font-size:15px;letter-spacing:.12em}.it-product-chart header small{font-size:9px;color:#7b8794}.it-product-svg{width:100%;height:205px;margin-top:5px}.it-product-svg .product-line{stroke:#087d86}.it-product-svg .p1{stroke:#111827}.it-product-svg .p2{stroke:#8793a1}.it-product-svg .p3{stroke:#4b5563}.it-product-svg .p4{stroke:#0f9da7}.it-product-svg circle{fill:#fff;stroke:#087d86;stroke-width:3;cursor:pointer}.it-product-table-wrap{margin-top:12px;border:1px solid #cbdde2;overflow:hidden}.it-product-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10px}.it-product-table th,.it-product-table td{border-right:1px solid #dbe5e7;border-bottom:1px solid #dbe5e7;padding:6px 4px;text-align:center;white-space:nowrap}.it-product-table th{background:#e3f2f4;color:#086e76;font-size:9px;text-transform:uppercase}.it-product-table th:nth-child(1){width:34px}.it-product-table th:nth-child(2){width:270px;text-align:left}.it-product-table .product-name{text-align:left;font-weight:750;overflow:hidden;text-overflow:ellipsis}.it-product-table .pending{color:#9aa6b2;background:#f7f9fa}.it-product-slide .omset-footer{position:absolute;left:34px;right:34px;bottom:18px}.it-product-slide .omset-months{padding-left:15px;padding-right:12px}
-</style>
+    .it-products-full{width:1600px!important;height:900px!important;box-sizing:border-box;padding:26px 30px;background:#fff}
+    .it-products-full h1{font-size:38px;letter-spacing:0;margin:12px 0}
+    .it-products-full p{font-size:16px;margin:8px 0;color:#64748b}
+    .it-products-full .omset-kicker{display:flex;justify-content:space-between}
+    .it-products-chart{height:190px;border-bottom:1px solid #cbdde2}
+    .it-products-chart svg{width:100%;height:100%;font:13px Arial;fill:#64748b}
+    .it-products-chart circle{cursor:pointer}
+    .it-products-detail{height:35px;line-height:35px;font-size:14px;color:#087d86;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+    .it-products-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:11px}
+    .it-products-table th,.it-products-table td{border:1px solid #dbe5e7;padding:5px 3px;text-align:center;height:39px;box-sizing:border-box}
+    .it-products-table thead th{background:#e3f2f4;color:#086e76;height:32px}
+    .it-products-table th:first-child,.it-products-table td:first-child{width:35px}
+    .it-products-table th:nth-child(2){width:270px;text-align:left;font-size:12px;overflow-wrap:anywhere}
+    .it-products-table small{display:block;font-size:10px;margin-top:4px;min-height:12px}
+    .it-products-table .up{color:#15803d}.it-products-table .down{color:#b91c1c}.it-pending{color:#94a3b8}
+  </style>
 </head>
 <body>
   <header class="topbar">
@@ -1110,6 +1125,11 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
 1     1-Jun-26         Spotlight 36&quot;    1    Spotlight 19&quot; DS    133.200
       22-Jun-26                         1    DS                   166.500"></textarea>
         <div class="bulk-help">Tempel langsung dari Excel / Google Sheets. Auto Detect mengenali format report. Data panjang otomatis dipecah menjadi beberapa slide 16:9.</div>
+        <div class="field" style="margin-top:10px">
+          <label for="itExcelInput">Upload Excel IT — Analisis Produk</label>
+          <input class="control" id="itExcelInput" type="file" accept=".xlsx,.xls,.xlsm" />
+          <div class="tiny" id="itImportStatus" role="status">Kolom Nama Produk dan Januari–Desember. Upload mengganti laporan produk IT.</div>
+        </div>
         <div class="field" style="margin-top:10px">
           <label>Import Workbook Gudang Kamera</label>
           <input class="control" id="cameraExcelInput" type="file" accept=".xlsx,.xls" />
@@ -1303,6 +1323,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-master.js"></script>
   <script src="/report-admin-matrix.js"></script>
   <script src="/report-it-omset.js"></script>
+  <script src="/report-it-products.js"></script>
+  <script src="/report-it-products-data.js"></script>
   <script src="/report-camera-vendor.js"></script>
   <script src="/report-camera-reports.js"></script>
   <script src="/report-audio-reports.js"></script>
@@ -1366,6 +1388,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         base.year=Number(src.year||base.year);
         base.subtitle=src.subtitle||base.subtitle;
         base.template=src.template||"";
+        base.products=src.products?clone(src.products):null;
+        base.omset=src.omset?clone(src.omset):null;
         base.reportType=src.reportType||"";
         base.matrix=src.matrix?clone(src.matrix):null;
         base.cameraVendor=src.cameraVendor?clone(src.cameraVendor):null;
@@ -1485,6 +1509,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var bulkModeSelect=document.getElementById("bulkModeSelect");
       var bulkContextText=document.getElementById("bulkContextText");
       var cameraExcelInput=document.getElementById("cameraExcelInput");
+      var itExcelInput=document.getElementById("itExcelInput");
       var audioExcelInput=document.getElementById("audioExcelInput");
       var cinemaExcelInput=document.getElementById("cinemaExcelInput");
       var lightingExcelInput=document.getElementById("lightingExcelInput");
@@ -1570,7 +1595,9 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             var hasOmset=(section.slides||[]).some(function(r){return r.template==="it-omset";});
             if(!hasOmset)section.slides.unshift(window.BSMITOmset.createSlide());
             var hasProducts=(section.slides||[]).some(function(r){return r.template==="it-product";});
-            if(!hasProducts)section.slides.push(window.BSMITOmset.createProductSlide());
+            if(!hasProducts||section.slides.some(function(r){return r.template==="it-product"&&!r.products;})){
+              section.slides=section.slides.filter(function(r){return r.template!=="it-product";}).concat(window.BSMITProducts.createSlides(window.BSMITProductData));
+            }
           }
           section.slides=(section.slides||[]).map(function(report){
             var normalized=normalizeReport(report);
@@ -1856,7 +1883,12 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       function renderITProductSlide(){
         var page=currentMasterPage();
         if(page.kind==="report"&&page.report&&page.report.template==="it-product"){
-          itProductHost.innerHTML=window.BSMITOmset.renderProductSlide(page.report.products||window.BSMITOmset.PRODUCT_DATA);
+          itProductHost.innerHTML=window.BSMITProducts.renderSlide(page.report);
+          itProductHost.querySelectorAll('[data-detail]').forEach(function(point){
+            function show(){itProductHost.querySelector('.it-products-detail').textContent=point.dataset.detail;}
+            point.addEventListener('click',show);point.addEventListener('focus',show);point.addEventListener('mouseenter',show);
+            point.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();show();}});
+          });
         }else{
           itProductHost.innerHTML="";
         }
@@ -2478,6 +2510,28 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         }
       }
 
+      function importITWorkbook(file){
+        if(!file)return;
+        var status=document.getElementById('itImportStatus'),reader=new FileReader();
+        itExcelInput.disabled=true;status.textContent='Membaca '+file.name+'...';
+        function done(){itExcelInput.disabled=false;itExcelInput.value='';}
+        reader.onload=function(ev){try{
+          if(!window.XLSX)throw new Error('Parser Excel belum siap. Coba lagi setelah halaman selesai dimuat.');
+          var wb=window.XLSX.read(ev.target.result,{type:'array'});
+          var products=window.BSMITProducts.parseWorkbook(wb,window.XLSX);
+          var slides=window.BSMITProducts.createSlides(products);
+          var section=state.sections.it;
+          section.slides=section.slides.filter(function(r){return r.template!=='it-product';}).concat(slides);
+          state.activeType='it';ensureMasterReports();
+          var first=section.slides.findIndex(function(r){return r.template==='it-product';});
+          bindActiveSection(first);state.activeView=window.BSMReportMaster.findPageIndex(state,'report:it:'+first);
+          renderAll();saveState(false);showPage('preview');
+          status.textContent=products.length+' produk berhasil dimuat dalam '+slides.length+' slide.';toast(status.textContent);
+        }catch(err){status.textContent=err.message||'File Excel gagal dibaca.';toast(status.textContent);}finally{done();}};
+        reader.onerror=function(){status.textContent='File Excel gagal dibaca.';toast(status.textContent);done();};
+        reader.readAsArrayBuffer(file);
+      }
+
       function importCrewWorkbook(file){
         if(!file)return;var reader=new FileReader();
         reader.onload=function(ev){try{
@@ -2692,7 +2746,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     
       function staticReportHtml(report,index,total,typeId){
         if(report&&report.template==="it-omset") return window.BSMITOmset.renderSlide(report.omset||window.BSMITOmset.DATA);
-        if(report&&report.template==="it-product") return window.BSMITOmset.renderProductSlide(report.products||window.BSMITOmset.PRODUCT_DATA);
+        if(report&&report.template==="it-product") return window.BSMITProducts.renderSlide(report);
         if(report&&report.template==="admin-matrix") return window.BSMAdminMatrix.renderSlide(report.matrix||window.BSMAdminMatrix.DATA,esc);
         if(report&&report.template==="camera-vendor") return window.BSMCameraVendor.renderSlide(report.cameraVendor||window.BSMCameraVendor.DATA,esc);
         if(report&&report.template==="camera-complaint") return window.BSMCameraReports.renderComplaintSlide(report,esc);
@@ -2752,6 +2806,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       importBulkBtn.addEventListener("click",importBulk);
       if(bulkModeSelect) bulkModeSelect.addEventListener("change",updateBulkContext);
       if(cameraExcelInput) cameraExcelInput.addEventListener("change",function(){importCameraWorkbook(this.files&&this.files[0]);});
+      if(itExcelInput) itExcelInput.addEventListener("change",function(){importITWorkbook(this.files&&this.files[0]);});
       if(audioExcelInput) audioExcelInput.addEventListener("change",function(){importAudioWorkbook(this.files&&this.files[0]);});
       if(cinemaExcelInput) cinemaExcelInput.addEventListener("change",function(){importCinemaWorkbook(this.files&&this.files[0]);});
       if(lightingExcelInput) lightingExcelInput.addEventListener("change",function(){importLightingWorkbook(this.files&&this.files[0]);});
