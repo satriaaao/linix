@@ -71,9 +71,36 @@
   function clone(v){return JSON.parse(JSON.stringify(v==null?{}:v));}
   function esc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');}
   function typeDef(typeId){return TYPES[typeId]||TYPES.it;}
-  function sheetDef(typeId,sheetId){
-    var def=typeDef(typeId),found=def.sheets.find(function(x){return x.id===sheetId;});
-    return found||def.sheets[0];
+  function slug(v){
+    var s=String(v==null?'':v).toLowerCase().trim().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
+    return s||'kolom';
+  }
+  function normalizeColumns(columns,fallback){
+    var source=Array.isArray(columns)&&columns.length?columns:fallback;
+    var seen={};
+    return (source||[]).map(function(c,i){
+      var key=slug(Array.isArray(c)?c[0]:'kolom_'+(i+1));
+      if(seen[key]){var base=key,n=2;while(seen[base+'_'+n])n++;key=base+'_'+n;}
+      seen[key]=true;
+      return [key,String(Array.isArray(c)?(c[1]||c[0]||('Kolom '+(i+1))):('Kolom '+(i+1)))];
+    });
+  }
+  function allSheetDefs(typeId,book){
+    var base=typeDef(typeId).sheets.map(function(s){return clone(s);});
+    var custom=book&&Array.isArray(book.customSheets)?book.customSheets:[];
+    custom.forEach(function(s){
+      if(!s||!s.id)return;
+      base.push({id:String(s.id),label:String(s.label||'Tabel Baru'),pageSize:Number(s.pageSize||10),custom:true,columns:normalizeColumns(s.columns,[['nama','Nama'],['nilai','Nilai'],['keterangan','Keterangan']])});
+    });
+    return base;
+  }
+  function sheetDef(typeId,sheetId,book){
+    var defs=allSheetDefs(typeId,book),found=defs.find(function(x){return x.id===sheetId;});
+    if(!found)found=defs[0];
+    if(book&&book.sheets&&book.sheets[found.id]&&Array.isArray(book.sheets[found.id].columns)&&book.sheets[found.id].columns.length){
+      found=clone(found);found.columns=normalizeColumns(book.sheets[found.id].columns,found.columns);
+    }
+    return found;
   }
   function emptyRow(def){
     var out={};
@@ -83,17 +110,21 @@
   function ensureBook(store,typeId,minRows){
     store=store&&typeof store==='object'?store:{};
     var def=typeDef(typeId),book=store[typeId];
-    if(!book||typeof book!=='object')book={activeSheet:def.sheets[0].id,sheets:{}};
+    if(!book||typeof book!=='object')book={activeSheet:def.sheets[0].id,sheets:{},customSheets:[]};
     if(!book.sheets||typeof book.sheets!=='object')book.sheets={};
-    if(!def.sheets.some(function(s){return s.id===book.activeSheet;}))book.activeSheet=def.sheets[0].id;
-    def.sheets.forEach(function(s){
-      var sheet=book.sheets[s.id];
-      if(!sheet||typeof sheet!=='object')sheet={rows:[]};
+    if(!Array.isArray(book.customSheets))book.customSheets=[];
+    var defs=allSheetDefs(typeId,book);
+    if(!defs.some(function(s){return s.id===book.activeSheet;}))book.activeSheet=defs[0].id;
+    defs.forEach(function(baseDef){
+      var sheet=book.sheets[baseDef.id];
+      if(!sheet||typeof sheet!=='object')sheet={rows:[],columns:clone(baseDef.columns)};
+      sheet.columns=normalizeColumns(sheet.columns,baseDef.columns);
+      var s=clone(baseDef);s.columns=clone(sheet.columns);
       if(!Array.isArray(sheet.rows))sheet.rows=[];
       sheet.rows=sheet.rows.map(function(r){
-        if(isWarehouse(typeId))return migrateWarehouseRow(r,s);
+        if(isWarehouse(typeId)&&s.columns.some(function(c){return c[0]==='namaAlat';}))return migrateWarehouseRow(r,s);
         var row={};
-        s.columns.forEach(function(c){row[c[0]]=String(r&&r[c[0]]!=null?r[c[0]]:'');});
+        s.columns.forEach(function(col){row[col[0]]=String(r&&r[col[0]]!=null?r[col[0]]:'');});
         return row;
       });
       var target=Math.max(1,Number(minRows||6));
@@ -107,7 +138,7 @@
     return !(def.columns||[]).some(function(c){return String(row&&row[c[0]]!=null?row[c[0]]:'').trim()!=='';});
   }
   function dataRows(book,typeId,sheetId){
-    var def=sheetDef(typeId,sheetId),sheet=book&&book.sheets&&book.sheets[sheetId];
+    var def=sheetDef(typeId,sheetId,book),sheet=book&&book.sheets&&book.sheets[sheetId];
     return (sheet&&Array.isArray(sheet.rows)?sheet.rows:[]).filter(function(r){return !rowEmpty(r,def);});
   }
   function isWarehouse(typeId){return String(typeId||'').indexOf('gudang-')===0;}
@@ -168,19 +199,76 @@
     empty.forEach(function(item){out.push(item);});
     return out;
   }
+  function uniqueSheetId(book,label){
+    var base='custom_'+slug(label),id=base,n=2;
+    while(book.sheets&&book.sheets[id]){id=base+'_'+n;n++;}
+    return id;
+  }
+  function createSheet(book,typeId,label){
+    label=String(label||'Tabel Baru').trim()||'Tabel Baru';
+    if(!Array.isArray(book.customSheets))book.customSheets=[];
+    if(!book.sheets)book.sheets={};
+    var id=uniqueSheetId(book,label);
+    var cols=[['nama','Nama'],['nilai','Nilai'],['keterangan','Keterangan']];
+    book.customSheets.push({id:id,label:label,pageSize:10,columns:clone(cols),custom:true});
+    book.sheets[id]={columns:clone(cols),rows:[]};
+    for(var i=0;i<6;i++)book.sheets[id].rows.push(emptyRow({columns:cols}));
+    book.activeSheet=id;
+    return id;
+  }
+  function deleteSheet(book,typeId,sheetId){
+    var defs=typeDef(typeId).sheets;
+    if(defs.some(function(s){return s.id===sheetId;}))return false;
+    book.customSheets=(book.customSheets||[]).filter(function(s){return s.id!==sheetId;});
+    if(book.sheets)delete book.sheets[sheetId];
+    var all=allSheetDefs(typeId,book);
+    book.activeSheet=(all[0]&&all[0].id)||defs[0].id;
+    return true;
+  }
+  function addColumn(book,typeId,sheetId,label){
+    var sheet=book.sheets[sheetId],def=sheetDef(typeId,sheetId,book);
+    if(!sheet)throw new Error('Sheet tidak ditemukan');
+    var cols=normalizeColumns(sheet.columns,def.columns),base=slug(label||('Kolom '+(cols.length+1))),key=base,n=2;
+    while(cols.some(function(c){return c[0]===key;})){key=base+'_'+n;n++;}
+    cols.push([key,String(label||('Kolom '+cols.length)).trim()||('Kolom '+cols.length)]);
+    sheet.columns=cols;
+    (sheet.rows||[]).forEach(function(r){if(r[key]==null)r[key]='';});
+    var custom=(book.customSheets||[]).find(function(s){return s.id===sheetId;});
+    if(custom)custom.columns=clone(cols);
+    return key;
+  }
+  function renameColumn(book,typeId,sheetId,key,label){
+    var sheet=book.sheets[sheetId],cols=normalizeColumns(sheet&&sheet.columns,sheetDef(typeId,sheetId,book).columns);
+    var col=cols.find(function(c){return c[0]===key;});
+    if(!col)return false;
+    col[1]=String(label||col[1]).trim()||col[1];sheet.columns=cols;
+    var custom=(book.customSheets||[]).find(function(s){return s.id===sheetId;});
+    if(custom)custom.columns=clone(cols);
+    return true;
+  }
+  function deleteColumn(book,typeId,sheetId,key){
+    var sheet=book.sheets[sheetId];if(!sheet)return false;
+    var cols=normalizeColumns(sheet.columns,sheetDef(typeId,sheetId,book).columns);
+    if(cols.length<=1)return false;
+    sheet.columns=cols.filter(function(c){return c[0]!==key;});
+    (sheet.rows||[]).forEach(function(r){delete r[key];});
+    var custom=(book.customSheets||[]).find(function(s){return s.id===sheetId;});
+    if(custom)custom.columns=clone(sheet.columns);
+    return true;
+  }
   function colLetter(index){
     var n=Number(index)+1,s='';
     while(n>0){n--;s=String.fromCharCode(65+(n%26))+s;n=Math.floor(n/26);}
     return s;
   }
   function renderEditor(typeId,book){
-    var def=typeDef(typeId),active=sheetDef(typeId,book&&book.activeSheet),sheet=book.sheets[active.id];
-    var tabs=def.sheets.map(function(s){
+    var def=typeDef(typeId),defs=allSheetDefs(typeId,book),active=sheetDef(typeId,book&&book.activeSheet,book),sheet=book.sheets[active.id];
+    var tabs=defs.map(function(s){
       var count=dataRows(book,typeId,s.id).length;
-      return '<button type="button" class="manual-sheet-tab '+(s.id===active.id?'active':'')+'" data-manual-sheet="'+esc(s.id)+'"><span>'+esc(s.label)+'</span><b>'+count+'</b></button>';
+      return '<div class="manual-sheet-tab-wrap"><button type="button" class="manual-sheet-tab '+(s.id===active.id?'active':'')+'" data-manual-sheet="'+esc(s.id)+'"><span>'+esc(s.label)+'</span><b>'+count+'</b></button>'+(s.custom?'<button type="button" class="manual-sheet-remove" data-manual-delete-sheet="'+esc(s.id)+'" title="Hapus tabel">×</button>':'')+'</div>';
     }).join('');
     var heads='<th class="manual-row-index manual-corner">#</th>'+active.columns.map(function(c,i){
-      return '<th><span class="manual-col-letter">'+colLetter(i)+'</span><span class="manual-col-name">'+esc(c[1])+'</span></th>';
+      return '<th><span class="manual-col-letter">'+colLetter(i)+'</span><span class="manual-col-head"><span class="manual-col-name">'+esc(c[1])+'</span><span class="manual-col-tools"><button type="button" data-manual-rename-col="'+esc(c[0])+'" title="Ubah nama kolom">✎</button><button type="button" data-manual-delete-col="'+esc(c[0])+'" title="Hapus kolom">×</button></span></span></th>';
     }).join('')+'<th class="manual-actions-head">Aksi</th>';
     var editorEntries=groupedWarehouseEntries(typeId,active,sheet.rows||[],true);
     var rows=editorEntries.map(function(entry){
@@ -199,8 +287,8 @@
     }).join('');
     return '<div class="manual-workbook-card">'
       +'<div class="manual-workbook-head"><div><div class="manual-kicker">INPUT MANUAL • EXCEL MODE</div><h3>'+esc(def.label)+'</h3><p>'+(isWarehouse(typeId)?'Nama alat yang sama otomatis dikelompokkan dan dibuat baris TOTAL seperti laporan gudang.':'Setiap report memiliki tabelnya sendiri. Ketik langsung atau paste blok sel dari Excel / Google Sheets.')+'</p></div><div class="manual-head-actions"><span class="manual-save-badge" data-manual-status>Tersimpan otomatis</span><button type="button" class="btn primary" data-manual-preview>Perbarui Preview</button></div></div>'
-      +'<div class="manual-sheet-tabs">'+tabs+'</div>'
-      +'<div class="manual-toolbar"><button type="button" class="btn" data-manual-add="1">+ 1 Baris</button><button type="button" class="btn" data-manual-add="10">+ 10 Baris</button><button type="button" class="btn" data-manual-export>XLSX</button><button type="button" class="btn ghost-danger" data-manual-clear>Kosongkan Tabel</button><div class="manual-toolbar-spacer"></div><span>Tip: copy beberapa sel dari Excel lalu paste pada sel pertama.</span></div>'
+      +'<div class="manual-sheet-tabs">'+tabs+'<button type="button" class="manual-add-sheet" data-manual-add-sheet>+ Tabel</button></div>'
+      +'<div class="manual-toolbar"><button type="button" class="btn" data-manual-add="1">+ 1 Baris</button><button type="button" class="btn" data-manual-add="10">+ 10 Baris</button><button type="button" class="btn primary" data-manual-add-column>+ Kolom</button><button type="button" class="btn" data-manual-export>XLSX</button><button type="button" class="btn ghost-danger" data-manual-clear>Kosongkan Tabel</button><div class="manual-toolbar-spacer"></div><span>Struktur kolom tersimpan otomatis dan bisa dipakai di Input Banyak.</span></div>'
       +'<div class="manual-grid-scroll"><table class="manual-grid-table"><thead><tr>'+heads+'</tr></thead><tbody>'+rows+'</tbody></table></div>'
       +'<div class="manual-workbook-foot"><span><strong>'+dataRows(book,typeId,active.id).length+'</strong> baris berisi data</span><span>Sheet: <strong>'+esc(active.label)+'</strong></span></div>'
       +'</div>';
@@ -208,7 +296,8 @@
   function buildSlides(typeId,book,opts){
     opts=opts||{};
     var type=typeDef(typeId),slides=[];
-    type.sheets.forEach(function(def){
+    allSheetDefs(typeId,book).forEach(function(baseDef){
+      var def=sheetDef(typeId,baseDef.id,book);
       var rows=dataRows(book,typeId,def.id);
       if(!rows.length)return;
       var entries=isWarehouse(typeId)?groupedWarehouseEntries(typeId,def,rows,false):rows.map(function(row){return {kind:'data',row:row};});
@@ -257,11 +346,11 @@
       +'</section>';
   }
   function exportMatrix(typeId,book,sheetId){
-    var def=sheetDef(typeId,sheetId),rows=dataRows(book,typeId,def.id);
+    var def=sheetDef(typeId,sheetId,book),rows=dataRows(book,typeId,def.id);
     if(isWarehouse(typeId))rows=groupedWarehouseEntries(typeId,def,rows,false).map(function(entry){return entry.row;});
     var matrix=[def.columns.map(function(c){return c[1];})];
     rows.forEach(function(r){matrix.push(def.columns.map(function(c){return r[c[0]]||'';}));});
     return {name:(typeDef(typeId).label+'-'+def.label).replace(/[^a-z0-9]+/gi,'-').toLowerCase(),rows:matrix};
   }
-  return {TYPES:TYPES,typeDef:typeDef,sheetDef:sheetDef,emptyRow:emptyRow,ensureBook:ensureBook,rowEmpty:rowEmpty,dataRows:dataRows,isWarehouse:isWarehouse,groupedWarehouseEntries:groupedWarehouseEntries,renderEditor:renderEditor,buildSlides:buildSlides,renderSlide:renderSlide,exportMatrix:exportMatrix,colLetter:colLetter};
+  return {TYPES:TYPES,typeDef:typeDef,sheetDef:sheetDef,allSheetDefs:allSheetDefs,emptyRow:emptyRow,ensureBook:ensureBook,rowEmpty:rowEmpty,dataRows:dataRows,isWarehouse:isWarehouse,groupedWarehouseEntries:groupedWarehouseEntries,createSheet:createSheet,deleteSheet:deleteSheet,addColumn:addColumn,renameColumn:renameColumn,deleteColumn:deleteColumn,renderEditor:renderEditor,buildSlides:buildSlides,renderSlide:renderSlide,exportMatrix:exportMatrix,colLetter:colLetter};
 });
