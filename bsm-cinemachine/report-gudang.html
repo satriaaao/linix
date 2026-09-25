@@ -301,7 +301,7 @@
     .manual-grid-medium .manual-slide-table{font-size:11px}.manual-grid-medium .manual-slide-table th,.manual-grid-medium .manual-slide-table td{padding:7px 5px}
     .manual-grid-dense .manual-slide-table{font-size:9px}.manual-grid-dense .manual-slide-table th,.manual-grid-dense .manual-slide-table td{padding:6px 3px}.manual-grid-dense .manual-slide-table .manual-slide-no{width:34px}
     .manual-grid-ultra h1{font-size:34px}.manual-grid-ultra .manual-slide-sub{font-size:9px}.manual-grid-ultra .manual-slide-table{font-size:7.5px;table-layout:fixed}.manual-grid-ultra .manual-slide-table th,.manual-grid-ultra .manual-slide-table td{padding:5px 2px;overflow-wrap:anywhere}.manual-grid-ultra .manual-slide-table .manual-slide-no{width:28px}
-    .html-preview-slide{width:1600px;height:900px;overflow:hidden;background:#fff;position:relative}.html-preview-frame{display:block;position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff;z-index:1}.html-preview-loading{position:absolute;inset:0;display:grid;place-items:center;background:#fff;color:#087d86;font:800 18px/1.2 Inter,Arial,sans-serif;z-index:2}.html-preview-slide .html-upload-body{width:100%;height:100%;overflow:hidden;position:relative}.html-preview-slide *{box-sizing:border-box}
+    .html-preview-slide{width:1600px;height:900px;overflow:hidden;background:#fff;position:relative}.html-preview-fallback{position:absolute;inset:0;overflow:hidden;background:#fff;z-index:0}.html-preview-frame{display:block;position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;z-index:1;opacity:0;transition:opacity .12s ease}.html-preview-frame.is-ready{opacity:1}.html-preview-slide .html-upload-body{width:100%;height:100%;overflow:hidden;position:relative}.html-preview-slide *{box-sizing:border-box}
     .manual-bulk-modal{width:min(820px,94vw)}.manual-bulk-drop{border:1px dashed #9fc7cc;border-radius:14px;background:#f6fbfb;padding:14px}.manual-bulk-drop textarea{width:100%;min-height:190px;resize:vertical;border:1px solid #cbdadd;border-radius:10px;padding:11px;font:11px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;background:#fff}.manual-bulk-file{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;margin-top:12px}.manual-bulk-file label{font-size:10px;font-weight:900;color:#526574}.manual-bulk-file input{display:block;width:100%;margin-top:5px}.manual-bulk-note{font-size:10px;line-height:1.5;color:#64748b;margin:0 0 10px}.manual-bulk-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}@media(max-width:700px){.manual-bulk-file{grid-template-columns:1fr}.manual-bulk-actions{flex-direction:column-reverse}.manual-bulk-actions .btn{width:100%}}
     .manual-slide-footer{position:absolute;left:38px;right:38px;bottom:24px;display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;border-top:1px solid #7b8c94;padding-top:10px;font:800 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.07em}.manual-slide-footer i{height:1px;background:#a3b2b8}
     @media(max-width:700px){.manual-workbook-head{display:block}.manual-head-actions{justify-content:flex-start;margin-top:12px}.manual-period-picker{width:100%;flex-wrap:wrap}.manual-sheet-tab{min-width:145px}.manual-grid-scroll{max-height:55vh}.manual-toolbar-spacer{display:none}.manual-toolbar>span{width:100%}.period-search{min-width:135px;max-width:160px}}
@@ -2648,41 +2648,30 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         var section=document.createElement("section");section.className="html-preview-slide";
         var source=String(report.htmlSource||"").trim();
         var fallback=String(report.htmlContent||"").trim();
-        if(source){
-          var loading=document.createElement("div");
-          loading.className="html-preview-loading";
-          loading.textContent="Memuat HTML...";
-          section.appendChild(loading);
 
+        if(fallback){
+          var fallbackLayer=document.createElement("div");
+          fallbackLayer.className="html-preview-fallback";
+          fallbackLayer.innerHTML=fallback;
+          section.appendChild(fallbackLayer);
+        }
+
+        if(source){
           var frame=document.createElement("iframe");
           frame.className="html-preview-frame";
           frame.setAttribute("sandbox","allow-scripts");
           frame.setAttribute("referrerpolicy","no-referrer");
           frame.setAttribute("loading","eager");
           frame.setAttribute("title",report.sourceName||"HTML Preview IT");
+          frame.addEventListener("load",function(){frame.classList.add("is-ready");},{once:true});
+          frame.addEventListener("error",function(){frame.remove();},{once:true});
 
-          var blobUrl="";
-          frame.addEventListener("load",function(){
-            if(loading&&loading.parentNode)loading.parentNode.removeChild(loading);
-            if(blobUrl)setTimeout(function(){try{URL.revokeObjectURL(blobUrl);}catch(_){}},30000);
-          },{once:true});
-          frame.addEventListener("error",function(){
-            if(blobUrl){try{URL.revokeObjectURL(blobUrl);}catch(_){}}
-            if(fallback)section.innerHTML=fallback;
-            else if(loading)loading.textContent="HTML gagal dimuat";
-          },{once:true});
-
-          try{
-            blobUrl=URL.createObjectURL(new Blob([source],{type:"text/html;charset=utf-8"}));
-            frame.src=blobUrl;
-          }catch(_){
-            frame.srcdoc=source;
-          }
+          // iPad/iPhone Chrome uses WebKit. Sandboxed blob: URLs can render blank there,
+          // so use srcdoc directly. Fallback content remains underneath until load completes.
+          frame.srcdoc=source;
           section.appendChild(frame);
-        }else if(fallback){
-          section.innerHTML=fallback;
-        }else{
-          section.innerHTML='<div class="html-preview-loading">HTML belum dimuat</div>';
+        }else if(!fallback){
+          section.innerHTML='<div style="display:flex;width:100%;height:100%;align-items:center;justify-content:center;font:700 28px Inter,Arial;color:#64748b">HTML belum dimuat</div>';
         }
         htmlPreviewHost.appendChild(section);
       }
@@ -4319,5 +4308,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   </script>
   <!-- auth-scope-v2 -->
 </body>
-<!-- report-gudang-build-v40-html-normalize-account-fix-cache15 -->
+<!-- report-gudang-build-v41-ios-srcdoc-fallback-cache16 -->
 </html>
