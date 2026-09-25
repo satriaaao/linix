@@ -1274,6 +1274,18 @@
             <label>Target Aktif</label>
             <div class="control" id="bulkContextText" style="display:flex;align-items:center;background:#f8fbfc">Auto</div>
           </div>
+          <div class="field">
+            <label>Bulan Input</label>
+            <select class="control" id="bulkMonthSelect">
+              <option value="1">Januari</option><option value="2">Februari</option><option value="3">Maret</option><option value="4">April</option>
+              <option value="5">Mei</option><option value="6">Juni</option><option value="7">Juli</option><option value="8">Agustus</option>
+              <option value="9">September</option><option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Tahun Input</label>
+            <input class="control" id="bulkYearInput" type="number" min="2020" max="2100" value="2026" />
+          </div>
         </div>
         <textarea class="bulk-textarea" id="bulkInput" placeholder="Tempel data lengkap di sini, contoh:
 
@@ -1283,7 +1295,7 @@ Report Barang Kurang/Ambil Vendor
 No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
 1     1-Jun-26         Spotlight 36&quot;    1    Spotlight 19&quot; DS    133.200
       22-Jun-26                         1    DS                   166.500"></textarea>
-        <div class="bulk-help">Tempel langsung dari Excel / Google Sheets. Auto Detect mengenali format report. Data panjang otomatis dipecah menjadi beberapa slide 16:9.</div>
+        <div class="bulk-help">Pilih bulan dan tahun dulu, lalu tempel langsung dari Excel / Google Sheets. Data masuk ke periode yang dipilih dan slide bisa dicari kembali berdasarkan bulan.</div>
         <div class="field" style="margin-top:10px">
           <label for="itExcelInput">Upload Excel IT — Analisis Produk</label>
           <input class="control" id="itExcelInput" type="file" accept=".xlsx,.xls,.xlsm" />
@@ -1668,6 +1680,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var bulkInput=document.getElementById("bulkInput");
       var bulkModeSelect=document.getElementById("bulkModeSelect");
       var bulkContextText=document.getElementById("bulkContextText");
+      var bulkMonthSelect=document.getElementById("bulkMonthSelect");
+      var bulkYearInput=document.getElementById("bulkYearInput");
       var cameraExcelInput=document.getElementById("cameraExcelInput");
       var itExcelInput=document.getElementById("itExcelInput");
       var audioExcelInput=document.getElementById("audioExcelInput");
@@ -2854,6 +2868,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         closeSidebar();
         if(pageId==="preview") requestAnimationFrame(updatePreviewScale);
         if(pageId==="users")renderUsersPage();
+        if(pageId==="bulk"){syncBulkPeriodFromActive();updateBulkContext();}
       }
 
       function renderSlidesPage(){
@@ -3407,6 +3422,30 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         requestAnimationFrame(updatePreviewScale);
       }
 
+      function bulkPeriodKey(){
+        var month=bulkMonthSelect?Number(bulkMonthSelect.value||1):1;
+        var year=bulkYearInput?Number(bulkYearInput.value||new Date().getFullYear()):new Date().getFullYear();
+        month=Math.max(1,Math.min(12,month||1));
+        year=Math.max(2020,Math.min(2100,year||new Date().getFullYear()));
+        return String(year)+"-"+String(month).padStart(2,"0");
+      }
+      function bulkPeriodLabel(){
+        var key=bulkPeriodKey();
+        return window.BSMManualSheets&&window.BSMManualSheets.periodLabel?window.BSMManualSheets.periodLabel(key):key;
+      }
+      function applyBulkPeriod(report){
+        if(!report)return report;
+        var key=bulkPeriodKey(),parts=key.split("-");
+        report.month=Number(parts[1]);report.year=Number(parts[0]);report.period=bulkPeriodLabel();
+        if(report.template==="manual-grid")report.manualPeriodKey=key;
+        return report;
+      }
+      function syncBulkPeriodFromActive(){
+        var month=(state.draft&&Number(state.draft.month))||new Date().getMonth()+1;
+        var year=(state.draft&&Number(state.draft.year))||new Date().getFullYear();
+        if(bulkMonthSelect)bulkMonthSelect.value=String(Math.max(1,Math.min(12,month)));
+        if(bulkYearInput)bulkYearInput.value=String(Math.max(2020,Math.min(2100,year)));
+      }
       function bulkTargetTypeForMode(mode){
         if(mode==="manual-sheet") return state.activeType;
         if(mode==="camera-vendor"||mode==="camera-complaint"||mode==="camera-service") return "gudang-kamera";
@@ -3421,13 +3460,15 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         var targetType=bulkTargetTypeForMode(bulkModeSelect.value);
         var type=reportType(targetType);
         if(bulkModeSelect.value==="manual-sheet"){
-          var book=currentManualBook(),def=window.BSMManualSheets.sheetDef(targetType,book.activeSheet,book);
+          var book=currentManualBook();
+          window.BSMManualSheets.setPeriod(book,targetType,bulkPeriodKey(),6);
+          var def=window.BSMManualSheets.sheetDef(targetType,book.activeSheet,book);
           var labels=(def.columns||[]).map(function(c){return c[1];});
-          bulkContextText.textContent=type.label+" • "+def.label+" • "+window.BSMManualSheets.periodLabel(book.activePeriod)+" • "+labels.length+" kolom";
-          bulkInput.placeholder=labels.join("\t")+"\n"+labels.map(function(){return "data";}).join("\t")+"\n\nData masuk ke "+window.BSMManualSheets.periodLabel(book.activePeriod)+". Paste dari Excel mengikuti kolom tabel manual aktif. Header baru otomatis menjadi kolom baru.";
+          bulkContextText.textContent=type.label+" • "+def.label+" • "+bulkPeriodLabel()+" • "+labels.length+" kolom";
+          bulkInput.placeholder=labels.join("\t")+"\n"+labels.map(function(){return "data";}).join("\t")+"\n\nData masuk ke "+bulkPeriodLabel()+". Paste dari Excel mengikuti kolom tabel manual aktif. Header baru otomatis menjadi kolom baru.";
           return;
         }
-        bulkContextText.textContent=type.label+" • "+(bulkModeSelect.options[bulkModeSelect.selectedIndex]?bulkModeSelect.options[bulkModeSelect.selectedIndex].text:"Auto Detect");
+        bulkContextText.textContent=type.label+" • "+bulkPeriodLabel()+" • "+(bulkModeSelect.options[bulkModeSelect.selectedIndex]?bulkModeSelect.options[bulkModeSelect.selectedIndex].text:"Auto Detect");
         if(targetType==="gudang-kamera"){
           bulkInput.placeholder="Paste tabel Kamera dari Excel. Contoh Vendor:\nNAMA BARANG\tQTY\tTANGGAL\tKETERANGAN\tHARGA VENDOR\nSony FX3\t4\t05 Juni 2026\t2xkopafi,2xDs\t\nTotal\t4";
         }else if(targetType==="gudang-audio"){
@@ -3622,7 +3663,9 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         });
       }
       function importBulkToManualSheet(raw){
-        var book=currentManualBook(),typeId=state.activeType,def=window.BSMManualSheets.sheetDef(typeId,book.activeSheet,book),sheet=book.sheets[book.activeSheet];
+        var book=currentManualBook(),typeId=state.activeType;
+        window.BSMManualSheets.setPeriod(book,typeId,bulkPeriodKey(),6);
+        var def=window.BSMManualSheets.sheetDef(typeId,book.activeSheet,book),sheet=book.sheets[book.activeSheet];
         var matrix=splitBulkRows(raw);
         if(!matrix.length)throw new Error("Data tidak terbaca");
         var first=matrix[0],existing=(def.columns||[]).slice(),labelMap={};
@@ -3692,9 +3735,9 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           var type=reportType(targetType),section=state.sections[targetType];
           var slides=(result.slides||[]).map(function(report){
             if(result.kind==="generic"){
-              var parsed=ensureIds(normalizeReport(report));parsed.department=type.department;parsed.reportType=type.id;return parsed;
+              var parsed=ensureIds(normalizeReport(report));parsed.department=type.department;parsed.reportType=type.id;return applyBulkPeriod(parsed);
             }
-            report.department=type.department;report.reportType=type.id;return clone(report);
+            report.department=type.department;report.reportType=type.id;return applyBulkPeriod(clone(report));
           });
           if(!slides.length) throw new Error("Tidak ada slide yang terbaca.");
 
@@ -3793,6 +3836,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     
       importBulkBtn.addEventListener("click",importBulk);
       if(bulkModeSelect) bulkModeSelect.addEventListener("change",updateBulkContext);
+      if(bulkMonthSelect) bulkMonthSelect.addEventListener("change",updateBulkContext);
+      if(bulkYearInput) bulkYearInput.addEventListener("change",updateBulkContext);
       if(cameraExcelInput) cameraExcelInput.addEventListener("change",function(){importCameraWorkbook(this.files&&this.files[0]);});
       if(itExcelInput) itExcelInput.addEventListener("change",function(){importITWorkbook(this.files&&this.files[0]);});
       if(audioExcelInput) audioExcelInput.addEventListener("change",function(){importAudioWorkbook(this.files&&this.files[0]);});
