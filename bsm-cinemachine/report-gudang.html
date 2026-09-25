@@ -2587,7 +2587,12 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         matrix=matrix.slice(headerIndex);
         var width=0;
         matrix.forEach(function(row){for(var j=row.length-1;j>=0;j--){if(row[j]!==""){width=Math.max(width,j+1);break;}}});
-        return matrix.map(function(row){var out=row.slice(0,width);while(out.length<width)out.push("");return out;});
+        var normalized=matrix.map(function(row){var out=row.slice(0,width);while(out.length<width)out.push("");return out;});
+        var keep=[];
+        for(var col=0;col<width;col++){
+          if(normalized.some(function(row){return String(row[col]||"").trim()!=="";}))keep.push(col);
+        }
+        return normalized.map(function(row){return keep.map(function(col){return row[col];});});
       }
       function findManualSheetForExcel(book,typeId,name){
         var key=manualImportKey(name),defs=window.BSMManualSheets.allSheetDefs(typeId,book);
@@ -4321,5 +4326,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   </script>
   <!-- auth-scope-v2 -->
 </body>
-<!-- report-gudang-build-v43-manual-table-layout-cache18 -->
+<!-- report-gudang-build-v44-manual-excel-clean-cache19 -->
 </html>
