@@ -1120,7 +1120,7 @@
   </style>
 </head>
 <body>
-  <div class="auth-gate" id="authGate">
+  <div class="auth-gate" id="authGate" hidden>
     <div class="auth-card">
       <div class="auth-logo">BSM</div>
       <h1>Login Report Gudang</h1>
@@ -1632,6 +1632,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var modalMovedNodes=[];
       var cloud=window.BSMReportCloud||null;
       var cloudReady=false;
+      var cloudConfigured=false;
       var currentUser=null;
       var remoteVersion=0;
       var remoteSaveTimer=null;
@@ -2549,6 +2550,10 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(authError)authError.textContent="";
       }
       function openAccountModal(){
+        if(!cloudConfigured){
+          toast("Database SQL belum disambungkan");
+          return;
+        }
         if(!currentUser){showAuthGate("");return;}
         modalHost.innerHTML='<div class="rg-modal-backdrop" data-account-backdrop><div class="rg-modal-card" role="dialog" aria-modal="true" aria-label="Akun"><div class="rg-modal-head"><strong>Login / Akun</strong><button class="rg-modal-close" type="button" data-account-close>×</button></div><div class="rg-modal-body"><div class="account-grid"><div class="account-user"><strong>'+esc(currentUser.displayName||currentUser.username)+'</strong><span>'+esc(currentUser.username)+' • '+esc(currentUser.role||"user")+'</span></div><div class="account-password"><strong style="font-size:12px">Ganti Password</strong><input type="password" data-current-password placeholder="Password lama" autocomplete="current-password"><input type="password" data-new-password placeholder="Password baru minimal 10 karakter" autocomplete="new-password"><button class="btn primary" type="button" data-change-password>Ganti Password</button></div><button class="btn ghost-danger" type="button" data-account-logout>Keluar dari Akun</button></div></div></div></div>';
         var backdrop=modalHost.querySelector("[data-account-backdrop]");
@@ -2587,9 +2592,31 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         else alert("Gunakan menu browser lalu pilih Install app / Tambahkan ke layar utama.");
       }
       async function initializeCloud(){
-        if(!cloud){showAuthGate("Koneksi database belum tersedia.");return;}
-        if(!cloud.getToken()){showAuthGate("");return;}
+        if(!cloud){
+          cloudConfigured=false;cloudReady=false;hideAuthGate();
+          if(dbStatus)dbStatus.textContent="SQL belum tersedia";
+          return;
+        }
         try{
+          if(dbStatus)dbStatus.textContent="Memeriksa SQL...";
+          var health=await cloud.health();
+          cloudConfigured=!!(health&&health.configured&&health.database);
+          if(!cloudConfigured){
+            cloudReady=false;currentUser=null;updateAccountUi();hideAuthGate();
+            if(dbStatus)dbStatus.textContent="SQL belum disambungkan";
+            return;
+          }
+          if(!health.adminConfigured){
+            cloudReady=false;currentUser=null;updateAccountUi();hideAuthGate();
+            if(dbStatus)dbStatus.textContent="Admin SQL belum diset";
+            return;
+          }
+          if(!cloud.getToken()){
+            cloudReady=false;currentUser=null;updateAccountUi();
+            if(dbStatus)dbStatus.textContent="SQL perlu login";
+            showAuthGate("");
+            return;
+          }
           if(dbStatus)dbStatus.textContent="Menghubungkan SQL...";
           var me=await cloud.me();
           currentUser=me.user||null;
@@ -2598,7 +2625,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           remoteVersion=Number(remote.version||0);
           var applied="";
           try{applied=sessionStorage.getItem("bsm-report-cloud-version")||"";}catch(_){}
-          if(remote.exists&&remote.state&&Object.keys(remote.state).length&&String(remoteVersion)!==applied){
+          if(remote.exists&&remote.state&&String(remoteVersion)!==applied){
             localStorage.setItem(STORAGE_KEY,JSON.stringify(remote.state));
             try{sessionStorage.setItem("bsm-report-cloud-version",String(remoteVersion));}catch(_){}
             location.reload();
@@ -2606,7 +2633,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           }
           cloudReady=true;
           hideAuthGate();
-          if(!remote.exists||!remote.state||!Object.keys(remote.state).length){
+          if(!remote.exists){
             await persistRemoteState(false,false);
           }else{
             try{sessionStorage.setItem("bsm-report-cloud-version",String(remoteVersion));}catch(_){}
@@ -2615,9 +2642,16 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           if(currentUser&&currentUser.mustChangePassword)setTimeout(openAccountModal,250);
         }catch(err){
           cloudReady=false;currentUser=null;updateAccountUi();
-          if(cloud)cloud.setToken("");
-          showAuthGate(err&&err.message?err.message:"Login database diperlukan.");
-          if(dbStatus)dbStatus.textContent="SQL belum login";
+          var status=Number(err&&err.status||0);
+          if(status===401){
+            if(cloud)cloud.setToken("");
+            if(dbStatus)dbStatus.textContent="SQL perlu login";
+            showAuthGate("Sesi habis. Silakan login kembali.");
+          }else{
+            hideAuthGate();
+            if(dbStatus)dbStatus.textContent="SQL tidak dapat dihubungi";
+            console.warn("SQL sync unavailable",err);
+          }
         }
       }
 
@@ -3105,7 +3139,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       window.addEventListener("appinstalled",function(){installPrompt=null;if(installAppBtn)installAppBtn.style.display="none";toast("Aplikasi BSM Report terpasang");});
       if(authForm)authForm.addEventListener("submit",async function(e){
         e.preventDefault();
-        if(!cloud){showAuthGate("Koneksi database belum tersedia.");return;}
+        if(!cloud||!cloudConfigured){showAuthGate("Database SQL belum disambungkan.");return;}
         try{
           authSubmit.disabled=true;authSubmit.textContent="Masuk...";
           authError.textContent="";
