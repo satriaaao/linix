@@ -5,6 +5,7 @@
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
   var MONTHS=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
   var LONG=['januari','februari','maret','april','mei','juni','juli','agustus','september','oktober','november','desember'];
+  var PAGE_SIZE=16;
   function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   function number(v){
     if(v==null||String(v).trim()===''||/^(belum|-|n\/a)$/i.test(String(v).trim()))return null;
@@ -50,12 +51,12 @@
     throw error||new Error('Workbook kosong.');
   }
   function createSlides(products){
-    var slides=[],size=10,total=Math.ceil(products.length/size);
+    var slides=[],size=PAGE_SIZE,total=Math.ceil(products.length/size);
     for(var i=0;i<products.length;i+=size)slides.push({template:'it-product',reportType:'it',department:'IT',subtitle:'Analisis Produk 2026 ('+(slides.length+1)+'/'+total+')',month:12,year:2026,groups:[],products:products.slice(i,i+size),pageNo:slides.length+1,pageTotal:total});
     return slides;
   }
   function growth(previous,current){
-    if(previous==null||current==null)return {label:'',status:'Belum',tone:''};
+    if(previous==null||current==null)return {label:'',status:'',tone:''};
     if(current===0)return {label:previous===0?'0%':'-100%',status:'TIDAK ADA',tone:'down'};
     if(previous===0)return {label:'Baru',status:'BARU',tone:'up'};
     var pct=(current-previous)/previous*100;
@@ -66,7 +67,7 @@
     data.forEach(function(r){r.values.forEach(function(v,i){if(v!=null)latest=Math.max(latest,i);});});
     var rows=data.map(function(r,i){
       var status=growth(r.values[latest-1],r.values[latest]);
-      return '<tr><td>'+esc(r.no||((report.pageNo-1)*10+i+1))+'</td><th scope="row">'+esc(r.name)+'</th>'+MONTHS.map(function(m,j){var v=r.values[j],g=growth(r.values[j-1],v);return '<td title="'+esc(v==null?'Belum tersedia':'Rp'+v.toLocaleString('id-ID'))+'">'+(v==null?'<span class="it-pending">Belum</span>':v.toLocaleString('id-ID',{maximumFractionDigits:0})+'<small class="'+g.tone+'">'+esc(g.label)+'</small>')+'</td>';}).join('')+'<td class="'+status.tone+'">'+status.status+'</td></tr>';
+      return '<tr><td>'+esc(r.no||((report.pageNo-1)*PAGE_SIZE+i+1))+'</td><th scope="row">'+esc(r.name)+'</th>'+MONTHS.map(function(m,j){var v=r.values[j],g=growth(r.values[j-1],v);return '<td title="'+esc(v==null?'Belum tersedia':'Rp'+v.toLocaleString('id-ID'))+'">'+(v==null?'':v.toLocaleString('id-ID',{maximumFractionDigits:0})+'<small class="'+g.tone+'">'+esc(g.label)+'</small>')+'</td>';}).join('')+'<td class="'+status.tone+'">'+status.status+'</td></tr>';
     }).join('');
     return '<section class="it-product-slide it-products-full"><div class="omset-kicker">LAPORAN IT <span>2026 / '+(report.pageNo||1)+' dari '+(report.pageTotal||1)+'</span></div><h1>Analisis Produk <span>2026</span></h1><p>Januari–Desember · Rupiah · Persentase dibanding bulan sebelumnya</p><table class="it-products-table"><thead><tr><th>No</th><th>Nama Produk</th>'+MONTHS.map(function(m){return '<th>'+m+'</th>';}).join('')+'<th>Status '+(latest>=0?MONTHS[latest]:'')+'</th></tr></thead><tbody>'+rows+'</tbody></table></section>';
   }
