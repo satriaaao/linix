@@ -1217,9 +1217,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
 
       <div class="section" id="dataResetSection">
         <div class="section-title"><strong>Data & Reset</strong></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <button class="btn" id="loadSampleBtn">Data Contoh</button>
-          <button class="btn ghost-danger" id="clearBtn">Kosongkan</button>
+        <div style="display:grid;grid-template-columns:1fr;gap:8px">
+          <button class="btn ghost-danger" id="clearBtn">Hapus Semua Data</button>
         </div>
         <p class="tiny" style="margin:10px 2px 0;line-height:1.5">Data tersimpan otomatis di browser perangkat ini. Gunakan tombol Simpan untuk konfirmasi manual.</p>
       </div>
@@ -1373,38 +1372,6 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       function uid(){ return Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4); }
       function clone(v){ return JSON.parse(JSON.stringify(v)); }
       function emptyReport(){ return {department:"LIGHTING",month:6,year:2026,subtitle:"Report Barang Kurang / Ambil Vendor",groups:[]}; }
-      function sampleReport(){
-        return {
-          department:"LIGHTING",month:6,year:2026,subtitle:"Report Barang Kurang / Ambil Vendor",
-          groups:[
-            {id:uid(),name:'Spotlight 36"',rows:[
-              {id:uid(),date:"2026-06-01",qty:1,action:'Spotlight 19" DS',price:133200},
-              {id:uid(),date:"2026-06-22",qty:1,action:"DS",price:166500}
-            ]},
-            {id:uid(),name:"Smoke Gun",rows:[
-              {id:uid(),date:"2026-06-01",qty:1,action:"GEN",price:0},
-              {id:uid(),date:"2026-06-15",qty:1,action:"GEN",price:0},
-              {id:uid(),date:"2026-06-16",qty:1,action:"GEN",price:0},
-              {id:uid(),date:"2026-06-21",qty:1,action:"Panorama",price:0},
-              {id:uid(),date:"2026-06-23",qty:1,action:"Panorama",price:0},
-              {id:uid(),date:"2026-06-25",qty:1,action:"GEN",price:0}
-            ]},
-            {id:uid(),name:"F-Clamp",rows:[
-              {id:uid(),date:"2026-06-01",qty:6,action:"Baraka",price:0},
-              {id:uid(),date:"2026-06-05",qty:4,action:"Baraka",price:0},
-              {id:uid(),date:"2026-06-09",qty:4,action:"Baraka",price:0}
-            ]},
-            {id:uid(),name:"Super Clamp & Magic Arm",rows:[
-              {id:uid(),date:"2026-06-01",qty:4,action:"Baraka",price:0},
-              {id:uid(),date:"2026-06-05",qty:14,action:"6x Panorama, 6x Cuas, 2x GEN",price:0},
-              {id:uid(),date:"2026-06-12",qty:2,action:"DS",price:22200},
-              {id:uid(),date:"2026-06-13",qty:5,action:"Baraka",price:0},
-              {id:uid(),date:"2026-06-14",qty:8,action:"5x Baraka, 3x DOT",price:0}
-            ]}
-          ]
-        };
-      }
-    
       function normalizeReport(r){
         var base=emptyReport(), src=r||{};
         base.department=src.department||base.department;
@@ -1616,60 +1583,13 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             section=state.sections[type.id]={slides:[],draft:emptyReportForType(type.id),activeSlide:-1};
           }
           if(!Array.isArray(section.slides)) section.slides=[];
-          if(type.id==="it"){
-            var hasOmset=(section.slides||[]).some(function(r){return r.template==="it-omset";});
-            if(!hasOmset)section.slides.unshift(window.BSMITOmset.createSlide());
-            var hasProducts=(section.slides||[]).some(function(r){return r.template==="it-product";});
-            if(!hasProducts||section.slides.some(function(r){return r.template==="it-product"&&!r.products;})){
-              section.slides=section.slides.filter(function(r){return r.template!=="it-product";}).concat(window.BSMITProducts.createSlides(window.BSMITProductData));
-            }
-          }
-          section.slides=(section.slides||[]).map(function(report){
+          section.slides=section.slides.map(function(report){
             var normalized=normalizeReport(report);
             normalized.reportType=type.id;
             if(!normalized.department) normalized.department=type.department;
+            normalized.liveEditId=normalized.liveEditId||uid();
             return ensureIds(normalized);
           });
-          if(type.id==="admin"){
-            var matrixIndex=section.slides.findIndex(function(r){return r.template==="admin-matrix";});
-            var matrixSlide=matrixIndex>=0?section.slides.splice(matrixIndex,1)[0]:window.BSMAdminMatrix.createSlide();
-            matrixSlide.template="admin-matrix";matrixSlide.reportType="admin";matrixSlide.matrix=matrixSlide.matrix||clone(window.BSMAdminMatrix.DATA);
-            var useful=section.slides.filter(function(r){return (r.groups||[]).length>0;});
-            section.slides=[matrixSlide].concat(useful);
-          }else if(type.id==="gudang-kamera"){
-            var complaintSlides=section.slides.filter(function(r){return r.template==="camera-complaint";});
-            var serviceSlides=section.slides.filter(function(r){return r.template==="camera-service";});
-            var vendorSlides=section.slides.filter(function(r){return r.template==="camera-vendor";});
-            if(!complaintSlides.length) complaintSlides=window.BSMCameraReports.createComplaintSlides();
-            if(!serviceSlides.length) serviceSlides=window.BSMCameraReports.createServiceSlides();
-            if(!vendorSlides.length) vendorSlides=[window.BSMCameraVendor.createSlide()];
-            vendorSlides.forEach(function(cameraSlide){
-              cameraSlide.template="camera-vendor";cameraSlide.reportType="gudang-kamera";cameraSlide.cameraVendor=cameraSlide.cameraVendor||clone(window.BSMCameraVendor.DATA);
-            });
-            var cameraUseful=section.slides.filter(function(r){
-              return r.template!=="camera-complaint"&&r.template!=="camera-service"&&r.template!=="camera-vendor"&&(r.groups||[]).length>0;
-            });
-            section.slides=complaintSlides.concat(serviceSlides,vendorSlides,cameraUseful);
-          }else if(type.id==="gudang-audio"){
-            var audioSpecial=section.slides.filter(function(r){return r.template==="audio-vendor"||r.template==="audio-complaint"||r.template==="audio-service";});
-            var audioUseful=section.slides.filter(function(r){return r.template!=="audio-vendor"&&r.template!=="audio-complaint"&&r.template!=="audio-service"&&(r.groups||[]).length>0;});
-            section.slides=audioSpecial.length?audioSpecial.concat(audioUseful):(audioUseful.length?audioUseful:[ensureIds(emptyReportForType(type.id))]);
-          }else if(type.id==="gudang-cinema"){
-            var cinemaSpecial=section.slides.filter(function(r){return r.template==="cinema-vendor"||r.template==="cinema-complaint"||r.template==="cinema-service";});
-            var cinemaUseful=section.slides.filter(function(r){return r.template!=="cinema-vendor"&&r.template!=="cinema-complaint"&&r.template!=="cinema-service"&&(r.groups||[]).length>0;});
-            section.slides=cinemaSpecial.length?cinemaSpecial.concat(cinemaUseful):(cinemaUseful.length?cinemaUseful:[ensureIds(emptyReportForType(type.id))]);
-          }else if(type.id==="gudang-lighting"){
-            var lightingSpecial=section.slides.filter(function(r){return r.template==="lighting-vendor"||r.template==="lighting-complaint"||r.template==="lighting-service";});
-            var lightingUseful=section.slides.filter(function(r){return r.template!=="lighting-vendor"&&r.template!=="lighting-complaint"&&r.template!=="lighting-service"&&(r.groups||[]).length>0;});
-            section.slides=lightingSpecial.length?lightingSpecial.concat(lightingUseful):(lightingUseful.length?lightingUseful:[ensureIds(emptyReportForType(type.id))]);
-          }else if(type.id==="koordinator-crew"){
-            var crewSpecial=section.slides.filter(function(r){return r.template==="crew-matrix"||r.template==="crew-summary";});
-            var crewUseful=section.slides.filter(function(r){return r.template!=="crew-matrix"&&r.template!=="crew-summary"&&(r.groups||[]).length>0;});
-            section.slides=crewSpecial.length?crewSpecial.concat(crewUseful):(crewUseful.length?crewUseful:[ensureIds(emptyReportForType(type.id))]);
-          }else if(!section.slides.length){
-            section.slides.push(ensureIds(emptyReportForType(type.id)));
-          }
-          section.slides.forEach(function(report){report.liveEditId=report.liveEditId||uid();});
         });
       }
       function bindActiveSection(index){
@@ -2929,17 +2849,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       document.getElementById("addReportSlideBtn").addEventListener("click",addReportSlide);
       document.getElementById("saveBtn").addEventListener("click",function(){saveState(true);});
       document.getElementById("printBtn").addEventListener("click",function(){downloadPdf16x9();});
-      document.getElementById("loadSampleBtn").addEventListener("click",function(){
-        if(confirm("Muat data contoh JUNI 2026 sebagai slide baru?")){
-          var type=reportType(state.activeType),section=activeSection(),report=sampleReport();
-          report.department=type.department;report.reportType=type.id;report.subtitle="Report "+type.label;
-          section.slides.push(clone(report));state.slides=section.slides;state.activeSlide=section.slides.length-1;state.draft=clone(report);
-          state.activeView=window.BSMReportMaster.findPageIndex(state,"report:"+type.id+":"+state.activeSlide);
-          renderAll();saveState(true);setMobileTab(true);
-        }
-      });
       document.getElementById("clearBtn").addEventListener("click",function(){
-        if(confirm("Kosongkan semua data di seluruh jenis report?")){
+        if(confirm("Hapus semua data report dari seluruh jenis? Tindakan ini tidak bisa dibatalkan.")){
           var cover=window.BSMReportCover.defaultCover();
           cover.mainTitle1="MBR";cover.mainTitle2="PT BLUE STAR MEDIA";cover.titleTop1="// MASTER BUSINESS REVIEW";cover.titleTop2="// MASTER REPORT";
           cover.dataPrefix="DIVISI :";cover.item1="OPERASIONAL";cover.item2="GUDANG";cover.item3="MARKETING";cover.footerRight="// MASTER REPORT";
