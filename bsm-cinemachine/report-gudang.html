@@ -289,18 +289,31 @@
     .manual-total-name{font-weight:950!important;color:#075f67!important}.manual-total-value{font-variant-numeric:tabular-nums;text-align:center}
     .manual-total-badge{display:inline-flex;align-items:center;justify-content:center;min-width:42px;height:22px;border-radius:999px;background:#087d86;color:#fff;font-size:8px;font-weight:950;letter-spacing:.08em}
     .manual-workbook-foot{display:flex;justify-content:space-between;gap:12px;padding:10px 13px;background:#f8fbfb;border-top:1px solid #dfe8ea;color:#667682;font-size:9px}
-    .manual-grid-slide{position:relative;width:1600px;height:900px;padding:34px 38px 28px;background:#fff;overflow:hidden;color:#172033}
+    .manual-grid-slide{position:relative;width:1600px;height:900px;padding:30px 38px 28px;background:#fff;overflow:hidden;color:#172033}
     .manual-slide-grid{position:absolute;inset:0;pointer-events:none;background:linear-gradient(rgba(8,125,134,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(8,125,134,.035) 1px,transparent 1px);background-size:24px 24px}
-    .manual-slide-kicker{position:relative;display:flex;justify-content:space-between;font:800 14px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.12em;color:#344454}.manual-slide-kicker .accent{color:#087d86}
-    .manual-grid-slide h1{position:relative;margin:13px 0 4px;font-size:42px;line-height:1;font-weight:950;letter-spacing:-.035em}.manual-grid-slide h1 span{color:#087d86}
-    .manual-slide-sub{position:relative;margin-bottom:14px;color:#6b7b88;font-size:13px}.manual-slide-table-wrap{position:relative;border:1px solid #cbdde2;overflow:hidden;background:#fff}
-    .manual-slide-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px}.manual-slide-table th,.manual-slide-table td{border-right:1px solid #dbe5e7;border-bottom:1px solid #dbe5e7;padding:8px 7px;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .manual-slide-table th{background:#e4f2f3;color:#076f77;font-size:10px;text-transform:uppercase;letter-spacing:.04em}.manual-slide-table .manual-slide-no{width:46px;text-align:center;font-weight:900}
+    .manual-slide-kicker{position:relative;display:flex;justify-content:space-between;font:800 13px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.12em;color:#344454}.manual-slide-kicker .accent{color:#087d86}
+    .manual-slide-title-row{position:relative;display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin:10px 0 4px}
+    .manual-grid-slide h1{position:relative;margin:0;font-size:38px;line-height:1;font-weight:950;letter-spacing:-.035em;min-width:0}.manual-grid-slide h1 span{color:#087d86}
+    .manual-slide-page{flex:0 0 auto;min-height:30px;display:inline-flex;align-items:center;padding:0 11px;border:1px solid #b9d9dc;border-radius:999px;background:#edf8f8;color:#076f77;font:900 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em}
+    .manual-slide-sub{position:relative;margin-bottom:12px;color:#6b7b88;font-size:12px;font-weight:650}
+    .manual-slide-table-wrap{position:relative;border:1px solid #c5dadd;border-radius:8px;overflow:hidden;background:#fff;box-shadow:0 5px 16px rgba(15,23,42,.045)}
+    .manual-slide-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:12.5px}
+    .manual-slide-table .manual-slide-no-col{width:3.4%}
+    .manual-slide-table th,.manual-slide-table td{border-right:1px solid #dbe5e7;border-bottom:1px solid #dbe5e7;height:31px;padding:7px 8px;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.18;vertical-align:middle}
+    .manual-slide-table th{height:34px;background:#e4f2f3;color:#076f77;font-size:9.5px;text-transform:uppercase;letter-spacing:.045em;font-weight:950}
+    .manual-slide-table tbody tr:nth-child(even) td{background:#fbfdfd}
+    .manual-slide-table .manual-slide-no{text-align:center;font-weight:950;color:#344454}
+    .manual-slide-table .manual-col-text{font-weight:700;color:#263445}
+    .manual-slide-table th.manual-col-text{text-align:left;color:#076f77}
+    .manual-slide-table .manual-col-money{text-align:right;font-variant-numeric:tabular-nums}
+    .manual-slide-table th.manual-col-money{text-align:right}
+    .manual-slide-table .manual-col-short{text-align:center;font-variant-numeric:tabular-nums}
+    .manual-slide-table th.manual-col-short{text-align:center}
     .manual-slide-table .manual-slide-total td{background:#d9eef0!important;color:#09636c;font-weight:950;border-top:1px solid #9bcbd0;border-bottom:2px solid #9bcbd0}
     .manual-slide-table .manual-slide-total .manual-slide-no{background:#c6e5e8!important;color:#087d86}
-    .manual-grid-medium .manual-slide-table{font-size:11px}.manual-grid-medium .manual-slide-table th,.manual-grid-medium .manual-slide-table td{padding:7px 5px}
-    .manual-grid-dense .manual-slide-table{font-size:9px}.manual-grid-dense .manual-slide-table th,.manual-grid-dense .manual-slide-table td{padding:6px 3px}.manual-grid-dense .manual-slide-table .manual-slide-no{width:34px}
-    .manual-grid-ultra h1{font-size:34px}.manual-grid-ultra .manual-slide-sub{font-size:9px}.manual-grid-ultra .manual-slide-table{font-size:7.5px;table-layout:fixed}.manual-grid-ultra .manual-slide-table th,.manual-grid-ultra .manual-slide-table td{padding:5px 2px;overflow-wrap:anywhere}.manual-grid-ultra .manual-slide-table .manual-slide-no{width:28px}
+    .manual-grid-medium .manual-slide-table{font-size:11.5px}.manual-grid-medium .manual-slide-table th,.manual-grid-medium .manual-slide-table td{height:30px;padding:6px 6px}.manual-grid-medium .manual-slide-table th{font-size:9px}
+    .manual-grid-dense .manual-grid-slide h1{font-size:36px}.manual-grid-dense .manual-slide-table{font-size:10.5px}.manual-grid-dense .manual-slide-table th,.manual-grid-dense .manual-slide-table td{height:28px;padding:5px 5px}.manual-grid-dense .manual-slide-table th{font-size:8.5px}
+    .manual-grid-ultra h1{font-size:33px}.manual-grid-ultra .manual-slide-sub{font-size:10px}.manual-grid-ultra .manual-slide-table{font-size:9px}.manual-grid-ultra .manual-slide-table th,.manual-grid-ultra .manual-slide-table td{height:26px;padding:4px 3px}.manual-grid-ultra .manual-slide-table th{font-size:7.5px;letter-spacing:.02em}
     .html-preview-slide{width:1600px;height:900px;overflow:hidden;background:#fff;position:relative}.html-preview-fallback{position:absolute;inset:0;overflow:hidden;background:#fff;z-index:0}.html-preview-frame{display:block;position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;z-index:1;opacity:0;transition:opacity .12s ease}.html-preview-frame.is-ready{opacity:1}.html-preview-slide .html-upload-body{width:100%;height:100%;overflow:hidden;position:relative}.html-preview-slide *{box-sizing:border-box}
     .manual-bulk-modal{width:min(820px,94vw)}.manual-bulk-drop{border:1px dashed #9fc7cc;border-radius:14px;background:#f6fbfb;padding:14px}.manual-bulk-drop textarea{width:100%;min-height:190px;resize:vertical;border:1px solid #cbdadd;border-radius:10px;padding:11px;font:11px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;background:#fff}.manual-bulk-file{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;margin-top:12px}.manual-bulk-file label{font-size:10px;font-weight:900;color:#526574}.manual-bulk-file input{display:block;width:100%;margin-top:5px}.manual-bulk-note{font-size:10px;line-height:1.5;color:#64748b;margin:0 0 10px}.manual-bulk-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}@media(max-width:700px){.manual-bulk-file{grid-template-columns:1fr}.manual-bulk-actions{flex-direction:column-reverse}.manual-bulk-actions .btn{width:100%}}
     .manual-slide-footer{position:absolute;left:38px;right:38px;bottom:24px;display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;border-top:1px solid #7b8c94;padding-top:10px;font:800 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.07em}.manual-slide-footer i{height:1px;background:#a3b2b8}
@@ -4308,5 +4321,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   </script>
   <!-- auth-scope-v2 -->
 </body>
-<!-- report-gudang-build-v42-isolated-html-preview-cache17 -->
+<!-- report-gudang-build-v43-manual-table-layout-cache18 -->
 </html>
