@@ -20,6 +20,9 @@
       sheets:[
         {id:'mbr-admin',label:'Data MBR Admin',pageSize:10,columns:[
           ['tanggal','Tanggal'],['jam','Jam'],['kegiatan','Kegiatan'],['customer','Customer / Project'],['delivery','Delivery'],['jemputan','Jemputan'],['suratJalan','Surat Jalan'],['ket','KET'],['catatan','Catatan']
+        ]},
+        {id:'matrix-admin',label:'Matrix Admin',pageSize:12,columns:[
+          ['kegiatan','Kegiatan / Kategori'],['d1','1'],['d2','2'],['d3','3'],['d4','4'],['d5','5'],['d6','6'],['d7','7'],['d8','8'],['d9','9'],['d10','10'],['d11','11'],['d12','12'],['d13','13'],['d14','14'],['d15','15'],['d16','16'],['d17','17'],['d18','18'],['d19','19'],['d20','20'],['d21','21'],['d22','22'],['d23','23'],['d24','24'],['d25','25'],['d26','26'],['d27','27'],['d28','28'],['d29','29'],['d30','30'],['d31','31'],['total','Total'],['keterangan','Keterangan']
         ]}
       ]
     },
@@ -35,6 +38,9 @@
         ]},
         {id:'rekap',label:'Rekap Crew',pageSize:12,columns:[
           ['nama','Nama Crew'],['totalJalan','Total Jalan'],['penolakan','Penolakan'],['komplain','Komplain'],['skorsing','Skorsing'],['totalPoin','Total Poin'],['status','Status']
+        ]},
+        {id:'matrix-crew',label:'Matrix Crew',pageSize:12,columns:[
+          ['nama','Nama Crew'],['d1','1'],['d2','2'],['d3','3'],['d4','4'],['d5','5'],['d6','6'],['d7','7'],['d8','8'],['d9','9'],['d10','10'],['d11','11'],['d12','12'],['d13','13'],['d14','14'],['d15','15'],['d16','16'],['d17','17'],['d18','18'],['d19','19'],['d20','20'],['d21','21'],['d22','22'],['d23','23'],['d24','24'],['d25','25'],['d26','26'],['d27','27'],['d28','28'],['d29','29'],['d30','30'],['d31','31'],['total','Total'],['catatan','Catatan']
         ]}
       ]
     },
@@ -386,7 +392,7 @@
     return '<div class="manual-workbook-card">'
       +'<div class="manual-workbook-head"><div><div class="manual-kicker">INPUT MANUAL • EXCEL MODE</div><h3>'+esc(def.label)+'</h3><p>'+(isWarehouse(typeId)?'Nama alat yang sama otomatis dikelompokkan dan dibuat baris TOTAL seperti laporan gudang.':'Setiap report memiliki tabelnya sendiri. Ketik langsung atau paste blok sel dari Excel / Google Sheets.')+'</p></div><div class="manual-head-actions"><div class="manual-period-picker"><label>Bulan<select data-manual-month>'+periodOptions+'</select></label><label>Tahun<input type="number" min="2020" max="2100" value="'+period.year+'" data-manual-year></label><span>'+esc(periodLabel(book.activePeriod))+'</span></div><span class="manual-save-badge" data-manual-status>Tersimpan otomatis</span><button type="button" class="btn primary" data-manual-preview>Perbarui Preview</button></div></div>'
       +'<div class="manual-sheet-tabs">'+tabs+'<button type="button" class="manual-add-sheet" data-manual-add-sheet>+ Tabel</button></div>'
-      +'<div class="manual-toolbar"><button type="button" class="btn primary" data-manual-bulk>+ Input Banyak / Excel</button><button type="button" class="btn" data-manual-add="1">+ 1 Baris</button><button type="button" class="btn" data-manual-add="10">+ 10 Baris</button><button type="button" class="btn primary" data-manual-add-column>+ Kolom</button><button type="button" class="btn" data-manual-export>XLSX</button><button type="button" class="btn ghost-danger" data-manual-clear>Kosongkan Tabel</button><div class="manual-toolbar-spacer"></div><span>Struktur kolom tersimpan otomatis dan bisa dipakai di Input Banyak.</span></div>'
+      +'<div class="manual-toolbar"><button type="button" class="btn primary" data-manual-upload-excel>⬆ Upload Excel</button><button type="button" class="btn" data-manual-bulk>+ Paste / Input Banyak</button><button type="button" class="btn" data-manual-add="1">+ 1 Baris</button><button type="button" class="btn" data-manual-add="10">+ 10 Baris</button><button type="button" class="btn primary" data-manual-add-column>+ Kolom</button><button type="button" class="btn" data-manual-export>XLSX</button><button type="button" class="btn ghost-danger" data-manual-clear>Kosongkan Tabel</button><div class="manual-toolbar-spacer"></div><span>Struktur kolom tersimpan otomatis dan bisa dipakai di Input Banyak.</span></div>'
       +'<div class="manual-grid-scroll"><table class="manual-grid-table"><thead><tr>'+heads+'</tr></thead><tbody>'+rows+'</tbody></table></div>'
       +'<div class="manual-workbook-foot"><span><strong>'+dataRows(book,typeId,active.id,book.activePeriod).length+'</strong> baris • <strong>'+esc(periodLabel(book.activePeriod))+'</strong></span><span>Sheet: <strong>'+esc(active.label)+'</strong></span></div>'
       +'</div>';
