@@ -34,6 +34,7 @@
       ['downloads','Download Data'],
       ['pdf','Download PDF 16:9'],
       ['settings','Pengaturan'],
+      ['users','Akun & Role Akses'],
       ['account','Login / Akun'],
       ['install','Install Aplikasi']
     ];
