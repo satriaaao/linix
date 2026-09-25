@@ -68,7 +68,25 @@
     };
   }
 
+  var MONTH_NAMES=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
   function clone(v){return JSON.parse(JSON.stringify(v==null?{}:v));}
+  function defaultPeriodKey(){
+    var d=new Date(),m=String(d.getMonth()+1).padStart(2,'0');
+    return d.getFullYear()+'-'+m;
+  }
+  function normalizePeriodKey(key){
+    var m=String(key||'').match(/^(\d{4})-(\d{1,2})$/);
+    if(!m)return defaultPeriodKey();
+    var month=Math.max(1,Math.min(12,Number(m[2]||1)));
+    return String(Number(m[1]||new Date().getFullYear()))+'-'+String(month).padStart(2,'0');
+  }
+  function periodParts(key){
+    key=normalizePeriodKey(key);var p=key.split('-');
+    return {key:key,year:Number(p[0]),month:Number(p[1]),monthIndex:Number(p[1])-1};
+  }
+  function periodLabel(key){
+    var p=periodParts(key);return MONTH_NAMES[p.monthIndex]+' '+p.year;
+  }
   function esc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');}
   function typeDef(typeId){return TYPES[typeId]||TYPES.it;}
   function slug(v){
@@ -107,39 +125,79 @@
     (def.columns||[]).forEach(function(c){out[c[0]]='';});
     return out;
   }
-  function ensureBook(store,typeId,minRows){
+  function ensureBook(store,typeId,minRows,preferredPeriod){
     store=store&&typeof store==='object'?store:{};
     var def=typeDef(typeId),book=store[typeId];
     if(!book||typeof book!=='object')book={activeSheet:def.sheets[0].id,sheets:{},customSheets:[]};
     if(!book.sheets||typeof book.sheets!=='object')book.sheets={};
     if(!Array.isArray(book.customSheets))book.customSheets=[];
+    if(!book.activePeriod)book.activePeriod=normalizePeriodKey(preferredPeriod||defaultPeriodKey());
+    else book.activePeriod=normalizePeriodKey(book.activePeriod);
     var defs=allSheetDefs(typeId,book);
     if(!defs.some(function(s){return s.id===book.activeSheet;}))book.activeSheet=defs[0].id;
     defs.forEach(function(baseDef){
       var sheet=book.sheets[baseDef.id];
-      if(!sheet||typeof sheet!=='object')sheet={rows:[],columns:clone(baseDef.columns)};
+      if(!sheet||typeof sheet!=='object')sheet={rows:[],columns:clone(baseDef.columns),periodRows:{}};
       sheet.columns=normalizeColumns(sheet.columns,baseDef.columns);
       var s=clone(baseDef);s.columns=clone(sheet.columns);
-      if(!Array.isArray(sheet.rows))sheet.rows=[];
-      sheet.rows=sheet.rows.map(function(r){
+      if(!sheet.periodRows||typeof sheet.periodRows!=='object'){
+        sheet.periodRows={};
+        if(Array.isArray(sheet.rows)&&sheet.rows.some(function(r){return !rowEmpty(r,s);})){
+          sheet.periodRows[book.activePeriod]=sheet.rows;
+        }
+      }
+      if(!Array.isArray(sheet.periodRows[book.activePeriod]))sheet.periodRows[book.activePeriod]=[];
+      sheet.periodRows[book.activePeriod]=sheet.periodRows[book.activePeriod].map(function(r){
         if(isWarehouse(typeId)&&s.columns.some(function(c){return c[0]==='namaAlat';}))return migrateWarehouseRow(r,s);
         var row={};
         s.columns.forEach(function(col){row[col[0]]=String(r&&r[col[0]]!=null?r[col[0]]:'');});
         return row;
       });
       var target=Math.max(1,Number(minRows||6));
-      while(sheet.rows.length<target)sheet.rows.push(emptyRow(s));
+      while(sheet.periodRows[book.activePeriod].length<target)sheet.periodRows[book.activePeriod].push(emptyRow(s));
+      sheet.rows=sheet.periodRows[book.activePeriod];
       book.sheets[s.id]=sheet;
     });
     store[typeId]=book;
     return book;
   }
+  function setPeriod(book,typeId,key,minRows){
+    book.activePeriod=normalizePeriodKey(key);
+    var defs=allSheetDefs(typeId,book);
+    defs.forEach(function(baseDef){
+      var sheet=book.sheets[baseDef.id]||(book.sheets[baseDef.id]={columns:clone(baseDef.columns),periodRows:{}});
+      if(!sheet.periodRows||typeof sheet.periodRows!=='object')sheet.periodRows={};
+      if(!Array.isArray(sheet.periodRows[book.activePeriod]))sheet.periodRows[book.activePeriod]=[];
+      var def=sheetDef(typeId,baseDef.id,book),target=Math.max(1,Number(minRows||6));
+      while(sheet.periodRows[book.activePeriod].length<target)sheet.periodRows[book.activePeriod].push(emptyRow(def));
+      sheet.rows=sheet.periodRows[book.activePeriod];
+    });
+    return book.activePeriod;
+  }
+  function periodKeys(book,typeId){
+    var seen={};
+    allSheetDefs(typeId,book).forEach(function(def){
+      var sheet=book.sheets&&book.sheets[def.id];
+      var periods=sheet&&sheet.periodRows&&typeof sheet.periodRows==='object'?Object.keys(sheet.periodRows):[];
+      periods.forEach(function(key){
+        var rows=sheet.periodRows[key]||[],effective=sheetDef(typeId,def.id,book);
+        if(rows.some(function(r){return !rowEmpty(r,effective);}))seen[normalizePeriodKey(key)]=true;
+      });
+    });
+    var keys=Object.keys(seen).sort();
+    if(!keys.length)keys=[normalizePeriodKey(book.activePeriod)];
+    return keys;
+  }
   function rowEmpty(row,def){
     return !(def.columns||[]).some(function(c){return String(row&&row[c[0]]!=null?row[c[0]]:'').trim()!=='';});
   }
-  function dataRows(book,typeId,sheetId){
-    var def=sheetDef(typeId,sheetId,book),sheet=book&&book.sheets&&book.sheets[sheetId];
-    return (sheet&&Array.isArray(sheet.rows)?sheet.rows:[]).filter(function(r){return !rowEmpty(r,def);});
+  function dataRows(book,typeId,sheetId,periodKey){
+    var def=sheetDef(typeId,sheetId,book),sheet=book&&book.sheets&&book.sheets[sheetId],rows=[];
+    if(sheet){
+      if(periodKey&&sheet.periodRows&&Array.isArray(sheet.periodRows[normalizePeriodKey(periodKey)]))rows=sheet.periodRows[normalizePeriodKey(periodKey)];
+      else if(Array.isArray(sheet.rows))rows=sheet.rows;
+    }
+    return rows.filter(function(r){return !rowEmpty(r,def);});
   }
   function isWarehouse(typeId){return String(typeId||'').indexOf('gudang-')===0;}
   function cleanName(v){return String(v==null?'':v).replace(/\s+/g,' ').trim();}
@@ -211,7 +269,10 @@
     var id=uniqueSheetId(book,label);
     var cols=[['nama','Nama'],['nilai','Nilai'],['keterangan','Keterangan']];
     book.customSheets.push({id:id,label:label,pageSize:10,columns:clone(cols),custom:true});
-    book.sheets[id]={columns:clone(cols),rows:[]};
+    var period=normalizePeriodKey(book.activePeriod);
+    book.sheets[id]={columns:clone(cols),periodRows:{}};
+    book.sheets[id].periodRows[period]=[];
+    book.sheets[id].rows=book.sheets[id].periodRows[period];
     for(var i=0;i<6;i++)book.sheets[id].rows.push(emptyRow({columns:cols}));
     book.activeSheet=id;
     return id;
@@ -263,8 +324,9 @@
   }
   function renderEditor(typeId,book){
     var def=typeDef(typeId),defs=allSheetDefs(typeId,book),active=sheetDef(typeId,book&&book.activeSheet,book),sheet=book.sheets[active.id];
+    var period=periodParts(book.activePeriod),periodOptions=MONTH_NAMES.map(function(name,i){return '<option value="'+(i+1)+'" '+(period.month===i+1?'selected':'')+'>'+name+'</option>';}).join('');
     var tabs=defs.map(function(s){
-      var count=dataRows(book,typeId,s.id).length;
+      var count=dataRows(book,typeId,s.id,book.activePeriod).length;
       return '<div class="manual-sheet-tab-wrap"><button type="button" class="manual-sheet-tab '+(s.id===active.id?'active':'')+'" data-manual-sheet="'+esc(s.id)+'"><span>'+esc(s.label)+'</span><b>'+count+'</b></button>'+(s.custom?'<button type="button" class="manual-sheet-remove" data-manual-delete-sheet="'+esc(s.id)+'" title="Hapus tabel">×</button>':'')+'</div>';
     }).join('');
     var heads='<th class="manual-row-index manual-corner">#</th>'+active.columns.map(function(c,i){
@@ -286,43 +348,49 @@
       return '<tr><th class="manual-row-index">'+(r+1)+'</th>'+cells+'<td class="manual-row-actions"><button type="button" title="Duplikat baris" data-manual-duplicate="'+r+'">⧉</button><button type="button" class="danger" title="Hapus baris" data-manual-delete="'+r+'">×</button></td></tr>';
     }).join('');
     return '<div class="manual-workbook-card">'
-      +'<div class="manual-workbook-head"><div><div class="manual-kicker">INPUT MANUAL • EXCEL MODE</div><h3>'+esc(def.label)+'</h3><p>'+(isWarehouse(typeId)?'Nama alat yang sama otomatis dikelompokkan dan dibuat baris TOTAL seperti laporan gudang.':'Setiap report memiliki tabelnya sendiri. Ketik langsung atau paste blok sel dari Excel / Google Sheets.')+'</p></div><div class="manual-head-actions"><span class="manual-save-badge" data-manual-status>Tersimpan otomatis</span><button type="button" class="btn primary" data-manual-preview>Perbarui Preview</button></div></div>'
+      +'<div class="manual-workbook-head"><div><div class="manual-kicker">INPUT MANUAL • EXCEL MODE</div><h3>'+esc(def.label)+'</h3><p>'+(isWarehouse(typeId)?'Nama alat yang sama otomatis dikelompokkan dan dibuat baris TOTAL seperti laporan gudang.':'Setiap report memiliki tabelnya sendiri. Ketik langsung atau paste blok sel dari Excel / Google Sheets.')+'</p></div><div class="manual-head-actions"><div class="manual-period-picker"><label>Bulan<select data-manual-month>'+periodOptions+'</select></label><label>Tahun<input type="number" min="2020" max="2100" value="'+period.year+'" data-manual-year></label><span>'+esc(periodLabel(book.activePeriod))+'</span></div><span class="manual-save-badge" data-manual-status>Tersimpan otomatis</span><button type="button" class="btn primary" data-manual-preview>Perbarui Preview</button></div></div>'
       +'<div class="manual-sheet-tabs">'+tabs+'<button type="button" class="manual-add-sheet" data-manual-add-sheet>+ Tabel</button></div>'
       +'<div class="manual-toolbar"><button type="button" class="btn" data-manual-add="1">+ 1 Baris</button><button type="button" class="btn" data-manual-add="10">+ 10 Baris</button><button type="button" class="btn primary" data-manual-add-column>+ Kolom</button><button type="button" class="btn" data-manual-export>XLSX</button><button type="button" class="btn ghost-danger" data-manual-clear>Kosongkan Tabel</button><div class="manual-toolbar-spacer"></div><span>Struktur kolom tersimpan otomatis dan bisa dipakai di Input Banyak.</span></div>'
       +'<div class="manual-grid-scroll"><table class="manual-grid-table"><thead><tr>'+heads+'</tr></thead><tbody>'+rows+'</tbody></table></div>'
-      +'<div class="manual-workbook-foot"><span><strong>'+dataRows(book,typeId,active.id).length+'</strong> baris berisi data</span><span>Sheet: <strong>'+esc(active.label)+'</strong></span></div>'
+      +'<div class="manual-workbook-foot"><span><strong>'+dataRows(book,typeId,active.id,book.activePeriod).length+'</strong> baris • <strong>'+esc(periodLabel(book.activePeriod))+'</strong></span><span>Sheet: <strong>'+esc(active.label)+'</strong></span></div>'
       +'</div>';
   }
   function buildSlides(typeId,book,opts){
     opts=opts||{};
     var type=typeDef(typeId),slides=[];
-    allSheetDefs(typeId,book).forEach(function(baseDef){
-      var def=sheetDef(typeId,baseDef.id,book);
-      var rows=dataRows(book,typeId,def.id);
-      if(!rows.length)return;
-      var entries=isWarehouse(typeId)?groupedWarehouseEntries(typeId,def,rows,false):rows.map(function(row){return {kind:'data',row:row};});
-      var displayRows=entries.map(function(entry){
-        var row=clone(entry.row||{});
-        if(entry.kind==='total')row.__autoTotal=true;
-        return row;
-      });
-      var size=Math.max(3,Number(def.pageSize||10)),pages=Math.ceil(displayRows.length/size);
-      for(var i=0;i<displayRows.length;i+=size){
-        slides.push({
-          template:'manual-grid',
-          reportType:typeId,
-          department:type.department,
-          manualSheetId:def.id,
-          manualTitle:def.label,
-          manualColumns:clone(def.columns),
-          manualRows:clone(displayRows.slice(i,i+size)),
-          period:opts.period||'2026',
-          pageNo:Math.floor(i/size)+1,
-          pageTotal:pages,
-          subtitle:def.label,
-          groups:[]
+    periodKeys(book,typeId).forEach(function(periodKey){
+      var parts=periodParts(periodKey);
+      allSheetDefs(typeId,book).forEach(function(baseDef){
+        var def=sheetDef(typeId,baseDef.id,book);
+        var rows=dataRows(book,typeId,def.id,periodKey);
+        if(!rows.length)return;
+        var entries=isWarehouse(typeId)?groupedWarehouseEntries(typeId,def,rows,false):rows.map(function(row){return {kind:'data',row:row};});
+        var displayRows=entries.map(function(entry){
+          var row=clone(entry.row||{});
+          if(entry.kind==='total')row.__autoTotal=true;
+          return row;
         });
-      }
+        var size=Math.max(3,Number(def.pageSize||10)),pages=Math.ceil(displayRows.length/size);
+        for(var i=0;i<displayRows.length;i+=size){
+          slides.push({
+            template:'manual-grid',
+            reportType:typeId,
+            department:type.department,
+            manualSheetId:def.id,
+            manualTitle:def.label,
+            manualColumns:clone(def.columns),
+            manualRows:clone(displayRows.slice(i,i+size)),
+            manualPeriodKey:periodKey,
+            month:parts.month,
+            year:parts.year,
+            period:periodLabel(periodKey),
+            pageNo:Math.floor(i/size)+1,
+            pageTotal:pages,
+            subtitle:def.label+' • '+periodLabel(periodKey),
+            groups:[]
+          });
+        }
+      });
     });
     return slides;
   }
@@ -346,11 +414,11 @@
       +'</section>';
   }
   function exportMatrix(typeId,book,sheetId){
-    var def=sheetDef(typeId,sheetId,book),rows=dataRows(book,typeId,def.id);
+    var def=sheetDef(typeId,sheetId,book),rows=dataRows(book,typeId,def.id,book.activePeriod);
     if(isWarehouse(typeId))rows=groupedWarehouseEntries(typeId,def,rows,false).map(function(entry){return entry.row;});
     var matrix=[def.columns.map(function(c){return c[1];})];
     rows.forEach(function(r){matrix.push(def.columns.map(function(c){return r[c[0]]||'';}));});
     return {name:(typeDef(typeId).label+'-'+def.label).replace(/[^a-z0-9]+/gi,'-').toLowerCase(),rows:matrix};
   }
-  return {TYPES:TYPES,typeDef:typeDef,sheetDef:sheetDef,allSheetDefs:allSheetDefs,emptyRow:emptyRow,ensureBook:ensureBook,rowEmpty:rowEmpty,dataRows:dataRows,isWarehouse:isWarehouse,groupedWarehouseEntries:groupedWarehouseEntries,createSheet:createSheet,deleteSheet:deleteSheet,addColumn:addColumn,renameColumn:renameColumn,deleteColumn:deleteColumn,renderEditor:renderEditor,buildSlides:buildSlides,renderSlide:renderSlide,exportMatrix:exportMatrix,colLetter:colLetter};
+  return {TYPES:TYPES,MONTH_NAMES:MONTH_NAMES,typeDef:typeDef,sheetDef:sheetDef,allSheetDefs:allSheetDefs,emptyRow:emptyRow,ensureBook:ensureBook,setPeriod:setPeriod,periodKeys:periodKeys,periodParts:periodParts,periodLabel:periodLabel,normalizePeriodKey:normalizePeriodKey,rowEmpty:rowEmpty,dataRows:dataRows,isWarehouse:isWarehouse,groupedWarehouseEntries:groupedWarehouseEntries,createSheet:createSheet,deleteSheet:deleteSheet,addColumn:addColumn,renameColumn:renameColumn,deleteColumn:deleteColumn,renderEditor:renderEditor,buildSlides:buildSlides,renderSlide:renderSlide,exportMatrix:exportMatrix,colLetter:colLetter};
 });
