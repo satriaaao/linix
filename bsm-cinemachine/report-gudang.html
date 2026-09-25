@@ -236,6 +236,40 @@
     .editor-empty{padding:22px 10px;text-align:center;color:#7b8a97;font-size:11px;border:1px dashed #c7d9dc;border-radius:12px;background:#fbfefe}
     .editor-table-hint{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 8px;color:#6b7b88;font-size:9px}
 
+    .manual-workbook-card{border:1px solid #d3e1e4;border-radius:18px;background:#fff;overflow:hidden;box-shadow:0 10px 30px rgba(15,23,42,.06)}
+    .manual-workbook-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:18px 18px 14px;background:linear-gradient(180deg,#fbfefe,#f4fafb);border-bottom:1px solid #dbe7e9}
+    .manual-workbook-head h3{margin:4px 0 3px;font-size:22px;letter-spacing:-.03em}.manual-workbook-head p{margin:0;color:#64748b;font-size:11px;line-height:1.5}
+    .manual-kicker{font-size:9px;font-weight:950;letter-spacing:.17em;color:#087d86}.manual-head-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .manual-save-badge{min-height:30px;display:inline-flex;align-items:center;padding:0 10px;border:1px solid #cfe6da;background:#effaf4;color:#157347;border-radius:999px;font-size:9px;font-weight:900}
+    .manual-save-badge.dirty{border-color:#f1dfae;background:#fff9e8;color:#8a5a00}
+    .manual-sheet-tabs{display:flex;gap:0;overflow-x:auto;background:#f3f7f8;border-bottom:1px solid #dbe5e7;padding:0 10px}
+    .manual-sheet-tab{border:0;border-right:1px solid #dce6e8;background:transparent;min-width:170px;padding:11px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;color:#4d5d6b;font-size:10px;font-weight:850}
+    .manual-sheet-tab:first-child{border-left:1px solid #dce6e8}.manual-sheet-tab b{min-width:22px;height:20px;padding:0 6px;border-radius:999px;background:#e4edef;display:grid;place-items:center;font-size:9px}
+    .manual-sheet-tab.active{background:#fff;color:#087d86;box-shadow:inset 0 -3px 0 #087d86}.manual-sheet-tab.active b{background:#daf1f2;color:#05636a}
+    .manual-toolbar{display:flex;align-items:center;gap:7px;padding:10px 12px;background:#fff;border-bottom:1px solid #e4ecee;flex-wrap:wrap}
+    .manual-toolbar .btn{min-height:32px;padding:0 10px;font-size:10px}.manual-toolbar-spacer{flex:1}.manual-toolbar>span{font-size:9px;color:#748391}
+    .manual-grid-scroll{width:100%;overflow:auto;max-height:58vh;background:#fff;overscroll-behavior:contain}
+    .manual-grid-table{border-collapse:separate;border-spacing:0;min-width:100%;width:max-content;font-size:11px}
+    .manual-grid-table th,.manual-grid-table td{border-right:1px solid #dfe7e9;border-bottom:1px solid #dfe7e9;padding:0;background:#fff;height:38px}
+    .manual-grid-table thead th{position:sticky;top:0;z-index:4;background:#eaf3f4;min-width:140px;text-align:left;color:#22303e;font-weight:900}
+    .manual-grid-table thead th:first-child{left:0;z-index:6}.manual-grid-table .manual-row-index{position:sticky;left:0;z-index:3;width:44px;min-width:44px;max-width:44px;text-align:center;background:#f2f6f7;color:#64748b;font-size:10px;font-weight:850}
+    .manual-grid-table .manual-corner{z-index:7;background:#dce9eb}.manual-col-letter{display:block;padding:3px 7px 2px;background:#dce9eb;color:#6b7c88;font-size:8px;line-height:1;text-align:center;border-bottom:1px solid #cfdee1}
+    .manual-col-name{display:block;padding:6px 8px;white-space:nowrap}.manual-cell{width:100%;height:37px;border:0;background:transparent;padding:7px 8px;outline:none;min-width:140px;color:#172033;font-size:11px}
+    .manual-cell:focus{background:#effbfb;box-shadow:inset 0 0 0 2px #0c8992}.manual-grid-table tr:focus-within .manual-row-index{background:#dff2f3;color:#087d86}
+    .manual-actions-head{min-width:76px!important;text-align:center!important}.manual-row-actions{position:sticky;right:0;z-index:2;background:#f9fbfb!important;white-space:nowrap;text-align:center;padding:0 4px!important}
+    .manual-row-actions button{width:27px;height:27px;border:1px solid #d7e1e3;background:#fff;border-radius:7px;margin:0 2px;font-weight:900;color:#53616f}.manual-row-actions button.danger{color:#b42318;border-color:#efcfcb}
+    .manual-workbook-foot{display:flex;justify-content:space-between;gap:12px;padding:10px 13px;background:#f8fbfb;border-top:1px solid #dfe8ea;color:#667682;font-size:9px}
+    .manual-grid-slide{position:relative;width:1600px;height:900px;padding:34px 38px 28px;background:#fff;overflow:hidden;color:#172033}
+    .manual-slide-grid{position:absolute;inset:0;pointer-events:none;background:linear-gradient(rgba(8,125,134,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(8,125,134,.035) 1px,transparent 1px);background-size:24px 24px}
+    .manual-slide-kicker{position:relative;display:flex;justify-content:space-between;font:800 14px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.12em;color:#344454}.manual-slide-kicker .accent{color:#087d86}
+    .manual-grid-slide h1{position:relative;margin:13px 0 4px;font-size:42px;line-height:1;font-weight:950;letter-spacing:-.035em}.manual-grid-slide h1 span{color:#087d86}
+    .manual-slide-sub{position:relative;margin-bottom:14px;color:#6b7b88;font-size:13px}.manual-slide-table-wrap{position:relative;border:1px solid #cbdde2;overflow:hidden;background:#fff}
+    .manual-slide-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px}.manual-slide-table th,.manual-slide-table td{border-right:1px solid #dbe5e7;border-bottom:1px solid #dbe5e7;padding:8px 7px;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .manual-slide-table th{background:#e4f2f3;color:#076f77;font-size:10px;text-transform:uppercase;letter-spacing:.04em}.manual-slide-table .manual-slide-no{width:46px;text-align:center;font-weight:900}
+    .manual-grid-medium .manual-slide-table{font-size:11px}.manual-grid-medium .manual-slide-table th,.manual-grid-medium .manual-slide-table td{padding:7px 5px}
+    .manual-grid-dense .manual-slide-table{font-size:9px}.manual-grid-dense .manual-slide-table th,.manual-grid-dense .manual-slide-table td{padding:6px 3px}.manual-grid-dense .manual-slide-table .manual-slide-no{width:34px}
+    .manual-slide-footer{position:absolute;left:38px;right:38px;bottom:24px;display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;border-top:1px solid #7b8c94;padding-top:10px;font:800 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.07em}.manual-slide-footer i{height:1px;background:#a3b2b8}
+    @media(max-width:700px){.manual-workbook-head{display:block}.manual-head-actions{justify-content:flex-start;margin-top:12px}.manual-sheet-tab{min-width:145px}.manual-grid-scroll{max-height:55vh}.manual-toolbar-spacer{display:none}.manual-toolbar>span{width:100%}}
 
     .cover-editor-section{display:none}
     .cover-editor-section.active{display:block}
@@ -1318,7 +1352,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       <section class="dashboard-page" id="tablePage">
         <div class="page-card">
           <div class="page-head"><div><h3 id="tablePageTitle">Editor Report</h3><p id="tablePageSub">Data report terpisah per jenis.</p></div><div class="page-actions"><button class="btn primary" id="addReportSlideBtn">+ Slide Report</button><button class="btn" data-page-download="report" data-format="xlsx">XLSX</button><button class="btn" data-page-download="report" data-format="csv">CSV</button></div></div>
-          <div class="page-body" id="tablePageMount"></div>
+          <div class="page-body" id="tablePageMount"><div id="manualTableMount"></div></div>
         </div>
       </section>
 
@@ -1351,6 +1385,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             <div id="cinemaReportHost"></div>
             <div id="lightingReportHost"></div>
             <div id="crewReportHost"></div>
+            <div id="manualReportHost"></div>
             <section class="report" id="report">
               <div class="report-kicker">
                 <span class="circle-slash"></span>
@@ -1423,6 +1458,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-cinema-reports.js"></script>
   <script src="/report-lighting-reports.js"></script>
   <script src="/report-crew-reports.js"></script>
+  <script src="/report-manual-sheets.js"></script>
   <script src="/report-bulk-router.js"></script>
   <script src="/report-live-edit.js"></script>
   <script src="/report-slide-fit.js"></script>
@@ -1468,6 +1504,10 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         base.lightingComplaints=src.lightingComplaints?clone(src.lightingComplaints):null;
         base.lightingServiceGroups=src.lightingServiceGroups?clone(src.lightingServiceGroups):null;
         base.period=src.period||"";
+        base.manualSheetId=src.manualSheetId||"";
+        base.manualTitle=src.manualTitle||"";
+        base.manualColumns=src.manualColumns?clone(src.manualColumns):null;
+        base.manualRows=src.manualRows?clone(src.manualRows):null;
         base.pageNo=Number(src.pageNo||1);
         base.pageTotal=Number(src.pageTotal||1);
         base.groups=(src.groups||[]).map(function(g){
@@ -1531,7 +1571,11 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       if(!window.BSMCrewReports||typeof window.BSMCrewReports.createSlides!=="function"){
         throw new Error("Koordinator Crew helper tidak termuat");
       }
+      if(!window.BSMManualSheets||typeof window.BSMManualSheets.renderEditor!=="function"){
+        throw new Error("Input manual Excel belum termuat");
+      }
       var REPORT_TYPES=window.BSMReportMaster.REPORT_TYPES;
+      if(!state.manualSheets||typeof state.manualSheets!=="object")state.manualSheets={};
       var storedCover=state.cover||{};
       state.cover=window.BSMReportCover.normalizeCover(storedCover);
       if(!window.BSMReportUI||typeof window.BSMReportUI.renderSidebar!=="function"){
@@ -1601,6 +1645,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var cinemaReportHost=document.getElementById("cinemaReportHost");
       var lightingReportHost=document.getElementById("lightingReportHost");
       var crewReportHost=document.getElementById("crewReportHost");
+      var manualReportHost=document.getElementById("manualReportHost");
+      var manualTableMount=document.getElementById("manualTableMount");
       var reportInfoSection=document.getElementById("reportInfoSection");
       var reportItemsSection=document.getElementById("reportItemsSection");
       var reportEl=document.getElementById("report");
@@ -1711,6 +1757,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           if(page.report.template==="cinema-vendor"||page.report.template==="cinema-complaint"||page.report.template==="cinema-service") return cinemaReportHost.firstElementChild;
           if(page.report.template==="lighting-vendor"||page.report.template==="lighting-complaint"||page.report.template==="lighting-service") return lightingReportHost.firstElementChild;
           if(page.report.template==="crew-matrix"||page.report.template==="crew-summary") return crewReportHost.firstElementChild;
+          if(page.report.template==="manual-grid") return manualReportHost.firstElementChild;
         }
         return reportEl;
       }
@@ -2121,9 +2168,10 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
 
       function applyEditorMode(){
         coverEditorSection.classList.add("active");
-        var special=state.draft&&(state.draft.template==="admin-matrix"||state.draft.template==="camera-vendor"||state.draft.template==="camera-complaint"||state.draft.template==="camera-service"||state.draft.template==="audio-vendor"||state.draft.template==="audio-complaint"||state.draft.template==="audio-service"||state.draft.template==="cinema-vendor"||state.draft.template==="cinema-complaint"||state.draft.template==="cinema-service"||state.draft.template==="lighting-vendor"||state.draft.template==="lighting-complaint"||state.draft.template==="lighting-service");
+        var manualSpecial=state.draft&&state.draft.template==="manual-grid";
+        var special=state.draft&&(manualSpecial||state.draft.template==="admin-matrix"||state.draft.template==="camera-vendor"||state.draft.template==="camera-complaint"||state.draft.template==="camera-service"||state.draft.template==="audio-vendor"||state.draft.template==="audio-complaint"||state.draft.template==="audio-service"||state.draft.template==="cinema-vendor"||state.draft.template==="cinema-complaint"||state.draft.template==="cinema-service"||state.draft.template==="lighting-vendor"||state.draft.template==="lighting-complaint"||state.draft.template==="lighting-service");
         if(reportInfoSection) reportInfoSection.style.display=special?"none":"";
-        if(reportItemsSection) reportItemsSection.style.display="";
+        if(reportItemsSection) reportItemsSection.style.display=manualSpecial?"none":"";
         var add=document.getElementById("addGroupInline");
         if(add) add.style.display=special?"none":"";
       }
@@ -2141,6 +2189,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         var cinemaMode=page.kind==="report"&&page.report&&(page.report.template==="cinema-vendor"||page.report.template==="cinema-complaint"||page.report.template==="cinema-service");
         var lightingMode=page.kind==="report"&&page.report&&(page.report.template==="lighting-vendor"||page.report.template==="lighting-complaint"||page.report.template==="lighting-service");
         var crewMode=page.kind==="report"&&page.report&&(page.report.template==="crew-matrix"||page.report.template==="crew-summary");
+        var manualMode=page.kind==="report"&&page.report&&page.report.template==="manual-grid";
         coverSlideHost.style.display=coverMode?"block":"none";
         itOmsetHost.style.display=itOmsetMode?"block":"none";
         itProductHost.style.display=itProductMode?"block":"none";
@@ -2151,10 +2200,132 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         cinemaReportHost.style.display=cinemaMode?"block":"none";
         lightingReportHost.style.display=lightingMode?"block":"none";
         crewReportHost.style.display=crewMode?"block":"none";
-        reportEl.style.display=(coverMode||itOmsetMode||itProductMode||adminMode||cameraMode||cameraOpsMode||audioMode||cinemaMode||lightingMode||crewMode)?"none":"block";
+        manualReportHost.style.display=manualMode?"block":"none";
+        reportEl.style.display=(coverMode||itOmsetMode||itProductMode||adminMode||cameraMode||cameraOpsMode||audioMode||cinemaMode||lightingMode||crewMode||manualMode)?"none":"block";
+      }
+
+      function currentManualBook(){
+        var book=window.BSMManualSheets.ensureBook(state.manualSheets,state.activeType,6);
+        state.manualSheets[state.activeType]=book;
+        return book;
+      }
+      function markManualDirty(){
+        var badge=manualTableMount&&manualTableMount.querySelector("[data-manual-status]");
+        if(badge){badge.textContent="Belum diterapkan ke Preview";badge.classList.add("dirty");}
+      }
+      function exportManualSheet(){
+        var book=currentManualBook(),data=window.BSMManualSheets.exportMatrix(state.activeType,book,book.activeSheet);
+        if(!window.XLSX){toast("Library XLSX belum termuat");return;}
+        var wb=window.XLSX.utils.book_new(),ws=window.XLSX.utils.aoa_to_sheet(data.rows);
+        window.XLSX.utils.book_append_sheet(wb,ws,"Input Manual");
+        window.XLSX.writeFile(wb,data.name+".xlsx");
+        toast("XLSX input manual dibuat");
+      }
+      function applyManualPreview(){
+        var typeId=state.activeType,book=currentManualBook(),section=state.sections[typeId];
+        var slides=window.BSMManualSheets.buildSlides(typeId,book,{period:(state.draft&&state.draft.year?String(state.draft.year):"2026")});
+        section.slides=(section.slides||[]).filter(function(s){return s.template!=="manual-grid";});
+        slides.forEach(function(s){s.liveEditId=uid();section.slides.push(s);});
+        ensureMasterReports();
+        section=state.sections[typeId];
+        var first=section.slides.findIndex(function(s){return s.template==="manual-grid";});
+        if(first>=0){
+          bindActiveSection(first);
+          state.activeView=window.BSMReportMaster.findPageIndex(state,"report:"+typeId+":"+first);
+        }else{
+          bindActiveSection(0);
+        }
+        renderAll();saveState(false);
+        if(first>=0){showPage("preview");toast(slides.length+" slide manual "+reportType(typeId).label+" diperbarui");}
+        else toast("Isi minimal satu baris data sebelum membuat preview");
+      }
+      function renderManualWorkbook(){
+        if(!manualTableMount)return;
+        var book=currentManualBook();
+        manualTableMount.innerHTML=window.BSMManualSheets.renderEditor(state.activeType,book);
+        Array.prototype.forEach.call(manualTableMount.querySelectorAll("[data-manual-sheet]"),function(btn){
+          btn.addEventListener("click",function(){book.activeSheet=this.dataset.manualSheet;renderManualWorkbook();saveState(false);});
+        });
+        Array.prototype.forEach.call(manualTableMount.querySelectorAll(".manual-cell"),function(input){
+          input.addEventListener("input",function(){
+            var def=window.BSMManualSheets.sheetDef(state.activeType,book.activeSheet),r=Number(this.dataset.manualRow),key=this.dataset.manualKey;
+            var sheet=book.sheets[book.activeSheet];if(!sheet||!sheet.rows[r])return;
+            sheet.rows[r][key]=this.value;markManualDirty();autoSave();
+          });
+          input.addEventListener("paste",function(e){
+            var text=e.clipboardData&&e.clipboardData.getData("text");
+            if(!text||(!/[\t\n\r]/.test(text)))return;
+            e.preventDefault();
+            var startRow=Number(this.dataset.manualRow),startCol=Number(this.dataset.manualCol);
+            var def=window.BSMManualSheets.sheetDef(state.activeType,book.activeSheet),sheet=book.sheets[book.activeSheet];
+            var matrix=String(text).replace(/\r/g,"").split("\n");
+            if(matrix.length&&matrix[matrix.length-1]==="")matrix.pop();
+            matrix.forEach(function(line,ri){
+              var values=line.split("\t"),targetRow=startRow+ri;
+              while(sheet.rows.length<=targetRow)sheet.rows.push(window.BSMManualSheets.emptyRow(def));
+              values.forEach(function(value,ci){
+                var col=def.columns[startCol+ci];if(col)sheet.rows[targetRow][col[0]]=value;
+              });
+            });
+            renderManualWorkbook();markManualDirty();autoSave();toast("Data dari Excel ditempel");
+            setTimeout(function(){
+              var next=manualTableMount.querySelector('.manual-cell[data-manual-row="'+startRow+'"][data-manual-col="'+startCol+'"]');
+              if(next)next.focus();
+            },0);
+          });
+          input.addEventListener("keydown",function(e){
+            if(e.key!=="Enter")return;
+            e.preventDefault();
+            var row=Number(this.dataset.manualRow)+(e.shiftKey?-1:1),col=Number(this.dataset.manualCol);
+            var next=manualTableMount.querySelector('.manual-cell[data-manual-row="'+row+'"][data-manual-col="'+col+'"]');
+            if(next){next.focus();next.select();}
+          });
+        });
+        Array.prototype.forEach.call(manualTableMount.querySelectorAll("[data-manual-add]"),function(btn){
+          btn.addEventListener("click",function(){
+            var count=Math.max(1,Number(this.dataset.manualAdd||1)),def=window.BSMManualSheets.sheetDef(state.activeType,book.activeSheet),sheet=book.sheets[book.activeSheet];
+            for(var i=0;i<count;i++)sheet.rows.push(window.BSMManualSheets.emptyRow(def));
+            renderManualWorkbook();markManualDirty();autoSave();
+          });
+        });
+        Array.prototype.forEach.call(manualTableMount.querySelectorAll("[data-manual-delete]"),function(btn){
+          btn.addEventListener("click",function(){
+            var row=Number(this.dataset.manualDelete),def=window.BSMManualSheets.sheetDef(state.activeType,book.activeSheet),sheet=book.sheets[book.activeSheet];
+            sheet.rows.splice(row,1);if(!sheet.rows.length)sheet.rows.push(window.BSMManualSheets.emptyRow(def));
+            renderManualWorkbook();markManualDirty();autoSave();
+          });
+        });
+        Array.prototype.forEach.call(manualTableMount.querySelectorAll("[data-manual-duplicate]"),function(btn){
+          btn.addEventListener("click",function(){
+            var row=Number(this.dataset.manualDuplicate),sheet=book.sheets[book.activeSheet];
+            if(!sheet.rows[row])return;sheet.rows.splice(row+1,0,clone(sheet.rows[row]));
+            renderManualWorkbook();markManualDirty();autoSave();
+          });
+        });
+        var clear=manualTableMount.querySelector("[data-manual-clear]");
+        if(clear)clear.addEventListener("click",function(){
+          if(!confirm("Kosongkan seluruh isi sheet ini?"))return;
+          var def=window.BSMManualSheets.sheetDef(state.activeType,book.activeSheet),sheet=book.sheets[book.activeSheet];
+          sheet.rows=[];for(var i=0;i<6;i++)sheet.rows.push(window.BSMManualSheets.emptyRow(def));
+          renderManualWorkbook();markManualDirty();autoSave();
+        });
+        var preview=manualTableMount.querySelector("[data-manual-preview]");
+        if(preview)preview.addEventListener("click",applyManualPreview);
+        var exp=manualTableMount.querySelector("[data-manual-export]");
+        if(exp)exp.addEventListener("click",exportManualSheet);
+      }
+      function renderManualSlide(){
+        var page=currentMasterPage();
+        if(page.kind==="report"&&page.report&&page.report.template==="manual-grid"){
+          manualReportHost.innerHTML=window.BSMManualSheets.renderSlide(page.report,esc);
+        }else manualReportHost.innerHTML="";
       }
 
       function renderEditor(){
+        if(state.draft&&state.draft.template==="manual-grid"){
+          document.getElementById("groupCount").textContent="Input Manual • "+(state.draft.manualTitle||"Tabel");
+          groupsEditor.innerHTML='<div class="editor-empty"><strong>SLIDE INPUT MANUAL</strong><br><br>Edit data melalui tabel Excel di atas. Klik <strong>Perbarui Preview</strong> setelah selesai mengubah tabel.</div>';return;
+        }
         if(state.draft&&(state.draft.template==="crew-matrix"||state.draft.template==="crew-summary")){
           document.getElementById("groupCount").textContent=state.draft.template==="crew-summary"?"Ringkasan Crew":"Matrix Crew • "+(state.draft.pageNo||1)+"/"+(state.draft.pageTotal||1);
           groupsEditor.innerHTML='<div class="editor-empty"><strong>MBR KOORDINATOR CREW</strong><br><br>Matrix Crew BSM, Driver Logistik, Crew Capai Target, dan Crew Kontrak sudah masuk Preview Master. Teks juga dapat diedit langsung saat Preview/Presentasi.</div>';return;
@@ -2308,8 +2479,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         document.getElementById("footerMonth").textContent=months[month-1];
         document.getElementById("footerYear").textContent=year;
         var tableTitle=document.getElementById("tablePageTitle"),tableSub=document.getElementById("tablePageSub");
-        if(tableTitle) tableTitle.textContent="Editor "+type.label;
-        if(tableSub) tableSub.textContent="Data "+type.label+" tersimpan terpisah dari jenis report lain.";
+        if(tableTitle) tableTitle.textContent="Input Manual • "+type.label;
+        if(tableSub) tableSub.textContent="Tabel "+type.label+" berdiri sendiri seperti sheet Excel dan tersimpan terpisah dari report lain.";
         reportBody.innerHTML=buildRowsHtml(report);
         var rowCount=(report.groups||[]).reduce(function(sum,g){return sum+(g.rows||[]).length+1;},0);
         reportEl.classList.toggle("report-dense",rowCount>16);
@@ -2879,6 +3050,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       function renderAll(){
         mountDashboardSections();
         populateHeaderInputs();
+        renderManualWorkbook();
         renderEditor();
         renderCoverEditor();
         renderReport();
@@ -2892,6 +3064,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         renderCinemaSlide();
         renderLightingSlide();
         renderCrewSlide();
+        renderManualSlide();
         renderSlideNav();
         applyEditorMode();
         applyPreviewMode();
@@ -3023,6 +3196,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(report&&report.template==="lighting-service") return window.BSMLightingReports.renderServiceSlide(report,esc);
         if(report&&report.template==="crew-matrix") return window.BSMCrewReports.renderMatrixSlide(report,esc);
         if(report&&report.template==="crew-summary") return window.BSMCrewReports.renderSummarySlide(report,esc);
+        if(report&&report.template==="manual-grid") return window.BSMManualSheets.renderSlide(report,esc);
         var type=reportType(typeId||report.reportType),dep=String(report.department||type.department).trim()||type.department,m=Number(report.month||1),y=Number(report.year||new Date().getFullYear());
         var warehouse=String(type.id).indexOf("gudang-")===0;
         var rowCount=(report.groups||[]).reduce(function(sum,g){return sum+(g.rows||[]).length+1;},0);
@@ -3083,7 +3257,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           cover.mainTitle1="MBR";cover.mainTitle2="PT BLUE STAR MEDIA";cover.titleTop1="// MASTER BUSINESS REVIEW";cover.titleTop2="// MASTER REPORT";
           cover.dataPrefix="DIVISI :";cover.item1="OPERASIONAL";cover.item2="GUDANG";cover.item3="MARKETING";cover.footerRight="// MASTER REPORT";
           cover.logo={image:"",width:180,x:0,y:0};
-          state={draft:emptyReport(),slides:[],activeSlide:0,activeView:0,cover:cover,masterVersion:1,activeType:"it",coverTarget:"master"};
+          state={draft:emptyReport(),slides:[],activeSlide:0,activeView:0,cover:cover,masterVersion:1,activeType:"it",coverTarget:"master",manualSheets:{}};
           state.sections=window.BSMReportMaster.createSections(cover,[]);
           ensureMasterReports();bindActiveSection(0);renderAll();saveState(true);setMobileTab(false);
         }
