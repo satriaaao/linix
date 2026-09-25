@@ -50,6 +50,130 @@
     }
     throw error||new Error('Workbook kosong.');
   }
+
+  function detectMonthYear(text){
+    var raw=String(text||'').toLowerCase(),month=-1,year=null;
+    for(var i=0;i<LONG.length;i++){
+      var longName=LONG[i],shortName=MONTHS[i].toLowerCase();
+      if(new RegExp('(?:^|[^a-z])'+longName+'(?:[^a-z]|$)','i').test(raw)||new RegExp('(?:^|[^a-z])'+shortName+'(?:[^a-z]|$)','i').test(raw)){month=i;break;}
+    }
+    var y=raw.match(/(?:^|\D)(20\d{2})(?:\D|$)/);
+    if(y)year=Number(y[1]);
+    return {monthIndex:month,year:year};
+  }
+  function normalizeProductName(value){
+    var s=String(value==null?'':value).trim().toLowerCase();
+    try{s=s.normalize('NFKD').replace(/[\u0300-\u036f]/g,'');}catch(_){}
+    return s
+      .replace(/[“”„‟"']/g,'')
+      .replace(/&/g,' and ')
+      .replace(/\bmirror\s*less\b/g,'mirrorless')
+      .replace(/\bfull\s*[- ]?frame\b/g,'fullframe')
+      .replace(/[^a-z0-9]+/g,' ')
+      .replace(/\s+/g,' ')
+      .trim();
+  }
+  function modelTokens(name){
+    return normalizeProductName(name).split(' ').filter(function(t){return /\d/.test(t);}).sort();
+  }
+  function tokenSimilarity(a,b){
+    a=normalizeProductName(a);b=normalizeProductName(b);
+    if(!a||!b)return 0;
+    if(a===b)return 1;
+    var ma=modelTokens(a).join('|'),mb=modelTokens(b).join('|');
+    if(ma&&mb&&ma!==mb)return 0;
+    var aa=a.split(' '),bb=b.split(' '),used={},hit=0;
+    aa.forEach(function(t){
+      for(var i=0;i<bb.length;i++){
+        if(!used[i]&&bb[i]===t){used[i]=true;hit++;break;}
+      }
+    });
+    var dice=(2*hit)/(aa.length+bb.length);
+    if((a.indexOf(b)>=0||b.indexOf(a)>=0)&&Math.min(a.length,b.length)/Math.max(a.length,b.length)>=.82)dice=Math.max(dice,.94);
+    return dice;
+  }
+  function parseMonthlyRows(rows,context){
+    var header=-1,nameCol=-1,totalCol=-1;
+    for(var i=0;i<Math.min(rows.length,30);i++){
+      var names=(rows[i]||[]).map(function(v){return String(v||'').trim().toLowerCase();});
+      var n=names.findIndex(function(v){return /^(nama produk|nama barang|produk|item)$/.test(v);});
+      var t=names.findIndex(function(v){return /^(total pembayaran|total pendapatan|pendapatan|omset|total omset|revenue|nilai|total)$/.test(v);});
+      if(n>=0&&t>=0){header=i;nameCol=n;totalCol=t;break;}
+    }
+    if(header<0)throw new Error('Format Top Product bulanan tidak ditemukan. Gunakan kolom Nama Produk dan Total Pembayaran.');
+    var products=[];
+    rows.slice(header+1).forEach(function(row){
+      var name=String(row&&row[nameCol]||'').trim();
+      if(!name||/^(total|grand total|nama produk)$/i.test(name))return;
+      var value=number(row&&row[totalCol]);
+      if(value==null)return;
+      products.push({name:name,value:value});
+    });
+    if(!products.length)throw new Error('Tidak ada nilai produk bulanan yang dapat dibaca.');
+    var period=detectMonthYear(context||'');
+    return {monthIndex:period.monthIndex,year:period.year,products:products};
+  }
+  function parseMonthlyWorkbook(wb,xlsx,options){
+    options=options||{};var errors=[];
+    for(var i=0;i<wb.SheetNames.length;i++){
+      var name=wb.SheetNames[i],rows=xlsx.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:null,raw:true});
+      try{
+        var parsed=parseMonthlyRows(rows,String(options.fileName||'')+' '+name);
+        if(parsed.monthIndex<0&&Number.isInteger(options.monthIndex))parsed.monthIndex=options.monthIndex;
+        if(!parsed.year&&options.year)parsed.year=Number(options.year);
+        if(parsed.monthIndex<0)throw new Error('Bulan file tidak terbaca dari nama file/sheet.');
+        parsed.sheetName=name;
+        return parsed;
+      }catch(e){errors.push(e);}
+    }
+    throw errors[errors.length-1]||new Error('Workbook Top Product kosong.');
+  }
+  function mergeMonthlyProducts(existing,monthly,monthIndex,options){
+    options=options||{};
+    if(!Number.isInteger(monthIndex)||monthIndex<0||monthIndex>11)throw new Error('Bulan update produk tidak valid.');
+    var base=(existing||[]).map(function(p){
+      var values=Array.isArray(p.values)?p.values.slice(0,12):[];
+      while(values.length<12)values.push(null);
+      return {no:p.no,name:String(p.name||'').trim(),values:values};
+    }).filter(function(p){return p.name;});
+    base.forEach(function(p){p.values[monthIndex]=0;});
+    var exact={};
+    base.forEach(function(p,i){var k=normalizeProductName(p.name);if(k&&!exact[k])exact[k]=i;});
+    var matched=0,added=0,fuzzy=0;
+    (monthly||[]).forEach(function(item){
+      var incoming=String(item&&item.name||'').trim();if(!incoming)return;
+      var value=number(item.value);if(value==null)value=0;
+      var key=normalizeProductName(incoming),idx=exact[key];
+      if(idx==null){
+        var best=-1,bestScore=0,second=0;
+        for(var j=0;j<base.length;j++){
+          var score=tokenSimilarity(incoming,base[j].name);
+          if(score>bestScore){second=bestScore;bestScore=score;best=j;}
+          else if(score>second)second=score;
+        }
+        if(bestScore>=.92&&bestScore-second>=.025){idx=best;fuzzy++;}
+      }
+      if(idx!=null){
+        base[idx].values[monthIndex]=value;matched++;
+      }else{
+        var values=Array(12).fill(null);
+        for(var m=0;m<monthIndex;m++)values[m]=0;
+        values[monthIndex]=value;
+        base.push({no:0,name:incoming,values:values});
+        exact[key]=base.length-1;added++;
+      }
+    });
+    if(options.sort!==false){
+      base.sort(function(a,b){
+        var av=Number(a.values[monthIndex]||0),bv=Number(b.values[monthIndex]||0);
+        if(bv!==av)return bv-av;
+        return a.name.localeCompare(b.name,'id',{sensitivity:'base'});
+      });
+    }
+    base.forEach(function(p,i){p.no=i+1;});
+    var zeroed=base.filter(function(p){return Number(p.values[monthIndex]||0)===0;}).length;
+    return {products:base,matched:matched,added:added,fuzzyMatched:fuzzy,zeroed:zeroed,monthIndex:monthIndex};
+  }
   function createSlides(products){
     var slides=[],size=PAGE_SIZE,total=Math.ceil(products.length/size),latestMonth=-1;
     products.forEach(function(r){r.values.forEach(function(v,i){if(v!=null)latestMonth=Math.max(latestMonth,i);});});
@@ -97,5 +221,5 @@
     }).join('');
     return '<section class="it-product-slide it-products-full"><div class="omset-kicker">LAPORAN IT <span>2026 / '+(report.pageNo||1)+' dari '+(report.pageTotal||1)+'</span></div><h1>Analisis Produk <span>2026</span></h1><p>'+period+' · Rupiah · Perbandingan bulan ke bulan</p><table class="it-products-table"><thead><tr><th>No</th><th>Nama Produk</th>'+monthHeaders+'<th>Status '+(statusMonth>=0?MONTHS[statusMonth]:'')+'</th></tr></thead><tbody>'+rows+'</tbody></table></section>';
   }
-  return {MONTHS:MONTHS,parseRows:parseRows,parseWorkbook:parseWorkbook,createSlides:createSlides,renderSlide:renderSlide,growth:growth,visibleMonthIndexes:visibleMonthIndexes};
+  return {MONTHS:MONTHS,parseRows:parseRows,parseWorkbook:parseWorkbook,parseMonthlyRows:parseMonthlyRows,parseMonthlyWorkbook:parseMonthlyWorkbook,mergeMonthlyProducts:mergeMonthlyProducts,normalizeProductName:normalizeProductName,detectMonthYear:detectMonthYear,createSlides:createSlides,renderSlide:renderSlide,growth:growth,visibleMonthIndexes:visibleMonthIndexes};
 });
