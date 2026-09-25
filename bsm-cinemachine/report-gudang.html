@@ -2210,9 +2210,49 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         reader.readAsDataURL(file);
       }
 
+      function selectedPresentationPeriodKey(){
+        var candidates=[
+          previewPeriodSearch&&previewPeriodSearch.value,
+          presentationPeriodSearch&&presentationPeriodSearch.value,
+          state.bulkPeriodKey,
+          pagePeriodKey(currentMasterPage())
+        ];
+        for(var i=0;i<candidates.length;i++){
+          if(/^\d{4}-\d{2}$/.test(String(candidates[i]||"")))return String(candidates[i]);
+        }
+        return "";
+      }
+      function coverWithSelectedPeriod(model,key){
+        var out=clone(model||{});
+        key=String(key||"");
+        if(!/^\d{4}-\d{2}$/.test(key))return out;
+        var label=window.BSMManualSheets&&window.BSMManualSheets.periodLabel?window.BSMManualSheets.periodLabel(key):key;
+        out.period=label.toUpperCase();
+        if(/(?:JANUARI|FEBRUARI|MARET|APRIL|MEI|JUNI|JULI|AGUSTUS|SEPTEMBER|OKTOBER|NOVEMBER|DESEMBER)\s+20\d{2}/i.test(String(out.footerRight||""))){
+          out.footerRight="// "+label.toUpperCase();
+        }
+        return out;
+      }
+      function syncCoverPeriodState(key){
+        key=String(key||"");
+        if(!/^\d{4}-\d{2}$/.test(key))return;
+        state.bulkPeriodKey=key;
+        var label=window.BSMManualSheets&&window.BSMManualSheets.periodLabel?window.BSMManualSheets.periodLabel(key):key;
+        if(state.cover){
+          state.cover.period=label.toUpperCase();
+          if(/(?:JANUARI|FEBRUARI|MARET|APRIL|MEI|JUNI|JULI|AGUSTUS|SEPTEMBER|OKTOBER|NOVEMBER|DESEMBER)\s+20\d{2}/i.test(String(state.cover.footerRight||"")))state.cover.footerRight="// "+label.toUpperCase();
+        }
+        Object.keys(state.sections||{}).forEach(function(typeId){
+          var cover=state.sections[typeId]&&state.sections[typeId].cover;
+          if(!cover)return;
+          cover.period=label.toUpperCase();
+          if(/(?:JANUARI|FEBRUARI|MARET|APRIL|MEI|JUNI|JULI|AGUSTUS|SEPTEMBER|OKTOBER|NOVEMBER|DESEMBER)\s+20\d{2}/i.test(String(cover.footerRight||"")))cover.footerRight="// "+label.toUpperCase();
+        });
+      }
       function renderCoverSlide(){
         var page=currentMasterPage();
         var model=page.kind==="master-cover"?state.cover:(page.kind==="section-cover"?(state.sections[page.typeId]||activeSection()).cover:editableCover());
+        model=coverWithSelectedPeriod(model,selectedPresentationPeriodKey());
         coverSlideHost.innerHTML=window.BSMReportCover.renderCoverSlide(model,esc);
         var slide=coverSlideHost.querySelector(".cover-slide");
         if(slide&&model.logo&&model.logo.image){
@@ -2929,8 +2969,9 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         return String((state.cover&&state.cover.period)||"Report Gudang");
       }
       function pdfFileName(){
-        var page=currentMasterPage(),label="";
-        if(page&&page.kind==="report")label=effectiveReportPeriod(page.report);
+        var page=currentMasterPage(),label="",selectedKey=selectedPresentationPeriodKey();
+        if(selectedKey&&window.BSMManualSheets&&window.BSMManualSheets.periodLabel)label=window.BSMManualSheets.periodLabel(selectedKey);
+        if(!label&&page&&page.kind==="report")label=effectiveReportPeriod(page.report);
         if(!label&&state.bulkPeriodKey&&window.BSMManualSheets&&window.BSMManualSheets.periodLabel)label=window.BSMManualSheets.periodLabel(state.bulkPeriodKey);
         if(!label)label=String((state.cover&&state.cover.period)||"Report Gudang");
         label=String(label).trim().replace(/[^a-z0-9]+/gi,"-").replace(/^-+|-+$/g,"");
@@ -2969,7 +3010,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             if(page.kind==="report"){
               pages.push(staticReportHtml(page.report,p+1,master.length,page.typeId));
             }else{
-              var coverModel=clone(page.cover||state.cover);
+              var coverModel=coverWithSelectedPeriod(page.cover||state.cover,selectedPresentationPeriodKey());
               coverModel.image=await pdfImageSource(coverModel.image);
               var coverHtml=window.BSMReportCover.renderCoverSlide(coverModel,esc);
               if(coverModel.logo&&coverModel.logo.image){
@@ -3384,6 +3425,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
       function jumpToPeriod(key){
         if(!key)return;
+        syncCoverPeriodState(key);
         var pages=masterPages(),index=pages.findIndex(function(page){return pagePeriodKey(page)===key;});
         if(index<0){toast("Belum ada slide untuk bulan tersebut");return;}
         loadView(index);
@@ -3476,7 +3518,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(report.cameraVendor&&typeof report.cameraVendor==="object")report.cameraVendor.period=label;
         if(report.matrix&&typeof report.matrix==="object")report.matrix.period=label;
         if(report.template==="manual-grid")report.manualPeriodKey=key;
-        state.bulkPeriodKey=key;
+        syncCoverPeriodState(key);
         return report;
       }
       function syncBulkPeriodFromActive(){
@@ -3632,6 +3674,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
 
       function renderAll(){
+        if(state.bulkPeriodKey)syncCoverPeriodState(state.bulkPeriodKey);
         mountDashboardSections();
         populateHeaderInputs();
         renderManualWorkbook();
@@ -3883,8 +3926,9 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       importBulkBtn.addEventListener("click",importBulk);
       if(bulkModeSelect) bulkModeSelect.addEventListener("change",updateBulkContext);
       function persistBulkPeriodSelection(){
-        state.bulkPeriodKey=bulkPeriodKey();
+        syncCoverPeriodState(bulkPeriodKey());
         updateBulkContext();
+        renderCoverSlide();
         saveState(false);
       }
       if(bulkMonthSelect) bulkMonthSelect.addEventListener("change",persistBulkPeriodSelection);
