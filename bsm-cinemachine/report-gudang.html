@@ -2475,7 +2475,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
 
       function applyEditorMode(){
         coverEditorSection.classList.add("active");
-        var manualSpecial=state.draft&&state.draft.template==="manual-grid";
+        var manualSpecial=state.draft&&(state.draft.template==="manual-grid"||state.draft.template==="html-preview");
         var special=state.draft&&(manualSpecial||state.draft.template==="admin-matrix"||state.draft.template==="camera-vendor"||state.draft.template==="camera-complaint"||state.draft.template==="camera-service"||state.draft.template==="audio-vendor"||state.draft.template==="audio-complaint"||state.draft.template==="audio-service"||state.draft.template==="cinema-vendor"||state.draft.template==="cinema-complaint"||state.draft.template==="cinema-service"||state.draft.template==="lighting-vendor"||state.draft.template==="lighting-complaint"||state.draft.template==="lighting-service");
         if(reportInfoSection) reportInfoSection.style.display=special?"none":"";
         if(reportItemsSection) reportItemsSection.style.display=manualSpecial?"none":"";
@@ -2694,6 +2694,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         });
         var uploadExcelBtn=manualTableMount.querySelector("[data-manual-upload-excel]");
         if(uploadExcelBtn)uploadExcelBtn.addEventListener("click",chooseManualExcelFile);
+        var uploadHtmlBtn=manualTableMount.querySelector("[data-manual-upload-html]");
+        if(uploadHtmlBtn)uploadHtmlBtn.addEventListener("click",chooseITHtmlFile);
         var bulkManualBtn=manualTableMount.querySelector("[data-manual-bulk]");
         if(bulkManualBtn)bulkManualBtn.addEventListener("click",openManualBulkModal);
         var addSheetBtn=manualTableMount.querySelector("[data-manual-add-sheet]");
@@ -4261,5 +4263,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   </script>
   <!-- auth-scope-v2 -->
 </body>
-<!-- report-gudang-build-v35-excel-html-matrix -->
+<!-- report-gudang-build-v36-manual-upload-complete -->
 </html>
