@@ -2578,7 +2578,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         matrix=cleanImportMatrix(matrix);
         if(matrix.length<2)throw new Error("Tabel Excel harus memiliki header dan minimal satu baris data");
         var labels=matrix[0].map(function(v,i){return String(v||"").trim()||("Kolom "+(i+1));});
-        var rows=matrix.slice(1).filter(function(row){return row.some(function(v){return String(v||"").trim()!=="");});
+        var rows=matrix.slice(1).filter(function(row){return row.some(function(v){return String(v||"").trim()!=="";});});
         window.BSMManualSheets.replaceSheetSchema(book,typeId,sheetId,labels,rows,book.activePeriod);
         return rows.length;
       }
