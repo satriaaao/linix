@@ -138,6 +138,18 @@
     defs.forEach(function(baseDef){
       var sheet=book.sheets[baseDef.id];
       if(!sheet||typeof sheet!=='object')sheet={rows:[],columns:clone(baseDef.columns),periodRows:{}};
+      var legacyService=isWarehouse(typeId)&&baseDef.id==='service'&&Array.isArray(sheet.columns)&&sheet.columns.some(function(c){return Array.isArray(c)&&c[0]==='stokSn';});
+      if(legacyService){
+        var oldPeriodRows=sheet.periodRows&&typeof sheet.periodRows==='object'?sheet.periodRows:{};
+        if(!Object.keys(oldPeriodRows).length&&Array.isArray(sheet.rows))oldPeriodRows[book.activePeriod]=sheet.rows;
+        var migrated={};
+        Object.keys(oldPeriodRows).forEach(function(pk){
+          migrated[pk]=(oldPeriodRows[pk]||[]).map(function(r){
+            return {namaAlat:String(r&&r.namaAlat||''),snLampu:String(r&&(r.snLampu||r.stokSn)||''),snControl:String(r&&r.snControl||''),serviceCenter:String(r&&r.serviceCenter||''),tanggal:String(r&&r.tanggal||''),damage:String(r&&(r.damage||r.keterangan)||'')};
+          });
+        });
+        sheet.columns=clone(baseDef.columns);sheet.periodRows=migrated;
+      }
       sheet.columns=normalizeColumns(sheet.columns,baseDef.columns);
       var s=clone(baseDef);s.columns=clone(sheet.columns);
       if(!sheet.periodRows||typeof sheet.periodRows!=='object'){
