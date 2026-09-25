@@ -1479,9 +1479,140 @@
     return c;
   }
 
+  function isIOSLike(){
+    const ua=navigator.userAgent||'';
+    const iOSDevice=/iPad|iPhone|iPod/i.test(ua);
+    const iPadDesktop=navigator.platform==='MacIntel' && navigator.maxTouchPoints>1;
+    return iOSDevice || iPadDesktop;
+  }
+
+  function openPendingWindow(title,message){
+    const w=window.open('about:blank','_blank');
+    if(!w) return null;
+    try{
+      w.document.open();
+      w.document.write('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+title+'</title></head><body style="margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f6f8fb;color:#12213a;display:grid;place-items:center;min-height:100vh"><div style="max-width:420px;padding:28px;text-align:center"><div style="font-size:34px;margin-bottom:12px">⏳</div><h2 style="margin:0 0 8px;font-size:20px">'+title+'</h2><p style="margin:0;color:#6b778c;line-height:1.55">'+message+'</p></div></body></html>');
+      w.document.close();
+    }catch(_){}
+    return w;
+  }
+
+  function deliverPdfBlob(blob,fileName,targetWindow=null){
+    const url=URL.createObjectURL(blob);
+    if(isIOSLike() && targetWindow && !targetWindow.closed){
+      targetWindow.location.replace(url);
+      setStatus('PDF berhasil dibuat. Di iPhone/iPad, gunakan tombol Bagikan lalu Simpan ke File jika ingin menyimpan PDF.');
+      setTimeout(()=>URL.revokeObjectURL(url),600000);
+      return;
+    }
+
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=fileName;
+    a.rel='noopener';
+    a.style.display='none';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    if(targetWindow && !targetWindow.closed){
+      try{targetWindow.close();}catch(_){}
+    }
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+  }
+
+  async function printAllLabels(printWindow){
+    if(!serials.length){setStatus('Belum ada QR untuk dicetak.');return;}
+    if(!printWindow || printWindow.closed){
+      setStatus('Jendela cetak diblokir browser. Izinkan pop-up untuk situs ini lalu coba lagi.');
+      return;
+    }
+
+    const btn=$('pressBtn');
+    const printBtn=$('printBtn');
+    if(btn) btn.disabled=true;
+    if(printBtn) printBtn.disabled=true;
+    showProcess('Menyiapkan Cetak Semua','Membuat halaman cetak 300 DPI dan membuka dialog print…',serials.length);
+    setStatus('Menyiapkan cetak 0%…');
+
+    try{
+      const s=settings(),m=adaptiveMetrics(s);
+      const pageW=paperWidth(s.paper),pageH=paperHeight(s.paper);
+      const margin=6;
+      const maxCols=Math.max(1,Math.floor((pageW-(margin*2)+s.gap)/(s.cutW+s.gap)));
+      const cols=Math.max(1,Math.min(s.cols,maxCols));
+      const rows=Math.max(1,Math.floor((pageH-(margin*2)+s.gap)/(s.cutH+s.gap)));
+      const perPage=cols*rows;
+
+      const d=printWindow.document;
+      d.open();
+      d.write('<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BSM Rental QR - Cetak</title><style>'+
+        '@page{size:'+pageW+'mm '+pageH+'mm;margin:0}'+
+        '*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;font-family:Arial,sans-serif}'+
+        '.page{width:'+pageW+'mm;height:'+pageH+'mm;padding:'+margin+'mm;display:grid;grid-template-columns:repeat('+cols+','+s.cutW+'mm);grid-auto-rows:'+s.cutH+'mm;gap:'+s.gap+'mm;align-content:center;justify-content:center;overflow:hidden;break-after:page;page-break-after:always}'+
+        '.page:last-child{break-after:auto;page-break-after:auto}'+
+        '.label{width:'+s.cutW+'mm;height:'+s.cutH+'mm;overflow:hidden;display:flex;align-items:center;justify-content:center}'+
+        '.label img{display:block;width:100%;height:100%;object-fit:contain}'+
+        '@media screen{body{background:#e9eef5}.page{background:#fff;margin:12px auto;box-shadow:0 6px 24px rgba(0,0,0,.14)}}'+
+        '@media print{body{background:#fff}.page{margin:0;box-shadow:none}}'+
+        '</style></head><body><main id="printPages"></main></body></html>');
+      d.close();
+
+      const root=d.getElementById('printPages');
+      let page=null;
+      for(let i=0;i<serials.length;i++){
+        if(i%perPage===0){
+          page=d.createElement('section');
+          page.className='page';
+          root.appendChild(page);
+        }
+        const label=d.createElement('div');
+        label.className='label';
+        const img=d.createElement('img');
+        img.alt='QR '+serials[i];
+        img.src=makeLabelCanvas(serials[i],s,m,3.15,true).toDataURL('image/png');
+        label.appendChild(img);
+        page.appendChild(label);
+
+        if(i===serials.length-1 || (i+1)%20===0){
+          const done=i+1;
+          const pct=Math.round((done/serials.length)*100);
+          updateProcess(done,serials.length,'Menyiapkan halaman cetak 300 DPI…');
+          setStatus('Menyiapkan cetak '+pct+'% • '+done+' / '+serials.length+' QR');
+          await yieldUi();
+        }
+      }
+
+      const imgs=Array.from(d.images||[]);
+      await Promise.all(imgs.map(img=>{
+        if(img.decode) return img.decode().catch(()=>{});
+        if(img.complete) return Promise.resolve();
+        return new Promise(resolve=>{img.onload=resolve;img.onerror=resolve;});
+      }));
+
+      updateProcess(serials.length,serials.length,'Selesai. Membuka dialog cetak…');
+      setStatus('Semua '+serials.length+' QR siap dicetak. Membuka dialog print…');
+      await yieldUi();
+      printWindow.focus();
+      setTimeout(()=>{
+        try{printWindow.print();}
+        catch(e){console.error(e);setStatus('Dialog print gagal dibuka. Gunakan menu Print/Cetak pada tab cetak yang sudah terbuka.');}
+      },250);
+    }catch(e){
+      console.error(e);
+      setStatus('Gagal menyiapkan halaman cetak. Coba lagi.');
+      try{if(printWindow && !printWindow.closed) printWindow.close();}catch(_){}
+    }finally{
+      if(btn) btn.disabled=false;
+      if(printBtn) printBtn.disabled=false;
+      setTimeout(hideProcess,450);
+    }
+  }
+
   async function downloadPressPdf(action='download',printWindow=null){
     if(!serials.length){setStatus('Belum ada QR untuk dibuat PDF stiker.');return;}
-    if(!window.jspdf || !window.jspdf.jsPDF){setStatus('Library PDF belum termuat. Coba refresh halaman.');return;}
+    if(action==='print') return printAllLabels(printWindow);
+    if(!window.jspdf || !window.jspdf.jsPDF){setStatus('Library PDF belum termuat. Coba refresh halaman.');if(printWindow && !printWindow.closed) printWindow.close();return;}
 
     const btn=$('pressBtn');
     const printBtn=$('printBtn');
@@ -1537,19 +1668,9 @@
         : 'BSM-Rental-QR-Stiker-Siap-Cetak-'+serials.length+'pcs.pdf';
 
       updateProcess(serials.length,serials.length,'File selesai dibuat. Menyiapkan hasil…');
-      if(action==='print'){
-        const blob=pdf.output('blob');
-        const url=URL.createObjectURL(blob);
-        if(printWindow && !printWindow.closed){
-          printWindow.location.replace(url);
-        }else{
-          const a=document.createElement('a');
-          a.href=url;a.target='_blank';a.rel='noopener';a.click();
-        }
-        setStatus('Semua '+serials.length+' QR sudah jadi. PDF siap dicetak.');
-        setTimeout(()=>URL.revokeObjectURL(url),120000);
-      }else{
-        pdf.save(fileName);
+      const blob=pdf.output('blob');
+      deliverPdfBlob(blob,fileName,printWindow);
+      if(!(isIOSLike() && printWindow && !printWindow.closed)){
         setStatus(s.stickerMode ? 'PDF stiker kupas / kiss cut berhasil dibuat.' : 'PDF stiker berhasil dibuat.');
       }
     }catch(e){
@@ -1738,15 +1859,17 @@
   window.addEventListener('resize',()=>{updateStickerSim();updateRuler();});
   $('printBtn').addEventListener('click',async()=>{
     if(!serials.length){setStatus('Belum ada QR untuk dicetak.');return;}
-    const w=window.open('about:blank','_blank');
-    if(w){
-      w.document.write('<!doctype html><meta name="viewport" content="width=device-width"><title>Menyiapkan cetak…</title><body style="font-family:system-ui;padding:32px;text-align:center"><h3>Menyiapkan '+serials.length+' QR…</h3><p>Jangan tutup halaman ini.</p></body>');
-      w.document.close();
-    }
+    const w=openPendingWindow('Menyiapkan cetak…','Sedang membuat '+serials.length+' QR siap cetak. Jendela ini akan membuka dialog print otomatis.');
+    if(!w){setStatus('Pop-up diblokir browser. Izinkan pop-up untuk situs ini lalu tekan Cetak Semua lagi.');return;}
     await downloadPressPdf('print',w);
   });
   $('zipBtn').addEventListener('click',downloadZip);
-  $('pressBtn').addEventListener('click',downloadPressPdf);
+  $('pressBtn').addEventListener('click',()=>{
+    const w=isIOSLike()
+      ? openPendingWindow('Menyiapkan PDF…','Sedang membuat PDF. Setelah selesai, PDF akan terbuka dan bisa disimpan ke Files.')
+      : null;
+    downloadPressPdf('download',w);
+  });
   window.addEventListener('beforeprint',applyLayout);
 
   loadLocal();
