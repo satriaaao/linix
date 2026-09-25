@@ -1197,8 +1197,7 @@
       <h1 id="authTitle">Login Report Gudang</h1>
       <p id="authDescription">Wajib login untuk membuka sistem. Data report tersimpan di database online.</p>
       <form class="auth-form" id="authForm">
-        <label id="authDisplayNameLabel" hidden>Nama Admin<input id="authDisplayName" autocomplete="name" placeholder="Contoh: Admin BSM"></label>
-        <label>Username<input id="authUsername" autocomplete="username" value="admin" required></label>
+        <label>Email / Username<input id="authUsername" autocomplete="username" placeholder="Masukkan email atau username" required></label>
         <label>Password<input id="authPassword" type="password" autocomplete="current-password" required></label>
         <div class="auth-error" id="authError"></div>
         <button class="btn primary auth-submit" id="authSubmit" type="submit">Masuk</button>
@@ -1750,8 +1749,6 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var authForm=document.getElementById("authForm");
       var authTitle=document.getElementById("authTitle");
       var authDescription=document.getElementById("authDescription");
-      var authDisplayNameLabel=document.getElementById("authDisplayNameLabel");
-      var authDisplayName=document.getElementById("authDisplayName");
       var authUsername=document.getElementById("authUsername");
       var authPassword=document.getElementById("authPassword");
       var authError=document.getElementById("authError");
@@ -3099,16 +3096,12 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       function updateAccountUi(){
         if(accountBtn)accountBtn.textContent=currentUser?(currentUser.displayName||currentUser.username||"Akun"):"Login / Akun";
       }
-      function showAuthGate(message,mode){
-        mode=mode||"login";
-        if(authGate){authGate.hidden=false;authGate.dataset.mode=mode;}
-        if(authTitle)authTitle.textContent=mode==="setup"?"Buat Admin Pertama":"Login Report Gudang";
-        if(authDescription)authDescription.textContent=mode==="setup"?"Database online sudah aktif. Buat akun Admin pertama sebelum sistem dapat dibuka.":"Wajib login untuk membuka sistem. Data dan preview mengikuti akses akun.";
-        if(authDisplayNameLabel)authDisplayNameLabel.hidden=mode!=="setup";
-        if(authDisplayName)authDisplayName.required=mode==="setup";
+      function showAuthGate(message){
+        if(authGate){authGate.hidden=false;authGate.dataset.mode="login";}
+        if(authTitle)authTitle.textContent="Login Report Gudang";
+        if(authDescription)authDescription.textContent="Wajib login untuk membuka sistem. Tidak ada pendaftaran akun dari halaman login.";
         if(authError)authError.textContent=message||"";
         if(authPassword)authPassword.value="";
-        if(authUsername&&!authUsername.value)authUsername.value="admin";
       }
       function hideAuthGate(){
         if(authGate){authGate.hidden=true;authGate.dataset.mode="";}
@@ -3327,8 +3320,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           }
           if(!health.adminConfigured){
             localMode=false;cloudReady=false;currentUser=null;updateAccountUi();
-            if(dbStatus)dbStatus.textContent="SQL Online • Setup Admin";
-            showAuthGate("Buat akun Admin Online pertama untuk mengaktifkan sistem.","setup");
+            if(dbStatus)dbStatus.textContent="Database Online";
+            showAuthGate("Akun Super Admin belum diaktifkan pada server.");
             return;
           }
           if(!cloud.getToken()){
@@ -4038,22 +4031,10 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           authSubmit.disabled=true;authSubmit.textContent="Masuk...";
           authError.textContent="";
           if(!cloud||!cloudConfigured){showAuthGate("Database online belum siap. Sistem tetap dikunci.","login");return;}
-          if(authGate&&authGate.dataset.mode==="setup"){
-            var boot=await cloud.bootstrapUser({
-              displayName:(authDisplayName&&authDisplayName.value||"").trim(),
-              username:authUsername.value,
-              password:authPassword.value,
-              role:"admin",permissions:["*"],isActive:true
-            });
-            currentUser=boot.user||null;cloudReady=true;localMode=false;
-            try{sessionStorage.removeItem("bsm-report-cloud-version");localStorage.removeItem(STORAGE_KEY);}catch(_){}
-            await initializeCloud();
-          }else{
-            var result=await cloud.login(authUsername.value,authPassword.value);
-            currentUser=result.user||null;
-            try{sessionStorage.removeItem("bsm-report-cloud-version");localStorage.removeItem(STORAGE_KEY);}catch(_){}
-            await initializeCloud();
-          }
+          var result=await cloud.login(authUsername.value,authPassword.value);
+          currentUser=result.user||null;
+          try{sessionStorage.removeItem("bsm-report-cloud-version");localStorage.removeItem(STORAGE_KEY);}catch(_){}
+          await initializeCloud();
         }catch(err){showAuthGate(err&&err.message?err.message:"Login gagal");}
         finally{authSubmit.disabled=false;authSubmit.textContent="Masuk";}
       });
