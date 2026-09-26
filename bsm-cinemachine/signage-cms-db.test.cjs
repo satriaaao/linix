@@ -9,4 +9,8 @@ assert.ok(html.includes('signage-config'),'CMS harus simpan playlist ke database
 assert.ok(html.includes('signage-change-password'),'CMS harus bisa ganti password');
 assert.ok(html.includes('signage-logout'),'CMS harus bisa logout');
 assert.ok(html.includes('type="password"'),'form password harus pakai input password');
+assert.ok(html.includes('id="setupUsername"'),'setup harus meminta username');
+assert.ok(html.includes('id="loginUsername"'),'login harus meminta username');
+assert.ok(html.includes('autocomplete="username"'),'input username harus memakai autocomplete username');
+assert.ok(html.includes('username'),'request auth harus mengirim username');
 console.log('signage CMS database UI tests passed');
