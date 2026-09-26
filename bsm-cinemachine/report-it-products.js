@@ -134,7 +134,8 @@
     var base=(existing||[]).map(function(p){
       var values=Array.isArray(p.values)?p.values.slice(0,12):[];
       while(values.length<12)values.push(null);
-      return {no:p.no,name:String(p.name||'').trim(),values:values};
+      var growthOverrides=p&&p.growthOverrides&&typeof p.growthOverrides==='object'?Object.assign({},p.growthOverrides):{};
+      return {no:p.no,name:String(p.name||'').trim(),values:values,growthOverrides:growthOverrides};
     }).filter(function(p){return p.name;});
     base.forEach(function(p){p.values[monthIndex]=0;});
     var exact={};
@@ -159,7 +160,7 @@
         var values=Array(12).fill(null);
         for(var m=0;m<monthIndex;m++)values[m]=0;
         values[monthIndex]=value;
-        base.push({no:0,name:incoming,values:values});
+        base.push({no:0,name:incoming,values:values,growthOverrides:{}});
         exact[key]=base.length-1;added++;
       }
     });
@@ -175,17 +176,37 @@
     return {products:base,matched:matched,added:added,fuzzyMatched:fuzzy,zeroed:zeroed,monthIndex:monthIndex};
   }
   function createSlides(products){
+    products=Array.isArray(products)?products:[];
     var slides=[],size=PAGE_SIZE,total=Math.ceil(products.length/size),latestMonth=-1;
-    products.forEach(function(r){r.values.forEach(function(v,i){if(v!=null)latestMonth=Math.max(latestMonth,i);});});
+    products.forEach(function(r,i){
+      r.no=i+1;
+      if(!Array.isArray(r.values))r.values=[];
+      while(r.values.length<12)r.values.push(null);
+      if(!r.growthOverrides||typeof r.growthOverrides!=='object'||Array.isArray(r.growthOverrides))r.growthOverrides={};
+      r.values.forEach(function(v,m){if(v!=null)latestMonth=Math.max(latestMonth,m);});
+    });
     for(var i=0;i<products.length;i+=size)slides.push({template:'it-product',reportType:'it',department:'IT',subtitle:'Analisis Produk 2026 ('+(slides.length+1)+'/'+total+')',month:12,year:2026,groups:[],products:products.slice(i,i+size),pageNo:slides.length+1,pageTotal:total,latestMonth:latestMonth,hiddenMonths:[]});
     return slides;
   }
-  function growth(previous,current){
-    if(previous==null||current==null)return {label:'',status:'',tone:''};
-    if(current===0)return {label:previous===0?'0%':'-100%',status:'TIDAK ADA',tone:'down'};
-    if(previous===0)return {label:'Baru',status:'BARU',tone:'up'};
+  function growthOverride(row,monthIndex){
+    if(!row||!row.growthOverrides||!Object.prototype.hasOwnProperty.call(row.growthOverrides,String(monthIndex))&&!Object.prototype.hasOwnProperty.call(row.growthOverrides,monthIndex))return null;
+    var raw=row.growthOverrides[monthIndex];
+    var value=Number(raw);
+    return Number.isFinite(value)?value:null;
+  }
+  function growth(previous,current,override){
+    if(override!=null&&Number.isFinite(Number(override))){
+      var manual=Number(override);
+      return {label:(manual>0?'+':'')+manual.toLocaleString('id-ID',{maximumFractionDigits:1})+'%',status:manual>0?'NAIK':manual<0?'TURUN':'TETAP',tone:manual>0?'up':manual<0?'down':'',manual:true,value:manual};
+    }
+    if(previous==null||current==null)return {label:'',status:'',tone:'',manual:false,value:null};
+    if(current===0){
+      if(previous===0)return {label:'0%',status:'TETAP',tone:'',manual:false,value:0};
+      return {label:'-100%',status:'TIDAK ADA',tone:'down',manual:false,value:-100};
+    }
+    if(previous===0)return {label:'Baru',status:'BARU',tone:'up',manual:false,value:null};
     var pct=(current-previous)/previous*100;
-    return {label:(pct>0?'+':'')+pct.toLocaleString('id-ID',{maximumFractionDigits:1})+'%',status:pct>0?'NAIK':pct<0?'TURUN':'TETAP',tone:pct>0?'up':pct<0?'down':''};
+    return {label:(pct>0?'+':'')+pct.toLocaleString('id-ID',{maximumFractionDigits:1})+'%',status:pct>0?'NAIK':pct<0?'TURUN':'TETAP',tone:pct>0?'up':pct<0?'down':'',manual:false,value:pct};
   }
   function hiddenMonths(report){
     return (report&&Array.isArray(report.hiddenMonths)?report.hiddenMonths:[]).map(Number).filter(function(v,i,a){return Number.isInteger(v)&&v>=0&&v<12&&a.indexOf(v)===i;});
@@ -195,31 +216,35 @@
     for(var i=0;i<=latest;i++)if(hidden.indexOf(i)<0)out.push(i);
     return out;
   }
-  function comparisonHtml(values,monthIndex){
+  function comparisonHtml(row,monthIndex,editable,rowIndex){
     if(monthIndex<=0)return '';
+    var values=Array.isArray(row&&row.values)?row.values:[];
     var previous=values[monthIndex-1],current=values[monthIndex];
     if(previous==null||current==null)return '';
-    var g=growth(previous,current);
-    return '<small class="it-growth '+g.tone+'"><span class="it-vs">vs '+MONTHS[monthIndex-1]+'</span><span class="it-pct">'+esc(g.label)+'</span></small>';
-  }
-  function renderSlide(report,options){
+    var override=growthOverride(row,monthIndex),g=growth(previous,current,override);
+    var editableAttrs=editable?' con  function renderSlide(report,options){
     options=options||{};
     var editable=!!options.editable;
     var data=report.products||[],latest=Number.isInteger(report.latestMonth)?report.latestMonth:-1;
-    if(latest<0)data.forEach(function(r){r.values.forEach(function(v,i){if(v!=null)latest=Math.max(latest,i);});});
+    if(latest<0)data.forEach(function(r){(r.values||[]).forEach(function(v,i){if(v!=null)latest=Math.max(latest,i);});});
     var visibleIndexes=latest>=0?visibleMonthIndexes(report,latest):[];
     var statusMonth=visibleIndexes.length?visibleIndexes[visibleIndexes.length-1]:-1;
+    var pageNo=Math.max(1,Number(report.pageNo||1));
     var rows=data.map(function(r,i){
-      var status=statusMonth>0?growth(r.values[statusMonth-1],r.values[statusMonth]):{label:'',status:'',tone:''};
+      var status=statusMonth>0?growth((r.values||[])[statusMonth-1],(r.values||[])[statusMonth],growthOverride(r,statusMonth)):{label:'',status:'',tone:''};
       var rowDelete=editable?'<button type="button" class="it-edit-control it-row-delete" data-it-delete-row="'+i+'" title="Hapus baris '+esc(r.name)+'" aria-label="Hapus baris '+esc(r.name)+'">×</button>':'';
-      return '<tr><td class="it-no-cell">'+rowDelete+'<span>'+esc(r.no||((report.pageNo-1)*PAGE_SIZE+i+1))+'</span></td><th scope="row">'+esc(r.name)+'</th>'+visibleIndexes.map(function(monthIndex){var v=r.values[monthIndex];return '<td title="'+esc(v==null?'':'Rp'+v.toLocaleString('id-ID'))+'">'+(v==null?'':'<span class="it-value">'+v.toLocaleString('id-ID',{maximumFractionDigits:0})+'</span>'+comparisonHtml(r.values,monthIndex))+'</td>';}).join('')+'<td class="it-status '+status.tone+'">'+esc(status.status)+'</td></tr>';
+      var displayNo=(pageNo-1)*PAGE_SIZE+i+1;
+      return '<tr><td class="it-no-cell">'+rowDelete+'<span>'+displayNo+'</span></td><th scope="row">'+esc(r.name)+'</th>'+visibleIndexes.map(function(monthIndex){
+        var v=(r.values||[])[monthIndex];
+        return '<td title="'+esc(v==null?'':'Rp'+v.toLocaleString('id-ID'))+'">'+(v==null?'':'<span class="it-value">'+v.toLocaleString('id-ID',{maximumFractionDigits:0})+'</span>'+comparisonHtml(r,monthIndex,editable,i))+'</td>';
+      }).join('')+'<td class="it-status '+status.tone+'">'+esc(status.status)+'</td></tr>';
     }).join('');
     var period=statusMonth>=0?'Januari–'+MONTHS[statusMonth]:'Januari';
     var monthHeaders=visibleIndexes.map(function(monthIndex){
       var del=editable?'<button type="button" class="it-edit-control it-col-delete" data-it-delete-col="'+monthIndex+'" title="Hapus kolom '+MONTHS[monthIndex]+'" aria-label="Hapus kolom '+MONTHS[monthIndex]+'">×</button>':'';
       return '<th><span class="it-col-head">'+MONTHS[monthIndex]+del+'</span></th>';
     }).join('');
-    return '<section class="it-product-slide it-products-full"><div class="omset-kicker">LAPORAN IT <span>2026 / '+(report.pageNo||1)+' dari '+(report.pageTotal||1)+'</span></div><h1>Analisis Produk <span>2026</span></h1><p>'+period+' · Rupiah · Perbandingan bulan ke bulan</p><table class="it-products-table"><thead><tr><th>No</th><th>Nama Produk</th>'+monthHeaders+'<th>Status '+(statusMonth>=0?MONTHS[statusMonth]:'')+'</th></tr></thead><tbody>'+rows+'</tbody></table></section>';
+    return '<section class="it-product-slide it-products-full"><div class="omset-kicker">LAPORAN IT <span>2026 / '+pageNo+' dari '+(report.pageTotal||1)+'</span></div><h1>Analisis Produk <span>2026</span></h1><p>'+period+' · Rupiah · Perbandingan bulan ke bulan</p><table class="it-products-table"><thead><tr><th>No</th><th>Nama Produk</th>'+monthHeaders+'<th>Status '+(statusMonth>=0?MONTHS[statusMonth]:'')+'</th></tr></thead><tbody>'+rows+'</tbody></table></section>';
   }
   return {MONTHS:MONTHS,parseRows:parseRows,parseWorkbook:parseWorkbook,parseMonthlyRows:parseMonthlyRows,parseMonthlyWorkbook:parseMonthlyWorkbook,mergeMonthlyProducts:mergeMonthlyProducts,normalizeProductName:normalizeProductName,detectMonthYear:detectMonthYear,createSlides:createSlides,renderSlide:renderSlide,growth:growth,visibleMonthIndexes:visibleMonthIndexes};
 });
