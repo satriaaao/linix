@@ -1194,6 +1194,11 @@
     .it-products-table .up,.it-products-table .it-growth.up .it-pct{color:#15803d}
     .it-products-table .down,.it-products-table .it-growth.down .it-pct{color:#b91c1c}
     .it-products-table .it-status{font-weight:900;letter-spacing:.02em}
+    .it-status-head{display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap}
+    .it-status-sort{width:22px;height:20px;border:1px solid #a9cfd3;border-radius:6px;background:#fff;color:#087d86;display:inline-grid;place-items:center;padding:0;font-size:11px;font-weight:950;line-height:1;cursor:pointer}
+    .it-status-sort:hover{background:#eef9fa;border-color:#78b7bc}
+    .it-status-sort[data-it-status-sort="asc"],.it-status-sort[data-it-status-sort="desc"]{background:#dff3f4;border-color:#75b8bd;color:#05636a}
+    body.presentation-mode .it-status-sort{display:none!important}
     .it-products-table th:first-child,.it-products-table td:first-child{width:52px}
     .it-no-cell{white-space:nowrap}
     .it-no-cell>span{display:inline-block;min-width:16px;text-align:center;font-weight:800}
@@ -2309,8 +2314,9 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         }else itOmsetHost.innerHTML="";
       }
 
-      function rebuildITProductSlides(section,hiddenMonths){
+      function rebuildITProductSlides(section,hiddenMonths,options){
         if(!section)return;
+        options=options||{};
         var products=[];
         var first=-1,last=-1,sourceMeta=null;
         (section.slides||[]).forEach(function(slide,i){
@@ -2321,10 +2327,22 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           }
         });
         if(first<0)return;
+        var direction=options.statusSort!=null?String(options.statusSort):String(sourceMeta&&sourceMeta.statusSort||"none");
+        if(direction!=="asc"&&direction!=="desc")direction="none";
+        var statusMonth=Number.isInteger(options.statusMonth)?options.statusMonth:-1;
+        if(statusMonth<0&&sourceMeta){
+          var latest=Number.isInteger(sourceMeta.latestMonth)?sourceMeta.latestMonth:-1;
+          var visible=window.BSMITProducts.visibleMonthIndexes(sourceMeta,latest);
+          statusMonth=visible.length?visible[visible.length-1]:-1;
+        }
+        if(statusMonth>0&&window.BSMITProducts.sortProductsByStatus){
+          window.BSMITProducts.sortProductsByStatus(products,statusMonth,direction);
+        }
         var before=section.slides.slice(0,first),after=section.slides.slice(last+1);
         var rebuilt=products.length?window.BSMITProducts.createSlides(products):[];
         rebuilt.forEach(function(slide){
           slide.hiddenMonths=(hiddenMonths||[]).slice();
+          slide.statusSort=direction;
           if(sourceMeta){
             if(sourceMeta.month!=null)slide.month=sourceMeta.month;
             if(sourceMeta.year!=null)slide.year=sourceMeta.year;
@@ -2339,6 +2357,27 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         var page=currentMasterPage();
         if(page.kind==="report"&&page.report&&page.report.template==="it-product"){
           itProductHost.innerHTML=window.BSMITProducts.renderSlide(page.report,{editable:true});
+
+          Array.prototype.forEach.call(itProductHost.querySelectorAll("[data-it-status-sort]"),function(btn){
+            btn.addEventListener("click",function(e){
+              e.preventDefault();e.stopPropagation();
+              var section=state.sections[page.typeId],report=section&&section.slides?page.reportIndex<section.slides.length?section.slides[page.reportIndex]:null:null;
+              if(!report)return;
+              var current=String(report.statusSort||"none");
+              var next=current==="none"?"asc":(current==="asc"?"desc":"none");
+              var latest=Number.isInteger(report.latestMonth)?report.latestMonth:-1;
+              var visible=window.BSMITProducts.visibleMonthIndexes(report,latest);
+              var statusMonth=visible.length?visible[visible.length-1]:-1;
+              var hidden=(report.hiddenMonths||[]).slice();
+              rebuildITProductSlides(section,hidden,{statusSort:next,statusMonth:statusMonth});
+              ensureMasterReports();
+              var nextIndex=Math.max(0,Math.min(page.reportIndex,(section.slides||[]).length-1));
+              bindActiveSection(nextIndex);
+              state.activeView=window.BSMReportMaster.findPageIndex(state,"report:"+page.typeId+":"+nextIndex);
+              renderAll();saveState(false);
+              toast(next==="asc"?"Status ↑ Ascending • A–Z":(next==="desc"?"Status ↓ Descending • Z–A":"Status ↑↓ • sorting dinonaktifkan"));
+            });
+          });
 
           Array.prototype.forEach.call(itProductHost.querySelectorAll("[data-it-growth-edit-row]"),function(el){
             el.addEventListener("keydown",function(e){
@@ -2357,6 +2396,15 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
               if(raw===String(currentGrowth.label||"").trim())return;
               if(!raw||/^auto$/i.test(raw)){
                 delete row.growthOverrides[monthIndex];
+                var clearSort=String(report.statusSort||"none");
+                if(clearSort!=="none"){
+                  var clearHidden=(report.hiddenMonths||[]).slice();
+                  rebuildITProductSlides(section,clearHidden,{statusSort:clearSort,statusMonth:monthIndex});
+                  ensureMasterReports();
+                  var clearIndex=Math.max(0,Math.min(page.reportIndex,(section.slides||[]).length-1));
+                  bindActiveSection(clearIndex);
+                  state.activeView=window.BSMReportMaster.findPageIndex(state,"report:"+page.typeId+":"+clearIndex);
+                }
                 renderAll();saveState(false);toast("Persen kembali ke hitungan otomatis");return;
               }
               var normalized=raw.replace(/\s/g,"").replace(/%/g,"").replace(/^\+/,"").replace(",",".");
@@ -2365,6 +2413,15 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
                 renderAll();toast("Persen tidak valid");return;
               }
               row.growthOverrides[monthIndex]=Math.round(value*10)/10;
+              var activeSort=String(report.statusSort||"none");
+              if(activeSort!=="none"){
+                var editHidden=(report.hiddenMonths||[]).slice();
+                rebuildITProductSlides(section,editHidden,{statusSort:activeSort,statusMonth:monthIndex});
+                ensureMasterReports();
+                var editIndex=Math.max(0,Math.min(page.reportIndex,(section.slides||[]).length-1));
+                bindActiveSection(editIndex);
+                state.activeView=window.BSMReportMaster.findPageIndex(state,"report:"+page.typeId+":"+editIndex);
+              }
               renderAll();saveState(false);toast("Persen manual disimpan");
             });
           });
@@ -4430,4 +4487,4 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   </script>
   <!-- auth-scope-v2 -->
 </body>
-<!-- report-gudang-build-v48-it-renumber-editable-growth-cache23</html>
+<!-- report-gudang-build-v49-it-status-sort-cache24</html>
