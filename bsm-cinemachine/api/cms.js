@@ -2,6 +2,8 @@ const SOURCE='https://cdn.jsdelivr.net/gh/satriaaao/linix@a1d819043facf60ad3c6e0
 const PWA=require('../cms-pwa-assets');
 const D=require('../drive-folder-lib');
 const V=require('../drive-video-lib');
+const SignageStore=require('../signage-db-store');
+const SignageAuth=require('../signage-auth-db-lib');
 const {Readable}=require('node:stream');
 
 function sanitizeCmsHtml(html){
@@ -37,6 +39,120 @@ function sendJson(res,status,payload){
   res.setHeader('content-type','application/json; charset=utf-8');
   res.setHeader('cache-control','no-store, max-age=0');
   return res.end(JSON.stringify(payload));
+}
+function methodNotAllowed(res){
+  return sendJson(res,405,{ok:false,message:'Method not allowed'});
+}
+function sameOrigin(req){
+  const origin=String(req.headers?.origin||'').trim();
+  if(!origin)return true;
+  try{return new URL(origin).host===String(req.headers?.host||'')}catch(_){return false}
+}
+async function readJsonBody(req){
+  if(req.body&&typeof req.body==='object'&&!Buffer.isBuffer(req.body))return req.body;
+  if(typeof req.body==='string'){
+    try{return JSON.parse(req.body||'{}')}catch(_){return {}}
+  }
+  let raw='';
+  for await(const chunk of req){
+    raw+=chunk;
+    if(raw.length>1024*1024)throw new Error('Payload terlalu besar');
+  }
+  try{return JSON.parse(raw||'{}')}catch(_){return {}}
+}
+function sessionToken(req){
+  return SignageAuth.parseCookies(req.headers?.cookie||'').signage_session||'';
+}
+function setSessionCookie(res,token,maxAge){
+  res.setHeader('set-cookie',SignageAuth.sessionCookie(token,maxAge));
+}
+function clearSession(res){
+  res.setHeader('set-cookie',SignageAuth.clearSessionCookie());
+}
+async function signageDbStatus(req,res){
+  if(req.method!=='GET')return methodNotAllowed(res);
+  const status=await SignageStore.status();
+  let authenticated=false;
+  if(status.connected){
+    try{authenticated=await SignageStore.sessionValid(sessionToken(req))}catch(_){}
+  }
+  return sendJson(res,200,{ok:true,...status,authenticated});
+}
+async function signageSetup(req,res){
+  if(req.method!=='POST')return methodNotAllowed(res);
+  if(!sameOrigin(req))return sendJson(res,403,{ok:false,message:'Origin tidak valid'});
+  const body=await readJsonBody(req);
+  const password=String(body.password||'');
+  if(!SignageAuth.isStrongPassword(password))return sendJson(res,400,{ok:false,message:'Password minimal 8 karakter'});
+  try{
+    const s=await SignageStore.setupAdmin(password);
+    setSessionCookie(res,s.token,s.maxAge);
+    return sendJson(res,200,{ok:true,message:'Password admin berhasil dibuat'});
+  }catch(e){
+    if(e?.code==='DB_NOT_CONFIGURED')return sendJson(res,503,{ok:false,code:'db_not_configured',message:'Database belum terhubung'});
+    if(e?.code==='ADMIN_EXISTS')return sendJson(res,409,{ok:false,code:'admin_exists',message:'Password admin sudah dibuat'});
+    return sendJson(res,500,{ok:false,message:'Setup admin gagal'});
+  }
+}
+async function signageLogin(req,res){
+  if(req.method!=='POST')return methodNotAllowed(res);
+  if(!sameOrigin(req))return sendJson(res,403,{ok:false,message:'Origin tidak valid'});
+  const body=await readJsonBody(req);
+  try{
+    const s=await SignageStore.login(String(body.password||''));
+    setSessionCookie(res,s.token,s.maxAge);
+    return sendJson(res,200,{ok:true});
+  }catch(e){
+    if(e?.code==='DB_NOT_CONFIGURED')return sendJson(res,503,{ok:false,code:'db_not_configured',message:'Database belum terhubung'});
+    if(e?.code==='INVALID_PASSWORD')return sendJson(res,401,{ok:false,code:'invalid_password',message:'Password salah'});
+    return sendJson(res,500,{ok:false,message:'Login gagal'});
+  }
+}
+async function signageLogout(req,res){
+  if(req.method!=='POST')return methodNotAllowed(res);
+  try{await SignageStore.logout(sessionToken(req))}catch(_){}
+  clearSession(res);
+  return sendJson(res,200,{ok:true});
+}
+async function signageChangePassword(req,res){
+  if(req.method!=='POST')return methodNotAllowed(res);
+  if(!sameOrigin(req))return sendJson(res,403,{ok:false,message:'Origin tidak valid'});
+  const body=await readJsonBody(req);
+  const next=String(body.newPassword||'');
+  if(!SignageAuth.isStrongPassword(next))return sendJson(res,400,{ok:false,message:'Password baru minimal 8 karakter'});
+  try{
+    await SignageStore.changePassword(sessionToken(req),String(body.currentPassword||''),next);
+    return sendJson(res,200,{ok:true});
+  }catch(e){
+    if(e?.code==='UNAUTHORIZED')return sendJson(res,401,{ok:false,code:'unauthorized',message:'Silakan login ulang'});
+    if(e?.code==='INVALID_PASSWORD')return sendJson(res,401,{ok:false,code:'invalid_password',message:'Password lama salah'});
+    if(e?.code==='DB_NOT_CONFIGURED')return sendJson(res,503,{ok:false,code:'db_not_configured',message:'Database belum terhubung'});
+    return sendJson(res,500,{ok:false,message:'Ganti password gagal'});
+  }
+}
+async function signageConfig(req,res){
+  if(req.method==='GET'){
+    try{
+      const config=await SignageStore.getConfig();
+      return sendJson(res,200,{ok:true,config});
+    }catch(e){
+      if(e?.code==='DB_NOT_CONFIGURED')return sendJson(res,503,{ok:false,code:'db_not_configured',message:'Database belum terhubung'});
+      return sendJson(res,500,{ok:false,message:'Database signage tidak bisa dibaca'});
+    }
+  }
+  if(req.method==='PUT'){
+    if(!sameOrigin(req))return sendJson(res,403,{ok:false,message:'Origin tidak valid'});
+    const body=await readJsonBody(req);
+    try{
+      const config=await SignageStore.saveConfig(sessionToken(req),body.config||{});
+      return sendJson(res,200,{ok:true,config});
+    }catch(e){
+      if(e?.code==='UNAUTHORIZED')return sendJson(res,401,{ok:false,code:'unauthorized',message:'Silakan login ulang'});
+      if(e?.code==='DB_NOT_CONFIGURED')return sendJson(res,503,{ok:false,code:'db_not_configured',message:'Database belum terhubung'});
+      return sendJson(res,500,{ok:false,message:'Playlist gagal disimpan ke database'});
+    }
+  }
+  return methodNotAllowed(res);
 }
 async function listDriveFolder(req,res){
   const raw=Array.isArray(req.query?.url)?String(req.query.url[0]||'').trim():String(req.query?.url||'').trim();
@@ -120,11 +236,19 @@ async function streamDriveVideo(req,res){
 }
 
 async function handler(req,res){
+  const asset=Array.isArray(req.query?.asset)?req.query.asset[0]:req.query?.asset;
+
+  if(asset==='signage-db-status')return signageDbStatus(req,res);
+  if(asset==='signage-setup')return signageSetup(req,res);
+  if(asset==='signage-login')return signageLogin(req,res);
+  if(asset==='signage-logout')return signageLogout(req,res);
+  if(asset==='signage-change-password')return signageChangePassword(req,res);
+  if(asset==='signage-config')return signageConfig(req,res);
+
   if(req.method!=='GET'&&req.method!=='HEAD'){
     res.statusCode=405;res.setHeader('content-type','text/plain; charset=utf-8');return res.end('Method not allowed');
   }
 
-  const asset=Array.isArray(req.query?.asset)?req.query.asset[0]:req.query?.asset;
   if(asset==='drive-folder')return listDriveFolder(req,res);
   if(asset==='drive-video')return streamDriveVideo(req,res);
   if(asset&&PWA[asset])return PWA[asset](req,res);
@@ -155,3 +279,5 @@ module.exports._injectCmsPwa=injectCmsPwa;
 module.exports._source=SOURCE;
 module.exports._listDriveFolder=listDriveFolder;
 module.exports._streamDriveVideo=streamDriveVideo;
+module.exports._signageDbStatus=signageDbStatus;
+module.exports._signageConfig=signageConfig;
