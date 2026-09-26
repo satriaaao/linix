@@ -1,5 +1,5 @@
 {
-  "buildCommand": "rm -rf dist && mkdir -p dist && cp bsm-cinemachine/public-v5.html dist/index.html && cp bsm-cinemachine/cms-v5.html dist/cms.html && mkdir -p dist/qr-code && cp bsm-cinemachine/qr.html dist/qr-code/index.html && cp bsm-cinemachine/report-gudang.html dist/report-gudang && cp bsm-cinemachine/report-gudang.html dist/report-gudang.html && cp bsm-cinemachine/*.js dist/ && cp bsm-cinemachine/*.css dist/ 2>/dev/null || true",
+  "buildCommand": "rm -rf dist && mkdir -p dist && cp bsm-cinemachine/public-v5.html dist/index.html && cp bsm-cinemachine/cms-v5.html dist/cms.html && mkdir -p dist/qr-code && cp bsm-cinemachine/qr.html dist/qr-code/index.html && cp bsm-cinemachine/report-gudang.html dist/report-gudang && cp bsm-cinemachine/report-gudang.html dist/report-gudang.html && cp bsm-cinemachine/signage-cms.html dist/signage.html && cp bsm-cinemachine/signage-display.html dist/display.html && cp bsm-cinemachine/signage-lib.js dist/signage-lib.js && cp bsm-cinemachine/*.js dist/ && cp bsm-cinemachine/*.css dist/ 2>/dev/null || true",
   "outputDirectory": "dist",
   "cleanUrls": true,
   "headers": [
@@ -76,6 +76,32 @@
           "value": "text/html; charset=utf-8"
         }
       ]
+    },
+    {
+      "source": "/signage",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        },
+        {
+          "key": "Content-Type",
+          "value": "text/html; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/display",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        },
+        {
+          "key": "Content-Type",
+          "value": "text/html; charset=utf-8"
+        }
+      ]
     }
   ],
   "rewrites": [
@@ -114,6 +140,14 @@
     {
       "source": "/cart",
       "destination": "/index.html"
+    },
+    {
+      "source": "/signage",
+      "destination": "/signage.html"
+    },
+    {
+      "source": "/display",
+      "destination": "/display.html"
     }
   ],
   "redirects": [
