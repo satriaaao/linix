@@ -1546,7 +1546,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-master.js"></script>
   <script src="/report-admin-matrix.js"></script>
   <script src="/report-it-omset.js"></script>
-  <script src="/report-it-products.js?v=27"></script>
+  <script src="/report-it-products.js?v=28"></script>
   <script src="/report-it-products-data.js"></script>
   <script src="/report-camera-vendor.js"></script>
   <script src="/report-camera-reports.js"></script>
@@ -1554,7 +1554,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-cinema-reports.js"></script>
   <script src="/report-lighting-reports.js"></script>
   <script src="/report-crew-reports.js"></script>
-  <script src="/report-manual-sheets.js?v=26"></script>
+  <script src="/report-manual-sheets.js?v=28"></script>
   <script src="/report-bulk-router.js"></script>
   <script src="/report-live-edit.js"></script>
   <script src="/report-slide-fit.js"></script>
@@ -1563,7 +1563,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
   <script src="/report-gudang-export.js"></script>
   <script src="/report-gudang-ui.js"></script>
-  <script src="/report-gudang-cloud.js?v=26"></script>
+  <script src="/report-gudang-cloud.js?v=28"></script>
   <script>
     (function(){
       var STORAGE_KEY = "bsm-report-gudang-v2";
@@ -3096,13 +3096,18 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       function renderManualSlide(){
         var page=currentMasterPage();
         if(page.kind==="report"&&page.report&&page.report.template==="manual-grid"){
-          manualReportHost.innerHTML=window.BSMManualSheets.renderSlide(page.report,esc,{compare:true});
-          Array.prototype.forEach.call(manualReportHost.querySelectorAll("[data-manual-compare-key]"),function(btn){
-            btn.addEventListener("click",function(e){
-              e.preventDefault();e.stopPropagation();
-              openManualComparison(page.report,this.dataset.manualCompareKey,this.dataset.manualCompareValue);
+          var inPresentation=document.body.classList.contains("presentation-mode");
+          var compareType=/^(admin|gudang-camera|gudang-kamera|gudang-audio|gudang-lighting|gudang-cinema|koordinator-crew)$/.test(String(page.typeId||page.report.reportType||""));
+          var compareEnabled=inPresentation&&compareType;
+          manualReportHost.innerHTML=window.BSMManualSheets.renderSlide(page.report,esc,{compare:compareEnabled});
+          if(compareEnabled){
+            Array.prototype.forEach.call(manualReportHost.querySelectorAll("[data-manual-compare-key]"),function(btn){
+              btn.addEventListener("click",function(e){
+                e.preventDefault();e.stopPropagation();
+                openManualComparison(page.report,this.dataset.manualCompareKey,this.dataset.manualCompareValue);
+              });
             });
-          });
+          }
         }else manualReportHost.innerHTML="";
       }
       function renderHtmlSlide(){
@@ -3944,6 +3949,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         showPage("preview");
         document.body.classList.add("presentation-mode");
         document.body.classList.remove("presentation-controls-hidden");
+        renderManualSlide();
         requestAnimationFrame(updatePreviewScale);
         showPresentationControls();
         if(document.documentElement.requestFullscreen && !document.fullscreenElement){
@@ -3954,6 +3960,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
 
       function exitPresentation(){
         document.body.classList.remove("presentation-mode","presentation-controls-hidden");
+        renderManualSlide();
         clearTimeout(presentationHideTimer);
         if(document.fullscreenElement && document.exitFullscreen){
           var exiting=document.exitFullscreen();
@@ -4571,4 +4578,4 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <!-- auth-scope-v2 -->
 </body>
 <!-- status-sort-tristate-cache-v24 -->
-<!-- report-gudang-build-v52-login-compare-status-cache27</html>
+<!-- report-gudang-build-v53-presentation-compare-cache28</html>
