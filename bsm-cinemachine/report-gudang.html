@@ -317,6 +317,13 @@
     .compare-hero span{display:block;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#70808d}.compare-hero strong{display:block;margin-top:4px;font-size:18px;color:#132433}
     .compare-periods{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.compare-period{padding:7px 10px;border:1px solid #cfe0e3;border-radius:999px;background:#fff;font-size:10px;font-weight:850;color:#52616f}.compare-period.current{background:#e7f5f6;color:#087d86;border-color:#9fcfd3}
     .compare-table-wrap{overflow:auto;border:1px solid #d9e5e7;border-radius:12px}.compare-table{width:100%;border-collapse:collapse;font-size:11px;min-width:620px}.compare-table th,.compare-table td{padding:9px 10px;border-right:1px solid #e1e9eb;border-bottom:1px solid #e1e9eb;text-align:left}.compare-table th{background:#eef7f8;color:#08727a;font-size:9px;text-transform:uppercase;letter-spacing:.05em}.compare-table td:nth-child(n+2){font-variant-numeric:tabular-nums}.compare-table tr:last-child td{border-bottom:0}.compare-table th:last-child,.compare-table td:last-child{border-right:0}.compare-delta.up{color:#15803d;font-weight:900}.compare-delta.down{color:#b91c1c;font-weight:900}.compare-delta.flat{color:#64748b;font-weight:900}.compare-empty{padding:18px;border:1px dashed #c8dadd;border-radius:12px;background:#fbfefe;color:#64748b;font-size:11px;text-align:center}
+    .table-view-root{position:relative!important}
+    .table-layout-toolbar{position:absolute;right:12px;top:8px;z-index:35;display:flex;align-items:center;gap:5px;max-width:76%;padding:5px 6px;border:1px solid rgba(15,118,128,.22);border-radius:10px;background:rgba(255,255,255,.96);box-shadow:0 4px 14px rgba(15,23,42,.08);font-family:Inter,Arial,sans-serif}
+    .table-layout-toolbar button{min-height:25px;border:1px solid #cfe0e3;border-radius:7px;background:#fff;color:#27505a;padding:3px 7px;font-size:9px;font-weight:900;white-space:nowrap;cursor:pointer}
+    .table-layout-toolbar button:hover{background:#edf8f8;border-color:#93c7cb}.table-layout-toolbar .table-hidden-chip{background:#fff7ed;border-color:#fed7aa;color:#9a3412}
+    .table-view-managed th{position:relative}.table-col-eye,.table-row-eye{display:inline-grid;place-items:center;width:17px;height:17px;padding:0;border:1px solid #b8d5d8;border-radius:5px;background:#fff;color:#087d86;font-size:9px;line-height:1;cursor:pointer;vertical-align:middle}.table-col-eye{margin-left:5px}.table-row-eye{margin-right:4px}
+    .table-col-resizer{position:absolute;top:0;right:-3px;width:7px;height:100%;z-index:6;cursor:col-resize;touch-action:none}.table-col-resizer:after{content:"";position:absolute;top:12%;bottom:12%;left:3px;width:1px;background:#86b7bb;opacity:.75}.table-col-resizer:hover:after,.table-col-resizer.is-dragging:after{width:2px;background:#087d86;opacity:1}
+    body.presentation-mode .table-layout-toolbar,body.presentation-mode .table-col-eye,body.presentation-mode .table-row-eye,body.presentation-mode .table-col-resizer{display:none!important}
     .manual-grid-medium .manual-slide-table{font-size:11.5px}.manual-grid-medium .manual-slide-table th,.manual-grid-medium .manual-slide-table td{height:30px;padding:6px 6px}.manual-grid-medium .manual-slide-table th{font-size:9px}
     .manual-grid-dense .manual-grid-slide h1{font-size:36px}.manual-grid-dense .manual-slide-table{font-size:10.5px}.manual-grid-dense .manual-slide-table th,.manual-grid-dense .manual-slide-table td{height:28px;padding:5px 5px}.manual-grid-dense .manual-slide-table th{font-size:8.5px}
     .manual-grid-ultra h1{font-size:33px}.manual-grid-ultra .manual-slide-sub{font-size:10px}.manual-grid-ultra .manual-slide-table{font-size:9px}.manual-grid-ultra .manual-slide-table th,.manual-grid-ultra .manual-slide-table td{height:26px;padding:4px 3px}.manual-grid-ultra .manual-slide-table th{font-size:7.5px;letter-spacing:.02em}
@@ -1546,7 +1553,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-master.js"></script>
   <script src="/report-admin-matrix.js"></script>
   <script src="/report-it-omset.js"></script>
-  <script src="/report-it-products.js?v=28"></script>
+  <script src="/report-it-products.js?v=29"></script>
   <script src="/report-it-products-data.js"></script>
   <script src="/report-camera-vendor.js"></script>
   <script src="/report-camera-reports.js"></script>
@@ -1554,7 +1561,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-cinema-reports.js"></script>
   <script src="/report-lighting-reports.js"></script>
   <script src="/report-crew-reports.js"></script>
-  <script src="/report-manual-sheets.js?v=28"></script>
+  <script src="/report-manual-sheets.js?v=29"></script>
   <script src="/report-bulk-router.js"></script>
   <script src="/report-live-edit.js"></script>
   <script src="/report-slide-fit.js"></script>
@@ -1563,7 +1570,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
   <script src="/report-gudang-export.js"></script>
   <script src="/report-gudang-ui.js"></script>
-  <script src="/report-gudang-cloud.js?v=28"></script>
+  <script src="/report-gudang-cloud.js?v=29"></script>
   <script>
     (function(){
       var STORAGE_KEY = "bsm-report-gudang-v2";
@@ -1615,6 +1622,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         base.latestMonth=Number.isInteger(src.latestMonth)?src.latestMonth:null;
         base.hiddenMonths=Array.isArray(src.hiddenMonths)?clone(src.hiddenMonths):[];
         base.statusSort=src.statusSort==="asc"||src.statusSort==="desc"?src.statusSort:"none";
+        base.tableViewPrefs=src.tableViewPrefs&&typeof src.tableViewPrefs==="object"?clone(src.tableViewPrefs):{tables:{}};
+        if(!base.tableViewPrefs.tables||typeof base.tableViewPrefs.tables!=="object")base.tableViewPrefs.tables={};
         base.groups=(src.groups||[]).map(function(g){
           return {id:g.id||uid(),name:g.name||"Nama Alat",rows:(g.rows||[]).map(function(row){
             return {id:row.id||uid(),date:row.date||"",qty:Number(row.qty||0),action:row.action||"",price:Number(row.price||0)};
@@ -2046,6 +2055,94 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(page.kind==="report"&&page.report) return "report:"+(page.report.liveEditId||page.key);
         return page.key||"master-cover";
       }
+      function storedReportForPage(page){
+        page=page||currentMasterPage();
+        if(!(page&&page.kind==="report"))return null;
+        var section=state.sections&&state.sections[page.typeId];
+        return section&&Array.isArray(section.slides)&&section.slides[page.reportIndex]?section.slides[page.reportIndex]:page.report;
+      }
+      function ensureTableViewPrefs(report,tableIndex){
+        if(!report)return null;
+        if(!report.tableViewPrefs||typeof report.tableViewPrefs!=="object")report.tableViewPrefs={tables:{}};
+        if(!report.tableViewPrefs.tables||typeof report.tableViewPrefs.tables!=="object")report.tableViewPrefs.tables={};
+        var key=String(tableIndex),prefs=report.tableViewPrefs.tables[key];
+        if(!prefs||typeof prefs!=="object")prefs=report.tableViewPrefs.tables[key]={hiddenCols:[],hiddenRows:[],widths:{},fontScale:1};
+        prefs.hiddenCols=Array.isArray(prefs.hiddenCols)?prefs.hiddenCols.map(Number).filter(Number.isInteger):[];
+        prefs.hiddenRows=Array.isArray(prefs.hiddenRows)?prefs.hiddenRows.map(Number).filter(Number.isInteger):[];
+        if(!prefs.widths||typeof prefs.widths!=="object")prefs.widths={};
+        prefs.fontScale=Math.max(.7,Math.min(1.65,Number(prefs.fontScale||1)));
+        return prefs;
+      }
+      function tableCellPlainText(cell){
+        if(!cell)return "";
+        var copy=cell.cloneNode(true);
+        Array.prototype.forEach.call(copy.querySelectorAll(".table-col-eye,.table-row-eye,.table-col-resizer"),function(el){el.remove();});
+        return String(copy.textContent||"").replace(/\s+/g," ").trim();
+      }
+      function tableValueIsEmpty(text){var value=String(text||"").replace(/\s+/g," ").trim();return !value||value==="-"||value==="—"||value==="–";}
+      function applyTableColumnWidth(table,colIndex,width){
+        width=Math.max(42,Math.min(560,Number(width||0)));if(!width)return;
+        Array.prototype.forEach.call(table.rows||[],function(row){var cell=row.cells&&row.cells[colIndex];if(cell){cell.style.width=width+"px";cell.style.minWidth=width+"px";cell.style.maxWidth=width+"px";}});
+      }
+      function applyTableViewPrefsToRoot(root,report,editable){
+        if(!root||!report)return;
+        root.classList.add("table-view-root");
+        Array.prototype.slice.call(root.querySelectorAll("table")).forEach(function(table,tableIndex){
+          var prefs=ensureTableViewPrefs(report,tableIndex);if(!prefs)return;
+          table.classList.add("table-view-managed");
+          var allRows=Array.prototype.slice.call(table.rows||[]),colCount=allRows.reduce(function(max,row){return Math.max(max,row.cells?row.cells.length:0);},0);
+          prefs.hiddenCols.forEach(function(ci){allRows.forEach(function(row){if(row.cells&&row.cells[ci])row.cells[ci].style.display="none";});});
+          var bodyRows=Array.prototype.slice.call(table.tBodies&&table.tBodies[0]?table.tBodies[0].rows:[]);
+          prefs.hiddenRows.forEach(function(ri){if(bodyRows[ri])bodyRows[ri].style.display="none";});
+          Object.keys(prefs.widths).forEach(function(key){applyTableColumnWidth(table,Number(key),Number(prefs.widths[key]));});
+          if(Object.keys(prefs.widths).length)table.style.tableLayout="fixed";
+          if(Math.abs(prefs.fontScale-1)>.001)Array.prototype.forEach.call(table.querySelectorAll("th,td"),function(cell){var base=parseFloat(getComputedStyle(cell).fontSize)||10;cell.style.fontSize=(base*prefs.fontScale).toFixed(2)+"px";});
+          if(!editable)return;
+
+          var toolbar=document.createElement("div");toolbar.className="table-layout-toolbar";toolbar.style.top=(8+tableIndex*36)+"px";
+          toolbar.innerHTML='<button type="button" data-table-show-all>👁 Semua</button><button type="button" data-table-hide-empty>∅ Kosong</button><button type="button" data-table-font-down>A−</button><button type="button" data-table-font-reset>A</button><button type="button" data-table-font-up>A+</button><button type="button" data-table-width-reset>↔ Reset</button>';
+          prefs.hiddenCols.forEach(function(ci){var head=table.tHead&&table.tHead.rows[0]&&table.tHead.rows[0].cells[ci],label=tableCellPlainText(head)||("Kolom "+(ci+1));var chip=document.createElement("button");chip.type="button";chip.className="table-hidden-chip";chip.dataset.tableRestoreCol=String(ci);chip.textContent="👁 "+label;toolbar.appendChild(chip);});
+          if(prefs.hiddenRows.length){var rowChip=document.createElement("button");rowChip.type="button";rowChip.className="table-hidden-chip";rowChip.dataset.tableRestoreRows="1";rowChip.textContent="👁 Baris ("+prefs.hiddenRows.length+")";toolbar.appendChild(rowChip);}
+          root.appendChild(toolbar);
+          var pageReport=currentMasterPage()&&currentMasterPage().report;
+          function saveAndRender(){if(pageReport&&pageReport!==report)pageReport.tableViewPrefs=clone(report.tableViewPrefs);saveState(false);renderAll();}
+          toolbar.querySelector("[data-table-show-all]").addEventListener("click",function(){prefs.hiddenCols=[];prefs.hiddenRows=[];saveAndRender();});
+          toolbar.querySelector("[data-table-hide-empty]").addEventListener("click",function(){
+            var hiddenCols=[],hiddenRows=[];
+            for(var ci=0;ci<colCount;ci++){var vals=bodyRows.map(function(row){return tableCellPlainText(row.cells&&row.cells[ci]);});if(vals.length&&vals.every(tableValueIsEmpty))hiddenCols.push(ci);}
+            bodyRows.forEach(function(row,ri){var vals=Array.prototype.slice.call(row.cells||[]).slice(1).map(tableCellPlainText);if(vals.length&&vals.every(tableValueIsEmpty))hiddenRows.push(ri);});
+            prefs.hiddenCols=Array.from(new Set(prefs.hiddenCols.concat(hiddenCols)));prefs.hiddenRows=Array.from(new Set(prefs.hiddenRows.concat(hiddenRows)));saveAndRender();
+          });
+          toolbar.querySelector("[data-table-font-down]").addEventListener("click",function(){prefs.fontScale=Math.max(.7,Math.round((prefs.fontScale-.1)*10)/10);saveAndRender();});
+          toolbar.querySelector("[data-table-font-reset]").addEventListener("click",function(){prefs.fontScale=1;saveAndRender();});
+          toolbar.querySelector("[data-table-font-up]").addEventListener("click",function(){prefs.fontScale=Math.min(1.65,Math.round((prefs.fontScale+.1)*10)/10);saveAndRender();});
+          toolbar.querySelector("[data-table-width-reset]").addEventListener("click",function(){prefs.widths={};saveAndRender();});
+          Array.prototype.forEach.call(toolbar.querySelectorAll("[data-table-restore-col]"),function(btn){btn.addEventListener("click",function(){var ci=Number(this.dataset.tableRestoreCol);prefs.hiddenCols=prefs.hiddenCols.filter(function(v){return v!==ci;});saveAndRender();});});
+          var restoreRows=toolbar.querySelector("[data-table-restore-rows]");if(restoreRows)restoreRows.addEventListener("click",function(){prefs.hiddenRows=[];saveAndRender();});
+
+          var headerRow=table.tHead&&table.tHead.rows[0];
+          if(headerRow)Array.prototype.forEach.call(headerRow.cells,function(th,ci){
+            if(prefs.hiddenCols.indexOf(ci)>=0)return;
+            var eye=document.createElement("button");eye.type="button";eye.className="table-col-eye";eye.title="Sembunyikan kolom";eye.textContent="👁";
+            eye.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();prefs.hiddenCols=Array.from(new Set(prefs.hiddenCols.concat([ci])));saveAndRender();});th.appendChild(eye);
+            var handle=document.createElement("span");handle.className="table-col-resizer";handle.title="Geser untuk atur lebar kolom";th.appendChild(handle);
+            handle.addEventListener("pointerdown",function(e){
+              e.preventDefault();e.stopPropagation();handle.classList.add("is-dragging");
+              var startX=e.clientX,startWidth=th.offsetWidth,rect=root.getBoundingClientRect(),scale=rect.width&&root.offsetWidth?rect.width/root.offsetWidth:1;
+              function move(ev){var width=Math.max(42,Math.min(560,startWidth+(ev.clientX-startX)/Math.max(.1,scale)));prefs.widths[ci]=Math.round(width);table.style.tableLayout="fixed";applyTableColumnWidth(table,ci,width);}
+              function up(){handle.classList.remove("is-dragging");window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",up);saveState(false);}
+              window.addEventListener("pointermove",move);window.addEventListener("pointerup",up,{once:true});
+            });
+          });
+          bodyRows.forEach(function(row,ri){if(prefs.hiddenRows.indexOf(ri)>=0)return;var first=row.cells&&row.cells[0];if(!first)return;var eye=document.createElement("button");eye.type="button";eye.className="table-row-eye";eye.title="Sembunyikan baris";eye.textContent="👁";eye.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();prefs.hiddenRows=Array.from(new Set(prefs.hiddenRows.concat([ri])));saveAndRender();});first.insertBefore(eye,first.firstChild);});
+        });
+      }
+      function applyTableViewControls(){
+        var page=currentMasterPage(),root=currentSlideRoot();if(!(page&&page.kind==="report"&&page.report&&root))return;
+        var report=storedReportForPage(page)||page.report,editable=!document.body.classList.contains("presentation-mode")&&hasPermission("data.write");
+        applyTableViewPrefsToRoot(root,report,editable);
+      }
+
       function currentSlideRoot(){
         var page=currentMasterPage();
         if(page.kind==="master-cover"||page.kind==="section-cover") return coverSlideHost.firstElementChild;
@@ -3745,6 +3842,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         cloudRetryTimer=setTimeout(function(){initializeCloud();},Math.max(15000,Number(delayMs||60000)));
       }
       async function initializeCloud(){
+        var authenticatedSession=false;
         if(!cloud){
           cloudConfigured=false;cloudReady=false;currentUser=null;updateAccountUi();
           if(dbStatus)dbStatus.textContent="SQL tidak tersedia";
@@ -3776,6 +3874,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           if(dbStatus)dbStatus.textContent="Menghubungkan SQL...";
           var me=await cloud.me();
           currentUser=me.user||null;
+          authenticatedSession=!!currentUser;
           cloudReady=true;
           updateAccountUi();
           var remote={exists:false,state:null,version:0};
@@ -3810,23 +3909,28 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           showPage(activeMenu);
           if(currentUser&&currentUser.mustChangePassword)setTimeout(openAccountModal,250);
         }catch(err){
-          cloudReady=false;currentUser=null;updateAccountUi();
           var status=Number(err&&err.status||0);
           if(status===401){
+            cloudReady=false;currentUser=null;updateAccountUi();
             clearCloudRetry();
             if(cloud)cloud.setToken("");
             if(dbStatus)dbStatus.textContent="SQL perlu login";
             showAuthGate("Sesi habis. Silakan login kembali.");
+          }else if(authenticatedSession&&currentUser&&cloud&&cloud.getToken()){
+            cloudReady=true;updateAccountUi();hideAuthGate();
+            if(dbStatus)dbStatus.textContent="SQL tersambung • sinkronisasi tertunda";
+            scheduleCloudRetry(60000);renderAll();showPage(activeMenu);
+            console.warn("Authenticated session kept; SQL sync will retry",err);
           }else if(status===402){
+            cloudReady=false;updateAccountUi();
             if(dbStatus)dbStatus.textContent="SQL pause sementara";
-            showAuthGate("Backend database sedang pause karena limit layanan harian. Sistem akan mencoba tersambung kembali otomatis setiap 60 detik. Data di perangkat tidak dihapus.","login");
-            scheduleCloudRetry(60000);
-            console.warn("SQL backend temporarily paused",err);
+            showAuthGate("Backend database sedang pause. Sesi login tersimpan dan sistem mencoba tersambung kembali otomatis.","login");
+            scheduleCloudRetry(60000);console.warn("SQL backend temporarily paused",err);
           }else{
+            cloudReady=false;updateAccountUi();
             if(dbStatus)dbStatus.textContent="SQL tidak dapat dihubungi";
-            showAuthGate("Database online sedang tidak dapat dihubungi. Sistem akan mencoba tersambung kembali otomatis setiap 60 detik.","login");
-            scheduleCloudRetry(60000);
-            console.warn("SQL sync unavailable",err);
+            showAuthGate("Database online sedang tidak dapat dihubungi. Sesi login tidak dihapus dan sistem mencoba kembali otomatis.","login");
+            scheduleCloudRetry(60000);console.warn("SQL sync unavailable",err);
           }
         }
       }
@@ -3950,6 +4054,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         document.body.classList.add("presentation-mode");
         document.body.classList.remove("presentation-controls-hidden");
         renderManualSlide();
+        applyTableViewControls();
         requestAnimationFrame(updatePreviewScale);
         showPresentationControls();
         if(document.documentElement.requestFullscreen && !document.fullscreenElement){
@@ -3961,6 +4066,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       function exitPresentation(){
         document.body.classList.remove("presentation-mode","presentation-controls-hidden");
         renderManualSlide();
+        applyTableViewControls();
         clearTimeout(presentationHideTimer);
         if(document.fullscreenElement && document.exitFullscreen){
           var exiting=document.exitFullscreen();
@@ -4175,6 +4281,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         renderSlideNav();
         applyEditorMode();
         applyPreviewMode();
+        applyTableViewControls();
         enableLiveTextEditing();
         renderSlidesPage();
         renderDownloadsPage();
@@ -4394,6 +4501,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         var pageEls=stack.querySelectorAll(".print-page");
         master.forEach(function(page,i){
           var root=pageEls[i]&&pageEls[i].querySelector(".print-canvas>*");
+          if(root&&page.kind==="report"&&page.report)applyTableViewPrefsToRoot(root,page.report,false);
           if(root) applyLiveEditsToNode(root,liveEditPageKey(page));
         });
       }
@@ -4578,4 +4686,4 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <!-- auth-scope-v2 -->
 </body>
 <!-- status-sort-tristate-cache-v24 -->
-<!-- report-gudang-build-v53-presentation-compare-cache28</html>
+<!-- report-gudang-build-v54-table-layout-login-stable-cache29</html>
