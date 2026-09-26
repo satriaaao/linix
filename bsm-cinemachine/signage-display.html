@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>BSM Standing Display</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;font-family:system-ui,-apple-system,sans-serif}
+#stage{position:fixed;inset:0;background:#000;display:grid;place-items:center}
+video{position:absolute;inset:0;width:100%;height:100%;background:#000}
+#empty{color:#94a3b8;text-align:center;padding:30px;line-height:1.6}
+#badge{position:fixed;right:14px;top:14px;background:#0009;color:#dbeafe;border:1px solid #ffffff24;border-radius:999px;padding:7px 10px;font-size:11px;z-index:3;opacity:.25;transition:.2s}
+body:hover #badge{opacity:1}.hidden{display:none!important}
+</style>
+<script src="/signage-lib.js"></script>
+</head>
+<body>
+<div id="stage"><video id="player" autoplay muted playsinline preload="auto"></video><div id="empty" class="hidden">Playlist kosong.<br>Buka CMS signage untuk menambahkan video.</div></div>
+<div id="badge">BSM Signage</div>
+<script>
+const S=window.BSMSignage, player=document.getElementById('player'), empty=document.getElementById('empty');
+let config=location.hash.length>1?S.decodeConfig(location.hash.slice(1)):S.load(), index=0, retry=0;
+function videos(){return (config.videos||[]).filter(v=>v.enabled!==false&&v.src)}
+function playCurrent(){
+  const list=videos();
+  if(!list.length){player.classList.add('hidden');empty.classList.remove('hidden');return}
+  empty.classList.add('hidden');player.classList.remove('hidden');
+  if(index>=list.length)index=0;
+  const v=list[index];player.style.objectFit=v.fit||'cover';player.muted=config.muted!==false;player.src=v.src;player.load();
+  const p=player.play(); if(p&&p.catch)p.catch(()=>{player.muted=true;player.play().catch(()=>{})});
+}
+function next(){retry=0;index=(index+1)%Math.max(1,videos().length);playCurrent()}
+player.addEventListener('ended',next);
+player.addEventListener('error',()=>{if(retry<2){retry++;setTimeout(playCurrent,1200*retry)}else{next()}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&player.paused)player.play().catch(()=>{})});
+window.addEventListener('storage',e=>{if(e.key===S.STORAGE_KEY&&location.hash.length<=1){config=S.load();index=0;playCurrent()}});
+try{const ch=new BroadcastChannel('bsm-signage');ch.onmessage=e=>{if(e.data?.type==='config'&&location.hash.length<=1){config=S.normalizeConfig(e.data.config);index=0;playCurrent()}}}catch(_){}
+setInterval(()=>{if(videos().length&&player.paused&&!player.ended)player.play().catch(()=>{})},10000);
+playCurrent();
+</script>
+</body></html>
