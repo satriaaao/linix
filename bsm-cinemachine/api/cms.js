@@ -1,6 +1,8 @@
 const SOURCE='https://cdn.jsdelivr.net/gh/satriaaao/linix@a1d819043facf60ad3c6e025340b990a6642168a/bsm-cinemachine/cms-v15-20260918.html';
 const PWA=require('../cms-pwa-assets');
 const D=require('../drive-folder-lib');
+const V=require('../drive-video-lib');
+const {Readable}=require('node:stream');
 
 function sanitizeCmsHtml(html){
   return String(html||'')
@@ -77,6 +79,46 @@ async function listDriveFolder(req,res){
   }
 }
 
+async function fetchDriveMedia(fileId,range){
+  const headers=V.forwardRange({range});
+  let r=await fetch(V.downloadUrl(fileId),{redirect:'follow',headers});
+  const type=String(r.headers.get('content-type')||'').toLowerCase();
+  if(type.includes('text/html')){
+    const html=await r.text();
+    const confirmed=V.parseConfirmHtml(html,r.url);
+    if(confirmed)r=await fetch(confirmed,{redirect:'follow',headers});
+  }
+  return r;
+}
+async function streamDriveVideo(req,res){
+  const id=V.safeFileId(Array.isArray(req.query?.id)?req.query.id[0]:req.query?.id);
+  const name=Array.isArray(req.query?.name)?String(req.query.name[0]||''):String(req.query?.name||'');
+  if(!id)return sendJson(res,400,{ok:false,message:'File ID tidak valid'});
+  try{
+    const range=String(req.headers?.range||'');
+    const upstream=await fetchDriveMedia(id,range);
+    if(!upstream.ok&&upstream.status!==206){
+      return sendJson(res,upstream.status||502,{ok:false,message:'Video Google Drive tidak dapat dibuka'});
+    }
+    const upstreamType=upstream.headers.get('content-type')||'';
+    const mime=V.mimeFor(name,upstreamType);
+    res.statusCode=upstream.status===206?206:200;
+    res.setHeader('content-type',mime);
+    res.setHeader('content-disposition','inline');
+    res.setHeader('accept-ranges',upstream.headers.get('accept-ranges')||'bytes');
+    res.setHeader('cache-control','private, max-age=300');
+    const contentRange=upstream.headers.get('content-range');
+    const contentLength=upstream.headers.get('content-length');
+    if(contentRange)res.setHeader('content-range',contentRange);
+    if(contentLength)res.setHeader('content-length',contentLength);
+    res.setHeader('x-content-type-options','nosniff');
+    if(req.method==='HEAD'||!upstream.body)return res.end();
+    Readable.fromWeb(upstream.body).pipe(res);
+  }catch(e){
+    return sendJson(res,502,{ok:false,message:'Stream video Google Drive gagal',detail:String(e?.message||e)});
+  }
+}
+
 async function handler(req,res){
   if(req.method!=='GET'&&req.method!=='HEAD'){
     res.statusCode=405;res.setHeader('content-type','text/plain; charset=utf-8');return res.end('Method not allowed');
@@ -84,6 +126,7 @@ async function handler(req,res){
 
   const asset=Array.isArray(req.query?.asset)?req.query.asset[0]:req.query?.asset;
   if(asset==='drive-folder')return listDriveFolder(req,res);
+  if(asset==='drive-video')return streamDriveVideo(req,res);
   if(asset&&PWA[asset])return PWA[asset](req,res);
 
   try{
@@ -111,3 +154,4 @@ module.exports._sanitizeCmsHtml=sanitizeCmsHtml;
 module.exports._injectCmsPwa=injectCmsPwa;
 module.exports._source=SOURCE;
 module.exports._listDriveFolder=listDriveFolder;
+module.exports._streamDriveVideo=streamDriveVideo;
