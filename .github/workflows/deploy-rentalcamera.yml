@@ -51,7 +51,7 @@ jobs:
           if echo "$RESOURCES" | grep -q '"product"[[:space:]]*:[[:space:]]*"Neon"'; then
             echo "Neon database already exists; skipping provision."
           else
-            vercel integration add neon               --name bsm-signage-db               --plan free_v3               --metadata region=sin1               --metadata auth=false               --environment production               --format=json               --yes               --token="${{ secrets.VERCEL_TOKEN }}"
+            vercel integration add neon               --name bsm-signage-db               --plan free_v3               --metadata region=sin1               --metadata auth=false               --environment production               --format=json               --non-interactive               --token="${{ secrets.VERCEL_TOKEN }}"
           fi
 
 
