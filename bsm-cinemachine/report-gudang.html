@@ -311,6 +311,12 @@
     .manual-slide-table th.manual-col-short{text-align:center}
     .manual-slide-table .manual-slide-total td{background:#d9eef0!important;color:#09636c;font-weight:950;border-top:1px solid #9bcbd0;border-bottom:2px solid #9bcbd0}
     .manual-slide-table .manual-slide-total .manual-slide-no{background:#c6e5e8!important;color:#087d86}
+    .manual-compare-link{display:block;width:100%;border:0;background:transparent;color:#075f66;padding:0;text-align:left;font:inherit;font-weight:850;cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px}
+    .manual-compare-link:hover{color:#0a8b94}
+    .compare-hero{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start;padding:14px;border:1px solid #d8e7e9;border-radius:14px;background:#f7fbfb;margin-bottom:14px}
+    .compare-hero span{display:block;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#70808d}.compare-hero strong{display:block;margin-top:4px;font-size:18px;color:#132433}
+    .compare-periods{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.compare-period{padding:7px 10px;border:1px solid #cfe0e3;border-radius:999px;background:#fff;font-size:10px;font-weight:850;color:#52616f}.compare-period.current{background:#e7f5f6;color:#087d86;border-color:#9fcfd3}
+    .compare-table-wrap{overflow:auto;border:1px solid #d9e5e7;border-radius:12px}.compare-table{width:100%;border-collapse:collapse;font-size:11px;min-width:620px}.compare-table th,.compare-table td{padding:9px 10px;border-right:1px solid #e1e9eb;border-bottom:1px solid #e1e9eb;text-align:left}.compare-table th{background:#eef7f8;color:#08727a;font-size:9px;text-transform:uppercase;letter-spacing:.05em}.compare-table td:nth-child(n+2){font-variant-numeric:tabular-nums}.compare-table tr:last-child td{border-bottom:0}.compare-table th:last-child,.compare-table td:last-child{border-right:0}.compare-delta.up{color:#15803d;font-weight:900}.compare-delta.down{color:#b91c1c;font-weight:900}.compare-delta.flat{color:#64748b;font-weight:900}.compare-empty{padding:18px;border:1px dashed #c8dadd;border-radius:12px;background:#fbfefe;color:#64748b;font-size:11px;text-align:center}
     .manual-grid-medium .manual-slide-table{font-size:11.5px}.manual-grid-medium .manual-slide-table th,.manual-grid-medium .manual-slide-table td{height:30px;padding:6px 6px}.manual-grid-medium .manual-slide-table th{font-size:9px}
     .manual-grid-dense .manual-grid-slide h1{font-size:36px}.manual-grid-dense .manual-slide-table{font-size:10.5px}.manual-grid-dense .manual-slide-table th,.manual-grid-dense .manual-slide-table td{height:28px;padding:5px 5px}.manual-grid-dense .manual-slide-table th{font-size:8.5px}
     .manual-grid-ultra h1{font-size:33px}.manual-grid-ultra .manual-slide-sub{font-size:10px}.manual-grid-ultra .manual-slide-table{font-size:9px}.manual-grid-ultra .manual-slide-table th,.manual-grid-ultra .manual-slide-table td{height:26px;padding:4px 3px}.manual-grid-ultra .manual-slide-table th{font-size:7.5px;letter-spacing:.02em}
@@ -1540,7 +1546,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-master.js"></script>
   <script src="/report-admin-matrix.js"></script>
   <script src="/report-it-omset.js"></script>
-  <script src="/report-it-products.js?v=25"></script>
+  <script src="/report-it-products.js?v=26"></script>
   <script src="/report-it-products-data.js"></script>
   <script src="/report-camera-vendor.js"></script>
   <script src="/report-camera-reports.js"></script>
@@ -1548,7 +1554,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-cinema-reports.js"></script>
   <script src="/report-lighting-reports.js"></script>
   <script src="/report-crew-reports.js"></script>
-  <script src="/report-manual-sheets.js"></script>
+  <script src="/report-manual-sheets.js?v=26"></script>
   <script src="/report-bulk-router.js"></script>
   <script src="/report-live-edit.js"></script>
   <script src="/report-slide-fit.js"></script>
@@ -1557,7 +1563,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
   <script src="/report-gudang-export.js"></script>
   <script src="/report-gudang-ui.js"></script>
-  <script src="/report-gudang-cloud.js"></script>
+  <script src="/report-gudang-cloud.js?v=26"></script>
   <script>
     (function(){
       var STORAGE_KEY = "bsm-report-gudang-v2";
@@ -1603,6 +1609,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         base.manualTitle=src.manualTitle||"";
         base.manualColumns=src.manualColumns?clone(src.manualColumns):null;
         base.manualRows=src.manualRows?clone(src.manualRows):null;
+        base.manualPeriodKey=src.manualPeriodKey||"";
         base.pageNo=Number(src.pageNo||1);
         base.pageTotal=Number(src.pageTotal||1);
         base.latestMonth=Number.isInteger(src.latestMonth)?src.latestMonth:null;
@@ -3019,10 +3026,83 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         var exp=manualTableMount.querySelector("[data-manual-export]");
         if(exp)exp.addEventListener("click",exportManualSheet);
       }
+      function compareTextKey(v){
+        return String(v==null?"":v).replace(/\s+/g," ").trim().toLocaleLowerCase("id-ID");
+      }
+      function previousManualPeriodKey(key){
+        var parts=window.BSMManualSheets.periodParts(key),month=parts.month-1,year=parts.year;
+        if(month<1){month=12;year--;}
+        return String(year)+"-"+String(month).padStart(2,"0");
+      }
+      function compareNumericValue(v){
+        var s=String(v==null?"":v).trim();
+        if(!s)return null;
+        s=s.replace(/rp\.?/ig,"").replace(/\s/g,"");
+        if(/^[-+]?\d{1,3}(\.\d{3})+(,\d+)?$/.test(s))s=s.replace(/\./g,"").replace(",",".");
+        else if(/^[-+]?\d+(,\d+)$/.test(s))s=s.replace(",",".");
+        else s=s.replace(/[^0-9.+-]/g,"");
+        var n=Number(s);return Number.isFinite(n)?n:null;
+      }
+      function compareColumnIsNumeric(col){
+        var text=(String(col&&col[0]||"")+" "+String(col&&col[1]||"")).toLowerCase();
+        return /(^|\b)(qty|jumlah|total|harga|nilai|poin|jalan|penolakan|komplain|skorsing|pengeluaran|omset|realisasi|leads|budget|target|delivery|jemputan|surat jalan)(\b|$)/.test(text)||/^d\d+$/.test(String(col&&col[0]||""));
+      }
+      function aggregateCompareColumn(rows,col){
+        rows=Array.isArray(rows)?rows:[];var key=col[0];
+        if(compareColumnIsNumeric(col)){
+          var nums=rows.map(function(r){return compareNumericValue(r&&r[key]);}).filter(function(v){return v!=null;});
+          if(nums.length)return {numeric:true,value:nums.reduce(function(a,b){return a+b;},0),text:nums.reduce(function(a,b){return a+b;},0).toLocaleString("id-ID",{maximumFractionDigits:2})};
+        }
+        var vals=[];rows.forEach(function(r){var v=String(r&&r[key]!=null?r[key]:"").trim();if(v&&vals.indexOf(v)<0)vals.push(v);});
+        return {numeric:false,value:null,text:vals.slice(0,4).join(" • ")||"—"};
+      }
+      function openManualComparison(report,identityKey,identityValue){
+        var typeId=String(report&&report.reportType||state.activeType),book=state.manualSheets&&state.manualSheets[typeId];
+        if(!book){toast("Data pembanding belum tersedia");return;}
+        var sheetId=String(report.manualSheetId||""),def=window.BSMManualSheets.sheetDef(typeId,sheetId,book);
+        if(!def){toast("Tabel pembanding tidak ditemukan");return;}
+        var currentKey=report.manualPeriodKey||String(Number(report.year||2026))+"-"+String(Number(report.month||1)).padStart(2,"0");
+        currentKey=window.BSMManualSheets.normalizePeriodKey(currentKey);
+        var previousKey=previousManualPeriodKey(currentKey),target=compareTextKey(identityValue);
+        function matched(periodKey){
+          return window.BSMManualSheets.dataRows(book,typeId,sheetId,periodKey).filter(function(row){return compareTextKey(row&&row[identityKey])===target;});
+        }
+        var currentRows=matched(currentKey),previousRows=matched(previousKey);
+        if(!currentRows.length&&Array.isArray(report.manualRows)){
+          currentRows=report.manualRows.filter(function(row){return !row.__autoTotal&&compareTextKey(row&&row[identityKey])===target;});
+        }
+        var cols=(def.columns||[]).filter(function(col){return col[0]!==identityKey;});
+        var rowsHtml=cols.map(function(col){
+          var prev=aggregateCompareColumn(previousRows,col),curr=aggregateCompareColumn(currentRows,col),delta="—",tone="flat";
+          if(prev.numeric&&curr.numeric){
+            var diff=curr.value-prev.value;tone=diff>0?"up":(diff<0?"down":"flat");
+            if(prev.value!==0){
+              var pct=diff/Math.abs(prev.value)*100;
+              delta=(diff>0?"+":"")+diff.toLocaleString("id-ID",{maximumFractionDigits:2})+" ("+(pct>0?"+":"")+pct.toLocaleString("id-ID",{maximumFractionDigits:1})+"%)";
+            }else if(curr.value!==0) delta=(diff>0?"↑ ":"↓ ")+Math.abs(diff).toLocaleString("id-ID",{maximumFractionDigits:2});
+            else delta="0";
+          }else if(prev.text!==curr.text){
+            delta=previousRows.length?"Berubah":"Data baru";
+          }else delta="Tetap";
+          return '<tr><td><strong>'+esc(col[1])+'</strong></td><td>'+esc(prev.text)+'</td><td>'+esc(curr.text)+'</td><td class="compare-delta '+tone+'">'+esc(delta)+'</td></tr>';
+        }).join("");
+        var prevLabel=window.BSMManualSheets.periodLabel(previousKey),currLabel=window.BSMManualSheets.periodLabel(currentKey);
+        var empty=!previousRows.length?'<div class="compare-empty">Belum ada data <strong>'+esc(identityValue)+'</strong> pada '+esc(prevLabel)+'. Data '+esc(currLabel)+' tetap ditampilkan sebagai acuan.</div>':"";
+        modalHost.innerHTML='<div class="rg-modal-backdrop" data-compare-backdrop><div class="rg-modal-card" role="dialog" aria-modal="true" aria-label="Pembanding bulan"><div class="rg-modal-head"><strong>Pembanding • '+esc(reportType(typeId).label)+'</strong><button class="rg-modal-close" type="button" data-compare-close>×</button></div><div class="rg-modal-body"><div class="compare-hero"><div><span>Item / Produk / Nama</span><strong>'+esc(identityValue)+'</strong></div><div class="compare-periods"><span class="compare-period">'+esc(prevLabel)+'</span><span>→</span><span class="compare-period current">'+esc(currLabel)+'</span></div></div>'+empty+'<div class="compare-table-wrap"><table class="compare-table"><thead><tr><th>Data</th><th>'+esc(prevLabel)+'</th><th>'+esc(currLabel)+'</th><th>Perubahan</th></tr></thead><tbody>'+rowsHtml+'</tbody></table></div><p class="tiny" style="margin:10px 2px 0">Cocok berdasarkan nama yang sama. Jika item muncul beberapa kali dalam satu bulan, kolom angka dijumlahkan otomatis.</p></div></div></div>';
+        var backdrop=modalHost.querySelector("[data-compare-backdrop]"),closeBtn=modalHost.querySelector("[data-compare-close]");
+        if(backdrop)backdrop.addEventListener("click",function(e){if(e.target===backdrop)closeModal();});
+        if(closeBtn)closeBtn.addEventListener("click",closeModal);
+      }
       function renderManualSlide(){
         var page=currentMasterPage();
         if(page.kind==="report"&&page.report&&page.report.template==="manual-grid"){
-          manualReportHost.innerHTML=window.BSMManualSheets.renderSlide(page.report,esc);
+          manualReportHost.innerHTML=window.BSMManualSheets.renderSlide(page.report,esc,{compare:true});
+          Array.prototype.forEach.call(manualReportHost.querySelectorAll("[data-manual-compare-key]"),function(btn){
+            btn.addEventListener("click",function(e){
+              e.preventDefault();e.stopPropagation();
+              openManualComparison(page.report,this.dataset.manualCompareKey,this.dataset.manualCompareValue);
+            });
+          });
         }else manualReportHost.innerHTML="";
       }
       function renderHtmlSlide(){
@@ -4491,4 +4571,4 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <!-- auth-scope-v2 -->
 </body>
 <!-- status-sort-tristate-cache-v24 -->
-<!-- report-gudang-build-v50-status-sort-persist-cache25</html>
+<!-- report-gudang-build-v51-login-compare-status-cache26</html>
