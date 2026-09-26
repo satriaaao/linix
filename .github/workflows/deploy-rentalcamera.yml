@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: rentalcamera-production
+  group: rentalcamera-production-v2
   cancel-in-progress: true
 
 jobs:
