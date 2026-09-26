@@ -47,6 +47,9 @@ jobs:
       - name: Inspect Vercel database resources
         run: vercel integration list --all --format=json --token="${{ secrets.VERCEL_TOKEN }}" || true
 
+      - name: Inspect Neon provisioning options
+        run: vercel integration add neon --help --token="${{ secrets.VERCEL_TOKEN }}" || true
+
       - name: Pull Vercel project settings
         run: vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
 
