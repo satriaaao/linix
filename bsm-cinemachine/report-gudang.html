@@ -1553,7 +1553,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-master.js"></script>
   <script src="/report-admin-matrix.js"></script>
   <script src="/report-it-omset.js"></script>
-  <script src="/report-it-products.js?v=33"></script>
+  <script src="/report-it-products.js?v=34"></script>
   <script src="/report-it-products-data.js"></script>
   <script src="/report-camera-vendor.js"></script>
   <script src="/report-camera-reports.js"></script>
@@ -1561,7 +1561,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-cinema-reports.js"></script>
   <script src="/report-lighting-reports.js"></script>
   <script src="/report-crew-reports.js"></script>
-  <script src="/report-manual-sheets.js?v=33"></script>
+  <script src="/report-manual-sheets.js?v=34"></script>
   <script src="/report-bulk-router.js"></script>
   <script src="/report-live-edit.js"></script>
   <script src="/report-slide-fit.js"></script>
@@ -1571,8 +1571,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-export.js"></script>
   <script src="/report-gudang-ui.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
-  <script src="/report-gudang-realtime.js?v=33"></script>
-  <script src="/report-gudang-cloud.js?v=33"></script>
+  <script src="/report-gudang-realtime.js?v=34"></script>
+  <script src="/report-gudang-cloud.js?v=34"></script>
   <script>
     (function(){
       var STORAGE_KEY = "bsm-report-gudang-v2";
@@ -2130,6 +2130,59 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         width=Math.max(42,Math.min(560,Number(width||0)));if(!width)return;
         Array.prototype.forEach.call(table.rows||[],function(row){var cell=row.cells&&row.cells[colIndex];if(cell){cell.style.width=width+"px";cell.style.minWidth=width+"px";cell.style.maxWidth=width+"px";}});
       }
+      function compactVisibleTableLayout(table,prefs,colCount){
+        var hidden=new Set((prefs.hiddenCols||[]).map(Number));
+        var visible=[];
+        for(var ci=0;ci<colCount;ci++)if(!hidden.has(ci))visible.push(ci);
+        if(!visible.length)return;
+
+        table.style.width="100%";
+        table.style.maxWidth="100%";
+        table.style.tableLayout="fixed";
+
+        var colgroup=table.querySelector("colgroup");
+        var originalCols=colgroup?Array.prototype.slice.call(colgroup.querySelectorAll("col")):[];
+        var weights={};
+        visible.forEach(function(ci){
+          var saved=Number(prefs.widths&&prefs.widths[ci]);
+          if(saved>0){weights[ci]=saved;return;}
+          var col=originalCols[ci],raw=col&&String(col.style.width||col.getAttribute("width")||"").trim();
+          var parsed=parseFloat(raw);
+          weights[ci]=Number.isFinite(parsed)&&parsed>0?parsed:1;
+        });
+        var total=visible.reduce(function(sum,ci){return sum+(weights[ci]||1);},0)||visible.length;
+
+        if(colgroup){
+          colgroup.innerHTML="";
+          visible.forEach(function(ci){
+            var col=document.createElement("col");
+            var pct=((weights[ci]||1)/total*100);
+            col.style.width=pct.toFixed(4)+"%";
+            colgroup.appendChild(col);
+          });
+        }
+
+        Array.prototype.forEach.call(table.rows||[],function(row){
+          visible.forEach(function(ci,visibleIndex){
+            var cell=row.cells&&row.cells[ci];
+            if(!cell)return;
+            var pct=((weights[ci]||1)/total*100);
+            cell.style.display="";
+            cell.style.width=pct.toFixed(4)+"%";
+            cell.style.minWidth="0";
+            cell.style.maxWidth="none";
+            cell.dataset.visibleColIndex=String(visibleIndex);
+          });
+          hidden.forEach(function(ci){
+            var cell=row.cells&&row.cells[ci];
+            if(!cell)return;
+            cell.style.display="none";
+            cell.style.width="0";
+            cell.style.minWidth="0";
+            cell.style.maxWidth="0";
+          });
+        });
+      }
       function applyTableViewPrefsToRoot(root,report,editable){
         if(!root||!report)return;
         root.classList.add("table-view-root");
@@ -2137,11 +2190,9 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           var prefs=ensureTableViewPrefs(report,tableIndex);if(!prefs)return;
           table.classList.add("table-view-managed");
           var allRows=Array.prototype.slice.call(table.rows||[]),colCount=allRows.reduce(function(max,row){return Math.max(max,row.cells?row.cells.length:0);},0);
-          prefs.hiddenCols.forEach(function(ci){allRows.forEach(function(row){if(row.cells&&row.cells[ci])row.cells[ci].style.display="none";});});
           var bodyRows=Array.prototype.slice.call(table.tBodies&&table.tBodies[0]?table.tBodies[0].rows:[]);
-          prefs.hiddenRows.forEach(function(ri){if(bodyRows[ri])bodyRows[ri].style.display="none";});
-          Object.keys(prefs.widths).forEach(function(key){applyTableColumnWidth(table,Number(key),Number(prefs.widths[key]));});
-          if(Object.keys(prefs.widths).length)table.style.tableLayout="fixed";
+          prefs.hiddenRows.forEach(function(ri){if(bodyRows[ri]){bodyRows[ri].style.display="none";bodyRows[ri].style.height="0";}});
+          compactVisibleTableLayout(table,prefs,colCount);
           if(Math.abs(prefs.fontScale-1)>.001)Array.prototype.forEach.call(table.querySelectorAll("th,td"),function(cell){var base=parseFloat(getComputedStyle(cell).fontSize)||10;cell.style.fontSize=(base*prefs.fontScale).toFixed(2)+"px";});
           if(!editable)return;
 
@@ -2175,7 +2226,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             handle.addEventListener("pointerdown",function(e){
               e.preventDefault();e.stopPropagation();handle.classList.add("is-dragging");
               var startX=e.clientX,startWidth=th.offsetWidth,rect=root.getBoundingClientRect(),scale=rect.width&&root.offsetWidth?rect.width/root.offsetWidth:1;
-              function move(ev){var width=Math.max(42,Math.min(560,startWidth+(ev.clientX-startX)/Math.max(.1,scale)));prefs.widths[ci]=Math.round(width);table.style.tableLayout="fixed";applyTableColumnWidth(table,ci,width);}
+              function move(ev){var width=Math.max(42,Math.min(560,startWidth+(ev.clientX-startX)/Math.max(.1,scale)));prefs.widths[ci]=Math.round(width);compactVisibleTableLayout(table,prefs,colCount);}
               function up(){handle.classList.remove("is-dragging");window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",up);saveState(false);}
               window.addEventListener("pointermove",move);window.addEventListener("pointerup",up,{once:true});
             });
@@ -4785,4 +4836,4 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <!-- auth-scope-v2 -->
 </body>
 <!-- status-sort-tristate-cache-v24 -->
-<!-- report-gudang-build-v58-force-realtime-tabs-cache33</html>
+<!-- report-gudang-build-v59-compact-hidden-table-cache34</html>
