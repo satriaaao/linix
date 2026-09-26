@@ -205,7 +205,7 @@
       if(previous===0)return {label:'0%',status:'TETAP',tone:'',manual:false,value:0};
       return {label:'-100%',status:'TIDAK ADA',tone:'down',manual:false,value:-100};
     }
-    if(previous===0)return {label:'Baru',status:'BARU',tone:'up',manual:false,value:null};
+    if(previous===0)return {label:'—',status:'NAIK',tone:'up',manual:false,value:null};
     var pct=(current-previous)/previous*100;
     return {label:(pct>0?'+':'')+pct.toLocaleString('id-ID',{maximumFractionDigits:1})+'%',status:pct>0?'NAIK':pct<0?'TURUN':'TETAP',tone:pct>0?'up':pct<0?'down':'',manual:false,value:pct};
   }
