@@ -1,9 +1,10 @@
-const CACHE='bsm-report-gudang-v31';
+const CACHE='bsm-report-gudang-v32';
 const SHELL=[
   '/report-gudang.html',
   '/report-gudang.webmanifest',
   '/report-gudang-icon.svg',
   '/report-gudang-cloud.js',
+  '/report-gudang-realtime.js',
   '/report-gudang-ui.js',
   '/report-gudang-master.js',
   '/report-gudang-cover.js',
