@@ -11,6 +11,12 @@ assert.ok(!html.includes('id="tap"'),'tombol Putar Video harus dihapus untuk aut
 assert.ok(html.includes('AUTOPLAY_RETRY_MS'),'player harus retry autoplay tanpa interaksi user');
 assert.ok(html.includes('SYNC_INTERVAL_MS=1000'),'monitor harus mengecek update online setiap 1 detik');
 assert.ok(html.includes('findNewVideoIndex'),'video baru harus terdeteksi saat playlist berubah');
+assert.ok(html.includes('PLAYBACK_WATCHDOG_MS'),'player harus punya watchdog agar tidak berhenti');
+assert.ok(html.includes('PRE_SWITCH_SECONDS'),'pergantian harus dimulai sebelum video benar-benar habis');
+assert.ok(html.includes("addEventListener('stalled'"),'player harus recover saat stream stalled');
+assert.ok(html.includes("addEventListener('waiting'"),'player harus recover saat buffering terlalu lama');
+assert.ok(html.includes('requestWakeLock'),'monitor Android harus meminta screen wake lock');
+assert.ok(html.includes('directDriveSource'),'Android Chrome harus bisa fallback ke stream Drive langsung');
 assert.ok(html.includes('apple-mobile-web-app-capable'),'mode standalone iPhone harus aktif');
 assert.equal(manifest.display,'standalone');
 assert.equal(manifest.orientation,'portrait');
