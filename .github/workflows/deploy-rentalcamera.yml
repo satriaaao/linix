@@ -44,11 +44,16 @@ jobs:
           node signage-auth-db-lib.test.cjs
           node signage-cms-db.test.cjs
 
-      - name: Inspect Vercel database resources
-        run: vercel integration list --all --format=json --token="${{ secrets.VERCEL_TOKEN }}" || true
+      - name: Provision free Neon database if missing
+        run: |
+          set -e
+          RESOURCES="$(vercel integration list --integration neon --format=json --token="${{ secrets.VERCEL_TOKEN }}" 2>/dev/null || echo '{"resources":[]}')"
+          if echo "$RESOURCES" | grep -q '"product"[[:space:]]*:[[:space:]]*"Neon"'; then
+            echo "Neon database already exists; skipping provision."
+          else
+            vercel integration add neon               --name bsm-signage-db               --plan free_v3               --metadata region=sin1               --metadata auth=false               --environment production               --format=json               --yes               --token="${{ secrets.VERCEL_TOKEN }}"
+          fi
 
-      - name: Inspect Neon provisioning options
-        run: vercel integration add neon --help --token="${{ secrets.VERCEL_TOKEN }}" || true
 
       - name: Pull Vercel project settings
         run: vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
