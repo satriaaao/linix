@@ -82,15 +82,18 @@ async function signageSetup(req,res){
   if(req.method!=='POST')return methodNotAllowed(res);
   if(!sameOrigin(req))return sendJson(res,403,{ok:false,message:'Origin tidak valid'});
   const body=await readJsonBody(req);
+  const username=SignageAuth.normalizeUsername(body.username);
   const password=String(body.password||'');
+  if(!SignageAuth.isValidUsername(username))return sendJson(res,400,{ok:false,message:'Username harus 3-32 karakter dan hanya boleh huruf kecil, angka, titik, garis bawah, atau strip'});
   if(!SignageAuth.isStrongPassword(password))return sendJson(res,400,{ok:false,message:'Password minimal 8 karakter'});
   try{
-    const s=await SignageStore.setupAdmin(password);
+    const s=await SignageStore.setupAdmin(username,password);
     setSessionCookie(res,s.token,s.maxAge);
-    return sendJson(res,200,{ok:true,message:'Password admin berhasil dibuat'});
+    return sendJson(res,200,{ok:true,message:'Akun admin berhasil dibuat'});
   }catch(e){
     if(e?.code==='DB_NOT_CONFIGURED')return sendJson(res,503,{ok:false,code:'db_not_configured',message:'Database belum terhubung'});
-    if(e?.code==='ADMIN_EXISTS')return sendJson(res,409,{ok:false,code:'admin_exists',message:'Password admin sudah dibuat'});
+    if(e?.code==='ADMIN_EXISTS')return sendJson(res,409,{ok:false,code:'admin_exists',message:'Akun admin sudah dibuat'});
+    if(e?.code==='INVALID_USERNAME')return sendJson(res,400,{ok:false,code:'invalid_username',message:e.message});
     return sendJson(res,500,{ok:false,message:'Setup admin gagal'});
   }
 }
@@ -99,12 +102,12 @@ async function signageLogin(req,res){
   if(!sameOrigin(req))return sendJson(res,403,{ok:false,message:'Origin tidak valid'});
   const body=await readJsonBody(req);
   try{
-    const s=await SignageStore.login(String(body.password||''));
+    const s=await SignageStore.login(SignageAuth.normalizeUsername(body.username),String(body.password||''));
     setSessionCookie(res,s.token,s.maxAge);
     return sendJson(res,200,{ok:true});
   }catch(e){
     if(e?.code==='DB_NOT_CONFIGURED')return sendJson(res,503,{ok:false,code:'db_not_configured',message:'Database belum terhubung'});
-    if(e?.code==='INVALID_PASSWORD')return sendJson(res,401,{ok:false,code:'invalid_password',message:'Password salah'});
+    if(e?.code==='INVALID_CREDENTIALS')return sendJson(res,401,{ok:false,code:'invalid_credentials',message:'Username atau password salah'});
     return sendJson(res,500,{ok:false,message:'Login gagal'});
   }
 }
