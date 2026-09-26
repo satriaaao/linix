@@ -1,99 +1,169 @@
 <!doctype html>
 <html lang="id">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>BSM Standing Display</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BSM Display">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="/signage.webmanifest?v=20260926-2100">
+<title>Display</title>
 <style>
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;font-family:system-ui,-apple-system,sans-serif}
-#stage{position:fixed;inset:0;background:#000;display:grid;place-items:center}
-video{position:absolute;inset:0;width:100%;height:100%;background:#000}
-#empty,#status{position:relative;z-index:2;color:#cbd5e1;text-align:center;padding:30px;line-height:1.6}
-#status{background:#050505cc;border:1px solid #ffffff1c;border-radius:18px;max-width:320px}
-#playBtn{display:none;margin:14px auto 0;border:0;border-radius:999px;padding:12px 18px;background:#fff;color:#111;font-weight:800;font-size:16px}
-#badge{position:fixed;right:14px;top:14px;background:#0009;color:#dbeafe;border:1px solid #ffffff24;border-radius:999px;padding:7px 10px;font-size:11px;z-index:3;opacity:.25;transition:.2s}
-body:hover #badge{opacity:1}.hidden{display:none!important}
-.spinner{width:30px;height:30px;border:3px solid #ffffff24;border-top-color:#fff;border-radius:50%;margin:0 auto 12px;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;overscroll-behavior:none}
+body{position:fixed;inset:0;background:#000;touch-action:manipulation}
+#stage{position:fixed;inset:0;width:100vw;height:100dvh;background:#000;overflow:hidden}
+video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000;opacity:0;z-index:0}
+video.active{opacity:1;z-index:2}
+video.standby{opacity:0;z-index:1}
+#empty{position:absolute;inset:0;display:none;place-items:center;color:#888;font:14px system-ui;text-align:center;padding:24px;z-index:4;background:#000}
+#tap{position:absolute;inset:0;display:none;place-items:center;z-index:5;background:#0000;border:0;color:#fff;font:700 18px system-ui}
+#tap span{background:#000a;border:1px solid #ffffff30;border-radius:999px;padding:14px 20px}
 </style>
-<script src="/signage-lib.js?v=20260926-2052"></script>
+<script src="/signage-lib.js?v=20260926-2100"></script>
 </head>
 <body>
 <div id="stage">
-  <video id="player" autoplay muted playsinline webkit-playsinline preload="auto"></video>
-  <div id="empty" class="hidden">Playlist kosong.<br>Buka CMS signage untuk menambahkan video.</div>
-  <div id="status"><div class="spinner" id="spinner"></div><div id="statusText">Memuat video...</div><button id="playBtn">Putar Video</button></div>
+  <video id="videoA" class="active" muted autoplay playsinline webkit-playsinline preload="auto"></video>
+  <video id="videoB" class="standby" muted playsinline webkit-playsinline preload="auto"></video>
+  <div id="empty">Playlist kosong.</div>
+  <button id="tap" type="button"><span>Putar Video</span></button>
 </div>
-<div id="badge">BSM Signage</div>
 <script>
 const S=window.BSMSignage;
-const player=document.getElementById('player'),empty=document.getElementById('empty'),status=document.getElementById('status'),statusText=document.getElementById('statusText'),spinner=document.getElementById('spinner'),playBtn=document.getElementById('playBtn');
-let config=location.hash.length>1?S.decodeConfig(location.hash.slice(1)):S.load(),index=0,retry=0,sourceAttempt=0,loadTimer=null;
+const A=document.getElementById('videoA');
+const B=document.getElementById('videoB');
+const empty=document.getElementById('empty');
+const tap=document.getElementById('tap');
 
-function videos(){return (config.videos||[]).filter(v=>v.enabled!==false&&(v.src||v.driveUrl))}
-function setStatus(text,opts={}){
-  status.classList.remove('hidden');statusText.textContent=text||'Memuat video...';
-  spinner.style.display=opts.loading===false?'none':'block';
-  playBtn.style.display=opts.play?'block':'none';
-}
-function hideStatus(){status.classList.add('hidden');playBtn.style.display='none'}
-function sourcesFor(v){
-  const list=[];
-  const proxy=S.driveProxyUrl(v); if(proxy)list.push(proxy);
-  if(v.src&&!list.includes(v.src))list.push(v.src);
-  return list.filter(Boolean);
-}
-function loadSource(){
-  clearTimeout(loadTimer);
-  const list=videos();
-  if(!list.length){player.classList.add('hidden');status.classList.add('hidden');empty.classList.remove('hidden');return}
-  empty.classList.add('hidden');player.classList.remove('hidden');
-  if(index>=list.length)index=0;
-  const v=list[index],sources=sourcesFor(v);
-  if(!sources.length){return failCurrent('Sumber video tidak tersedia')}
-  if(sourceAttempt>=sources.length){return failCurrent('Video gagal dimuat')}
-  player.pause();
-  player.removeAttribute('src');
-  player.load();
-  player.style.objectFit=v.fit||'cover';
-  player.muted=true;
-  setStatus('Memuat '+(v.title||'video')+'...', {loading:true});
-  player.src=sources[sourceAttempt];
-  player.load();
-  const p=player.play();
-  if(p&&p.catch)p.catch(()=>{
-    setStatus('Video siap diputar', {loading:false,play:true});
-  });
-  loadTimer=setTimeout(()=>{
-    if(player.readyState<2){
-      sourceAttempt++;
-      loadSource();
-    }
-  },9000);
-}
-function playCurrent(){retry=0;sourceAttempt=0;loadSource()}
-function failCurrent(message){
-  clearTimeout(loadTimer);
-  setStatus(message+'. Lanjut ke video berikutnya...', {loading:false});
-  setTimeout(next,2200);
-}
-function next(){clearTimeout(loadTimer);retry=0;sourceAttempt=0;index=(index+1)%Math.max(1,videos().length);loadSource()}
+let config=location.hash.length>1?S.decodeConfig(location.hash.slice(1)):S.load();
+let index=0;
+let active=A;
+let standby=B;
+let standbyIndex=-1;
+let swapping=false;
 
-player.addEventListener('loadeddata',()=>{clearTimeout(loadTimer);hideStatus()});
-player.addEventListener('canplay',()=>{clearTimeout(loadTimer);hideStatus();player.play().catch(()=>setStatus('Ketuk untuk memulai video',{loading:false,play:true}))});
-player.addEventListener('playing',()=>{clearTimeout(loadTimer);hideStatus()});
-player.addEventListener('ended',next);
-player.addEventListener('error',()=>{
-  clearTimeout(loadTimer);
-  sourceAttempt++;
-  if(sourceAttempt<sourcesFor(videos()[index]||{}).length)setTimeout(loadSource,400);
-  else failCurrent('Video Google Drive tidak bisa dibuka');
+function list(){
+  return (config.videos||[]).filter(v=>v.enabled!==false&&(v.driveUrl||v.src));
+}
+function source(v){
+  return S.driveProxyUrl(v)||v.src||'';
+}
+function apply(video,item){
+  video.style.objectFit=item?.fit||'cover';
+  video.muted=true;
+  video.playsInline=true;
+}
+function assign(video,item){
+  const src=source(item);
+  apply(video,item);
+  if(video.dataset.src!==src){
+    video.dataset.src=src;
+    video.src=src;
+    video.load();
+  }
+}
+function showEmpty(){
+  empty.style.display='grid';
+  A.pause();B.pause();
+}
+function hideEmpty(){empty.style.display='none'}
+function showTap(){tap.style.display='grid'}
+function hideTap(){tap.style.display='none'}
+function tryPlay(video){
+  const p=video.play();
+  if(p&&p.catch)p.catch(()=>showTap());
+}
+function preloadNext(){
+  const items=list();
+  if(items.length<2)return;
+  const nextIndex=(index+1)%items.length;
+  standbyIndex=nextIndex;
+  assign(standby,items[nextIndex]);
+}
+function start(){
+  const items=list();
+  if(!items.length){showEmpty();return}
+  hideEmpty();hideTap();
+  index=Math.min(index,items.length-1);
+  assign(active,items[index]);
+  tryPlay(active);
+  preloadNext();
+}
+function activateStandby(){
+  if(swapping)return;
+  const items=list();
+  if(!items.length)return showEmpty();
+  swapping=true;
+  const wanted=(index+1)%items.length;
+  if(standbyIndex!==wanted)assign(standby,items[wanted]);
+
+  const switchNow=()=>{
+    const old=active;
+    active=standby;
+    standby=old;
+    index=wanted;
+    active.classList.remove('standby');
+    active.classList.add('active');
+    standby.classList.remove('active');
+    standby.classList.add('standby');
+    tryPlay(active);
+    standby.pause();
+    standby.removeAttribute('src');
+    standby.dataset.src='';
+    standby.load();
+    swapping=false;
+    preloadNext();
+  };
+
+  if(standby.readyState>=2){
+    switchNow();
+  }else{
+    const ready=()=>{standby.removeEventListener('canplay',ready);switchNow()};
+    standby.addEventListener('canplay',ready,{once:true});
+    tryPlay(standby);
+  }
+}
+function onEnded(e){
+  if(e.target!==active)return;
+  activateStandby();
+}
+A.addEventListener('ended',onEnded);
+B.addEventListener('ended',onEnded);
+
+function recover(video){
+  if(video!==active)return;
+  const items=list();
+  if(items.length>1)activateStandby();
+}
+A.addEventListener('error',()=>recover(A));
+B.addEventListener('error',()=>recover(B));
+
+tap.addEventListener('click',async()=>{
+  hideTap();
+  try{await active.play()}catch(_){showTap()}
+  try{if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen()}catch(_){}
 });
-playBtn.onclick=()=>player.play().then(hideStatus).catch(()=>setStatus('Browser memblokir autoplay. Ketuk lagi untuk memutar.',{loading:false,play:true}));
-document.addEventListener('click',()=>{if(player.paused&&videos().length)player.play().catch(()=>{})},{once:true});
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&player.paused)player.play().catch(()=>{})});
-window.addEventListener('storage',e=>{if(e.key===S.STORAGE_KEY&&location.hash.length<=1){config=S.load();index=0;playCurrent()}});
-try{const ch=new BroadcastChannel('bsm-signage');ch.onmessage=e=>{if(e.data?.type==='config'&&location.hash.length<=1){config=S.normalizeConfig(e.data.config);index=0;playCurrent()}}}catch(_){}
-setInterval(()=>{if(videos().length&&player.paused&&!player.ended&&status.classList.contains('hidden'))player.play().catch(()=>{})},10000);
-playCurrent();
+
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden&&active.paused)tryPlay(active);
+});
+window.addEventListener('storage',e=>{
+  if(e.key===S.STORAGE_KEY&&location.hash.length<=1){
+    config=S.load();index=0;active=A;standby=B;standbyIndex=-1;start();
+  }
+});
+try{
+  const ch=new BroadcastChannel('bsm-signage');
+  ch.onmessage=e=>{
+    if(e.data?.type==='config'&&location.hash.length<=1){
+      config=S.normalizeConfig(e.data.config);index=0;active=A;standby=B;standbyIndex=-1;start();
+    }
+  };
+}catch(_){}
+
+start();
 </script>
-</body></html>
+</body>
+</html>
