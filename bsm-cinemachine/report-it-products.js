@@ -198,16 +198,16 @@
   function growth(previous,current,override){
     if(override!=null&&Number.isFinite(Number(override))){
       var manual=Number(override);
-      return {label:(manual>0?'+':'')+manual.toLocaleString('id-ID',{maximumFractionDigits:1})+'%',status:manual>0?'NAIK':manual<0?'TURUN':'TETAP',tone:manual>0?'up':manual<0?'down':'',manual:true,value:manual};
+      return {label:(manual>0?'+':'')+manual.toLocaleString('id-ID',{maximumFractionDigits:1})+'%',status:manual>0?'NAIK':manual<0?'TURUN':'',tone:manual>0?'up':manual<0?'down':'',manual:true,value:manual};
     }
     if(previous==null||current==null)return {label:'',status:'',tone:'',manual:false,value:null};
     if(current===0){
-      if(previous===0)return {label:'0%',status:'TETAP',tone:'',manual:false,value:0};
+      if(previous===0)return {label:'0%',status:'',tone:'',manual:false,value:0};
       return {label:'-100%',status:'TIDAK ADA',tone:'down',manual:false,value:-100};
     }
     if(previous===0)return {label:'—',status:'NAIK',tone:'up',manual:false,value:null};
     var pct=(current-previous)/previous*100;
-    return {label:(pct>0?'+':'')+pct.toLocaleString('id-ID',{maximumFractionDigits:1})+'%',status:pct>0?'NAIK':pct<0?'TURUN':'TETAP',tone:pct>0?'up':pct<0?'down':'',manual:false,value:pct};
+    return {label:(pct>0?'+':'')+pct.toLocaleString('id-ID',{maximumFractionDigits:1})+'%',status:pct>0?'NAIK':pct<0?'TURUN':'',tone:pct>0?'up':pct<0?'down':'',manual:false,value:pct};
   }
   function statusForRow(row,monthIndex){
     if(!row||monthIndex<=0)return '';
