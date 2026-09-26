@@ -158,7 +158,7 @@ async function addDriveSource(){
   if(S.isDriveFolderUrl(driveUrl)){
     btn.disabled=true;btn.textContent='Membaca folder...';status.classList.remove('hidden');status.textContent='Sedang membaca folder Google Drive...';
     try{
-      const data=await api('drive-folder&url='+encodeURIComponent(driveUrl),{method:'GET',headers:{}});
+      const rr=await fetch('/api/cms?asset=drive-folder&url='+encodeURIComponent(driveUrl),{cache:'no-store',credentials:'same-origin'});const data=await rr.json();if(!rr.ok||!data.ok)throw new Error(data.message||'Folder tidak bisa dibaca');
       const existing=new Set(config.videos.map(v=>S.extractDriveFileId(v.driveUrl)||v.id));
       let added=0;
       (data.videos||[]).forEach(v=>{
