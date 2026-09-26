@@ -17,6 +17,10 @@ assert.ok(html.includes("addEventListener('stalled'"),'player harus recover saat
 assert.ok(html.includes("addEventListener('waiting'"),'player harus recover saat buffering terlalu lama');
 assert.ok(html.includes('requestWakeLock'),'monitor Android harus meminta screen wake lock');
 assert.ok(html.includes('directDriveSource'),'Android Chrome harus bisa fallback ke stream Drive langsung');
+assert.ok(html.includes('DRIVE_FOLDER_SYNC_MS'),'monitor harus memantau folder Google Drive otomatis');
+assert.ok(html.includes('syncDriveFolder'),'monitor harus membaca penambahan video dari folder tanpa login CMS');
+assert.ok(html.includes('drive-folder&url='),'monitor harus memakai endpoint folder Google Drive yang tersimpan');
+assert.ok(html.includes('mergeFolderVideos'),'video baru dari Drive harus digabung tanpa menghapus playlist lama');
 assert.ok(html.includes('apple-mobile-web-app-capable'),'mode standalone iPhone harus aktif');
 assert.equal(manifest.display,'standalone');
 assert.equal(manifest.orientation,'portrait');
