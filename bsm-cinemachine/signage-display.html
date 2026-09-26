@@ -37,7 +37,8 @@ const B=document.getElementById('videoB');
 const empty=document.getElementById('empty');
 const tap=document.getElementById('tap');
 
-let config=location.hash.length>1?S.decodeConfig(location.hash.slice(1)):S.load();
+const previewMode=location.hash.length>1;
+let config=previewMode?S.decodeConfig(location.hash.slice(1)):S.load();
 let index=0;
 let active=A;
 let standby=B;
@@ -163,7 +164,37 @@ try{
   };
 }catch(_){}
 
-start();
+async function fetchDatabaseConfig(){
+  try{
+    const r=await fetch('/api/cms?asset=signage-config',{cache:'no-store',credentials:'same-origin'});
+    const data=await r.json();
+    if(!r.ok||!data.ok||!data.config)throw new Error(data.message||'Database tidak tersedia');
+    return S.normalizeConfig(data.config);
+  }catch(_){return null}
+}
+function resetPlayer(nextConfig){
+  A.pause();B.pause();
+  A.removeAttribute('src');B.removeAttribute('src');
+  A.dataset.src='';B.dataset.src='';
+  A.load();B.load();
+  A.className='active';B.className='standby';
+  active=A;standby=B;index=0;standbyIndex=-1;swapping=false;
+  config=S.normalizeConfig(nextConfig||{});
+  S.save(config);
+  start();
+}
+async function bootDisplay(){
+  if(previewMode){start();return}
+  const remote=await fetchDatabaseConfig();
+  if(remote)config=remote;
+  start();
+  setInterval(async()=>{
+    const fresh=await fetchDatabaseConfig();
+    if(!fresh)return;
+    if(Number(fresh.updatedAt||0)>Number(config.updatedAt||0))resetPlayer(fresh);
+  },5000);
+}
+bootDisplay();
 </script>
 </body>
 </html>
