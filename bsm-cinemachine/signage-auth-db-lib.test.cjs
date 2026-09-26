@@ -3,6 +3,11 @@ const A=require('./signage-auth-db-lib.js');
 
 assert.equal(A.isStrongPassword('1234567'),false);
 assert.equal(A.isStrongPassword('password123'),true);
+assert.equal(A.normalizeUsername('  Admin BSM  '),'admin bsm');
+assert.equal(A.isValidUsername('ab'),false);
+assert.equal(A.isValidUsername('admin bsm'),false);
+assert.equal(A.isValidUsername('admin_bsm'),true);
+assert.equal(A.isValidUsername('admin.bsm-01'),true);
 
 const h=A.hashPassword('password123','00112233445566778899aabbccddeeff');
 assert.equal(h.salt,'00112233445566778899aabbccddeeff');
