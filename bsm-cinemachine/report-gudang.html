@@ -1553,7 +1553,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-master.js"></script>
   <script src="/report-admin-matrix.js"></script>
   <script src="/report-it-omset.js"></script>
-  <script src="/report-it-products.js?v=32"></script>
+  <script src="/report-it-products.js?v=33"></script>
   <script src="/report-it-products-data.js"></script>
   <script src="/report-camera-vendor.js"></script>
   <script src="/report-camera-reports.js"></script>
@@ -1561,7 +1561,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-cinema-reports.js"></script>
   <script src="/report-lighting-reports.js"></script>
   <script src="/report-crew-reports.js"></script>
-  <script src="/report-manual-sheets.js?v=32"></script>
+  <script src="/report-manual-sheets.js?v=33"></script>
   <script src="/report-bulk-router.js"></script>
   <script src="/report-live-edit.js"></script>
   <script src="/report-slide-fit.js"></script>
@@ -1571,8 +1571,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-export.js"></script>
   <script src="/report-gudang-ui.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
-  <script src="/report-gudang-realtime.js?v=32"></script>
-  <script src="/report-gudang-cloud.js?v=32"></script>
+  <script src="/report-gudang-realtime.js?v=33"></script>
+  <script src="/report-gudang-cloud.js?v=33"></script>
   <script>
     (function(){
       var STORAGE_KEY = "bsm-report-gudang-v2";
@@ -4767,7 +4767,9 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       updateAccountUi();
       activateCachedSession();
       if("serviceWorker" in navigator){
-        window.addEventListener("load",function(){navigator.serviceWorker.register("/report-gudang-sw.js").catch(function(){});});
+        window.addEventListener("load",function(){
+          navigator.serviceWorker.register("/report-gudang-sw.js",{updateViaCache:"none"}).then(function(reg){return reg.update();}).catch(function(){});
+        });
       }
       document.addEventListener("visibilitychange",function(){
         if(document.visibilityState==="hidden"&&cloudReady)persistRemoteState(false,true);
@@ -4783,4 +4785,4 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <!-- auth-scope-v2 -->
 </body>
 <!-- status-sort-tristate-cache-v24 -->
-<!-- report-gudang-build-v57-supabase-realtime-cache32</html>
+<!-- report-gudang-build-v58-force-realtime-tabs-cache33</html>
