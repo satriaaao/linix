@@ -476,11 +476,25 @@
     });
     return slides;
   }
-  function renderSlide(report,escapeFn){
-    report=report||{};var e=escapeFn||esc,cols=report.manualColumns||[],rows=report.manualRows||[];
+  function comparisonColumnKey(cols){
+    cols=Array.isArray(cols)?cols:[];
+    var preferred=['namaAlat','nama','namaCrew','produk','product','item','kegiatan','customer','project','campaign','konten'];
+    for(var p=0;p<preferred.length;p++){
+      var exact=cols.find(function(c){return String(c&&c[0]||'')===preferred[p];});
+      if(exact)return exact[0];
+    }
+    var found=cols.find(function(c){
+      var text=(String(c&&c[0]||'')+' '+String(c&&c[1]||'')).toLowerCase();
+      return /nama|produk|product|alat|crew|kegiatan|customer|project|campaign|konten|item/.test(text);
+    });
+    return found?found[0]:(cols[0]&&cols[0][0]||'');
+  }
+  function renderSlide(report,escapeFn,options){
+    report=report||{};options=options||{};var e=escapeFn||esc,cols=report.manualColumns||[],rows=report.manualRows||[];
     var count=cols.length,dense=count>14?' manual-grid-ultra':(count>11?' manual-grid-dense':(count>8?' manual-grid-medium':''));
     var kinds=cols.map(function(c){return slideColumnKind(c,rows);});
     var widths=slideColumnWidths(cols,rows);
+    var compareKey=options.compare?comparisonColumnKey(cols):'';
     var colgroup='<colgroup><col class="manual-slide-no-col">'+cols.map(function(c,i){return '<col style="width:'+widths[i]+'">';}).join('')+'</colgroup>';
     var head='<th class="manual-slide-no">No</th>'+cols.map(function(c,i){return '<th class="manual-col-'+kinds[i]+'">'+e(c[1])+'</th>';}).join('');
     var visibleNo=0;
@@ -488,7 +502,11 @@
       var total=!!(row&&row.__autoTotal);
       if(!total)visibleNo++;
       return '<tr class="'+(total?'manual-slide-total':'')+'"><td class="manual-slide-no">'+(total?'Σ':visibleNo)+'</td>'+cols.map(function(c,i){
-        return '<td class="manual-col-'+kinds[i]+'">'+e(row&&row[c[0]]!=null?row[c[0]]:'')+'</td>';
+        var raw=row&&row[c[0]]!=null?row[c[0]]:'',content=e(raw);
+        if(!total&&compareKey&&c[0]===compareKey&&String(raw).trim()){
+          content='<button type="button" class="manual-compare-link" data-manual-compare-key="'+e(compareKey)+'" data-manual-compare-value="'+e(raw)+'" title="Bandingkan dengan bulan sebelumnya">'+e(raw)+'</button>';
+        }
+        return '<td class="manual-col-'+kinds[i]+'">'+content+'</td>';
       }).join('')+'</tr>';
     }).join('');
     var pageTotal=Number(report.pageTotal||1),pageNo=Number(report.pageNo||1);
@@ -496,7 +514,7 @@
     return '<section class="manual-grid-slide'+dense+'"><div class="manual-slide-grid"></div>'
       +'<div class="manual-slide-kicker"><div>// INPUT MANUAL</div><div class="accent">// '+e(String(report.reportType||'REPORT').toUpperCase())+'</div></div>'
       +'<div class="manual-slide-title-row"><h1>'+e(report.manualTitle||'REPORT')+' <span>'+e(report.department||'BSM RENTAL')+'</span></h1>'+pageBadge+'</div>'
-      +'<div class="manual-slide-sub">Tabel Excel • '+count+' kolom • '+rows.filter(function(r){return !(r&&r.__autoTotal);}).length+' baris pada halaman ini</div>'
+      +'<div class="manual-slide-sub">Tabel Excel • '+count+' kolom • '+rows.filter(function(r){return !(r&&r.__autoTotal);}).length+' baris pada halaman ini'+(options.compare?' • klik nama/item untuk membandingkan bulan':'')+'</div>'
       +'<div class="manual-slide-table-wrap"><table class="manual-slide-table">'+colgroup+'<thead><tr>'+head+'</tr></thead><tbody>'+body+'</tbody></table></div>'
       +'<div class="manual-slide-footer"><strong>MBR PT BLUE STAR MEDIA</strong><i></i><b>// '+e(report.period||'2026')+'</b></div>'
       +'</section>';
