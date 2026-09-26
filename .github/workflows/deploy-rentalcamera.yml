@@ -43,6 +43,7 @@ jobs:
           node signage-display.test.cjs
           node signage-auth-db-lib.test.cjs
           node signage-cms-db.test.cjs
+          node signage-supabase-store.test.cjs
 
       - name: Provision free Neon database if missing
         continue-on-error: true
