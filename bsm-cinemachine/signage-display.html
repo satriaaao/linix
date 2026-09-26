@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BSM Display">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="manifest" href="/signage.webmanifest?v=20260926-2100">
+<link rel="manifest" href="/signage.webmanifest?v=20260926-2138">
 <title>Display</title>
 <style>
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;overscroll-behavior:none}
@@ -17,36 +17,41 @@ body{position:fixed;inset:0;background:#000;touch-action:manipulation}
 video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000;opacity:0;z-index:0}
 video.active{opacity:1;z-index:2}
 video.standby{opacity:0;z-index:1}
-#empty{position:absolute;inset:0;display:none;place-items:center;color:#888;font:14px system-ui;text-align:center;padding:24px;z-index:4;background:#000}
-#tap{position:absolute;inset:0;display:none;place-items:center;z-index:5;background:#0000;border:0;color:#fff;font:700 18px system-ui}
-#tap span{background:#000a;border:1px solid #ffffff30;border-radius:999px;padding:14px 20px}
+#empty{position:absolute;inset:0;display:none;place-items:center;color:#777;font:14px system-ui;text-align:center;padding:24px;z-index:4;background:#000}
 </style>
-<script src="/signage-lib.js?v=20260926-2100"></script>
+<script src="/signage-lib.js?v=20260926-2138"></script>
 </head>
 <body>
 <div id="stage">
   <video id="videoA" class="active" muted autoplay playsinline webkit-playsinline preload="auto"></video>
-  <video id="videoB" class="standby" muted playsinline webkit-playsinline preload="auto"></video>
+  <video id="videoB" class="standby" muted autoplay playsinline webkit-playsinline preload="auto"></video>
   <div id="empty">Playlist kosong.</div>
-  <button id="tap" type="button"><span>Putar Video</span></button>
 </div>
 <script>
 const S=window.BSMSignage;
 const A=document.getElementById('videoA');
 const B=document.getElementById('videoB');
 const empty=document.getElementById('empty');
-const tap=document.getElementById('tap');
 
+const AUTOPLAY_RETRY_MS=500;
+const SYNC_INTERVAL_MS=1000;
 const previewMode=location.hash.length>1;
+
 let config=previewMode?S.decodeConfig(location.hash.slice(1)):S.load();
 let index=0;
 let active=A;
 let standby=B;
 let standbyIndex=-1;
 let swapping=false;
+let autoplayTimer=null;
+let syncBusy=false;
 
-function list(){
-  return (config.videos||[]).filter(v=>v.enabled!==false&&(v.driveUrl||v.src));
+function list(fromConfig=config){
+  return (fromConfig?.videos||[]).filter(v=>v.enabled!==false&&(v.driveUrl||v.src));
+}
+function videoKey(v){
+  if(!v)return '';
+  return String(v.id||S.extractDriveFileId(v.driveUrl)||v.driveUrl||v.src||'');
 }
 function source(v){
   return S.driveProxyUrl(v)||v.src||'';
@@ -54,6 +59,7 @@ function source(v){
 function apply(video,item){
   video.style.objectFit=item?.fit||'cover';
   video.muted=true;
+  video.defaultMuted=true;
   video.playsInline=true;
 }
 function assign(video,item){
@@ -70,61 +76,103 @@ function showEmpty(){
   A.pause();B.pause();
 }
 function hideEmpty(){empty.style.display='none'}
-function showTap(){tap.style.display='grid'}
-function hideTap(){tap.style.display='none'}
+function clearAutoplayRetry(){
+  if(autoplayTimer){clearTimeout(autoplayTimer);autoplayTimer=null}
+}
+function scheduleAutoplayRetry(){
+  clearAutoplayRetry();
+  autoplayTimer=setTimeout(()=>{
+    if(active&&active.paused)tryPlay(active);
+  },AUTOPLAY_RETRY_MS);
+}
 function tryPlay(video){
-  const p=video.play();
-  if(p&&p.catch)p.catch(()=>showTap());
+  if(!video)return Promise.resolve(false);
+  video.muted=true;
+  video.defaultMuted=true;
+  let p;
+  try{p=video.play()}catch(_){scheduleAutoplayRetry();return Promise.resolve(false)}
+  if(!p||typeof p.then!=='function')return Promise.resolve(true);
+  return p.then(()=>{
+    clearAutoplayRetry();
+    return true;
+  }).catch(()=>{
+    scheduleAutoplayRetry();
+    return false;
+  });
 }
 function preloadNext(){
   const items=list();
-  if(items.length<2)return;
+  if(items.length<2){standbyIndex=-1;return}
   const nextIndex=(index+1)%items.length;
   standbyIndex=nextIndex;
   assign(standby,items[nextIndex]);
 }
-function start(){
+function start(startIndex=0){
   const items=list();
   if(!items.length){showEmpty();return}
-  hideEmpty();hideTap();
-  index=Math.min(index,items.length-1);
+  hideEmpty();
+  index=Math.max(0,Math.min(Number(startIndex)||0,items.length-1));
   assign(active,items[index]);
   tryPlay(active);
   preloadNext();
 }
-function activateStandby(){
-  if(swapping)return;
+function cleanupOldVideo(video){
+  video.pause();
+  video.classList.remove('active');
+  video.classList.add('standby');
+  video.removeAttribute('src');
+  video.dataset.src='';
+  video.load();
+}
+async function activateIndex(wanted){
   const items=list();
   if(!items.length)return showEmpty();
-  swapping=true;
-  const wanted=(index+1)%items.length;
-  if(standbyIndex!==wanted)assign(standby,items[wanted]);
+  wanted=Math.max(0,Math.min(Number(wanted)||0,items.length-1));
+  if(swapping)return;
+  if(wanted===index && videoKey(items[wanted])===videoKey(items[index])){
+    apply(active,items[wanted]);
+    return;
+  }
 
-  const switchNow=()=>{
+  swapping=true;
+  if(standbyIndex!==wanted||standby.dataset.src!==source(items[wanted])){
+    standbyIndex=wanted;
+    assign(standby,items[wanted]);
+  }
+
+  const switchNow=async()=>{
+    const started=await tryPlay(standby);
+    if(!started){
+      swapping=false;
+      setTimeout(()=>activateIndex(wanted),AUTOPLAY_RETRY_MS);
+      return;
+    }
+
     const old=active;
     active=standby;
     standby=old;
     index=wanted;
+
     active.classList.remove('standby');
     active.classList.add('active');
-    standby.classList.remove('active');
-    standby.classList.add('standby');
-    tryPlay(active);
-    standby.pause();
-    standby.removeAttribute('src');
-    standby.dataset.src='';
-    standby.load();
+    cleanupOldVideo(standby);
+
     swapping=false;
     preloadNext();
   };
 
   if(standby.readyState>=2){
-    switchNow();
+    await switchNow();
   }else{
     const ready=()=>{standby.removeEventListener('canplay',ready);switchNow()};
     standby.addEventListener('canplay',ready,{once:true});
     tryPlay(standby);
   }
+}
+function activateStandby(){
+  const items=list();
+  if(!items.length)return;
+  activateIndex((index+1)%items.length);
 }
 function onEnded(e){
   if(e.target!==active)return;
@@ -132,68 +180,101 @@ function onEnded(e){
 }
 A.addEventListener('ended',onEnded);
 B.addEventListener('ended',onEnded);
+A.addEventListener('playing',clearAutoplayRetry);
+B.addEventListener('playing',clearAutoplayRetry);
+A.addEventListener('error',()=>{if(A===active)activateStandby()});
+B.addEventListener('error',()=>{if(B===active)activateStandby()});
 
-function recover(video){
-  if(video!==active)return;
-  const items=list();
-  if(items.length>1)activateStandby();
+function findNewVideoIndex(previousConfig,nextConfig){
+  const oldKeys=new Set(list(previousConfig).map(videoKey).filter(Boolean));
+  let newest=-1;
+  list(nextConfig).forEach((v,i)=>{if(!oldKeys.has(videoKey(v)))newest=i});
+  return newest;
 }
-A.addEventListener('error',()=>recover(A));
-B.addEventListener('error',()=>recover(B));
+function currentKey(){
+  return videoKey(list()[index]);
+}
+function applyRemoteConfig(fresh){
+  const previous=config;
+  const previousCurrentKey=currentKey();
+  const newVideoIndex=findNewVideoIndex(previous,fresh);
+  config=S.normalizeConfig(fresh||{});
+  S.save(config);
 
-tap.addEventListener('click',async()=>{
-  hideTap();
-  try{await active.play()}catch(_){showTap()}
-  try{if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen()}catch(_){}
-});
+  const items=list();
+  if(!items.length){showEmpty();return}
 
-document.addEventListener('visibilitychange',()=>{
-  if(!document.hidden&&active.paused)tryPlay(active);
-});
-window.addEventListener('storage',e=>{
-  if(e.key===S.STORAGE_KEY&&location.hash.length<=1){
-    config=S.load();index=0;active=A;standby=B;standbyIndex=-1;start();
+  if(newVideoIndex>=0){
+    activateIndex(newVideoIndex);
+    return;
   }
-});
-try{
-  const ch=new BroadcastChannel('bsm-signage');
-  ch.onmessage=e=>{
-    if(e.data?.type==='config'&&location.hash.length<=1){
-      config=S.normalizeConfig(e.data.config);index=0;active=A;standby=B;standbyIndex=-1;start();
-    }
-  };
-}catch(_){}
 
+  const stillCurrent=items.findIndex(v=>videoKey(v)===previousCurrentKey);
+  if(stillCurrent>=0){
+    index=stillCurrent;
+    apply(active,items[index]);
+    preloadNext();
+    tryPlay(active);
+    return;
+  }
+
+  activateIndex(0);
+}
 async function fetchDatabaseConfig(){
   try{
-    const r=await fetch('/api/cms?asset=signage-config',{cache:'no-store',credentials:'same-origin'});
+    const r=await fetch('/api/cms?asset=signage-config&_='+Date.now(),{
+      cache:'no-store',
+      credentials:'same-origin'
+    });
     const data=await r.json();
     if(!r.ok||!data.ok||!data.config)throw new Error(data.message||'Database tidak tersedia');
     return S.normalizeConfig(data.config);
   }catch(_){return null}
 }
-function resetPlayer(nextConfig){
-  A.pause();B.pause();
-  A.removeAttribute('src');B.removeAttribute('src');
-  A.dataset.src='';B.dataset.src='';
-  A.load();B.load();
-  A.className='active';B.className='standby';
-  active=A;standby=B;index=0;standbyIndex=-1;swapping=false;
-  config=S.normalizeConfig(nextConfig||{});
-  S.save(config);
-  start();
-}
-async function bootDisplay(){
-  if(previewMode){start();return}
-  const remote=await fetchDatabaseConfig();
-  if(remote)config=remote;
-  start();
-  setInterval(async()=>{
+async function syncNow(){
+  if(previewMode||syncBusy)return;
+  syncBusy=true;
+  try{
     const fresh=await fetchDatabaseConfig();
     if(!fresh)return;
-    if(Number(fresh.updatedAt||0)>Number(config.updatedAt||0))resetPlayer(fresh);
-  },5000);
+    if(Number(fresh.updatedAt||0)>Number(config.updatedAt||0)){
+      applyRemoteConfig(fresh);
+    }
+  }finally{syncBusy=false}
 }
+async function bootDisplay(){
+  if(previewMode){start(0);return}
+  const remote=await fetchDatabaseConfig();
+  if(remote)config=remote;
+  start(0);
+  setInterval(syncNow,SYNC_INTERVAL_MS);
+}
+
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden){
+    tryPlay(active);
+    syncNow();
+  }
+});
+window.addEventListener('pageshow',()=>{tryPlay(active);syncNow()});
+window.addEventListener('online',()=>{tryPlay(active);syncNow()});
+
+window.addEventListener('storage',e=>{
+  if(e.key===S.STORAGE_KEY&&!previewMode){
+    const local=S.load();
+    if(Number(local.updatedAt||0)>Number(config.updatedAt||0))applyRemoteConfig(local);
+  }
+});
+try{
+  const ch=new BroadcastChannel('bsm-signage');
+  ch.onmessage=e=>{
+    if(e.data?.type==='config'&&!previewMode){
+      const incoming=S.normalizeConfig(e.data.config);
+      if(Number(incoming.updatedAt||0)>Number(config.updatedAt||0))applyRemoteConfig(incoming);
+    }
+  };
+}catch(_){}
+
 bootDisplay();
 </script>
 </body>
