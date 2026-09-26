@@ -1,5 +1,12 @@
 const crypto=require('node:crypto');
 
+function normalizeUsername(username){
+  return String(username||'').trim().toLowerCase();
+}
+function isValidUsername(username){
+  const value=normalizeUsername(username);
+  return /^[a-z0-9._-]{3,32}$/.test(value);
+}
 function isStrongPassword(password){
   return typeof password==='string' && password.length>=8;
 }
@@ -41,4 +48,4 @@ function getDatabaseUrl(env){
   env=env||{};
   return String(env.SIGNAGE_DATABASE_URL||env.DATABASE_URL||env.POSTGRES_URL||env.POSTGRES_PRISMA_URL||'').trim();
 }
-module.exports={isStrongPassword,hashPassword,verifyPassword,randomToken,hashToken,parseCookies,sessionCookie,clearSessionCookie,getDatabaseUrl};
+module.exports={normalizeUsername,isValidUsername,isStrongPassword,hashPassword,verifyPassword,randomToken,hashToken,parseCookies,sessionCookie,clearSessionCookie,getDatabaseUrl};
