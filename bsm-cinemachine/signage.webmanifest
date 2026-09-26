@@ -1,0 +1,10 @@
+{
+  "name":"BSM Standing Display",
+  "short_name":"Display",
+  "start_url":"/display",
+  "scope":"/",
+  "display":"standalone",
+  "orientation":"portrait",
+  "background_color":"#000000",
+  "theme_color":"#000000"
+}
