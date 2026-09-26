@@ -29,6 +29,11 @@
     return '';
   }
   function isDriveFolderUrl(input){return !!extractDriveFolderId(input)}
+  function driveProxyUrl(video){
+    const id=extractDriveFileId(video?.driveUrl||video?.url||video?.src||'');
+    if(!id)return String(video?.src||video?.url||'').trim();
+    return '/api/cms?asset=drive-video&id='+encodeURIComponent(id)+'&name='+encodeURIComponent(String(video?.title||'video.mp4'));
+  }
   function driveVideoUrl(input){
     const id=extractDriveFileId(input);
     if(!id) return String(input||'').trim();
@@ -73,5 +78,5 @@
     try{return normalizeConfig(JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'));}
     catch(_){return normalizeConfig({videos:[]});}
   }
-  return {STORAGE_KEY,extractDriveFileId,extractDriveFolderId,isDriveFolderUrl,driveVideoUrl,normalizeConfig,encodeConfig,decodeConfig,save,load};
+  return {STORAGE_KEY,extractDriveFileId,extractDriveFolderId,isDriveFolderUrl,driveProxyUrl,driveVideoUrl,normalizeConfig,encodeConfig,decodeConfig,save,load};
 });
