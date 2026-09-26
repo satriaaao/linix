@@ -1,4 +1,4 @@
-const CACHE='bsm-report-gudang-v32';
+const CACHE='bsm-report-gudang-v33';
 const SHELL=[
   '/report-gudang.html',
   '/report-gudang.webmanifest',
@@ -25,10 +25,22 @@ self.addEventListener('install',event=>{
 });
 
 self.addEventListener('activate',event=>{
-  event.waitUntil(
-    caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE&&k.startsWith('bsm-report-gudang-')).map(k=>caches.delete(k))))
-  );
-  self.clients.claim();
+  event.waitUntil((async()=>{
+    const keys=await caches.keys();
+    await Promise.all(keys.filter(k=>k!==CACHE&&k.startsWith('bsm-report-gudang-')).map(k=>caches.delete(k)));
+    await self.clients.claim();
+    const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+    await Promise.all(windows.map(async client=>{
+      try{
+        const url=new URL(client.url);
+        if(url.origin!==self.location.origin)return;
+        if(url.pathname!=='/report-gudang'&&url.pathname!=='/report-gudang.html')return;
+        if(url.searchParams.get('__appv')==='33')return;
+        url.searchParams.set('__appv','33');
+        await client.navigate(url.href);
+      }catch(_){}
+    }));
+  })());
 });
 
 self.addEventListener('fetch',event=>{
@@ -45,6 +57,16 @@ self.addEventListener('fetch',event=>{
         caches.open(CACHE).then(cache=>cache.put('/report-gudang.html',copy)).catch(()=>{});
         return res;
       }).catch(()=>caches.match('/report-gudang.html'))
+    );
+    return;
+  }
+
+  if(url.pathname.endsWith('.js')||url.pathname.endsWith('.css')){
+    event.respondWith(
+      fetch(req).then(res=>{
+        if(res&&res.ok)caches.open(CACHE).then(cache=>cache.put(req,res.clone())).catch(()=>{});
+        return res;
+      }).catch(()=>caches.match(req))
     );
     return;
   }
