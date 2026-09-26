@@ -1553,7 +1553,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-master.js"></script>
   <script src="/report-admin-matrix.js"></script>
   <script src="/report-it-omset.js"></script>
-  <script src="/report-it-products.js?v=30"></script>
+  <script src="/report-it-products.js?v=31"></script>
   <script src="/report-it-products-data.js"></script>
   <script src="/report-camera-vendor.js"></script>
   <script src="/report-camera-reports.js"></script>
@@ -1561,7 +1561,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-cinema-reports.js"></script>
   <script src="/report-lighting-reports.js"></script>
   <script src="/report-crew-reports.js"></script>
-  <script src="/report-manual-sheets.js?v=30"></script>
+  <script src="/report-manual-sheets.js?v=31"></script>
   <script src="/report-bulk-router.js"></script>
   <script src="/report-live-edit.js"></script>
   <script src="/report-slide-fit.js"></script>
@@ -1570,7 +1570,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
   <script src="/report-gudang-export.js"></script>
   <script src="/report-gudang-ui.js"></script>
-  <script src="/report-gudang-cloud.js?v=30"></script>
+  <script src="/report-gudang-cloud.js?v=31"></script>
   <script>
     (function(){
       var STORAGE_KEY = "bsm-report-gudang-v2";
@@ -1863,6 +1863,16 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       function clearCachedCloudUser(){
         try{localStorage.removeItem(AUTH_USER_CACHE_KEY);}catch(_){}
       }
+      function notifyPasswordChangeOnce(){
+        if(!(currentUser&&currentUser.mustChangePassword))return;
+        var key="bsm-password-reminder-"+String(currentUser.id||currentUser.username||"user");
+        try{
+          if(sessionStorage.getItem(key)==="1")return;
+          sessionStorage.setItem(key,"1");
+        }catch(_){}
+        toast("Password sementara masih aktif. Ubah lewat Login / Akun bila diperlukan.");
+      }
+
       function activateCachedSession(){
         if(!cloud||!cloud.getToken||!cloud.getToken())return false;
         var cached=cachedCloudUser();
@@ -3696,6 +3706,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             change.disabled=true;
             if(localMode)await localChangePassword(oldInput.value,newInput.value);else await cloud.changePassword(oldInput.value,newInput.value);
             currentUser.mustChangePassword=false;
+            cacheCloudUser(currentUser);
+            try{sessionStorage.removeItem("bsm-password-reminder-"+String(currentUser.id||currentUser.username||"user"));}catch(_){}
             toast("Password berhasil diganti");
             closeModal();
           }catch(err){toast(err&&err.message?err.message:"Gagal mengganti password");}
@@ -3929,7 +3941,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             renderAll();showPage(activeMenu);
             if(dbStatus)dbStatus.textContent="SQL tersambung";
             syncRemoteStateFast(true);
-            if(currentUser&&currentUser.mustChangePassword)setTimeout(openAccountModal,250);
+            notifyPasswordChangeOnce();
             return;
           }
 
@@ -4654,6 +4666,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           if(!canOpenPage(activeMenu))activeMenu="preview";
           renderAll();showPage(activeMenu);
           if(dbStatus)dbStatus.textContent="SQL tersambung";
+          notifyPasswordChangeOnce();
           syncRemoteStateFast(true);
         }catch(err){showAuthGate(err&&err.message?err.message:"Login gagal");}
         finally{authSubmit.disabled=false;authSubmit.textContent="Masuk";}
@@ -4728,4 +4741,4 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <!-- auth-scope-v2 -->
 </body>
 <!-- status-sort-tristate-cache-v24 -->
-<!-- report-gudang-build-v55-fast-sql-login-cache30</html>
+<!-- report-gudang-build-v56-account-modal-auth-fix-cache31</html>
