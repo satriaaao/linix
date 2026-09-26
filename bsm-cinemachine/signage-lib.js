@@ -7,6 +7,7 @@
   function extractDriveFileId(input){
     const value=String(input||'').trim();
     if(!value) return '';
+    if(/\/folders\//i.test(value)) return '';
     const patterns=[
       /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/i,
       /drive\.google\.com\/open\?[^#]*\bid=([a-zA-Z0-9_-]+)/i,
@@ -16,6 +17,18 @@
     for(const re of patterns){ const m=value.match(re); if(m) return m[1]; }
     return /^[a-zA-Z0-9_-]{20,}$/.test(value)?value:'';
   }
+  function extractDriveFolderId(input){
+    const value=String(input||'').trim();
+    if(!value)return '';
+    const patterns=[
+      /drive\.google\.com\/(?:drive\/)?(?:u\/\d+\/)?(?:mobile\/)?folders\/([a-zA-Z0-9_-]+)/i,
+      /drive\.google\.com\/drive\/(?:u\/\d+\/)?(?:mobile\/)?folders\/([a-zA-Z0-9_-]+)/i,
+      /drive\.google\.com\/.*?\/folders\/([a-zA-Z0-9_-]+)/i
+    ];
+    for(const re of patterns){const m=value.match(re);if(m)return m[1]}
+    return '';
+  }
+  function isDriveFolderUrl(input){return !!extractDriveFolderId(input)}
   function driveVideoUrl(input){
     const id=extractDriveFileId(input);
     if(!id) return String(input||'').trim();
@@ -37,6 +50,7 @@
       name:String(input?.name||'Standing Monitor').trim()||'Standing Monitor',
       orientation:input?.orientation==='landscape'?'landscape':'portrait',
       muted:input?.muted!==false,
+      folderUrl:String(input?.folderUrl||'').trim(),
       updatedAt:Number(input?.updatedAt||Date.now()),
       videos
     };
@@ -59,5 +73,5 @@
     try{return normalizeConfig(JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'));}
     catch(_){return normalizeConfig({videos:[]});}
   }
-  return {STORAGE_KEY,extractDriveFileId,driveVideoUrl,normalizeConfig,encodeConfig,decodeConfig,save,load};
+  return {STORAGE_KEY,extractDriveFileId,extractDriveFolderId,isDriveFolderUrl,driveVideoUrl,normalizeConfig,encodeConfig,decodeConfig,save,load};
 });
