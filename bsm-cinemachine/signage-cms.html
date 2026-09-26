@@ -27,11 +27,11 @@ button{border:0;border-radius:11px;padding:10px 14px;font-weight:700;cursor:poin
 <main>
 <section>
 <div class="card">
-<h2>Tambah Video Google Drive</h2>
+<h2>Tambah Video / Folder Google Drive</h2>
 <div class="row"><div><label>Nama video</label><input id="title" placeholder="Promo Kamera September"></div><div><label>Mode tampilan</label><select id="fit"><option value="cover">Fill / Cover</option><option value="contain">Fit / Contain</option></select></div></div>
-<label>Link Google Drive</label><input id="drive" placeholder="https://drive.google.com/file/d/.../view">
-<div class="buttons"><button class="primary" id="add">+ Tambah ke Playlist</button><button class="ghost" id="sample">Isi Contoh</button></div>
-<div class="notice">Pastikan file Google Drive disetel <b>Anyone with the link / Siapa saja yang memiliki link</b>. Video akan diputar langsung dari Drive.</div>
+<label>Link File atau Folder Google Drive</label><input id="drive" placeholder="https://drive.google.com/drive/folders/... atau https://drive.google.com/file/d/.../view">
+<div class="buttons"><button class="primary" id="add">Baca Link & Tambah</button><button class="ghost" id="sample">Isi Contoh Folder</button></div><div id="folderStatus" class="notice" style="display:none"></div>
+<div class="notice">Bisa paste <b>link folder Google Drive</b> langsung. Semua video di dalam folder akan dibaca otomatis. Pastikan folder disetel <b>Anyone with the link / Siapa saja yang memiliki link</b>.</div>
 </div>
 <div class="card" style="margin-top:20px">
 <div class="row"><div><label>Nama monitor</label><input id="name" value="Standing Lobby"></div><div><label>Orientasi</label><select id="orientation"><option value="portrait">Standing 9:16</option><option value="landscape">Landscape 16:9</option></select></div></div>
@@ -60,12 +60,42 @@ function render(){
   const u=monitorUrl(); $('preview').src=u; $('frameBox').style.aspectRatio=config.orientation==='landscape'?'16/9':'9/16';
 }
 function move(i,d){const j=i+d;if(j<0||j>=config.videos.length)return;[config.videos[i],config.videos[j]]=[config.videos[j],config.videos[i]];render()}
-$('add').onclick=()=>{const title=$('title').value.trim(),driveUrl=$('drive').value.trim();if(!driveUrl)return alert('Masukkan link Google Drive.');if(!S.extractDriveFileId(driveUrl)&&!/^https?:\/\//i.test(driveUrl))return alert('Link video tidak valid.');config.videos.push({id:'vid-'+Date.now(),title:title||('Video '+(config.videos.length+1)),driveUrl,fit:$('fit').value,enabled:true});$('title').value='';$('drive').value='';render()};
-$('sample').onclick=()=>{$('title').value='Promo BSM Rental';$('drive').value='https://drive.google.com/file/d/FILE_ID/view'};
+async function addDriveSource(){
+  const title=$('title').value.trim(),driveUrl=$('drive').value.trim(),fit=$('fit').value,btn=$('add'),status=$('folderStatus');
+  if(!driveUrl)return alert('Masukkan link Google Drive.');
+  if(S.isDriveFolderUrl(driveUrl)){
+    btn.disabled=true;btn.textContent='Membaca folder...';status.style.display='block';status.textContent='Sedang membaca video dari folder Google Drive...';
+    try{
+      const r=await fetch('/api/drive-folder?url='+encodeURIComponent(driveUrl),{cache:'no-store'});
+      const data=await r.json();
+      if(!r.ok||!data.ok)throw new Error(data.message||'Folder tidak bisa dibaca');
+      const existing=new Set(config.videos.map(v=>S.extractDriveFileId(v.driveUrl)||v.id));
+      let added=0;
+      (data.videos||[]).forEach(v=>{
+        const key=S.extractDriveFileId(v.driveUrl)||v.id;
+        if(existing.has(key))return;
+        existing.add(key);added++;
+        config.videos.push({id:v.id||('vid-'+Date.now()+'-'+added),title:v.title||('Video '+(config.videos.length+1)),driveUrl:v.driveUrl,fit,enabled:true});
+      });
+      config.folderUrl=driveUrl;
+      status.textContent=(data.totalVideos||0)+' video ditemukan • '+added+' video baru ditambahkan';
+      $('title').value='';render();
+    }catch(e){
+      status.textContent='Gagal membaca folder: '+String(e.message||e);
+      alert('Folder belum bisa dibaca. Pastikan aksesnya "Siapa saja yang memiliki link".');
+    }finally{btn.disabled=false;btn.textContent='Baca Link & Tambah'}
+    return;
+  }
+  if(!S.extractDriveFileId(driveUrl)&&!/^https?:\/\//i.test(driveUrl))return alert('Link video tidak valid.');
+  config.videos.push({id:'vid-'+Date.now(),title:title||('Video '+(config.videos.length+1)),driveUrl,fit,enabled:true});
+  $('title').value='';$('drive').value='';render();
+}
+$('add').onclick=addDriveSource;
+$('sample').onclick=()=>{$('title').value='';$('drive').value='https://drive.google.com/drive/u/0/mobile/folders/1yPsaDytDE33lPsbgyK_EjRx9SxzNsPrR?usp=sharing'};
 $('save').onclick=()=>{config=S.save({...config,name:$('name').value,orientation:$('orientation').value});$('saved').textContent='Tersimpan '+new Date().toLocaleTimeString('id-ID');render()};
 $('copy').onclick=async()=>{const u=monitorUrl();try{await navigator.clipboard.writeText(u);alert('Link monitor berhasil disalin.')}catch(_){prompt('Copy link monitor:',u)}};
 $('open').onclick=()=>window.open(monitorUrl(),'_blank');
-$('clear').onclick=()=>{if(confirm('Kosongkan semua video?')){config.videos=[];S.save(config);render()}};
+$('clear').onclick=()=>{if(confirm('Kosongkan semua video?')){config.videos=[];config.folderUrl='';S.save(config);$('folderStatus').style.display='none';render()}};
 $('name').oninput=render;$('orientation').onchange=render;syncForm();render();
 </script>
 </body></html>
