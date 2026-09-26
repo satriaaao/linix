@@ -48,7 +48,7 @@ button{border:0;border-radius:11px;padding:10px 14px;font-weight:700;cursor:poin
       <input id="loginPass" type="password" autocomplete="current-password" placeholder="Masukkan password">
       <button class="primary" id="loginBtn" style="width:100%;margin-top:14px">Masuk CMS</button>
     </div>
-    <div id="dbMissing" class="hidden notice">Database SQL belum terhubung ke Vercel. Hubungkan PostgreSQL lalu isi <b>SIGNAGE_DATABASE_URL</b>, <b>DATABASE_URL</b>, atau <b>POSTGRES_URL</b>.</div>
+    <div id="dbMissing" class="hidden notice">Supabase belum dapat diakses. Coba refresh atau periksa koneksi internet.</div>
   </div>
 </div>
 
@@ -118,7 +118,7 @@ async function boot(){
   $('gate').classList.remove('hidden');$('app').classList.add('hidden');
   try{
     dbStatus=await api('signage-db-status',{method:'GET',headers:{}});
-    if(!dbStatus.connected){setGate('missing',dbStatus.message||'Database SQL belum bisa diakses.');return}
+    if(!dbStatus.connected){setGate('missing',dbStatus.message||'Supabase belum bisa diakses.');return}
     if(dbStatus.setupRequired){setGate('setup','Buat username dan password admin pertama. Password disimpan dalam bentuk hash.');return}
     if(!dbStatus.authenticated){setGate('login','Masukkan username dan password admin untuk mengatur playlist.');return}
     await enterApp();
@@ -131,7 +131,7 @@ async function enterApp(){
   $('name').value=config.name||'Standing Lobby';
   $('orientation').value=config.orientation||'portrait';
   $('gate').classList.add('hidden');$('app').classList.remove('hidden');
-  $('dbDot').className='dot ok';$('dbState').textContent='PostgreSQL Terhubung';
+  $('dbDot').className='dot ok';$('dbState').textContent='Supabase Terhubung';
   $('dbUpdated').textContent=formatDate(config.updatedAt||dbStatus?.updatedAt);
   render();
 }
