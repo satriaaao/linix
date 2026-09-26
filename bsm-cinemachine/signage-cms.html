@@ -89,6 +89,8 @@ const S=window.BSMSignage;
 const $=id=>document.getElementById(id);
 let config=S.load();
 let dbStatus=null;
+let autoSaveTimer=null;
+let savePromise=null;
 
 function previewUrl(){
   return location.origin+'/display#'+S.encodeConfig({...config,name:$('name').value||config.name,orientation:$('orientation').value});
@@ -146,7 +148,7 @@ function render(){
     el.querySelector('small').textContent=(S.extractDriveFileId(v.driveUrl)?'Google Drive':'URL video')+' • '+v.fit;
     el.querySelector('[data-up]').onclick=()=>move(i,-1);
     el.querySelector('[data-down]').onclick=()=>move(i,1);
-    el.querySelector('[data-del]').onclick=()=>{config.videos.splice(i,1);render()};
+    el.querySelector('[data-del]').onclick=()=>{config.videos.splice(i,1);render();queueAutoSave()};
     list.appendChild(el);
   });
   $('preview').src=previewUrl();
@@ -154,7 +156,7 @@ function render(){
 }
 function move(i,d){
   const j=i+d;if(j<0||j>=config.videos.length)return;
-  [config.videos[i],config.videos[j]]=[config.videos[j],config.videos[i]];render();
+  [config.videos[i],config.videos[j]]=[config.videos[j],config.videos[i]];render();queueAutoSave();
 }
 async function addDriveSource(){
   const title=$('title').value.trim(),driveUrl=$('drive').value.trim(),fit=$('fit').value,btn=$('add'),status=$('folderStatus');
@@ -172,28 +174,48 @@ async function addDriveSource(){
       });
       config.folderUrl=driveUrl;
       status.textContent=(data.totalVideos||0)+' video ditemukan • '+added+' video baru ditambahkan';
-      $('title').value='';render();
+      $('title').value='';render();queueAutoSave();
     }catch(e){status.textContent='Gagal membaca folder: '+e.message}
     finally{btn.disabled=false;btn.textContent='Baca Link & Tambah'}
     return;
   }
   if(!S.extractDriveFileId(driveUrl)&&!/^https?:\/\//i.test(driveUrl))return alert('Link video tidak valid.');
   config.videos.push({id:'vid-'+Date.now(),title:title||('Video '+(config.videos.length+1)),driveUrl,fit,enabled:true});
-  $('title').value='';$('drive').value='';render();
+  $('title').value='';$('drive').value='';render();queueAutoSave();
 }
-async function saveDb(){
-  const btn=$('save');btn.disabled=true;btn.textContent='Menyimpan...';
-  try{
-    const payload=S.normalizeConfig({...config,name:$('name').value,orientation:$('orientation').value});
-    const data=await api('signage-config',{method:'PUT',body:JSON.stringify({config:payload})});
-    config=S.normalizeConfig(data.config||payload);S.save(config);
-    $('saved').textContent='Tersimpan ke database';
-    $('dbUpdated').textContent=formatDate(config.updatedAt);
-    render();
-  }catch(e){
-    if(e.status===401){alert('Sesi habis. Silakan login ulang.');return boot()}
-    alert(e.message||'Gagal menyimpan ke database');
-  }finally{btn.disabled=false;btn.textContent='Simpan ke Database'}
+function queueAutoSave(delay=350){
+  clearTimeout(autoSaveTimer);
+  $('saved').textContent='Menyimpan otomatis...';
+  autoSaveTimer=setTimeout(()=>saveDb(true),delay);
+}
+async function saveDb(silent=false){
+  if(savePromise)return savePromise;
+  const btn=$('save');
+  savePromise=(async()=>{
+    btn.disabled=true;btn.textContent='Menyimpan...';
+    try{
+      const payload=S.normalizeConfig({...config,name:$('name').value,orientation:$('orientation').value});
+      const data=await api('signage-config',{method:'PUT',body:JSON.stringify({config:payload})});
+      config=S.normalizeConfig(data.config||payload);S.save(config);
+      $('saved').textContent='Online • tersimpan otomatis';
+      $('dbUpdated').textContent=formatDate(config.updatedAt);
+      render();
+      return true;
+    }catch(e){
+      if(e.status===401){
+        if(!silent)alert('Sesi habis. Silakan login ulang.');
+        boot();
+        return false;
+      }
+      $('saved').textContent='Gagal menyimpan';
+      if(!silent)alert(e.message||'Gagal menyimpan ke database');
+      return false;
+    }finally{
+      btn.disabled=false;btn.textContent='Simpan ke Database';
+      savePromise=null;
+    }
+  })();
+  return savePromise;
 }
 $('setupBtn').onclick=async()=>{
   const username=$('setupUsername').value.trim().toLowerCase();
@@ -232,8 +254,8 @@ $('sample').onclick=()=>{$('drive').value='https://drive.google.com/drive/folder
 $('save').onclick=saveDb;
 $('copy').onclick=async()=>{const u=monitorUrl();try{await navigator.clipboard.writeText(u);alert('Link monitor berhasil disalin.')}catch(_){prompt('Copy link monitor:',u)}};
 $('open').onclick=async()=>{await saveDb();window.open(monitorUrl(),'_blank')};
-$('clear').onclick=()=>{if(confirm('Kosongkan semua video?')){config.videos=[];config.folderUrl='';$('folderStatus').classList.add('hidden');render()}};
-$('name').oninput=render;$('orientation').onchange=render;
+$('clear').onclick=()=>{if(confirm('Kosongkan semua video?')){config.videos=[];config.folderUrl='';$('folderStatus').classList.add('hidden');render();queueAutoSave()}};
+$('name').oninput=()=>{render();queueAutoSave()};$('orientation').onchange=()=>{render();queueAutoSave()};
 boot();
 </script>
 </body></html>
