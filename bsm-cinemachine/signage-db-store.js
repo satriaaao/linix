@@ -26,11 +26,16 @@ async function ensureSchema(){
   await p.query(`
     CREATE TABLE IF NOT EXISTS signage_admin (
       id SMALLINT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+      username TEXT,
       password_hash TEXT NOT NULL,
       password_salt TEXT NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+    ALTER TABLE signage_admin ADD COLUMN IF NOT EXISTS username TEXT;
+    UPDATE signage_admin SET username='admin' WHERE username IS NULL OR BTRIM(username)='';
+    ALTER TABLE signage_admin ALTER COLUMN username SET NOT NULL;
+    CREATE UNIQUE INDEX IF NOT EXISTS signage_admin_username_idx ON signage_admin(username);
     CREATE TABLE IF NOT EXISTS signage_sessions (
       token_hash TEXT PRIMARY KEY,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -79,16 +84,21 @@ async function issueSession(){
   );
   return {token,maxAge:seconds};
 }
-async function setupAdmin(password){
+async function setupAdmin(username,password){
   await ensureSchema();
   if(await adminExists()){
     const e=new Error('Password admin sudah dibuat');
     e.code='ADMIN_EXISTS';
     throw e;
   }
+  const normalized=A.normalizeUsername(username);
+  if(!A.isValidUsername(normalized)){
+    const e=new Error('Username harus 3-32 karakter: huruf kecil, angka, titik, garis bawah, atau strip');
+    e.code='INVALID_USERNAME';throw e;
+  }
   const h=A.hashPassword(password);
   try{
-    await getPool().query('INSERT INTO signage_admin(id,password_hash,password_salt) VALUES(1,$1,$2)',[h.hash,h.salt]);
+    await getPool().query('INSERT INTO signage_admin(id,username,password_hash,password_salt) VALUES(1,$1,$2,$3)',[normalized,h.hash,h.salt]);
   }catch(e){
     if(e?.code==='23505'){
       const x=new Error('Password admin sudah dibuat');x.code='ADMIN_EXISTS';throw x;
@@ -97,12 +107,13 @@ async function setupAdmin(password){
   }
   return issueSession();
 }
-async function login(password){
+async function login(username,password){
   await ensureSchema();
-  const r=await getPool().query('SELECT password_hash,password_salt FROM signage_admin WHERE id=1');
+  const normalized=A.normalizeUsername(username);
+  const r=await getPool().query('SELECT username,password_hash,password_salt FROM signage_admin WHERE id=1');
   const row=r.rows[0];
-  if(!row||!A.verifyPassword(password,row.password_hash,row.password_salt)){
-    const e=new Error('Password salah');e.code='INVALID_PASSWORD';throw e;
+  if(!row||row.username!==normalized||!A.verifyPassword(password,row.password_hash,row.password_salt)){
+    const e=new Error('Username atau password salah');e.code='INVALID_CREDENTIALS';throw e;
   }
   return issueSession();
 }
