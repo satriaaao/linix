@@ -222,7 +222,11 @@
     var previous=values[monthIndex-1],current=values[monthIndex];
     if(previous==null||current==null)return '';
     var override=growthOverride(row,monthIndex),g=growth(previous,current,override);
-    var editableAttrs=editable?' con  function renderSlide(report,options){
+    var editableAttrs=editable?' contenteditable="true" spellcheck="false" data-it-growth-edit-row="'+rowIndex+'" data-it-growth-edit-month="'+monthIndex+'" title="Edit persen manual. Kosongkan lalu Enter untuk kembali otomatis."':'';
+    var classes='it-pct'+(editable?' it-pct-editable':'')+(g.manual?' it-pct-manual':'');
+    return '<small class="it-growth '+g.tone+'"><span class="it-vs">vs '+MONTHS[monthIndex-1]+'</span><span class="'+classes+'"'+editableAttrs+'>'+esc(g.label)+'</span></small>';
+  }
+  function renderSlide(report,options){
     options=options||{};
     var editable=!!options.editable;
     var data=report.products||[],latest=Number.isInteger(report.latestMonth)?report.latestMonth:-1;
