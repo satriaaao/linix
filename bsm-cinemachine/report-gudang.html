@@ -1553,7 +1553,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-master.js"></script>
   <script src="/report-admin-matrix.js"></script>
   <script src="/report-it-omset.js"></script>
-  <script src="/report-it-products.js?v=31"></script>
+  <script src="/report-it-products.js?v=32"></script>
   <script src="/report-it-products-data.js"></script>
   <script src="/report-camera-vendor.js"></script>
   <script src="/report-camera-reports.js"></script>
@@ -1561,7 +1561,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-cinema-reports.js"></script>
   <script src="/report-lighting-reports.js"></script>
   <script src="/report-crew-reports.js"></script>
-  <script src="/report-manual-sheets.js?v=31"></script>
+  <script src="/report-manual-sheets.js?v=32"></script>
   <script src="/report-bulk-router.js"></script>
   <script src="/report-live-edit.js"></script>
   <script src="/report-slide-fit.js"></script>
@@ -1570,7 +1570,9 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
   <script src="/report-gudang-export.js"></script>
   <script src="/report-gudang-ui.js"></script>
-  <script src="/report-gudang-cloud.js?v=31"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
+  <script src="/report-gudang-realtime.js?v=32"></script>
+  <script src="/report-gudang-cloud.js?v=32"></script>
   <script>
     (function(){
       var STORAGE_KEY = "bsm-report-gudang-v2";
@@ -1818,6 +1820,9 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var remoteSaveTimer=null;
       var remoteSaveInFlight=false;
       var remoteSaveQueued=false;
+      var realtimeReady=false;
+      var realtimeFallbackTimer=null;
+      var realtimeVersionTimer=null;
       var cloudRetryTimer=null;
       var AUTH_USER_CACHE_KEY="bsm-report-cloud-user-v1";
       var installPrompt=null;
@@ -1880,7 +1885,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         currentUser=cached;cloudConfigured=true;cloudReady=true;updateAccountUi();hideAuthGate();
         if(!canOpenPage(activeMenu))activeMenu="preview";
         renderAll();showPage(activeMenu);
-        if(dbStatus)dbStatus.textContent="SQL tersambung";
+        startRealtimeSync();
+        setDbConnectedStatus();
         return true;
       }
 
@@ -2317,6 +2323,53 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       if(!Number.isInteger(state.activeView)) state.activeView=0;
       if(state.activeView<0||state.activeView>=masterPages().length) state.activeView=0;
     
+      function setDbConnectedStatus(){
+        if(dbStatus)dbStatus.textContent=realtimeReady?"SQL Realtime":"SQL tersambung";
+      }
+      function stopRealtimeFallback(){
+        if(realtimeFallbackTimer){clearInterval(realtimeFallbackTimer);realtimeFallbackTimer=null;}
+      }
+      function startRealtimeFallback(){
+        if(realtimeFallbackTimer)return;
+        realtimeFallbackTimer=setInterval(function(){
+          if(!cloudReady||realtimeReady||document.visibilityState!=="visible"||!hasPermission("data.read"))return;
+          syncRemoteStateFast(true);
+        },60000);
+      }
+      function handleRealtimeVersion(version){
+        version=Number(version||0);
+        if(!version||!cloudReady||!hasPermission("data.read"))return;
+        clearTimeout(realtimeVersionTimer);
+        realtimeVersionTimer=setTimeout(function checkRealtimeVersion(){
+          if(remoteSaveInFlight){
+            realtimeVersionTimer=setTimeout(checkRealtimeVersion,120);
+            return;
+          }
+          if(version>Number(remoteVersion||0))syncRemoteStateFast(true);
+        },120);
+      }
+      function startRealtimeSync(){
+        if(!(window.BSMReportRealtime&&typeof window.BSMReportRealtime.start==="function")){
+          realtimeReady=false;startRealtimeFallback();setDbConnectedStatus();return;
+        }
+        window.BSMReportRealtime.start({
+          onVersion:handleRealtimeVersion,
+          onStatus:function(status){
+            realtimeReady=status==="subscribed";
+            if(realtimeReady){
+              stopRealtimeFallback();setDbConnectedStatus();
+            }else if(status==="error"||status==="closed"||status==="unavailable"){
+              startRealtimeFallback();
+              if(dbStatus)dbStatus.textContent="SQL tersambung • Realtime mencoba ulang";
+            }
+          }
+        });
+      }
+      function stopRealtimeSync(){
+        realtimeReady=false;stopRealtimeFallback();clearTimeout(realtimeVersionTimer);
+        if(window.BSMReportRealtime&&typeof window.BSMReportRealtime.stop==="function")window.BSMReportRealtime.stop();
+      }
+
       async function persistRemoteState(showMessage,keepalive){
         if(!cloudReady||!cloud||!hasPermission("data.write"))return;
         if(remoteSaveInFlight){remoteSaveQueued=true;return;}
@@ -2328,7 +2381,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           try{sessionStorage.setItem("bsm-report-cloud-version",String(remoteVersion));}catch(_){}
           var now=new Date();
           document.getElementById("lastSavedText").textContent="SQL "+now.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"});
-          if(dbStatus)dbStatus.textContent="SQL tersambung";
+          setDbConnectedStatus();
           if(showMessage)toast("Data tersimpan di database SQL");
         }catch(err){
           if(dbStatus)dbStatus.textContent="SQL sinkron ulang...";
@@ -3695,7 +3748,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(close)close.addEventListener("click",closeModal);
         if(logout)logout.addEventListener("click",async function(){
           try{if(localMode)localLogout();else await cloud.logout();clearCachedCloudUser();}catch(_){}
-          currentUser=null;cloudReady=false;
+          currentUser=null;cloudReady=false;stopRealtimeSync();
           try{localStorage.removeItem(STORAGE_KEY);sessionStorage.removeItem("bsm-report-cloud-version");}catch(_){}
           closeModal();updateAccountUi();showAuthGate("Silakan login kembali.","login");
         });
@@ -3907,10 +3960,10 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           }else if(!remote.exists&&hasPermission("data.write")){
             persistRemoteState(false,false);
           }
-          if(dbStatus)dbStatus.textContent="SQL tersambung";
+          setDbConnectedStatus();
         }catch(err){
           if(Number(err&&err.status||0)===401){
-            cloudReady=false;currentUser=null;clearCachedCloudUser();if(cloud)cloud.setToken("");clearCachedCloudUser();updateAccountUi();showAuthGate("Sesi habis. Silakan login kembali.");
+            cloudReady=false;currentUser=null;stopRealtimeSync();clearCachedCloudUser();if(cloud)cloud.setToken("");updateAccountUi();showAuthGate("Sesi habis. Silakan login kembali.");
           }else if(dbStatus)dbStatus.textContent="SQL tersambung • mencoba sinkron";
         }
       }
@@ -3939,7 +3992,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
               else if(hasPermission("settings.manage"))activeMenu="settings";
             }
             renderAll();showPage(activeMenu);
-            if(dbStatus)dbStatus.textContent="SQL tersambung";
+            startRealtimeSync();
+            setDbConnectedStatus();
             syncRemoteStateFast(true);
             notifyPasswordChangeOnce();
             return;
@@ -3965,8 +4019,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         }catch(err){
           var status=Number(err&&err.status||0);
           if(status===401){
-            cloudReady=false;currentUser=null;clearCachedCloudUser();updateAccountUi();clearCloudRetry();
-            if(cloud)cloud.setToken("");clearCachedCloudUser();
+            cloudReady=false;currentUser=null;stopRealtimeSync();clearCachedCloudUser();updateAccountUi();clearCloudRetry();
+            if(cloud)cloud.setToken("");
             if(dbStatus)dbStatus.textContent="SQL perlu login";
             showAuthGate("Sesi habis. Silakan login kembali.");
           }else if(hadCachedSession&&currentUser&&cloud.getToken()){
@@ -4665,7 +4719,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           authPassword.value="";
           if(!canOpenPage(activeMenu))activeMenu="preview";
           renderAll();showPage(activeMenu);
-          if(dbStatus)dbStatus.textContent="SQL tersambung";
+          startRealtimeSync();
+          setDbConnectedStatus();
           notifyPasswordChangeOnce();
           syncRemoteStateFast(true);
         }catch(err){showAuthGate(err&&err.message?err.message:"Login gagal");}
@@ -4717,20 +4772,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       document.addEventListener("visibilitychange",function(){
         if(document.visibilityState==="hidden"&&cloudReady)persistRemoteState(false,true);
       });
-      window.addEventListener("online",function(){if(cloudReady)persistRemoteState(false,false);});
-      setInterval(async function(){
-        if(!cloudReady||!hasPermission("data.read")||document.visibilityState!=="visible")return;
-        try{
-          var remote=await cloud.getState();
-          var applied="";
-          try{applied=sessionStorage.getItem("bsm-report-cloud-version")||"";}catch(_){}
-          if(remote.exists&&remote.state&&String(remote.version)!==applied){
-            localStorage.setItem(STORAGE_KEY,JSON.stringify(remote.state));
-            try{sessionStorage.setItem("bsm-report-cloud-version",String(remote.version));}catch(_){}
-            location.reload();
-          }
-        }catch(_){}
-      },3000);
+      window.addEventListener("online",function(){if(cloudReady){startRealtimeSync();syncRemoteStateFast(true);}});
       initializeCloud();
       try{
         var params=new URLSearchParams(window.location.search);
@@ -4741,4 +4783,4 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <!-- auth-scope-v2 -->
 </body>
 <!-- status-sort-tristate-cache-v24 -->
-<!-- report-gudang-build-v56-account-modal-auth-fix-cache31</html>
+<!-- report-gudang-build-v57-supabase-realtime-cache32</html>
