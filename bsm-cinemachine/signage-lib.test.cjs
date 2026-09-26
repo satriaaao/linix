@@ -19,6 +19,10 @@ assert.equal(
 );
 assert.ok(S.isDriveFolderUrl('https://drive.google.com/drive/u/0/mobile/folders/1yPsaDytDE33lPsbgyK_EjRx9SxzNsPrR?usp=sharing'));
 assert.ok(S.driveVideoUrl('https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz12345/view').includes('drive.usercontent.google.com/download?id='));
+assert.equal(
+  S.driveProxyUrl({title:'Promo BSM.mp4',driveUrl:'https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz12345/view'}),
+  '/api/cms?asset=drive-video&id=1AbCdEfGhIjKlMnOpQrStUvWxYz12345&name=Promo%20BSM.mp4'
+);
 const cfg=S.normalizeConfig({name:'Lobby',folderUrl:'https://drive.google.com/drive/folders/1yPsaDytDE33lPsbgyK_EjRx9SxzNsPrR',videos:[{title:'Promo',driveUrl:'https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz12345/view'}]});
 assert.equal(cfg.orientation,'portrait');
 assert.equal(cfg.folderUrl,'https://drive.google.com/drive/folders/1yPsaDytDE33lPsbgyK_EjRx9SxzNsPrR');
