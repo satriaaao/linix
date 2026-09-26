@@ -40,6 +40,7 @@ jobs:
           node signage-lib.test.cjs
           node drive-folder-lib.test.cjs
           node drive-video-lib.test.cjs
+          node signage-display.test.cjs
 
       - name: Pull Vercel project settings
         run: vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
