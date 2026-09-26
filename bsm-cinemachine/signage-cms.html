@@ -33,6 +33,8 @@ button{border:0;border-radius:11px;padding:10px 14px;font-weight:700;cursor:poin
     <h2 id="gateTitle">Memeriksa database...</h2>
     <div class="muted" id="gateText">Mohon tunggu sebentar.</div>
     <div id="setupFields" class="hidden">
+      <label>Username Admin</label>
+      <input id="setupUsername" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="contoh: admin_bsm">
       <label>Password Admin Baru</label>
       <input id="setupPass" type="password" autocomplete="new-password" placeholder="Minimal 8 karakter">
       <label>Ulangi Password</label>
@@ -40,6 +42,8 @@ button{border:0;border-radius:11px;padding:10px 14px;font-weight:700;cursor:poin
       <button class="primary" id="setupBtn" style="width:100%;margin-top:14px">Buat Password & Aktifkan CMS</button>
     </div>
     <div id="loginFields" class="hidden">
+      <label>Username</label>
+      <input id="loginUsername" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Username admin">
       <label>Password Admin</label>
       <input id="loginPass" type="password" autocomplete="current-password" placeholder="Masukkan password">
       <button class="primary" id="loginBtn" style="width:100%;margin-top:14px">Masuk CMS</button>
@@ -107,7 +111,7 @@ function setGate(mode,message){
   $('setupFields').classList.toggle('hidden',mode!=='setup');
   $('loginFields').classList.toggle('hidden',mode!=='login');
   $('dbMissing').classList.toggle('hidden',mode!=='missing');
-  $('gateTitle').textContent=mode==='setup'?'Buat Password Admin':mode==='login'?'Login Digital Signage':mode==='missing'?'Database Belum Terhubung':'Memeriksa database...';
+  $('gateTitle').textContent=mode==='setup'?'Buat Akun Admin':mode==='login'?'Login Digital Signage':mode==='missing'?'Database Belum Terhubung':'Memeriksa database...';
   $('gateText').textContent=message||'';
 }
 async function boot(){
@@ -115,8 +119,8 @@ async function boot(){
   try{
     dbStatus=await api('signage-db-status',{method:'GET',headers:{}});
     if(!dbStatus.connected){setGate('missing',dbStatus.message||'Database SQL belum bisa diakses.');return}
-    if(dbStatus.setupRequired){setGate('setup','Buat password pertama untuk mengamankan CMS. Password disimpan dalam bentuk hash.');return}
-    if(!dbStatus.authenticated){setGate('login','Masukkan password admin untuk mengatur playlist.');return}
+    if(dbStatus.setupRequired){setGate('setup','Buat username dan password admin pertama. Password disimpan dalam bentuk hash.');return}
+    if(!dbStatus.authenticated){setGate('login','Masukkan username dan password admin untuk mengatur playlist.');return}
     await enterApp();
   }catch(e){setGate('missing',e.message||'Database tidak bisa diakses.')}
 }
@@ -192,21 +196,25 @@ async function saveDb(){
   }finally{btn.disabled=false;btn.textContent='Simpan ke Database'}
 }
 $('setupBtn').onclick=async()=>{
+  const username=$('setupUsername').value.trim().toLowerCase();
   const a=$('setupPass').value,b=$('setupPass2').value;
+  if(!/^[a-z0-9._-]{3,32}$/.test(username))return alert('Username 3-32 karakter: huruf kecil, angka, titik, garis bawah, atau strip.');
   if(a.length<8)return alert('Password minimal 8 karakter.');
   if(a!==b)return alert('Ulangi password tidak sama.');
   $('setupBtn').disabled=true;
-  try{await api('signage-setup',{method:'POST',body:JSON.stringify({password:a})});await boot()}
+  try{await api('signage-setup',{method:'POST',body:JSON.stringify({username,password:a})});await boot()}
   catch(e){alert(e.message)}
   finally{$('setupBtn').disabled=false}
 };
 $('loginBtn').onclick=async()=>{
-  const p=$('loginPass').value;if(!p)return;
+  const username=$('loginUsername').value.trim().toLowerCase();
+  const p=$('loginPass').value;if(!username||!p)return;
   $('loginBtn').disabled=true;
-  try{await api('signage-login',{method:'POST',body:JSON.stringify({password:p})});$('loginPass').value='';await boot()}
+  try{await api('signage-login',{method:'POST',body:JSON.stringify({username,password:p})});$('loginPass').value='';await boot()}
   catch(e){alert(e.message)}
   finally{$('loginBtn').disabled=false}
 };
+$('loginUsername').addEventListener('keydown',e=>{if(e.key==='Enter')$('loginPass').focus()});
 $('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')$('loginBtn').click()});
 $('logoutBtn').onclick=async()=>{try{await api('signage-logout',{method:'POST',body:'{}'})}catch(_){}await boot()};
 $('changeBtn').onclick=()=>$('changePanel').classList.remove('hidden');
