@@ -1,170 +1,108 @@
-const {Pool}=require('pg');
-const A=require('./signage-auth-db-lib');
-const S=require('./signage-lib');
+const PROVIDER='supabase';
+const PROJECT_REF='bdutjchphtqtklclbgoz';
+const SUPABASE_URL='https://bdutjchphtqtklclbgoz.supabase.co';
+const SUPABASE_KEY='sb_publishable_jEF2xLIueWHUdU5MBwd6dg_sG9JFFWU';
 
-let pool=null;
-let schemaReady=false;
+function configured(){return true}
 
-function connectionString(){return A.getDatabaseUrl(process.env)}
-function configured(){return !!connectionString()}
-function sslConfig(url){
-  return /localhost|127\.0\.0\.1/.test(url)?false:{rejectUnauthorized:false};
+function mappedError(message,status){
+  const msg=String(message||'Supabase request gagal');
+  const e=new Error(msg);
+  e.status=status||500;
+  if(/Akun admin sudah dibuat/i.test(msg))e.code='ADMIN_EXISTS';
+  else if(/Username atau password salah/i.test(msg))e.code='INVALID_CREDENTIALS';
+  else if(/Sesi login tidak valid/i.test(msg))e.code='UNAUTHORIZED';
+  else if(/Password lama salah/i.test(msg))e.code='INVALID_PASSWORD';
+  else if(/Username harus/i.test(msg))e.code='INVALID_USERNAME';
+  return e;
 }
-function getPool(){
-  const url=connectionString();
-  if(!url){
-    const e=new Error('Database belum terhubung');
-    e.code='DB_NOT_CONFIGURED';
-    throw e;
+
+async function rpc(name,args={}){
+  const r=await fetch(SUPABASE_URL+'/rest/v1/rpc/'+encodeURIComponent(name),{
+    method:'POST',
+    headers:{
+      apikey:SUPABASE_KEY,
+      Authorization:'Bearer '+SUPABASE_KEY,
+      'Content-Type':'application/json',
+      Accept:'application/json'
+    },
+    body:JSON.stringify(args)
+  });
+  let data=null;
+  const text=await r.text();
+  if(text){
+    try{data=JSON.parse(text)}catch(_){data=text}
   }
-  if(!pool)pool=new Pool({connectionString:url,ssl:sslConfig(url),max:3,idleTimeoutMillis:20000,connectionTimeoutMillis:8000});
-  return pool;
+  if(!r.ok){
+    const message=(data&&typeof data==='object'&&(data.message||data.details||data.hint))||String(data||('HTTP '+r.status));
+    throw mappedError(message,r.status);
+  }
+  return data;
 }
-async function ensureSchema(){
-  if(schemaReady)return;
-  const p=getPool();
-  await p.query(`
-    CREATE TABLE IF NOT EXISTS signage_admin (
-      id SMALLINT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
-      username TEXT,
-      password_hash TEXT NOT NULL,
-      password_salt TEXT NOT NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-    ALTER TABLE signage_admin ADD COLUMN IF NOT EXISTS username TEXT;
-    UPDATE signage_admin SET username='admin' WHERE username IS NULL OR BTRIM(username)='';
-    ALTER TABLE signage_admin ALTER COLUMN username SET NOT NULL;
-    CREATE UNIQUE INDEX IF NOT EXISTS signage_admin_username_idx ON signage_admin(username);
-    CREATE TABLE IF NOT EXISTS signage_sessions (
-      token_hash TEXT PRIMARY KEY,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      expires_at TIMESTAMPTZ NOT NULL
-    );
-    CREATE INDEX IF NOT EXISTS signage_sessions_expires_idx ON signage_sessions(expires_at);
-    CREATE TABLE IF NOT EXISTS signage_config (
-      id TEXT PRIMARY KEY,
-      config JSONB NOT NULL,
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `);
-  schemaReady=true;
-}
+
 async function status(){
-  if(!configured())return {configured:false,connected:false,setupRequired:false,message:'DATABASE_URL belum tersedia'};
   try{
-    await ensureSchema();
-    const p=getPool();
-    const a=await p.query('SELECT EXISTS(SELECT 1 FROM signage_admin WHERE id=1) AS exists');
-    const c=await p.query("SELECT updated_at FROM signage_config WHERE id='default'");
+    const data=await rpc('signage_status',{p_token:''});
     return {
       configured:true,
       connected:true,
-      setupRequired:!a.rows[0]?.exists,
-      updatedAt:c.rows[0]?.updated_at||null
+      setupRequired:!!data?.setupRequired,
+      authenticated:false,
+      updatedAt:data?.updatedAt||null,
+      provider:PROVIDER
     };
   }catch(e){
-    return {configured:true,connected:false,setupRequired:false,message:String(e?.message||e)};
+    return {configured:true,connected:false,setupRequired:false,authenticated:false,message:String(e?.message||e),provider:PROVIDER};
   }
 }
-async function adminExists(){
-  await ensureSchema();
-  const r=await getPool().query('SELECT EXISTS(SELECT 1 FROM signage_admin WHERE id=1) AS exists');
-  return !!r.rows[0]?.exists;
-}
-async function issueSession(){
-  await ensureSchema();
-  const token=A.randomToken();
-  const tokenHash=A.hashToken(token);
-  const seconds=60*60*24*30;
-  await getPool().query('DELETE FROM signage_sessions WHERE expires_at <= NOW()');
-  await getPool().query(
-    "INSERT INTO signage_sessions(token_hash,expires_at) VALUES($1,NOW()+($2::text || ' seconds')::interval)",
-    [tokenHash,String(seconds)]
-  );
-  return {token,maxAge:seconds};
-}
+
 async function setupAdmin(username,password){
-  await ensureSchema();
-  if(await adminExists()){
-    const e=new Error('Password admin sudah dibuat');
-    e.code='ADMIN_EXISTS';
-    throw e;
-  }
-  const normalized=A.normalizeUsername(username);
-  if(!A.isValidUsername(normalized)){
-    const e=new Error('Username harus 3-32 karakter: huruf kecil, angka, titik, garis bawah, atau strip');
-    e.code='INVALID_USERNAME';throw e;
-  }
-  const h=A.hashPassword(password);
-  try{
-    await getPool().query('INSERT INTO signage_admin(id,username,password_hash,password_salt) VALUES(1,$1,$2,$3)',[normalized,h.hash,h.salt]);
-  }catch(e){
-    if(e?.code==='23505'){
-      const x=new Error('Password admin sudah dibuat');x.code='ADMIN_EXISTS';throw x;
-    }
-    throw e;
-  }
-  return issueSession();
+  return rpc('signage_setup_admin',{p_username:String(username||''),p_password:String(password||'')});
 }
+
 async function login(username,password){
-  await ensureSchema();
-  const normalized=A.normalizeUsername(username);
-  const r=await getPool().query('SELECT username,password_hash,password_salt FROM signage_admin WHERE id=1');
-  const row=r.rows[0];
-  if(!row||row.username!==normalized||!A.verifyPassword(password,row.password_hash,row.password_salt)){
-    const e=new Error('Username atau password salah');e.code='INVALID_CREDENTIALS';throw e;
-  }
-  return issueSession();
+  return rpc('signage_login',{p_username:String(username||''),p_password:String(password||'')});
 }
+
 async function sessionValid(token){
   if(!token)return false;
-  await ensureSchema();
-  const hash=A.hashToken(token);
-  const r=await getPool().query('SELECT 1 FROM signage_sessions WHERE token_hash=$1 AND expires_at>NOW()',[hash]);
-  return !!r.rowCount;
+  const data=await rpc('signage_status',{p_token:String(token)});
+  return !!data?.authenticated;
 }
+
 async function logout(token){
-  if(!token||!configured())return;
-  await ensureSchema();
-  await getPool().query('DELETE FROM signage_sessions WHERE token_hash=$1',[A.hashToken(token)]);
+  if(!token)return true;
+  return rpc('signage_logout',{p_token:String(token)});
 }
+
 async function changePassword(token,currentPassword,newPassword){
-  if(!await sessionValid(token)){
-    const e=new Error('Sesi login tidak valid');e.code='UNAUTHORIZED';throw e;
-  }
-  const r=await getPool().query('SELECT password_hash,password_salt FROM signage_admin WHERE id=1');
-  const row=r.rows[0];
-  if(!row||!A.verifyPassword(currentPassword,row.password_hash,row.password_salt)){
-    const e=new Error('Password lama salah');e.code='INVALID_PASSWORD';throw e;
-  }
-  const h=A.hashPassword(newPassword);
-  await getPool().query('UPDATE signage_admin SET password_hash=$1,password_salt=$2,updated_at=NOW() WHERE id=1',[h.hash,h.salt]);
-  await getPool().query('DELETE FROM signage_sessions WHERE token_hash<>$1',[A.hashToken(token)]);
+  return rpc('signage_change_password',{
+    p_token:String(token||''),
+    p_current_password:String(currentPassword||''),
+    p_new_password:String(newPassword||'')
+  });
 }
-function cleanConfig(input){
-  const value=S.normalizeConfig({...input,updatedAt:Date.now()});
-  return value;
-}
+
 async function getConfig(){
-  await ensureSchema();
-  const r=await getPool().query("SELECT config,updated_at FROM signage_config WHERE id='default'");
-  if(!r.rowCount)return cleanConfig({name:'Standing Lobby',orientation:'portrait',videos:[]});
-  const cfg=cleanConfig(r.rows[0].config||{});
-  cfg.updatedAt=new Date(r.rows[0].updated_at).getTime();
-  return cfg;
+  const data=await rpc('signage_get_config',{});
+  return data&&typeof data==='object'?data:{name:'Standing Lobby',orientation:'portrait',muted:true,folderUrl:'',videos:[],updatedAt:0};
 }
+
 async function saveConfig(token,input){
-  if(!await sessionValid(token)){
-    const e=new Error('Sesi login tidak valid');e.code='UNAUTHORIZED';throw e;
-  }
-  const cfg=cleanConfig(input);
-  const r=await getPool().query(
-    "INSERT INTO signage_config(id,config,updated_at) VALUES('default',$1::jsonb,NOW()) ON CONFLICT(id) DO UPDATE SET config=EXCLUDED.config,updated_at=NOW() RETURNING config,updated_at",
-    [JSON.stringify(cfg)]
-  );
-  const out=cleanConfig(r.rows[0].config);
-  out.updatedAt=new Date(r.rows[0].updated_at).getTime();
-  return out;
+  return rpc('signage_save_config',{p_token:String(token||''),p_config:input||{}});
 }
-module.exports={configured,ensureSchema,status,adminExists,setupAdmin,login,sessionValid,logout,changePassword,getConfig,saveConfig,cleanConfig};
+
+module.exports={
+  provider:PROVIDER,
+  projectRef:PROJECT_REF,
+  configured,
+  status,
+  setupAdmin,
+  login,
+  sessionValid,
+  logout,
+  changePassword,
+  getConfig,
+  saveConfig,
+  _rpc:rpc
+};
