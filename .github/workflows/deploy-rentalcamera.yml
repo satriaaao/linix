@@ -44,6 +44,9 @@ jobs:
           node signage-auth-db-lib.test.cjs
           node signage-cms-db.test.cjs
 
+      - name: Inspect Vercel database resources
+        run: vercel integration list --all --format=json --token="${{ secrets.VERCEL_TOKEN }}" || true
+
       - name: Pull Vercel project settings
         run: vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
 
