@@ -69,9 +69,43 @@
           "value": "text/html; charset=utf-8"
         }
       ]
+    },
+    {
+      "source": "/signage",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/display",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
     }
   ],
   "rewrites": [
+    {
+      "source": "/display",
+      "destination": "/signage-display.html"
+    },
+    {
+      "source": "/signage",
+      "destination": "/signage-cms.html"
+    },
     {
       "source": "/qr-code",
       "destination": "/qr.html"
