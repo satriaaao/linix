@@ -13,4 +13,5 @@ assert.ok(html.includes('id="setupUsername"'),'setup harus meminta username');
 assert.ok(html.includes('id="loginUsername"'),'login harus meminta username');
 assert.ok(html.includes('autocomplete="username"'),'input username harus memakai autocomplete username');
 assert.ok(html.includes('username'),'request auth harus mengirim username');
+assert.ok(html.includes("function monitorUrl(){return location.origin+'/display'}"),'link monitor harus tetap /display dan tidak berubah-ubah');
 console.log('signage CMS database UI tests passed');
