@@ -1553,7 +1553,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-master.js"></script>
   <script src="/report-admin-matrix.js"></script>
   <script src="/report-it-omset.js"></script>
-  <script src="/report-it-products.js?v=29"></script>
+  <script src="/report-it-products.js?v=30"></script>
   <script src="/report-it-products-data.js"></script>
   <script src="/report-camera-vendor.js"></script>
   <script src="/report-camera-reports.js"></script>
@@ -1561,7 +1561,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-cinema-reports.js"></script>
   <script src="/report-lighting-reports.js"></script>
   <script src="/report-crew-reports.js"></script>
-  <script src="/report-manual-sheets.js?v=29"></script>
+  <script src="/report-manual-sheets.js?v=30"></script>
   <script src="/report-bulk-router.js"></script>
   <script src="/report-live-edit.js"></script>
   <script src="/report-slide-fit.js"></script>
@@ -1570,7 +1570,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
   <script src="/report-gudang-export.js"></script>
   <script src="/report-gudang-ui.js"></script>
-  <script src="/report-gudang-cloud.js?v=29"></script>
+  <script src="/report-gudang-cloud.js?v=30"></script>
   <script>
     (function(){
       var STORAGE_KEY = "bsm-report-gudang-v2";
@@ -1816,7 +1816,10 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var LOCAL_SESSION_KEY="bsm-report-local-session-v1";
       var remoteVersion=0;
       var remoteSaveTimer=null;
+      var remoteSaveInFlight=false;
+      var remoteSaveQueued=false;
       var cloudRetryTimer=null;
+      var AUTH_USER_CACHE_KEY="bsm-report-cloud-user-v1";
       var installPrompt=null;
       var userCache=[];
       var ROLE_PRESETS={
@@ -1844,6 +1847,33 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       function esc(v){
         return String(v==null?"":v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
       }
+      function cachedCloudUser(){
+        try{
+          var raw=localStorage.getItem(AUTH_USER_CACHE_KEY);
+          var user=raw?JSON.parse(raw):null;
+          return user&&user.id?user:null;
+        }catch(_){return null;}
+      }
+      function cacheCloudUser(user){
+        try{
+          if(user&&user.id)localStorage.setItem(AUTH_USER_CACHE_KEY,JSON.stringify(user));
+          else localStorage.removeItem(AUTH_USER_CACHE_KEY);
+        }catch(_){}
+      }
+      function clearCachedCloudUser(){
+        try{localStorage.removeItem(AUTH_USER_CACHE_KEY);}catch(_){}
+      }
+      function activateCachedSession(){
+        if(!cloud||!cloud.getToken||!cloud.getToken())return false;
+        var cached=cachedCloudUser();
+        if(!cached)return false;
+        currentUser=cached;cloudConfigured=true;cloudReady=true;updateAccountUi();hideAuthGate();
+        if(!canOpenPage(activeMenu))activeMenu="preview";
+        renderAll();showPage(activeMenu);
+        if(dbStatus)dbStatus.textContent="SQL tersambung";
+        return true;
+      }
+
       function localUsers(){
         try{
           var value=JSON.parse(localStorage.getItem(LOCAL_USERS_KEY)||"[]");
@@ -2279,8 +2309,10 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     
       async function persistRemoteState(showMessage,keepalive){
         if(!cloudReady||!cloud||!hasPermission("data.write"))return;
+        if(remoteSaveInFlight){remoteSaveQueued=true;return;}
+        remoteSaveInFlight=true;remoteSaveQueued=false;
         try{
-          if(dbStatus)dbStatus.textContent="Menyimpan SQL...";
+          if(showMessage&&dbStatus)dbStatus.textContent="Menyimpan SQL...";
           var result=await cloud.saveState(state,!!keepalive);
           remoteVersion=Number(result.version||remoteVersion||0);
           try{sessionStorage.setItem("bsm-report-cloud-version",String(remoteVersion));}catch(_){}
@@ -2289,24 +2321,29 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           if(dbStatus)dbStatus.textContent="SQL tersambung";
           if(showMessage)toast("Data tersimpan di database SQL");
         }catch(err){
-          if(dbStatus)dbStatus.textContent="SQL gagal sinkron";
+          if(dbStatus)dbStatus.textContent="SQL sinkron ulang...";
           if(showMessage)toast(err&&err.message?err.message:"Gagal menyimpan database");
-          clearTimeout(remoteSaveTimer);
-          remoteSaveTimer=setTimeout(function(){persistRemoteState(false,false);},5000);
+          remoteSaveQueued=true;
+        }finally{
+          remoteSaveInFlight=false;
+          if(remoteSaveQueued){
+            remoteSaveQueued=false;clearTimeout(remoteSaveTimer);
+            remoteSaveTimer=setTimeout(function(){persistRemoteState(false,false);},120);
+          }
         }
       }
       function scheduleRemoteSave(showMessage){
         if(!cloudReady)return;
         clearTimeout(remoteSaveTimer);
         if(showMessage){persistRemoteState(true,false);return;}
-        remoteSaveTimer=setTimeout(function(){persistRemoteState(false,false);},700);
+        remoteSaveTimer=setTimeout(function(){persistRemoteState(false,false);},80);
       }
       function saveState(showMessage){
         localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
         scheduleRemoteSave(!!showMessage);
       }
       var saveTimer;
-      function autoSave(){ clearTimeout(saveTimer); saveTimer=setTimeout(function(){saveState(false);},220); }
+      function autoSave(){ clearTimeout(saveTimer); saveTimer=setTimeout(function(){saveState(false);},60); }
       function toast(message){
         var el=document.getElementById("toast"); el.textContent=message; el.classList.add("show");
         clearTimeout(window.__toastTimer); window.__toastTimer=setTimeout(function(){el.classList.remove("show");},1900);
@@ -3647,7 +3684,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(backdrop)backdrop.addEventListener("click",function(e){if(e.target===backdrop)closeModal();});
         if(close)close.addEventListener("click",closeModal);
         if(logout)logout.addEventListener("click",async function(){
-          try{if(localMode)localLogout();else await cloud.logout();}catch(_){}
+          try{if(localMode)localLogout();else await cloud.logout();clearCachedCloudUser();}catch(_){}
           currentUser=null;cloudReady=false;
           try{localStorage.removeItem(STORAGE_KEY);sessionStorage.removeItem("bsm-report-cloud-version");}catch(_){}
           closeModal();updateAccountUi();showAuthGate("Silakan login kembali.","login");
@@ -3841,8 +3878,32 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         clearCloudRetry();
         cloudRetryTimer=setTimeout(function(){initializeCloud();},Math.max(15000,Number(delayMs||60000)));
       }
+      async function syncRemoteStateFast(reloadOnChange){
+        if(!cloudReady||!cloud||!hasPermission("data.read"))return;
+        try{
+          var remote=await cloud.getState();
+          remoteVersion=Number(remote.version||remoteVersion||0);
+          var applied="";
+          try{applied=sessionStorage.getItem("bsm-report-cloud-version")||"";}catch(_){}
+          if(remote.exists&&remote.state&&String(remoteVersion)!==applied){
+            localStorage.setItem(STORAGE_KEY,JSON.stringify(remote.state));
+            try{sessionStorage.setItem("bsm-report-cloud-version",String(remoteVersion));}catch(_){}
+            if(reloadOnChange&&!window.__bsmCloudReloading){
+              window.__bsmCloudReloading=true;
+              setTimeout(function(){location.reload();},30);
+            }
+          }else if(!remote.exists&&hasPermission("data.write")){
+            persistRemoteState(false,false);
+          }
+          if(dbStatus)dbStatus.textContent="SQL tersambung";
+        }catch(err){
+          if(Number(err&&err.status||0)===401){
+            cloudReady=false;currentUser=null;clearCachedCloudUser();if(cloud)cloud.setToken("");clearCachedCloudUser();updateAccountUi();showAuthGate("Sesi habis. Silakan login kembali.");
+          }else if(dbStatus)dbStatus.textContent="SQL tersambung • mencoba sinkron";
+        }
+      }
       async function initializeCloud(){
-        var authenticatedSession=false;
+        var hadCachedSession=!!(currentUser&&cloud&&cloud.getToken&&cloud.getToken());
         if(!cloud){
           cloudConfigured=false;cloudReady=false;currentUser=null;updateAccountUi();
           if(dbStatus)dbStatus.textContent="SQL tidak tersedia";
@@ -3850,87 +3911,61 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           return;
         }
         try{
+          var token=cloud.getToken();
+          if(token){
+            if(dbStatus)dbStatus.textContent="Memulihkan login...";
+            var me=await cloud.me();
+            currentUser=me.user||currentUser||null;
+            if(!currentUser)throw Object.assign(new Error("Sesi login tidak valid"),{status:401});
+            cacheCloudUser(currentUser);
+            cloudConfigured=true;cloudReady=true;updateAccountUi();clearCloudRetry();hideAuthGate();
+            if(!canOpenPage(activeMenu)){
+              if(hasPermission("accounts.manage"))activeMenu="users";
+              else if(hasPermission("preview.view"))activeMenu="preview";
+              else if(hasPermission("reports.list"))activeMenu="types";
+              else if(hasPermission("input.manual"))activeMenu="table";
+              else if(hasPermission("settings.manage"))activeMenu="settings";
+            }
+            renderAll();showPage(activeMenu);
+            if(dbStatus)dbStatus.textContent="SQL tersambung";
+            syncRemoteStateFast(true);
+            if(currentUser&&currentUser.mustChangePassword)setTimeout(openAccountModal,250);
+            return;
+          }
+
           if(dbStatus)dbStatus.textContent="Memeriksa SQL...";
           var health=await cloud.health();
           cloudConfigured=!!(health&&health.configured&&health.database);
+          cloudReady=false;currentUser=null;updateAccountUi();
           if(!cloudConfigured){
-            cloudReady=false;currentUser=null;localMode=false;updateAccountUi();
             if(dbStatus)dbStatus.textContent="SQL Offline";
-            showAuthGate("Database online belum siap. Sistem tidak dapat dibuka dalam mode lokal.","login");
+            showAuthGate("Database online belum siap. Sistem mencoba kembali otomatis.","login");
+            scheduleCloudRetry(3000);
             return;
           }
           if(!health.adminConfigured){
-            localMode=false;cloudReady=false;currentUser=null;updateAccountUi();
             if(dbStatus)dbStatus.textContent="Database Online";
             showAuthGate("Akun Super Admin belum diaktifkan pada server.");
             return;
           }
-          if(!cloud.getToken()){
-            cloudReady=false;currentUser=null;updateAccountUi();
-            if(dbStatus)dbStatus.textContent="SQL perlu login";
-            showAuthGate("");
-            return;
-          }
-          if(dbStatus)dbStatus.textContent="Menghubungkan SQL...";
-          var me=await cloud.me();
-          currentUser=me.user||null;
-          authenticatedSession=!!currentUser;
-          cloudReady=true;
-          updateAccountUi();
-          var remote={exists:false,state:null,version:0};
-          if(hasPermission("data.read")){
-            remote=await cloud.getState();
-            remoteVersion=Number(remote.version||0);
-            var applied="";
-            try{applied=sessionStorage.getItem("bsm-report-cloud-version")||"";}catch(_){}
-            if(remote.exists&&remote.state&&String(remoteVersion)!==applied){
-              localStorage.setItem(STORAGE_KEY,JSON.stringify(remote.state));
-              try{sessionStorage.setItem("bsm-report-cloud-version",String(remoteVersion));}catch(_){}
-              location.reload();
-              return;
-            }
-            if(!remote.exists&&hasPermission("data.write")){
-              await persistRemoteState(false,false);
-            }else if(remote.exists){
-              try{sessionStorage.setItem("bsm-report-cloud-version",String(remoteVersion));}catch(_){}
-            }
-          }
-          clearCloudRetry();
-          hideAuthGate();
-          if(dbStatus)dbStatus.textContent="SQL tersambung";
-          if(!canOpenPage(activeMenu)){
-            if(hasPermission("accounts.manage"))activeMenu="users";
-            else if(hasPermission("preview.view"))activeMenu="preview";
-            else if(hasPermission("reports.list"))activeMenu="types";
-            else if(hasPermission("input.manual"))activeMenu="table";
-            else if(hasPermission("settings.manage"))activeMenu="settings";
-          }
-          renderAll();
-          showPage(activeMenu);
-          if(currentUser&&currentUser.mustChangePassword)setTimeout(openAccountModal,250);
+          if(dbStatus)dbStatus.textContent="SQL siap login";
+          showAuthGate("");
         }catch(err){
           var status=Number(err&&err.status||0);
           if(status===401){
-            cloudReady=false;currentUser=null;updateAccountUi();
-            clearCloudRetry();
-            if(cloud)cloud.setToken("");
+            cloudReady=false;currentUser=null;clearCachedCloudUser();updateAccountUi();clearCloudRetry();
+            if(cloud)cloud.setToken("");clearCachedCloudUser();
             if(dbStatus)dbStatus.textContent="SQL perlu login";
             showAuthGate("Sesi habis. Silakan login kembali.");
-          }else if(authenticatedSession&&currentUser&&cloud&&cloud.getToken()){
-            cloudReady=true;updateAccountUi();hideAuthGate();
-            if(dbStatus)dbStatus.textContent="SQL tersambung • sinkronisasi tertunda";
-            scheduleCloudRetry(60000);renderAll();showPage(activeMenu);
-            console.warn("Authenticated session kept; SQL sync will retry",err);
-          }else if(status===402){
-            cloudReady=false;updateAccountUi();
-            if(dbStatus)dbStatus.textContent="SQL pause sementara";
-            showAuthGate("Backend database sedang pause. Sesi login tersimpan dan sistem mencoba tersambung kembali otomatis.","login");
-            scheduleCloudRetry(60000);console.warn("SQL backend temporarily paused",err);
+          }else if(hadCachedSession&&currentUser&&cloud.getToken()){
+            cloudConfigured=true;cloudReady=true;updateAccountUi();hideAuthGate();
+            if(dbStatus)dbStatus.textContent="SQL tersambung • mencoba ulang";
+            scheduleCloudRetry(3000);renderAll();showPage(activeMenu);
           }else{
             cloudReady=false;updateAccountUi();
-            if(dbStatus)dbStatus.textContent="SQL tidak dapat dihubungi";
-            showAuthGate("Database online sedang tidak dapat dihubungi. Sesi login tidak dihapus dan sistem mencoba kembali otomatis.","login");
-            scheduleCloudRetry(60000);console.warn("SQL sync unavailable",err);
+            if(dbStatus)dbStatus.textContent="SQL mencoba koneksi...";
+            showAuthGate("Koneksi database sedang dicoba ulang. Sesi login tidak dihapus.","login");
+            scheduleCloudRetry(3000);
           }
         }
       }
@@ -4612,8 +4647,14 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           if(!cloud||!cloudConfigured){showAuthGate("Database online belum siap. Sistem tetap dikunci.","login");return;}
           var result=await cloud.login(authUsername.value,authPassword.value);
           currentUser=result.user||null;
-          try{sessionStorage.removeItem("bsm-report-cloud-version");localStorage.removeItem(STORAGE_KEY);}catch(_){}
-          await initializeCloud();
+          if(!currentUser)throw new Error("Login berhasil tetapi data akun tidak diterima");
+          cacheCloudUser(currentUser);
+          cloudConfigured=true;cloudReady=true;updateAccountUi();clearCloudRetry();hideAuthGate();
+          authPassword.value="";
+          if(!canOpenPage(activeMenu))activeMenu="preview";
+          renderAll();showPage(activeMenu);
+          if(dbStatus)dbStatus.textContent="SQL tersambung";
+          syncRemoteStateFast(true);
         }catch(err){showAuthGate(err&&err.message?err.message:"Login gagal");}
         finally{authSubmit.disabled=false;authSubmit.textContent="Masuk";}
       });
@@ -4656,6 +4697,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
     
       renderAll();
       updateAccountUi();
+      activateCachedSession();
       if("serviceWorker" in navigator){
         window.addEventListener("load",function(){navigator.serviceWorker.register("/report-gudang-sw.js").catch(function(){});});
       }
@@ -4675,7 +4717,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             location.reload();
           }
         }catch(_){}
-      },30000);
+      },3000);
       initializeCloud();
       try{
         var params=new URLSearchParams(window.location.search);
@@ -4686,4 +4728,4 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <!-- auth-scope-v2 -->
 </body>
 <!-- status-sort-tristate-cache-v24 -->
-<!-- report-gudang-build-v54-table-layout-login-stable-cache29</html>
+<!-- report-gudang-build-v55-fast-sql-login-cache30</html>
