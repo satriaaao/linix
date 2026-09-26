@@ -45,6 +45,7 @@ jobs:
           node signage-cms-db.test.cjs
 
       - name: Provision free Neon database if missing
+        continue-on-error: true
         run: |
           set -e
           RESOURCES="$(vercel integration list --integration neon --format=json --token="${{ secrets.VERCEL_TOKEN }}" 2>/dev/null || echo '{"resources":[]}')"
