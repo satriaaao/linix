@@ -39,6 +39,7 @@ jobs:
           node tests/promo-asset-routing-20260919.test.js
           node signage-lib.test.cjs
           node drive-folder-lib.test.cjs
+          node drive-video-lib.test.cjs
 
       - name: Pull Vercel project settings
         run: vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
