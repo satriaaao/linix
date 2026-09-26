@@ -12,4 +12,6 @@ assert.equal(manifest.display,'standalone');
 assert.equal(manifest.orientation,'portrait');
 assert.ok(html.includes('preload="auto"'),'video harus preload untuk transisi cepat');
 assert.ok(html.includes('preloadNext()'),'video berikutnya harus dipreload');
+assert.ok(html.includes('signage-config'),'monitor harus membaca playlist dari database');
+assert.ok(html.includes('setInterval'),'monitor harus sinkron otomatis saat database berubah');
 console.log('signage display seamless tests passed');
