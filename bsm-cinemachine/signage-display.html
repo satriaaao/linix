@@ -35,6 +35,7 @@ const empty=document.getElementById('empty');
 
 const AUTOPLAY_RETRY_MS=400;
 const SYNC_INTERVAL_MS=1000;
+const DRIVE_FOLDER_SYNC_MS=5000;
 const PLAYBACK_WATCHDOG_MS=1000;
 const STALL_RECOVERY_MS=3500;
 const PRE_SWITCH_SECONDS=0.35;
@@ -50,6 +51,7 @@ let standbyIndex=-1;
 let swapping=false;
 let autoplayTimer=null;
 let syncBusy=false;
+let driveFolderSyncBusy=false;
 let watchdogTimer=null;
 let stallTimer=null;
 let wakeLock=null;
@@ -385,6 +387,72 @@ async function fetchDatabaseConfig(){
     return S.normalizeConfig(data.config);
   }catch(_){return null}
 }
+async function fetchDriveFolderVideos(){
+  const folderUrl=String(config?.folderUrl||'').trim();
+  if(!folderUrl)return null;
+  try{
+    const r=await fetch('/api/cms?asset=drive-folder&url='+encodeURIComponent(folderUrl)+'&_='+Date.now(),{
+      cache:'no-store',
+      credentials:'same-origin'
+    });
+    const data=await r.json();
+    if(!r.ok||!data.ok||!Array.isArray(data.videos))throw new Error(data.message||'Folder tidak tersedia');
+    return data.videos;
+  }catch(_){return null}
+}
+function mergeFolderVideos(folderVideos){
+  if(!Array.isArray(folderVideos)||!folderVideos.length)return 0;
+  const previousConfig=config;
+  const merged=[...(config.videos||[])];
+  const existing=new Set(merged.map(videoKey).filter(Boolean));
+  let newestIndex=-1;
+  let added=0;
+
+  for(const v of folderVideos){
+    const item={
+      id:String(v.id||S.extractDriveFileId(v.driveUrl)||('drive-'+Date.now()+'-'+added)),
+      title:String(v.title||('Video '+(merged.length+1))),
+      driveUrl:String(v.driveUrl||''),
+      src:String(v.src||''),
+      fit:v.fit==='contain'?'contain':'cover',
+      enabled:v.enabled!==false
+    };
+    const key=videoKey(item);
+    if(!key||existing.has(key))continue;
+    existing.add(key);
+    merged.push(item);
+    newestIndex=merged.length-1;
+    added++;
+  }
+
+  if(!added)return 0;
+
+  config=S.normalizeConfig({
+    ...config,
+    videos:merged,
+    updatedAt:Number(previousConfig.updatedAt||Date.now())
+  });
+
+  try{localStorage.setItem(S.STORAGE_KEY,JSON.stringify(config))}catch(_){}
+
+  hideEmpty();
+  if(newestIndex>=0){
+    activateIndex(newestIndex,true);
+  }else{
+    preloadNext();
+  }
+  return added;
+}
+async function syncDriveFolder(){
+  if(previewMode||driveFolderSyncBusy||!config?.folderUrl)return;
+  driveFolderSyncBusy=true;
+  try{
+    const videos=await fetchDriveFolderVideos();
+    if(videos)mergeFolderVideos(videos);
+  }finally{
+    driveFolderSyncBusy=false;
+  }
+}
 async function syncNow(){
   if(previewMode||syncBusy)return;
   syncBusy=true;
@@ -411,6 +479,8 @@ async function bootDisplay(){
     if(remote)config=remote;
     start(0);
     setInterval(syncNow,SYNC_INTERVAL_MS);
+    setTimeout(syncDriveFolder,1200);
+    setInterval(syncDriveFolder,DRIVE_FOLDER_SYNC_MS);
   }
   watchdogTimer=setInterval(watchdog,PLAYBACK_WATCHDOG_MS);
   requestWakeLock();
@@ -421,10 +491,11 @@ document.addEventListener('visibilitychange',()=>{
     requestWakeLock();
     tryPlay(active);
     syncNow();
+    syncDriveFolder();
   }
 });
 window.addEventListener('pageshow',()=>{requestWakeLock();tryPlay(active);syncNow()});
-window.addEventListener('online',()=>{tryPlay(active);syncNow()});
+window.addEventListener('online',()=>{tryPlay(active);syncNow();syncDriveFolder()});
 
 window.addEventListener('storage',e=>{
   if(e.key===S.STORAGE_KEY&&!previewMode){
