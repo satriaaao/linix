@@ -1,7 +1,8 @@
 <!doctype html>
 <html lang="id">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>BSM Digital Signage CMS</title>
 <style>
 :root{font-family:Inter,system-ui,-apple-system,sans-serif;color:#eef2ff;background:#090b10}
@@ -16,86 +17,215 @@ input,select,button{font:inherit}input,select{width:100%;background:#0b0f17;bord
 button{border:0;border-radius:11px;padding:10px 14px;font-weight:700;cursor:pointer;background:#e2e8f0;color:#0f172a}.primary{background:#38bdf8}.danger{background:#3b1720;color:#fecdd3}.ghost{background:#1c2535;color:#dbeafe}
 .video{display:grid;grid-template-columns:38px 1fr auto;gap:12px;align-items:center;padding:12px 0;border-top:1px solid #263147}.video:first-child{border-top:0}.num{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:#1f2937}.meta{min-width:0}.meta b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.meta small{color:#7f8da4}.actions{display:flex;gap:5px}.actions button{padding:7px 9px}
 .previewWrap{display:grid;place-items:center;background:#05070b;border-radius:15px;padding:16px;min-height:580px}.phone{width:min(100%,320px);aspect-ratio:9/16;border:8px solid #1f2937;border-radius:26px;overflow:hidden;background:#000;box-shadow:0 30px 60px #0009}.phone iframe{width:100%;height:100%;border:0}
-.notice{font-size:12px;line-height:1.5;color:#94a3b8;background:#0b1018;border:1px dashed #2b3a51;padding:11px;border-radius:10px;margin-top:12px}
-.empty{text-align:center;color:#6b7280;padding:30px 10px}
-@media(max-width:900px){main{grid-template-columns:1fr}.previewWrap{min-height:auto}.phone{max-width:280px}}
+.notice{font-size:12px;line-height:1.5;color:#94a3b8;background:#0b1018;border:1px dashed #2b3a51;padding:11px;border-radius:10px;margin-top:12px}.empty{text-align:center;color:#6b7280;padding:30px 10px}
+.dbrow{display:flex;align-items:center;justify-content:space-between;gap:12px}.dot{width:9px;height:9px;border-radius:50%;display:inline-block;background:#64748b;margin-right:7px}.dot.ok{background:#22c55e}.dot.bad{background:#ef4444}
+#gate{position:fixed;inset:0;z-index:100;background:#05070bf2;display:grid;place-items:center;padding:20px}
+.gatecard{width:min(100%,420px);background:#101520;border:1px solid #283349;border-radius:22px;padding:22px;box-shadow:0 30px 80px #000a}
+.gatecard h2{font-size:22px}.muted{color:#94a3b8;font-size:13px;line-height:1.5}.hidden{display:none!important}
+#changePanel{margin-top:14px;padding-top:14px;border-top:1px solid #263147}
+@media(max-width:900px){main{grid-template-columns:1fr}.previewWrap{min-height:auto}.phone{max-width:280px}.row{grid-template-columns:1fr}}
 </style>
-<script src="/signage-lib.js?v=20260926-2052"></script>
+<script src="/signage-lib.js?v=20260926-2115"></script>
 </head>
 <body>
-<header><div class="brand">BSM <span>Digital Signage</span></div><div class="status" id="saved">Belum ada perubahan</div></header>
-<main>
+<div id="gate">
+  <div class="gatecard">
+    <h2 id="gateTitle">Memeriksa database...</h2>
+    <div class="muted" id="gateText">Mohon tunggu sebentar.</div>
+    <div id="setupFields" class="hidden">
+      <label>Password Admin Baru</label>
+      <input id="setupPass" type="password" autocomplete="new-password" placeholder="Minimal 8 karakter">
+      <label>Ulangi Password</label>
+      <input id="setupPass2" type="password" autocomplete="new-password" placeholder="Ulangi password">
+      <button class="primary" id="setupBtn" style="width:100%;margin-top:14px">Buat Password & Aktifkan CMS</button>
+    </div>
+    <div id="loginFields" class="hidden">
+      <label>Password Admin</label>
+      <input id="loginPass" type="password" autocomplete="current-password" placeholder="Masukkan password">
+      <button class="primary" id="loginBtn" style="width:100%;margin-top:14px">Masuk CMS</button>
+    </div>
+    <div id="dbMissing" class="hidden notice">Database SQL belum terhubung ke Vercel. Hubungkan PostgreSQL lalu isi <b>SIGNAGE_DATABASE_URL</b>, <b>DATABASE_URL</b>, atau <b>POSTGRES_URL</b>.</div>
+  </div>
+</div>
+
+<header><div class="brand">BSM <span>Digital Signage</span></div><div class="status" id="saved">Database</div></header>
+<main id="app" class="hidden">
 <section>
 <div class="card">
+<h2>Database & Keamanan</h2>
+<div class="dbrow"><div><span id="dbDot" class="dot"></span><b id="dbState">Memeriksa...</b><div class="muted" id="dbUpdated"></div></div><div class="buttons" style="margin:0"><button class="ghost" id="changeBtn">Ganti Password</button><button class="danger" id="logoutBtn">Logout</button></div></div>
+<div id="changePanel" class="hidden">
+  <div class="row">
+    <div><label>Password Lama</label><input id="oldPass" type="password" autocomplete="current-password"></div>
+    <div><label>Password Baru</label><input id="newPass" type="password" autocomplete="new-password" placeholder="Minimal 8 karakter"></div>
+  </div>
+  <div class="buttons"><button class="primary" id="changeSave">Simpan Password Baru</button><button class="ghost" id="changeCancel">Batal</button></div>
+</div>
+</div>
+
+<div class="card" style="margin-top:20px">
 <h2>Tambah Video / Folder Google Drive</h2>
 <div class="row"><div><label>Nama video</label><input id="title" placeholder="Promo Kamera September"></div><div><label>Mode tampilan</label><select id="fit"><option value="cover">Fill / Cover</option><option value="contain">Fit / Contain</option></select></div></div>
 <label>Link File atau Folder Google Drive</label><input id="drive" placeholder="https://drive.google.com/drive/folders/... atau https://drive.google.com/file/d/.../view">
-<div class="buttons"><button class="primary" id="add">Baca Link & Tambah</button><button class="ghost" id="sample">Isi Contoh Folder</button></div><div id="folderStatus" class="notice" style="display:none"></div>
-<div class="notice">Bisa paste <b>link folder Google Drive</b> langsung. Semua video di dalam folder akan dibaca otomatis. Pastikan folder disetel <b>Anyone with the link / Siapa saja yang memiliki link</b>.</div>
+<div class="buttons"><button class="primary" id="add">Baca Link & Tambah</button><button class="ghost" id="sample">Contoh Format</button></div><div id="folderStatus" class="notice hidden"></div>
+<div class="notice">Paste link <b>folder Google Drive</b>. Semua video di folder akan dibaca otomatis. Folder harus disetel <b>Anyone with the link / Siapa saja yang memiliki link</b>.</div>
 </div>
+
 <div class="card" style="margin-top:20px">
 <div class="row"><div><label>Nama monitor</label><input id="name" value="Standing Lobby"></div><div><label>Orientasi</label><select id="orientation"><option value="portrait">Standing 9:16</option><option value="landscape">Landscape 16:9</option></select></div></div>
 <h3 style="margin-top:18px">Playlist</h3><div id="list"></div>
-<div class="buttons"><button class="primary" id="save">Simpan Playlist</button><button class="ghost" id="copy">Copy Link Monitor</button><button class="ghost" id="open">Buka Fullscreen</button><button class="danger" id="clear">Kosongkan</button></div>
+<div class="buttons"><button class="primary" id="save">Simpan ke Database</button><button class="ghost" id="copy">Copy Link Monitor</button><button class="ghost" id="open">Buka Fullscreen</button><button class="danger" id="clear">Kosongkan</button></div>
 </div>
 </section>
 <section class="card"><h2>Preview Monitor</h2><div class="previewWrap"><div class="phone" id="frameBox"><iframe id="preview" title="Preview signage"></iframe></div></div></section>
 </main>
+
 <script>
-const S=window.BSMSignage; let config=S.load();
+const S=window.BSMSignage;
 const $=id=>document.getElementById(id);
-function syncForm(){ $('name').value=config.name||'Standing Lobby'; $('orientation').value=config.orientation||'portrait'; }
-function monitorUrl(){ const base=location.origin+'/display'; return base+'#'+S.encodeConfig({...config,name:$('name').value,orientation:$('orientation').value}); }
+let config=S.load();
+let dbStatus=null;
+
+function previewUrl(){
+  return location.origin+'/display#'+S.encodeConfig({...config,name:$('name').value||config.name,orientation:$('orientation').value});
+}
+function monitorUrl(){return location.origin+'/display'}
+function formatDate(v){
+  if(!v)return 'Belum ada data tersimpan';
+  try{return 'Terakhir disimpan: '+new Date(v).toLocaleString('id-ID')}catch(_){return ''}
+}
+async function api(asset,options={}){
+  const r=await fetch('/api/cms?asset='+encodeURIComponent(asset),{cache:'no-store',credentials:'same-origin',...options,headers:{'Content-Type':'application/json',...(options.headers||{})}});
+  let data={};
+  try{data=await r.json()}catch(_){}
+  if(!r.ok||data.ok===false){
+    const e=new Error(data.message||('HTTP '+r.status));e.status=r.status;e.code=data.code;throw e;
+  }
+  return data;
+}
+function setGate(mode,message){
+  $('setupFields').classList.toggle('hidden',mode!=='setup');
+  $('loginFields').classList.toggle('hidden',mode!=='login');
+  $('dbMissing').classList.toggle('hidden',mode!=='missing');
+  $('gateTitle').textContent=mode==='setup'?'Buat Password Admin':mode==='login'?'Login Digital Signage':mode==='missing'?'Database Belum Terhubung':'Memeriksa database...';
+  $('gateText').textContent=message||'';
+}
+async function boot(){
+  $('gate').classList.remove('hidden');$('app').classList.add('hidden');
+  try{
+    dbStatus=await api('signage-db-status',{method:'GET',headers:{}});
+    if(!dbStatus.connected){setGate('missing',dbStatus.message||'Database SQL belum bisa diakses.');return}
+    if(dbStatus.setupRequired){setGate('setup','Buat password pertama untuk mengamankan CMS. Password disimpan dalam bentuk hash.');return}
+    if(!dbStatus.authenticated){setGate('login','Masukkan password admin untuk mengatur playlist.');return}
+    await enterApp();
+  }catch(e){setGate('missing',e.message||'Database tidak bisa diakses.')}
+}
+async function enterApp(){
+  const data=await api('signage-config',{method:'GET',headers:{}});
+  config=S.normalizeConfig(data.config||{});
+  S.save(config);
+  $('name').value=config.name||'Standing Lobby';
+  $('orientation').value=config.orientation||'portrait';
+  $('gate').classList.add('hidden');$('app').classList.remove('hidden');
+  $('dbDot').className='dot ok';$('dbState').textContent='PostgreSQL Terhubung';
+  $('dbUpdated').textContent=formatDate(config.updatedAt||dbStatus?.updatedAt);
+  render();
+}
 function render(){
   config=S.normalizeConfig({...config,name:$('name').value||config.name,orientation:$('orientation').value});
-  const list=$('list'); list.innerHTML='';
-  if(!config.videos.length) list.innerHTML='<div class="empty">Belum ada video.</div>';
+  const list=$('list');list.innerHTML='';
+  if(!config.videos.length)list.innerHTML='<div class="empty">Belum ada video.</div>';
   config.videos.forEach((v,i)=>{
     const el=document.createElement('div');el.className='video';
     el.innerHTML='<div class="num">'+(i+1)+'</div><div class="meta"><b></b><small></small></div><div class="actions"><button class="ghost" data-up>↑</button><button class="ghost" data-down>↓</button><button class="danger" data-del>×</button></div>';
-    el.querySelector('b').textContent=v.title; el.querySelector('small').textContent=(S.extractDriveFileId(v.driveUrl)?'Google Drive':'URL video')+' • '+v.fit;
-    el.querySelector('[data-up]').onclick=()=>move(i,-1); el.querySelector('[data-down]').onclick=()=>move(i,1); el.querySelector('[data-del]').onclick=()=>{config.videos.splice(i,1);render()};
+    el.querySelector('b').textContent=v.title;
+    el.querySelector('small').textContent=(S.extractDriveFileId(v.driveUrl)?'Google Drive':'URL video')+' • '+v.fit;
+    el.querySelector('[data-up]').onclick=()=>move(i,-1);
+    el.querySelector('[data-down]').onclick=()=>move(i,1);
+    el.querySelector('[data-del]').onclick=()=>{config.videos.splice(i,1);render()};
     list.appendChild(el);
   });
-  const u=monitorUrl(); $('preview').src=u; $('frameBox').style.aspectRatio=config.orientation==='landscape'?'16/9':'9/16';
+  $('preview').src=previewUrl();
+  $('frameBox').style.aspectRatio=config.orientation==='landscape'?'16/9':'9/16';
 }
-function move(i,d){const j=i+d;if(j<0||j>=config.videos.length)return;[config.videos[i],config.videos[j]]=[config.videos[j],config.videos[i]];render()}
+function move(i,d){
+  const j=i+d;if(j<0||j>=config.videos.length)return;
+  [config.videos[i],config.videos[j]]=[config.videos[j],config.videos[i]];render();
+}
 async function addDriveSource(){
   const title=$('title').value.trim(),driveUrl=$('drive').value.trim(),fit=$('fit').value,btn=$('add'),status=$('folderStatus');
   if(!driveUrl)return alert('Masukkan link Google Drive.');
   if(S.isDriveFolderUrl(driveUrl)){
-    btn.disabled=true;btn.textContent='Membaca folder...';status.style.display='block';status.textContent='Sedang membaca video dari folder Google Drive...';
+    btn.disabled=true;btn.textContent='Membaca folder...';status.classList.remove('hidden');status.textContent='Sedang membaca folder Google Drive...';
     try{
-      const r=await fetch('/api/cms?asset=drive-folder&url='+encodeURIComponent(driveUrl),{cache:'no-store'});
-      const data=await r.json();
-      if(!r.ok||!data.ok)throw new Error(data.message||'Folder tidak bisa dibaca');
+      const data=await api('drive-folder&url='+encodeURIComponent(driveUrl),{method:'GET',headers:{}});
       const existing=new Set(config.videos.map(v=>S.extractDriveFileId(v.driveUrl)||v.id));
       let added=0;
       (data.videos||[]).forEach(v=>{
-        const key=S.extractDriveFileId(v.driveUrl)||v.id;
-        if(existing.has(key))return;
+        const key=S.extractDriveFileId(v.driveUrl)||v.id;if(existing.has(key))return;
         existing.add(key);added++;
         config.videos.push({id:v.id||('vid-'+Date.now()+'-'+added),title:v.title||('Video '+(config.videos.length+1)),driveUrl:v.driveUrl,fit,enabled:true});
       });
       config.folderUrl=driveUrl;
       status.textContent=(data.totalVideos||0)+' video ditemukan • '+added+' video baru ditambahkan';
       $('title').value='';render();
-    }catch(e){
-      status.textContent='Gagal membaca folder: '+String(e.message||e);
-      alert('Folder belum bisa dibaca. Pastikan aksesnya "Siapa saja yang memiliki link".');
-    }finally{btn.disabled=false;btn.textContent='Baca Link & Tambah'}
+    }catch(e){status.textContent='Gagal membaca folder: '+e.message}
+    finally{btn.disabled=false;btn.textContent='Baca Link & Tambah'}
     return;
   }
   if(!S.extractDriveFileId(driveUrl)&&!/^https?:\/\//i.test(driveUrl))return alert('Link video tidak valid.');
   config.videos.push({id:'vid-'+Date.now(),title:title||('Video '+(config.videos.length+1)),driveUrl,fit,enabled:true});
   $('title').value='';$('drive').value='';render();
 }
+async function saveDb(){
+  const btn=$('save');btn.disabled=true;btn.textContent='Menyimpan...';
+  try{
+    const payload=S.normalizeConfig({...config,name:$('name').value,orientation:$('orientation').value});
+    const data=await api('signage-config',{method:'PUT',body:JSON.stringify({config:payload})});
+    config=S.normalizeConfig(data.config||payload);S.save(config);
+    $('saved').textContent='Tersimpan ke database';
+    $('dbUpdated').textContent=formatDate(config.updatedAt);
+    render();
+  }catch(e){
+    if(e.status===401){alert('Sesi habis. Silakan login ulang.');return boot()}
+    alert(e.message||'Gagal menyimpan ke database');
+  }finally{btn.disabled=false;btn.textContent='Simpan ke Database'}
+}
+$('setupBtn').onclick=async()=>{
+  const a=$('setupPass').value,b=$('setupPass2').value;
+  if(a.length<8)return alert('Password minimal 8 karakter.');
+  if(a!==b)return alert('Ulangi password tidak sama.');
+  $('setupBtn').disabled=true;
+  try{await api('signage-setup',{method:'POST',body:JSON.stringify({password:a})});await boot()}
+  catch(e){alert(e.message)}
+  finally{$('setupBtn').disabled=false}
+};
+$('loginBtn').onclick=async()=>{
+  const p=$('loginPass').value;if(!p)return;
+  $('loginBtn').disabled=true;
+  try{await api('signage-login',{method:'POST',body:JSON.stringify({password:p})});$('loginPass').value='';await boot()}
+  catch(e){alert(e.message)}
+  finally{$('loginBtn').disabled=false}
+};
+$('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')$('loginBtn').click()});
+$('logoutBtn').onclick=async()=>{try{await api('signage-logout',{method:'POST',body:'{}'})}catch(_){}await boot()};
+$('changeBtn').onclick=()=>$('changePanel').classList.remove('hidden');
+$('changeCancel').onclick=()=>$('changePanel').classList.add('hidden');
+$('changeSave').onclick=async()=>{
+  const oldPassword=$('oldPass').value,newPassword=$('newPass').value;
+  if(newPassword.length<8)return alert('Password baru minimal 8 karakter.');
+  try{
+    await api('signage-change-password',{method:'POST',body:JSON.stringify({currentPassword:oldPassword,newPassword})});
+    $('oldPass').value='';$('newPass').value='';$('changePanel').classList.add('hidden');alert('Password berhasil diganti.');
+  }catch(e){alert(e.message)}
+};
 $('add').onclick=addDriveSource;
-$('sample').onclick=()=>{$('title').value='';$('drive').value='https://drive.google.com/drive/u/0/mobile/folders/1yPsaDytDE33lPsbgyK_EjRx9SxzNsPrR?usp=sharing'};
-$('save').onclick=()=>{config=S.save({...config,name:$('name').value,orientation:$('orientation').value});$('saved').textContent='Tersimpan '+new Date().toLocaleTimeString('id-ID');render()};
+$('sample').onclick=()=>{$('drive').value='https://drive.google.com/drive/folders/FOLDER_ID'};
+$('save').onclick=saveDb;
 $('copy').onclick=async()=>{const u=monitorUrl();try{await navigator.clipboard.writeText(u);alert('Link monitor berhasil disalin.')}catch(_){prompt('Copy link monitor:',u)}};
-$('open').onclick=()=>window.open(monitorUrl(),'_blank');
-$('clear').onclick=()=>{if(confirm('Kosongkan semua video?')){config.videos=[];config.folderUrl='';S.save(config);$('folderStatus').style.display='none';render()}};
-$('name').oninput=render;$('orientation').onchange=render;syncForm();render();
+$('open').onclick=async()=>{await saveDb();window.open(monitorUrl(),'_blank')};
+$('clear').onclick=()=>{if(confirm('Kosongkan semua video?')){config.videos=[];config.folderUrl='';$('folderStatus').classList.add('hidden');render()}};
+$('name').oninput=render;$('orientation').onchange=render;
+boot();
 </script>
 </body></html>
