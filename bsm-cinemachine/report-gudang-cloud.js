@@ -3,12 +3,19 @@
   var TOKEN_KEY='bsm-report-gudang-session';
 
   function getToken(){
-    try{return sessionStorage.getItem(TOKEN_KEY)||'';}catch(_){return '';}
+    try{
+      var token=localStorage.getItem(TOKEN_KEY)||'';
+      if(token)return token;
+      token=sessionStorage.getItem(TOKEN_KEY)||'';
+      if(token){localStorage.setItem(TOKEN_KEY,token);sessionStorage.removeItem(TOKEN_KEY);}
+      return token;
+    }catch(_){return '';}
   }
   function setToken(token){
     try{
-      if(token)sessionStorage.setItem(TOKEN_KEY,String(token));
-      else sessionStorage.removeItem(TOKEN_KEY);
+      if(token)localStorage.setItem(TOKEN_KEY,String(token));
+      else localStorage.removeItem(TOKEN_KEY);
+      sessionStorage.removeItem(TOKEN_KEY);
     }catch(_){}
   }
   function headers(extra){
