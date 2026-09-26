@@ -2351,6 +2351,10 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
               if(!report||!Array.isArray(report.products)||rowIndex<0||rowIndex>=report.products.length||!Number.isInteger(monthIndex))return;
               var row=report.products[rowIndex],raw=String(this.textContent||"").trim();
               row.growthOverrides=row.growthOverrides&&typeof row.growthOverrides==="object"&&!Array.isArray(row.growthOverrides)?row.growthOverrides:{};
+              var hasOverride=Object.prototype.hasOwnProperty.call(row.growthOverrides,monthIndex);
+              var values=Array.isArray(row.values)?row.values:[];
+              var currentGrowth=window.BSMITProducts.growth(values[monthIndex-1],values[monthIndex],hasOverride?row.growthOverrides[monthIndex]:null);
+              if(raw===String(currentGrowth.label||"").trim())return;
               if(!raw||/^auto$/i.test(raw)){
                 delete row.growthOverrides[monthIndex];
                 renderAll();saveState(false);toast("Persen kembali ke hitungan otomatis");return;
