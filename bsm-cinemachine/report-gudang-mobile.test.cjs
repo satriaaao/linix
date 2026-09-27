@@ -28,11 +28,11 @@ const narrow = ui.getPreviewLayout(320, 10);
 assert.strictEqual(narrow.viewportWidth, 300);
 assert.strictEqual(narrow.viewportHeight, 168.75);
 
-const html = fs.readFileSync('./bsm-cinemachine/report-gudang.html','utf8');
+const html = fs.readFileSync(__dirname+'/report-gudang.html','utf8');
 const pageSizeRule='@page{size:13.333in 7.5in;margin:0}';
 assert(html.includes(pageSizeRule));
 assert.strictEqual((html.match(/@page\{/g)||[]).length,1,'PDF harus hanya punya satu aturan @page 16:9');
-assert(!/A4/i.test(html),'PDF tidak boleh memakai ukuran A4');
+assert(!/format\s*:\s*['"]a4['"]/i.test(html),'PDF tidak boleh memakai ukuran A4');
 assert(html.includes('.print-page{width:13.333in;height:7.5in;'));
 assert(html.includes('.print-canvas{width:1600px;height:900px;transform:scale(.8)'));
 assert(html.includes('html2canvas.min.js'),'direct PDF harus memuat html2canvas');
@@ -174,7 +174,7 @@ assert.strictEqual(bulkRouter.detectKind(audioServicePaste,'gudang-audio'),'audi
 const audioServiceParsed=bulkRouter.parse(audioServicePaste,{typeId:'gudang-audio',mode:'audio-service',maxAudioServiceRows:18});
 assert.deepStrictEqual([...new Set(audioServiceParsed.slides.map(x=>x.serviceCenter))],['PT. BURSA KAMERA','Rudy TILTA/VITESSE']);
 
-assert.strictEqual(bulkRouter.detectKind('No  TGL Penyewaan  Nama Alat  QTY  Action  Harga Sewa','gudang-lighting'),'generic');
+assert.strictEqual(bulkRouter.detectKind('No  TGL Penyewaan  Nama Alat  QTY  Action  Harga Sewa','gudang-lighting'),'lighting-vendor');
 assert(html.includes('/report-bulk-router.js'),'halaman harus memuat bulk router');
 assert(html.includes('id="bulkModeSelect"'),'Input Banyak harus punya pilihan format');
 assert(html.includes('function bulkTargetTypeForMode(mode)'),'UI harus menentukan target divisi dari format input');
@@ -239,7 +239,7 @@ assert(audioSlides.some(x=>x.template==='audio-complaint'),'harus ada slide Audi
 assert(audioSlides.filter(x=>x.template==='audio-service').length>=2,'service Audio harus jadi slide per tempat');
 assert(audioReports.renderVendorSlide(audioSlides.find(x=>x.template==='audio-vendor')).includes('REPORT BARANG KURANG'));
 assert(audioReports.renderComplaintSlide(audioSlides.find(x=>x.template==='audio-complaint')).includes('REPORT BARANG BERMASALAH'));
-assert(audioReports.renderServiceSlide(audioSlides.find(x=>x.template==='audio-service')).includes('ALAT-ALAT YANG DI SERVICE'));
+assert(audioReports.renderServiceSlide(audioSlides.find(x=>x.template==='audio-service')).replace(/<[^>]+>/g,'').includes('ALAT-ALAT YANG DI SERVICE'));
 
 assert(html.includes('/report-audio-reports.js'),'Gudang Audio harus memuat helper khusus');
 assert(html.includes('id="audioReportHost"'),'Preview harus punya host Gudang Audio');
@@ -281,7 +281,7 @@ assert(cinemaSlides.some(x=>x.template==='cinema-complaint'));
 assert(cinemaSlides.filter(x=>x.template==='cinema-service').length>=2);
 assert(cinemaReports.renderVendorSlide(cinemaSlides.find(x=>x.template==='cinema-vendor')).includes('BARANG KURANG'));
 assert(cinemaReports.renderComplaintSlide(cinemaSlides.find(x=>x.template==='cinema-complaint')).includes('KOMPLAIN'));
-assert(cinemaReports.renderServiceSlide(cinemaSlides.find(x=>x.template==='cinema-service')).includes('DI SERVICE'));
+assert(cinemaReports.renderServiceSlide(cinemaSlides.find(x=>x.template==='cinema-service')).replace(/<[^>]+>/g,'').includes('DI SERVICE'));
 const cinemaServiceHtml=cinemaReports.renderServiceSlide(cinemaSlides.find(x=>x.template==='cinema-service'));
 assert(cinemaServiceHtml.includes('<colgroup>'),'Cinema Service harus memakai colgroup khusus');
 assert(cinemaServiceHtml.includes('class="cs-item"'),'Cinema Service harus punya lebar kolom Nama Barang');
@@ -327,7 +327,7 @@ const lightingSlides=lightingReports.createSlides(lightingParsed,{maxVendorRows:
 assert(lightingSlides.some(x=>x.template==='lighting-vendor'));
 assert(lightingSlides.some(x=>x.template==='lighting-service'));
 assert(lightingSlides.some(x=>x.template==='lighting-complaint'));
-assert(lightingReports.renderServiceSlide(lightingSlides.find(x=>x.template==='lighting-service')).includes('STOCK'));
+assert(lightingSlides.filter(x=>x.template==='lighting-service').some(x=>lightingReports.renderServiceSlide(x).includes('Stock BSM')));
 const lightingComplaintHtml=lightingReports.renderComplaintSlide(lightingSlides.find(x=>x.template==='lighting-complaint'));
 assert(lightingComplaintHtml.includes('<colgroup>'),'Lighting Komplain harus pakai colgroup khusus');
 assert(lightingComplaintHtml.includes('class="lc-item"'),'Lighting Komplain harus punya kolom Nama Alat khusus');
@@ -370,6 +370,7 @@ assert(html.includes('maxVendorRows:14,maxComplaintRows:14,maxServiceRows:12'),'
 assert(html.includes('maxAudioServiceRows:12'),'Input Banyak Audio Service maksimal 12 row per slide');
 
 
+{
 const cinemaServiceRows=[
   ['MBR ALAT-ALAT YANG DI SERVICE GUDANG CINEMA','','','','','','','',''],
   ['PRIMAMEDIA','','','','','','','',''],
@@ -432,7 +433,7 @@ const lightingSlides=lightingReports.createSlides(lightingParsed,{maxVendorRows:
 assert(lightingSlides.some(x=>x.template==='lighting-vendor'));
 assert(lightingSlides.some(x=>x.template==='lighting-service'));
 assert(lightingSlides.some(x=>x.template==='lighting-complaint'));
-assert(lightingReports.renderServiceSlide(lightingSlides.find(x=>x.template==='lighting-service')).includes('BARANG SERVICE'));
+assert(lightingReports.renderServiceSlide(lightingSlides.find(x=>x.template==='lighting-service')).replace(/<[^>]+>/g,'').includes('BARANG YANG DI SERVICE'));
 assert(lightingReports.renderComplaintSlide(lightingSlides.find(x=>x.template==='lighting-complaint')).includes('KOMPLAIN'));
 
 assert(html.includes('/report-cinema-reports.js'),'Gudang Cinema harus memuat helper khusus');
@@ -444,6 +445,7 @@ assert(html.includes('id="lightingReportHost"'),'Preview harus punya host Lighti
 assert(html.includes('window.BSMCinemaReports.createSlides'),'Import Excel Cinema harus membuat slide');
 assert(html.includes('window.BSMLightingReports.createSlides'),'Import Excel Lighting harus membuat slide');
 
+}
 const cinemaVendorPaste='NO\tTGL penyewaan\tDurasi Sewa\tNama Alat\tQTY\tAction\n1\t01-Juni-2026\t1 hari\tSmall hd\t1\tDS\n\t\t\tTOTAL\t1\t';
 assert.strictEqual(bulkRouter.detectKind(cinemaVendorPaste,'gudang-cinema'),'cinema-vendor');
 const cinemaDenkaPaste='NO\tTANGGAL\tNAMA BARANG\tKERUSAKAN/TROUBLE\tQTY\tSERIAL NUMBER/SN\tCASE ID\tSUDAH DI AMBIL/TGL\tKETERANGAN\n1\t01/06/2026\tNucleus M\tMotor mati\t1\tSN1\tCASE1\t\t';

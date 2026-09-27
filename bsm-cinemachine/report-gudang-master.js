@@ -18,6 +18,7 @@
   function makeSectionCover(type,baseCover){
     type=type||REPORT_TYPES[0];
     var cover=clone(baseCover||{});
+    cover.image='/report-cover-'+type.id+'.jpg';
     cover.mainTitle1='MBR';
     cover.mainTitle2=String(type.label||'REPORT').toUpperCase();
     cover.titleTop1='// PT BLUE STAR MEDIA';
@@ -48,6 +49,10 @@
       if(!src) return;
       defaults[type.id].label=type.label;
       defaults[type.id].cover=Object.assign(makeSectionCover(type,baseCover),clone(src.cover||{}));
+      var image=String(defaults[type.id].cover.image||'');
+      if(!image||image===String((baseCover||{}).image||'')||image==='/report-cover-studio.jpg'||image.indexOf('https://www.arri.com/resource/image/78390/')===0){
+        defaults[type.id].cover.image='/report-cover-'+type.id+'.jpg';
+      }
       defaults[type.id].slides=Array.isArray(src.slides)?clone(src.slides):defaults[type.id].slides;
     });
     return defaults;

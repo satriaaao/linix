@@ -26,13 +26,21 @@
   }
   async function request(op,options){
     options=options||{};
-    var res=await fetch(API_PATH+'?op='+encodeURIComponent(op),{
+    var controller=new AbortController();
+    var timeout=setTimeout(function(){controller.abort();},20000);
+    var res;
+    try{res=await fetch(API_PATH+'?op='+encodeURIComponent(op),{
       method:options.method||'GET',
       headers:headers(options.headers),
       body:options.body==null?undefined:JSON.stringify(options.body),
       cache:'no-store',
-      keepalive:!!options.keepalive
+      keepalive:!!options.keepalive,
+      signal:controller.signal
     });
+    }catch(error){
+      if(error&&error.name==='AbortError')throw new Error('Koneksi database terlalu lama. Perubahan tetap tersimpan di perangkat; coba lagi.');
+      throw error;
+    }finally{clearTimeout(timeout);}
     var data={};
     try{data=await res.json();}catch(_){}
     if(res.status===401)setToken('');

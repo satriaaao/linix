@@ -2,7 +2,7 @@ const assert = require('assert');
 const ui = require('./report-gudang-ui.js');
 
 const sidebar = ui.renderSidebar('preview');
-['slides','cover','bulk','table','preview','downloads','pdf','settings'].forEach(key => {
+['types','master-cover','bulk','table','preview','downloads','pdf','settings','users','account','install'].forEach(key => {
   assert(sidebar.includes('data-menu="'+key+'"'));
 });
 assert(sidebar.includes('class="rg-sidebar-item active"'));

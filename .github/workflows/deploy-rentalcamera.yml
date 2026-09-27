@@ -48,6 +48,7 @@ jobs:
           node report-gudang-cache-version.test.cjs
           node report-gudang-eye-toggle.test.cjs
           node report-gudang-sync.test.cjs
+          node --test report*.test.cjs
 
 
       - name: Pull Vercel project settings

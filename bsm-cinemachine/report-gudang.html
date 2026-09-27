@@ -355,7 +355,7 @@
       background-size:24px 24px;
     }
     .cover-hero{
-      position:absolute;z-index:1;right:0;top:0;width:54%;height:100%;
+      position:absolute;z-index:1;right:0;top:0;width:100%;height:100%;
       background-size:cover;background-position:center;filter:saturate(.82) contrast(1.02);
     }
     .cover-hero:after{
@@ -1557,7 +1557,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-master.js"></script>
   <script src="/report-admin-matrix.js"></script>
   <script src="/report-it-omset.js"></script>
-  <script src="/report-it-products.js?v=62"></script>
+  <script src="/report-it-products.js?v=63"></script>
   <script src="/report-it-products-data.js"></script>
   <script src="/report-camera-vendor.js"></script>
   <script src="/report-camera-reports.js"></script>
@@ -1565,7 +1565,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-cinema-reports.js"></script>
   <script src="/report-lighting-reports.js"></script>
   <script src="/report-crew-reports.js"></script>
-  <script src="/report-manual-sheets.js?v=62"></script>
+  <script src="/report-manual-sheets.js?v=63"></script>
   <script src="/report-bulk-router.js"></script>
   <script src="/report-live-edit.js"></script>
   <script src="/report-slide-fit.js"></script>
@@ -1575,8 +1575,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-export.js"></script>
   <script src="/report-gudang-ui.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
-  <script src="/report-gudang-realtime.js?v=62"></script>
-  <script src="/report-gudang-cloud.js?v=62"></script>
+  <script src="/report-gudang-realtime.js?v=63"></script>
+  <script src="/report-gudang-cloud.js?v=63"></script>
   <script>
     (function(){
       var STORAGE_KEY = "bsm-report-gudang-v2";
@@ -2445,7 +2445,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       if(state.activeView<0||state.activeView>=masterPages().length) state.activeView=0;
     
       function setDbConnectedStatus(){
-        if(dbStatus)dbStatus.textContent=realtimeReady?"SQL Realtime":"SQL tersambung";
+        if(dbStatus)dbStatus.textContent=remoteDirty?"Perubahan belum tersinkron":(realtimeReady?"Database Online • Realtime":"Database Online");
       }
       function stopRealtimeFallback(){
         if(realtimeFallbackTimer){clearInterval(realtimeFallbackTimer);realtimeFallbackTimer=null;}
@@ -2481,7 +2481,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
               stopRealtimeFallback();setDbConnectedStatus();
             }else if(status==="error"||status==="closed"||status==="unavailable"){
               startRealtimeFallback();
-              if(dbStatus)dbStatus.textContent="SQL tersambung • Realtime mencoba ulang";
+              if(dbStatus&&!remoteDirty)dbStatus.textContent="Database Online • sinkron berkala";
             }
           }
         });
@@ -2899,7 +2899,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
 
         Array.prototype.forEach.call(coverEditorHost.querySelectorAll(".cover-input"),function(input){
           input.addEventListener("input",function(){
-            state.cover[this.dataset.coverField]=this.value;renderCoverSlide();autoSave();
+            c[this.dataset.coverField]=this.value;renderCoverSlide();autoSave();
           });
         });
         var imageInput=document.getElementById("coverImageInput");
@@ -3368,6 +3368,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(/^[-+]?\d{1,3}(\.\d{3})+(,\d+)?$/.test(s))s=s.replace(/\./g,"").replace(",",".");
         else if(/^[-+]?\d+(,\d+)$/.test(s))s=s.replace(",",".");
         else s=s.replace(/[^0-9.+-]/g,"");
+        if(!s||!/^[-+]?(?:\d+\.?\d*|\.\d+)$/.test(s))return null;
         var n=Number(s);return Number.isFinite(n)?n:null;
       }
       function compareColumnIsNumeric(col){
@@ -3383,14 +3384,14 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         var vals=[];rows.forEach(function(r){var v=String(r&&r[key]!=null?r[key]:"").trim();if(v&&vals.indexOf(v)<0)vals.push(v);});
         return {numeric:false,value:null,text:vals.slice(0,4).join(" • ")||"—"};
       }
-      function openManualComparison(report,identityKey,identityValue){
+      function openManualComparison(report,identityKey,identityValue,comparisonPeriod){
         var typeId=String(report&&report.reportType||state.activeType),book=state.manualSheets&&state.manualSheets[typeId];
         if(!book){toast("Data pembanding belum tersedia");return;}
         var sheetId=String(report.manualSheetId||""),def=window.BSMManualSheets.sheetDef(typeId,sheetId,book);
         if(!def){toast("Tabel pembanding tidak ditemukan");return;}
         var currentKey=report.manualPeriodKey||String(Number(report.year||2026))+"-"+String(Number(report.month||1)).padStart(2,"0");
         currentKey=window.BSMManualSheets.normalizePeriodKey(currentKey);
-        var previousKey=previousManualPeriodKey(currentKey),target=compareTextKey(identityValue);
+        var previousKey=comparisonPeriod?window.BSMManualSheets.normalizePeriodKey(comparisonPeriod):previousManualPeriodKey(currentKey),target=compareTextKey(identityValue);
         function matched(periodKey){
           return window.BSMManualSheets.dataRows(book,typeId,sheetId,periodKey).filter(function(row){return compareTextKey(row&&row[identityKey])===target;});
         }
@@ -3413,9 +3414,15 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           }else delta="Tetap";
           return '<tr><td><strong>'+esc(col[1])+'</strong></td><td>'+esc(prev.text)+'</td><td>'+esc(curr.text)+'</td><td class="compare-delta '+tone+'">'+esc(delta)+'</td></tr>';
         }).join("");
+        var periodKeys=Object.keys((book.sheets[sheetId]||{}).periodRows||{}).filter(function(key){return key!==currentKey;});
+        if(periodKeys.indexOf(previousKey)<0)periodKeys.push(previousKey);
+        periodKeys.sort();
+        var comparisonPicker='<label class="tiny">Bulan pembanding <select class="control" data-compare-period>'+periodKeys.map(function(key){return '<option value="'+esc(key)+'"'+(key===previousKey?' selected':'')+'>'+esc(window.BSMManualSheets.periodLabel(key))+'</option>';}).join('')+'</select></label>';
         var prevLabel=window.BSMManualSheets.periodLabel(previousKey),currLabel=window.BSMManualSheets.periodLabel(currentKey);
         var empty=!previousRows.length?'<div class="compare-empty">Belum ada data <strong>'+esc(identityValue)+'</strong> pada '+esc(prevLabel)+'. Data '+esc(currLabel)+' tetap ditampilkan sebagai acuan.</div>':"";
-        modalHost.innerHTML='<div class="rg-modal-backdrop" data-compare-backdrop><div class="rg-modal-card" role="dialog" aria-modal="true" aria-label="Pembanding bulan"><div class="rg-modal-head"><strong>Pembanding • '+esc(reportType(typeId).label)+'</strong><button class="rg-modal-close" type="button" data-compare-close>×</button></div><div class="rg-modal-body"><div class="compare-hero"><div><span>Item / Produk / Nama</span><strong>'+esc(identityValue)+'</strong></div><div class="compare-periods"><span class="compare-period">'+esc(prevLabel)+'</span><span>→</span><span class="compare-period current">'+esc(currLabel)+'</span></div></div>'+empty+'<div class="compare-table-wrap"><table class="compare-table"><thead><tr><th>Data</th><th>'+esc(prevLabel)+'</th><th>'+esc(currLabel)+'</th><th>Perubahan</th></tr></thead><tbody>'+rowsHtml+'</tbody></table></div><p class="tiny" style="margin:10px 2px 0">Cocok berdasarkan nama yang sama. Jika item muncul beberapa kali dalam satu bulan, kolom angka dijumlahkan otomatis.</p></div></div></div>';
+        modalHost.innerHTML='<div class="rg-modal-backdrop" data-compare-backdrop><div class="rg-modal-card" role="dialog" aria-modal="true" aria-label="Pembanding bulan"><div class="rg-modal-head"><strong>Pembanding • '+esc(reportType(typeId).label)+'</strong><button class="rg-modal-close" type="button" data-compare-close>×</button></div><div class="rg-modal-body"><div class="compare-hero"><div><span>Item / Produk / Nama</span><strong>'+esc(identityValue)+'</strong></div><div class="compare-periods">'+comparisonPicker+'<span>→</span><span class="compare-period current">'+esc(currLabel)+'</span></div></div>'+empty+'<div class="compare-table-wrap"><table class="compare-table"><thead><tr><th>Data</th><th>'+esc(prevLabel)+'</th><th>'+esc(currLabel)+'</th><th>Perubahan</th></tr></thead><tbody>'+rowsHtml+'</tbody></table></div><p class="tiny" style="margin:10px 2px 0">Cocok berdasarkan nama yang sama. Jika item muncul beberapa kali dalam satu bulan, kolom angka dijumlahkan otomatis.</p></div></div></div>';
+        var picker=modalHost.querySelector("[data-compare-period]");
+        if(picker)picker.addEventListener("change",function(){openManualComparison(report,identityKey,identityValue,this.value);});
         var backdrop=modalHost.querySelector("[data-compare-backdrop]"),closeBtn=modalHost.querySelector("[data-compare-close]");
         if(backdrop)backdrop.addEventListener("click",function(e){if(e.target===backdrop)closeModal();});
         if(closeBtn)closeBtn.addEventListener("click",closeModal);
@@ -3425,7 +3432,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(page.kind==="report"&&page.report&&page.report.template==="manual-grid"){
           var inPresentation=document.body.classList.contains("presentation-mode");
           var compareType=/^(admin|gudang-camera|gudang-kamera|gudang-audio|gudang-lighting|gudang-cinema|koordinator-crew)$/.test(String(page.typeId||page.report.reportType||""));
-          var compareEnabled=inPresentation&&compareType;
+          var compareEnabled=compareType;
           manualReportHost.innerHTML=window.BSMManualSheets.renderSlide(page.report,esc,{compare:compareEnabled});
           if(compareEnabled){
             Array.prototype.forEach.call(manualReportHost.querySelectorAll("[data-manual-compare-key]"),function(btn){
@@ -4165,7 +4172,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             showAuthGate("Akun Super Admin belum diaktifkan pada server.");
             return;
           }
-          if(dbStatus)dbStatus.textContent="SQL siap login";
+          if(dbStatus)dbStatus.textContent="Database Online • silakan login";
           showAuthGate("");
         }catch(err){
           var status=Number(err&&err.status||0);
@@ -4249,7 +4256,10 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       function jumpToPeriod(key){
         if(!key)return;
         syncCoverPeriodState(key);
-        var pages=masterPages(),index=pages.findIndex(function(page){return pagePeriodKey(page)===key;});
+        var pages=masterPages(),current=currentMasterPage();
+        var typeId=current.typeId||state.activeType;
+        var index=pages.findIndex(function(page){return page.typeId===typeId&&pagePeriodKey(page)===key;});
+        if(index<0)index=pages.findIndex(function(page){return pagePeriodKey(page)===key;});
         if(index<0){toast("Belum ada slide untuk bulan tersebut");return;}
         loadView(index);
       }
@@ -4463,7 +4473,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             if(!window.XLSX) throw new Error("Parser Excel belum termuat.");
             var workbook=window.XLSX.read(ev.target.result,{type:"array"});
             var parsed=window.BSMAudioReports.parseWorkbook(workbook);
-            var slides=window.BSMAudioReports.createSlides(parsed,{maxVendorRows:20,maxComplaintRows:14,maxServiceRows:16,period:bulkPeriodLabel(),servicePeriod:bulkPeriodLabel()});
+            var slides=window.BSMAudioReports.createSlides(parsed,{maxVendorRows:14,maxComplaintRows:14,maxServiceRows:12,period:bulkPeriodLabel(),servicePeriod:bulkPeriodLabel()});
             if(!slides.length) throw new Error("Tidak ada data Gudang Audio yang terbaca.");
             state.activeType="gudang-audio";
             var section=state.sections["gudang-audio"];
@@ -4489,7 +4499,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(!file)return;var reader=new FileReader();
         reader.onload=function(ev){try{
           var wb=window.XLSX.read(ev.target.result,{type:"array"}),parsed=window.BSMCinemaReports.parseWorkbook(wb);
-          var slides=window.BSMCinemaReports.createSlides(parsed,{maxVendorRows:20,maxComplaintRows:15,maxServiceRows:16,period:bulkPeriodLabel(),servicePeriod:bulkPeriodLabel()});
+          var slides=window.BSMCinemaReports.createSlides(parsed,{maxVendorRows:20,maxComplaintRows:15,maxServiceRows:10,period:bulkPeriodLabel(),servicePeriod:bulkPeriodLabel()});
           if(!slides.length)throw new Error("Tidak ada data Gudang Cinema yang terbaca.");
           state.activeType="gudang-cinema";var section=state.sections["gudang-cinema"];section.slides=slides.map(function(s){applyBulkPeriod(s);s.liveEditId=uid();return s;});
           ensureMasterReports();bindActiveSection(0);state.coverTarget="gudang-cinema";state.activeView=window.BSMReportMaster.findPageIndex(state,"report:gudang-cinema:0");
@@ -4501,7 +4511,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(!file)return;var reader=new FileReader();
         reader.onload=function(ev){try{
           var wb=window.XLSX.read(ev.target.result,{type:"array"}),parsed=window.BSMLightingReports.parseWorkbook(wb);
-          var slides=window.BSMLightingReports.createSlides(parsed,{maxVendorRows:20,maxComplaintRows:14,maxServiceRows:18,period:bulkPeriodLabel(),servicePeriod:bulkPeriodLabel()});
+          var slides=window.BSMLightingReports.createSlides(parsed,{maxVendorRows:20,maxComplaintRows:9,maxServiceRows:18,period:bulkPeriodLabel(),servicePeriod:bulkPeriodLabel()});
           if(!slides.length)throw new Error("Tidak ada data Gudang Lighting yang terbaca.");
           state.activeType="gudang-lighting";var section=state.sections["gudang-lighting"];section.slides=slides.map(function(s){applyBulkPeriod(s);s.liveEditId=uid();return s;});
           ensureMasterReports();bindActiveSection(0);state.coverTarget="gudang-lighting";state.activeView=window.BSMReportMaster.findPageIndex(state,"report:gudang-lighting:0");
@@ -4642,12 +4652,12 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             maxGenericRows:16,
             maxAudioVendorRows:20,
             maxAudioComplaintRows:14,
-            maxAudioServiceRows:16,
+            maxAudioServiceRows:12,
             maxCinemaVendorRows:20,
             maxCinemaComplaintRows:15,
-            maxCinemaServiceRows:16,
+            maxCinemaServiceRows:10,
             maxLightingVendorRows:20,
-            maxLightingComplaintRows:14,
+            maxLightingComplaintRows:9,
             maxLightingServiceRows:18,
             maxCrewRows:18,
             maxDriverRows:18
@@ -4919,7 +4929,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       activateCachedSession();
       if("serviceWorker" in navigator){
         window.addEventListener("load",function(){
-          navigator.serviceWorker.register("/report-gudang-sw.js?v=62",{updateViaCache:"none"}).then(function(reg){return reg.update();}).catch(function(){});
+          navigator.serviceWorker.register("/report-gudang-sw.js?v=63",{updateViaCache:"none"}).then(function(reg){return reg.update();}).catch(function(){});
         });
       }
       document.addEventListener("visibilitychange",function(){
@@ -4936,5 +4946,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <!-- auth-scope-v2 -->
 </body>
 <!-- status-sort-tristate-cache-v24 -->
-<!-- report-gudang-build-v62-sync-stable-cache62 -->
+<!-- report-gudang-build-v63-cover-month-db-cache63 -->
 </html>
