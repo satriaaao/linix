@@ -1569,11 +1569,14 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
 
   <script src="/report-gudang-parser.js"></script>
   <script src="/report-gudang-editor.js"></script>
-  <script src="/report-gudang-cover.js"></script>
-  <script src="/report-gudang-master.js"></script>
+  <script src="/report-cover-building-1.js?v=65"></script>
+  <script src="/report-cover-building-2.js?v=65"></script>
+  <script src="/report-cover-building-loader.js?v=65"></script>
+  <script src="/report-gudang-cover.js?v=65"></script>
+  <script src="/report-gudang-master.js?v=65"></script>
   <script src="/report-admin-matrix.js"></script>
   <script src="/report-it-omset.js"></script>
-  <script src="/report-it-products.js?v=64"></script>
+  <script src="/report-it-products.js?v=65"></script>
   <script src="/report-it-products-data.js"></script>
   <script src="/report-camera-vendor.js"></script>
   <script src="/report-camera-reports.js"></script>
@@ -1581,7 +1584,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-cinema-reports.js"></script>
   <script src="/report-lighting-reports.js"></script>
   <script src="/report-crew-reports.js"></script>
-  <script src="/report-manual-sheets.js?v=64"></script>
+  <script src="/report-manual-sheets.js?v=65"></script>
   <script src="/report-bulk-router.js"></script>
   <script src="/report-live-edit.js"></script>
   <script src="/report-slide-fit.js"></script>
@@ -1591,8 +1594,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-export.js"></script>
   <script src="/report-gudang-ui.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
-  <script src="/report-gudang-realtime.js?v=64"></script>
-  <script src="/report-gudang-cloud.js?v=64"></script>
+  <script src="/report-gudang-realtime.js?v=65"></script>
+  <script src="/report-gudang-cloud.js?v=65"></script>
   <script>
     (function(){
       var STORAGE_KEY = "bsm-report-gudang-v2";
@@ -4967,7 +4970,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       activateCachedSession();
       if("serviceWorker" in navigator){
         window.addEventListener("load",function(){
-          navigator.serviceWorker.register("/report-gudang-sw.js?v=64",{updateViaCache:"none"}).then(function(reg){return reg.update();}).catch(function(){});
+          navigator.serviceWorker.register("/report-gudang-sw.js?v=65",{updateViaCache:"none"}).then(function(reg){return reg.update();}).catch(function(){});
         });
       }
       document.addEventListener("visibilitychange",function(){
@@ -4984,5 +4987,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <!-- auth-scope-v2 -->
 </body>
 <!-- status-sort-tristate-cache-v24 -->
-<!-- report-gudang-build-v64-cover-multimonth-dual-preview-cache64 -->
+<!-- report-gudang-build-v65-building-cover-multimonth-cache65 -->
 </html>
