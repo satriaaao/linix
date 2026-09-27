@@ -45,7 +45,7 @@ self.addEventListener('activate',event=>{
         if(url.origin!==self.location.origin)return;
         if(url.pathname!=='/report-gudang'&&url.pathname!=='/report-gudang.html')return;
         if(url.searchParams.get('__appv')==='64')return;
-        url.searchParams.set('__appv','64';
+        url.searchParams.set('__appv','64');
         await client.navigate(url.href);
       }catch(_){}
     }));
