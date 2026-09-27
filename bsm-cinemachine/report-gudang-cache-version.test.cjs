@@ -8,15 +8,15 @@ function expectText(source, value, label) {
   if (!source.includes(value)) throw new Error(label + ': missing ' + value);
 }
 
-expectText(sw, "const CACHE='bsm-report-gudang-v63';", 'service worker cache version');
-expectText(sw, "url.searchParams.get('__appv')==='63'", 'service worker app version check');
-expectText(sw, "url.searchParams.set('__appv','63')", 'service worker app version navigation');
-expectText(html, '/report-gudang-sw.js?v=63', 'service worker registration version');
-expectText(html, 'report-gudang-build-v63-cover-month-db-cache63', 'HTML build/cache marker');
+expectText(sw, "const CACHE='bsm-report-gudang-v64';", 'service worker cache version');
+expectText(sw, "url.searchParams.get('__appv')==='64'", 'service worker app version check');
+expectText(sw, "url.searchParams.set('__appv','64')", 'service worker app version navigation');
+expectText(html, '/report-gudang-sw.js?v=64', 'service worker registration version');
+expectText(html, 'report-gudang-build-v64-cover-month-db-cache63', 'HTML build/cache marker');
 
 if (html.includes('?v=35')) throw new Error('HTML still contains stale ?v=35 asset query');
 if (sw.includes('bsm-report-gudang-v35') || sw.includes("'__appv','35'")) {
   throw new Error('Service worker still contains stale v35 cache/app version');
 }
 
-console.log('Report Gudang cache version is synchronized at v63');
+console.log('Report Gudang cache version is synchronized at v64');

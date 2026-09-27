@@ -37,9 +37,9 @@
   function renderCoverEditor(model,esc){
     model=normalizeCover(model); esc=esc||function(v){return String(v==null?'':v);};
     return '<div class="cover-editor-grid">'
-      +'<div class="cover-editor-block"><div class="section-title"><strong>Gambar Cover</strong></div>'
+      +'<div class="cover-editor-block"><div class="section-title"><strong>Foto Gedung / Cover</strong></div>'
       +'<div class="cover-image-editor"><div class="cover-image-thumb" style="background-image:url(&quot;'+esc(model.image)+'&quot;)"></div>'
-      +'<div><input id="coverImageInput" type="file" accept="image/*" class="cover-file-input"><div class="tiny">Upload JPG/PNG. Gambar hanya berlaku untuk Slide 1.</div></div></div></div>'
+      +'<div><input id="coverImageInput" type="file" accept="image/*" class="cover-file-input"><div class="tiny">Upload foto gedung JPG/PNG. Foto dipotong proporsional dan hanya berlaku untuk Slide 1.</div></div></div></div>'
       +'<div class="cover-editor-block"><div class="section-title"><strong>Logo & Judul</strong></div><div class="field-grid">'
       +field(esc,'Logo','logoMain',model.logoMain,false)+field(esc,'Sub Logo','logoSub',model.logoSub,false)
       +field(esc,'Label Kanan 1','titleTop1',model.titleTop1,true)+field(esc,'Label Kanan 2','titleTop2',model.titleTop2,true)
