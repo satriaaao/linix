@@ -3,7 +3,7 @@
   if(typeof module==='object'&&module.exports) module.exports=api;
   if(root) root.BSMReportCover=api;
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
-  var DEFAULT_IMAGE='/report-cover-studio.jpg';
+  var DEFAULT_IMAGE=(typeof window!=='undefined'&&window.BSM_BUILDING_COVER_DATA)||'/report-cover-studio.jpg';
   function defaultCover(image){
     return {
       logoMain:'BSM',
@@ -27,7 +27,7 @@
   function normalizeCover(src){
     var base=defaultCover(), obj=src||{};
     Object.keys(base).forEach(function(k){ if(obj[k]!==undefined&&obj[k]!==null) base[k]=obj[k]; });
-    if(!base.image||String(base.image).indexOf("https://www.arri.com/resource/image/78390/")===0)base.image=DEFAULT_IMAGE;
+    if(!base.image||base.image==="/report-cover-studio.jpg"||String(base.image).indexOf("https://www.arri.com/resource/image/78390/")===0)base.image=DEFAULT_IMAGE;
     if(obj.logo)base.logo=Object.assign({},obj.logo);
     return base;
   }
