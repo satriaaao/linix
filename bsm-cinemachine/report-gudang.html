@@ -1557,7 +1557,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-master.js"></script>
   <script src="/report-admin-matrix.js"></script>
   <script src="/report-it-omset.js"></script>
-  <script src="/report-it-products.js?v=60"></script>
+  <script src="/report-it-products.js?v=61"></script>
   <script src="/report-it-products-data.js"></script>
   <script src="/report-camera-vendor.js"></script>
   <script src="/report-camera-reports.js"></script>
@@ -1565,7 +1565,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-cinema-reports.js"></script>
   <script src="/report-lighting-reports.js"></script>
   <script src="/report-crew-reports.js"></script>
-  <script src="/report-manual-sheets.js?v=60"></script>
+  <script src="/report-manual-sheets.js?v=61"></script>
   <script src="/report-bulk-router.js"></script>
   <script src="/report-live-edit.js"></script>
   <script src="/report-slide-fit.js"></script>
@@ -1575,8 +1575,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-export.js"></script>
   <script src="/report-gudang-ui.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
-  <script src="/report-gudang-realtime.js?v=60"></script>
-  <script src="/report-gudang-cloud.js?v=60"></script>
+  <script src="/report-gudang-realtime.js?v=61"></script>
+  <script src="/report-gudang-cloud.js?v=61"></script>
   <script>
     (function(){
       var STORAGE_KEY = "bsm-report-gudang-v2";
@@ -2197,6 +2197,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         cols.forEach(function(col,ci){
           if(ci>=colCount){col.style.display="none";return;}
           if(hidden.has(ci)){
+            col.style.display="none";
             col.style.width="0px";
             col.style.minWidth="0px";
             col.style.maxWidth="0px";
@@ -2214,6 +2215,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         gridInfo.cellCols.forEach(function(logicalCols,cell){
           var visibleCols=logicalCols.filter(function(ci){return !hidden.has(ci);});
           if(!visibleCols.length){
+            cell.style.display="none";
             cell.style.visibility="hidden";
             cell.style.paddingLeft="0";
             cell.style.paddingRight="0";
@@ -2226,6 +2228,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             cell.style.minWidth="0";
             cell.style.maxWidth="0";
           }else{
+            cell.style.display="";
             cell.style.visibility="visible";
             cell.style.width="";
             cell.style.minWidth="0";
@@ -4882,7 +4885,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       activateCachedSession();
       if("serviceWorker" in navigator){
         window.addEventListener("load",function(){
-          navigator.serviceWorker.register("/report-gudang-sw.js?v=60",{updateViaCache:"none"}).then(function(reg){return reg.update();}).catch(function(){});
+          navigator.serviceWorker.register("/report-gudang-sw.js?v=61",{updateViaCache:"none"}).then(function(reg){return reg.update();}).catch(function(){});
         });
       }
       document.addEventListener("visibilitychange",function(){
@@ -4899,4 +4902,4 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <!-- auth-scope-v2 -->
 </body>
 <!-- status-sort-tristate-cache-v24 -->
-<!-- report-gudang-build-v60-grid-aware-table-layout-cache60</html>
+<!-- report-gudang-build-v61-eye-toggle-safari-cache61</html>
