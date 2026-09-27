@@ -1,10 +1,10 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const html=fs.readFileSync(__dirname+'/report-gudang.html','utf8');
-assert(html.includes('report-gudang-build-v66-premium-gradient-building-cover-cache66'),'v65 marker missing');
-assert(/\.cover-slide:before\{[\s\S]{0,360}linear-gradient\(155deg/.test(html),'premium teal cover layer missing');
-assert(/\.cover-slide:after\{[\s\S]{0,360}rgba\(87,214,219,.30\)/.test(html),'secondary translucent gradient layer missing');
-assert(/\.cover-hero:before\{[\s\S]{0,360}linear-gradient\(90deg/.test(html),'photo blend gradient missing');
-assert(html.includes('-webkit-background-clip:text'),'gradient title missing');
-assert(html.includes('box-shadow:0 7px 20px rgba(8,125,134,.18)'),'gradient accent bar missing');
-console.log('Premium cover gradients and photo blend passed');
+assert(html.includes('report-gudang-build-v67-reference-lighting-cover-cache67'),'v67 reference marker missing');
+assert(/\.cover-hero\{[\s\S]{0,280}width:69%[\s\S]{0,300}clip-path:polygon\(35% 0/.test(html),'reference-style diagonal photo panel missing');
+assert(/\.cover-slide:before\{[\s\S]{0,360}linear-gradient\(135deg/.test(html),'soft diagonal white overlay missing');
+assert(/\.cover-slide:after\{[\s\S]{0,360}radial-gradient/.test(html),'teal lower-right glow missing');
+assert(html.includes('-webkit-background-clip:text'),'teal gradient title missing');
+assert(html.includes('.cover-icon svg{width:52px;height:52px'),'outline cover icons missing');
+console.log('Reference-style lighting cover layout passed');

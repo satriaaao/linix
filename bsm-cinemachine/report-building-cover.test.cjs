@@ -20,12 +20,12 @@ vm.runInContext(fs.readFileSync(__dirname+'/report-cover-building-loader.js','ut
 assert(ctx.window.BSM_BUILDING_COVER_DATA.startsWith('data:image/webp;base64,UklG'));
 
 const html=fs.readFileSync(__dirname+'/report-gudang.html','utf8');
-assert(html.includes('/report-cover-building-loader.js?v=66'));
-assert(html.includes('report-gudang-build-v66-premium-gradient-building-cover-cache66'));
+assert(html.includes('/report-cover-building-loader.js?v=67'));
+assert(html.includes('report-gudang-build-v67-reference-lighting-cover-cache67'));
 assert(html.includes('id="previewPeriodSearchB"'));
 assert(html.includes('id="presentationPeriodSearchB"'));
 
 const coverSrc=fs.readFileSync(__dirname+'/report-gudang-cover.js','utf8');
 assert(coverSrc.includes('window.BSM_BUILDING_COVER_DATA'));
 assert(coverSrc.includes('base.image==="/report-cover-studio.jpg"'));
-console.log('Building cover, premium gradient, dual month preview and migration wiring passed');
+console.log('Building cover, reference layout, dual month preview and migration wiring passed');

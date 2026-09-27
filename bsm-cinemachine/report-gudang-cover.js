@@ -56,6 +56,9 @@
   function renderCoverSlide(model,esc){
     model=normalizeCover(model); esc=esc||function(v){return String(v==null?'':v);};
     var logo=String(model.logoMain||'BSM').split('').map(function(c){return '<span>'+esc(c)+'</span>';}).join('');
+    var iconService='<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="7"></circle><circle cx="24" cy="24" r="15"></circle><path d="M24 3v6M24 39v6M3 24h6M39 24h6M9 9l4.5 4.5M34.5 34.5L39 39M39 9l-4.5 4.5M13.5 34.5L9 39"></path><circle class="accent-fill" cx="24" cy="24" r="4"></circle></svg>';
+    var iconBox='<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 15l16-9 16 9-16 9-16-9zM8 15v18l16 9 16-9V15M24 24v18"></path><path class="accent-fill" d="M25.5 26.5l11-6.2v10.6l-11 6.1z"></path></svg>';
+    var iconChat='<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 9h32a4 4 0 0 1 4 4v20a4 4 0 0 1-4 4H22l-10 8v-8H8a4 4 0 0 1-4-4V13a4 4 0 0 1 4-4z"></path><circle class="accent-fill" cx="17" cy="23" r="2.5"></circle><circle class="accent-fill" cx="24" cy="23" r="2.5"></circle><circle class="accent-fill" cx="31" cy="23" r="2.5"></circle></svg>';
     return '<section class="cover-slide">'
       +'<div class="cover-grid"></div><div class="cover-hero" style="background-image:url(&quot;'+esc(model.image)+'&quot;)"></div><div class="cover-diagonal"></div>'
       +'<div class="cover-logo"><div class="cover-logo-boxes">'+logo+'</div><div class="cover-logo-sub">'+esc(model.logoSub)+'</div></div>'
@@ -63,7 +66,7 @@
       +'<div class="cover-main"><div class="cover-bar"></div><div class="cover-title-one">'+esc(model.mainTitle1)+'</div><div class="cover-title-two">'+esc(model.mainTitle2)+'</div>'
       +'<div class="cover-period"><span>'+esc(model.periodPrefix)+'</span> <strong>'+esc(model.period)+'</strong></div>'
       +'<div class="cover-data-line"><strong>'+esc(model.dataPrefix)+'</strong><span>'+esc(model.item1)+'</span><b>•</b><span>'+esc(model.item2)+'</span><b>•</b><span>'+esc(model.item3)+'</span></div>'
-      +'<div class="cover-items"><div class="cover-item"><div class="cover-icon">⚙</div><div>'+esc(model.item1)+'</div></div><div class="cover-item"><div class="cover-icon">◇</div><div>'+esc(model.item2)+'</div></div><div class="cover-item"><div class="cover-icon">•••</div><div>'+esc(model.item3)+'</div></div></div></div>'
+      +'<div class="cover-items"><div class="cover-item"><div class="cover-icon">'+iconService+'</div><div>'+esc(model.item1)+'</div></div><div class="cover-item"><div class="cover-icon">'+iconBox+'</div><div>'+esc(model.item2)+'</div></div><div class="cover-item"><div class="cover-icon">'+iconChat+'</div><div>'+esc(model.item3)+'</div></div></div></div>'
       +'<div class="cover-footer"><div><strong>'+esc(model.footerLeft)+'</strong><small>'+esc(model.footerTagline)+'</small></div><div class="cover-footer-line"></div><div class="cover-footer-right">'+esc(model.footerRight)+'</div></div>'
       +'</section>';
   }

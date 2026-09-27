@@ -1,4 +1,4 @@
-const CACHE='bsm-report-gudang-v66';
+const CACHE='bsm-report-gudang-v67';
 const SHELL=[
   '/report-gudang.html',
   '/report-cover-building-1.js',
@@ -47,8 +47,8 @@ self.addEventListener('activate',event=>{
         const url=new URL(client.url);
         if(url.origin!==self.location.origin)return;
         if(url.pathname!=='/report-gudang'&&url.pathname!=='/report-gudang.html')return;
-        if(url.searchParams.get('__appv')==='66')return;
-        url.searchParams.set('__appv','66');
+        if(url.searchParams.get('__appv')==='67')return;
+        url.searchParams.set('__appv','67');
         await client.navigate(url.href);
       }catch(_){}
     }));

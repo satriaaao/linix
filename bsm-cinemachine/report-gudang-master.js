@@ -31,6 +31,15 @@
     cover.item3='TINDAK LANJUT';
     cover.footerLeft=cover.footerLeft||'PT BLUE STAR MEDIA  |  BSM RENTAL';
     cover.footerRight='// '+String(type.label||'REPORT').toUpperCase();
+    if(type.id==='gudang-lighting'){
+      cover.titleTop1='// LAPORAN GUDANG';
+      cover.titleTop2='// REPORT LIGHTING';
+      cover.dataPrefix='DATA :';
+      cover.item1='SERVICE';
+      cover.item2='BARANG KURANG';
+      cover.item3='KOMPLAIN';
+      cover.footerRight='// '+String(cover.period||'JULI 2026').toUpperCase();
+    }
     return cover;
   }
   function createSections(baseCover,legacySlides){
@@ -49,6 +58,16 @@
       if(!src) return;
       defaults[type.id].label=type.label;
       defaults[type.id].cover=Object.assign(makeSectionCover(type,baseCover),clone(src.cover||{}));
+      if(type.id==='gudang-lighting'){
+        var lightingCover=defaults[type.id].cover;
+        if(lightingCover.titleTop1==='// PT BLUE STAR MEDIA')lightingCover.titleTop1='// LAPORAN GUDANG';
+        if(lightingCover.titleTop2==='// GUDANG LIGHTING')lightingCover.titleTop2='// REPORT LIGHTING';
+        if(lightingCover.dataPrefix==='REPORT :')lightingCover.dataPrefix='DATA :';
+        if(lightingCover.item1==='RINGKASAN')lightingCover.item1='SERVICE';
+        if(lightingCover.item2==='KENDALA')lightingCover.item2='BARANG KURANG';
+        if(lightingCover.item3==='TINDAK LANJUT')lightingCover.item3='KOMPLAIN';
+        if(lightingCover.footerRight==='// GUDANG LIGHTING')lightingCover.footerRight='// '+String(lightingCover.period||'JULI 2026').toUpperCase();
+      }
       var image=String(defaults[type.id].cover.image||'');
       if(!image||image===String((baseCover||{}).image||'')||image==='/report-cover-studio.jpg'||image.indexOf('https://www.arri.com/resource/image/78390/')===0){
         defaults[type.id].cover.image='/report-cover-'+type.id+'.jpg';
