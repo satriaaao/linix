@@ -1,0 +1,10 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const html=fs.readFileSync(__dirname+'/report-gudang.html','utf8');
+assert(html.includes('report-gudang-build-v65-premium-gradient-cover-cache65'),'v65 marker missing');
+assert(/\.cover-slide:before\{[\s\S]{0,360}linear-gradient\(155deg/.test(html),'premium teal cover layer missing');
+assert(/\.cover-slide:after\{[\s\S]{0,360}rgba\(87,214,219,.30\)/.test(html),'secondary translucent gradient layer missing');
+assert(/\.cover-hero:before\{[\s\S]{0,360}linear-gradient\(90deg/.test(html),'photo blend gradient missing');
+assert(html.includes('-webkit-background-clip:text'),'gradient title missing');
+assert(html.includes('box-shadow:0 7px 20px rgba(8,125,134,.18)'),'gradient accent bar missing');
+console.log('Premium cover gradients and photo blend passed');
