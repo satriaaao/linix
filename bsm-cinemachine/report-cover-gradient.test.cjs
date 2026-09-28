@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const html=fs.readFileSync(__dirname+'/report-gudang.html','utf8');
-assert(html.includes('report-gudang-build-v68-reference-lighting-cover-cache67'),'v68 reference marker missing');
+assert(html.includes('report-gudang-build-v68-reference-lighting-cover-cache67'),'v68 closer reference marker missing');
 assert(/\.cover-hero\{[\s\S]{0,280}width:69%[\s\S]{0,300}clip-path:polygon\(35% 0/.test(html),'reference-style diagonal photo panel missing');
 assert(/\.cover-slide:before\{[\s\S]{0,360}linear-gradient\(135deg/.test(html),'soft diagonal white overlay missing');
 assert(/\.cover-slide:after\{[\s\S]{0,360}radial-gradient/.test(html),'teal lower-right glow missing');
