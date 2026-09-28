@@ -4,7 +4,7 @@
   if(typeof module==='object'&&module.exports)module.exports=api;
   if(root)root.BSMExcelStyles=api;
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
-  var DEFAULT_THEME=['000000','FFFFFF','0E2841','E8E8E8','156082','E97132','196B24','0F9ED5','A02B93','4EA72E','467886','96607D'];
+  var DEFAULT_THEME=['FFFFFF','000000','E8E8E8','0E2841','156082','E97132','196B24','0F9ED5','A02B93','4EA72E','467886','96607D'];
   function hex(v){
     v=String(v||'').replace(/^#/,'').replace(/^FF/i,'').toUpperCase();
     return /^[0-9A-F]{6}$/.test(v)?'#'+v:'';
