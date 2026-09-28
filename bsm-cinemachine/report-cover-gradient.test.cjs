@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const html=fs.readFileSync(__dirname+'/report-gudang.html','utf8');
-assert(html.includes('report-gudang-build-v72-all-excel-color-fidelity-cache72'),'v72 all excel color fidelity marker missing');
+assert(html.includes('report-gudang-build-v73-excel-accuracy-cache73'),'v73 excel accuracy marker missing');
 assert(/\.cover-hero\{[\s\S]{0,280}width:69%[\s\S]{0,300}clip-path:polygon\(35% 0/.test(html),'reference-style diagonal photo panel missing');
 assert(/\.cover-slide:before\{[\s\S]{0,360}linear-gradient\(135deg/.test(html),'soft diagonal white overlay missing');
 assert(/\.cover-slide:after\{[\s\S]{0,360}radial-gradient/.test(html),'teal lower-right glow missing');

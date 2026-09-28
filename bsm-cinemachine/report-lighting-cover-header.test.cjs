@@ -11,7 +11,7 @@ assert(rendered.includes('EVENT SOLUTION'));
 assert(rendered.includes('// LAPORAN GUDANG'));
 assert(rendered.includes('// REPORT LIGHTING'));
 const html=fs.readFileSync(__dirname+'/report-gudang.html','utf8');
-assert(html.includes('report-gudang-build-v72-all-excel-color-fidelity-cache72'));
+assert(html.includes('report-gudang-build-v73-excel-accuracy-cache73'));
 assert(html.includes('.cover-brand-stack{'));
 assert(html.includes('background-position:72% center'));
 console.log('Lighting cover header now matches reference structure');

@@ -432,9 +432,9 @@
     if(hi<0) throw new Error('Header Admin JAM/TANGGAL belum terbaca.');
     var header=rows[hi],timeI=header.findIndex(function(c){return upper(c)==='JAM/TANGGAL';}),dayStart=timeI+1,totalI=header.findIndex(function(c){return upper(c)==='TOTAL';});
     if(totalI<0) totalI=Math.min(header.length,dayStart+30);
-    var groupI=Math.max(0,timeI-2),shiftI=Math.max(0,timeI-1),dayCount=Math.min(30,Math.max(1,totalI-dayStart));
-    function days(r){var a=[];for(var i=0;i<30;i++) a.push(i<dayCount?clean(r[dayStart+i]):'');return a;}
-    var data={title:'DATA MBR ADMIN',period:opts.period||'JUNI 2026',delivery:[],deliveryTotal:Array(30).fill(''),jemputan:[],jemputanTotal:Array(30).fill(''),suratJalan:Array(30).fill(''),totals:{delivery:'',jemputan:'',combined:'',suratJalan:''},notes:[]};
+    var groupI=Math.max(0,timeI-2),shiftI=Math.max(0,timeI-1),dayCount=Math.min(31,Math.max(1,totalI-dayStart));
+    function days(r){var a=[];for(var i=0;i<dayCount;i++)a.push(clean(r[dayStart+i]));return a;}
+    var data={title:'DATA MBR ADMIN',period:opts.period||'JUNI 2026',delivery:[],deliveryTotal:Array(dayCount).fill(''),jemputan:[],jemputanTotal:Array(dayCount).fill(''),suratJalan:Array(dayCount).fill(''),totals:{delivery:'',jemputan:'',combined:'',suratJalan:''},notes:[]};
     var current='',inNotes=false;
     rows.slice(hi+1).forEach(function(r){
       var g=upper(r[groupI]),shift=clean(r[shiftI]),time=clean(r[timeI]);
