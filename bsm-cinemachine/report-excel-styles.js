@@ -6,7 +6,8 @@
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
   var DEFAULT_THEME=['FFFFFF','000000','E8E8E8','0E2841','156082','E97132','196B24','0F9ED5','A02B93','4EA72E','467886','96607D'];
   function hex(v){
-    v=String(v||'').replace(/^#/,'').replace(/^FF/i,'').toUpperCase();
+    v=String(v||'').replace(/^#/,'').toUpperCase();
+    if(/^[0-9A-F]{8}$/.test(v)&&v.slice(0,2)==='FF')v=v.slice(2);
     return /^[0-9A-F]{6}$/.test(v)?'#'+v:'';
   }
   function tintColor(base,tint){
