@@ -1606,22 +1606,23 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
 
   <script src="/report-gudang-parser.js"></script>
   <script src="/report-gudang-editor.js"></script>
-  <script src="/report-cover-building-1.js?v=70"></script>
-  <script src="/report-cover-building-2.js?v=70"></script>
-  <script src="/report-cover-building-loader.js?v=70"></script>
-  <script src="/report-gudang-cover.js?v=70"></script>
-  <script src="/report-gudang-master.js?v=70"></script>
+  <script src="/report-cover-building-1.js?v=71"></script>
+  <script src="/report-cover-building-2.js?v=71"></script>
+  <script src="/report-cover-building-loader.js?v=71"></script>
+  <script src="/report-gudang-cover.js?v=71"></script>
+  <script src="/report-gudang-master.js?v=71"></script>
   <script src="/report-admin-matrix.js"></script>
   <script src="/report-it-omset.js"></script>
-  <script src="/report-it-products.js?v=70"></script>
+  <script src="/report-it-products.js?v=71"></script>
   <script src="/report-it-products-data.js"></script>
   <script src="/report-camera-vendor.js"></script>
   <script src="/report-camera-reports.js"></script>
   <script src="/report-audio-reports.js"></script>
   <script src="/report-cinema-reports.js"></script>
-  <script src="/report-lighting-reports.js"></script>
+  <script src="/report-excel-styles.js?v=71"></script>
+  <script src="/report-lighting-reports.js?v=71"></script>
   <script src="/report-crew-reports.js"></script>
-  <script src="/report-manual-sheets.js?v=70"></script>
+  <script src="/report-manual-sheets.js?v=71"></script>
   <script src="/report-bulk-router.js"></script>
   <script src="/report-live-edit.js"></script>
   <script src="/report-slide-fit.js"></script>
@@ -1631,8 +1632,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-export.js"></script>
   <script src="/report-gudang-ui.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
-  <script src="/report-gudang-realtime.js?v=70"></script>
-  <script src="/report-gudang-cloud.js?v=70"></script>
+  <script src="/report-gudang-realtime.js?v=71"></script>
+  <script src="/report-gudang-cloud.js?v=71"></script>
   <script>
     (function(){
       var STORAGE_KEY = "bsm-report-gudang-v2";
@@ -3068,27 +3069,33 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       function manualImportKey(value){
         return String(value==null?"":value).toLowerCase().replace(/[^a-z0-9]+/g,"");
       }
-      function cleanImportMatrix(matrix){
+      function cleanImportBundle(matrix,styleMatrix){
         matrix=(matrix||[]).map(function(row){return (row||[]).map(function(v){return String(v==null?"":v).trim();});});
-        while(matrix.length&&matrix[0].every(function(v){return !v;}))matrix.shift();
-        while(matrix.length&&matrix[matrix.length-1].every(function(v){return !v;}))matrix.pop();
-        if(!matrix.length)return [];
+        styleMatrix=Array.isArray(styleMatrix)?styleMatrix.map(function(row){return Array.isArray(row)?row.slice():[];}):[];
+        while(matrix.length&&matrix[0].every(function(v){return !v;})){matrix.shift();if(styleMatrix.length)styleMatrix.shift();}
+        while(matrix.length&&matrix[matrix.length-1].every(function(v){return !v;})){matrix.pop();if(styleMatrix.length)styleMatrix.pop();}
+        if(!matrix.length)return {matrix:[],styles:[]};
         var headerIndex=-1;
         for(var i=0;i<Math.min(25,matrix.length);i++){
           var nonEmpty=matrix[i].filter(function(v){return v!=="";}).length;
           if(nonEmpty>=2){headerIndex=i;break;}
         }
-        if(headerIndex<0)return [];
-        matrix=matrix.slice(headerIndex);
+        if(headerIndex<0)return {matrix:[],styles:[]};
+        matrix=matrix.slice(headerIndex);styleMatrix=styleMatrix.slice(headerIndex);
         var width=0;
         matrix.forEach(function(row){for(var j=row.length-1;j>=0;j--){if(row[j]!==""){width=Math.max(width,j+1);break;}}});
         var normalized=matrix.map(function(row){var out=row.slice(0,width);while(out.length<width)out.push("");return out;});
+        var normalizedStyles=normalized.map(function(_,ri){var src=styleMatrix[ri]||[],out=src.slice(0,width);while(out.length<width)out.push(null);return out;});
         var keep=[];
         for(var col=0;col<width;col++){
           if(normalized.some(function(row){return String(row[col]||"").trim()!=="";}))keep.push(col);
         }
-        return normalized.map(function(row){return keep.map(function(col){return row[col];});});
+        return {
+          matrix:normalized.map(function(row){return keep.map(function(col){return row[col];});}),
+          styles:normalizedStyles.map(function(row){return keep.map(function(col){return row[col]||null;});})
+        };
       }
+      function cleanImportMatrix(matrix){return cleanImportBundle(matrix,null).matrix;}
       function findManualSheetForExcel(book,typeId,name){
         var key=manualImportKey(name),defs=window.BSMManualSheets.allSheetDefs(typeId,book);
         var direct=defs.find(function(d){return manualImportKey(d.id)===key||manualImportKey(d.label)===key;});
@@ -3098,12 +3105,16 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(/vendor|alatkurang|barangkurang|backup/.test(key)){var v=defs.find(function(d){return d.id==="vendor";});if(v)return v.id;}
         return "";
       }
-      function importMatrixToManualSheet(book,typeId,sheetId,matrix){
-        matrix=cleanImportMatrix(matrix);
-        if(matrix.length<2)throw new Error("Tabel Excel harus memiliki header dan minimal satu baris data");
-        var labels=matrix[0].map(function(v,i){return String(v||"").trim()||("Kolom "+(i+1));});
-        var rows=matrix.slice(1).filter(function(row){return row.some(function(v){return String(v||"").trim()!=="";});});
-        window.BSMManualSheets.replaceSheetSchema(book,typeId,sheetId,labels,rows,book.activePeriod);
+      function importMatrixToManualSheet(book,typeId,sheetId,matrix,styleMatrix){
+        var bundle=cleanImportBundle(matrix,styleMatrix),clean=bundle.matrix,styles=bundle.styles;
+        if(clean.length<2)throw new Error("Tabel Excel harus memiliki header dan minimal satu baris data");
+        var labels=clean[0].map(function(v,i){return String(v||"").trim()||("Kolom "+(i+1));});
+        var rows=[],rowStyles=[];
+        clean.slice(1).forEach(function(row,i){
+          if(!row.some(function(v){return String(v||"").trim()!=="";}))return;
+          rows.push(row);rowStyles.push((styles[i+1]||[]).slice());
+        });
+        window.BSMManualSheets.replaceSheetSchema(book,typeId,sheetId,labels,rows,book.activePeriod,rowStyles);
         return rows.length;
       }
       function applyITMonthlyProductImport(monthly){
@@ -3143,7 +3154,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         var reader=new FileReader();
         reader.onload=function(ev){
           try{
-            var wb=window.XLSX.read(ev.target.result,{type:"array",cellDates:true}),book=currentManualBook(),typeId=state.activeType,imported=0,firstId="";
+            var wb=window.XLSX.read(ev.target.result,{type:"array",cellDates:true,cellStyles:true,cellNF:true}),book=currentManualBook(),typeId=state.activeType,imported=0,firstId="";
             if(typeId==="it"&&window.BSMITProducts&&typeof window.BSMITProducts.parseMonthlyWorkbook==="function"){
               var monthly=null;
               try{monthly=window.BSMITProducts.parseMonthlyWorkbook(wb,window.XLSX,{fileName:file.name});}catch(_){monthly=null;}
@@ -3153,16 +3164,18 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
               }
             }
             wb.SheetNames.forEach(function(name){
-              var matrix=window.XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:"",raw:false,dateNF:"dd-mmm-yy"});
-              matrix=cleanImportMatrix(matrix);if(matrix.length<2)return;
+              var ws=wb.Sheets[name],matrix=window.XLSX.utils.sheet_to_json(ws,{header:1,defval:"",raw:false,dateNF:"dd-mmm-yy"});
+              var width=matrix.reduce(function(m,row){return Math.max(m,(row||[]).length);},0);
+              var styleMatrix=window.BSMExcelStyles?window.BSMExcelStyles.sheetStyleMatrix(wb,ws,window.XLSX,matrix.length,width):[];
+              if(cleanImportMatrix(matrix).length<2)return;
               var sheetId=findManualSheetForExcel(book,typeId,name);
               if(!sheetId)sheetId=window.BSMManualSheets.createSheet(book,typeId,name||"Import Excel");
               if(!firstId)firstId=sheetId;
-              imported+=importMatrixToManualSheet(book,typeId,sheetId,matrix);
+              imported+=importMatrixToManualSheet(book,typeId,sheetId,matrix,styleMatrix);
             });
             if(!firstId)throw new Error("Tidak ada tabel yang dapat dibaca dari file Excel");
             book.activeSheet=firstId;renderManualWorkbook();markManualDirty();saveState(false);applyManualPreview();updateBulkContext();closeModal();
-            toast(imported+" baris Excel masuk • kolom & preview disesuaikan otomatis");
+            toast(imported+" baris Excel masuk • data & warna cell mengikuti file Excel");
           }catch(err){console.error(err);toast(err&&err.message?err.message:"Excel gagal dibaca");}
         };
         reader.readAsArrayBuffer(file);
@@ -4485,7 +4498,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         function done(){itExcelInput.disabled=false;itExcelInput.value='';}
         reader.onload=function(ev){try{
           if(!window.XLSX)throw new Error('Parser Excel belum siap. Coba lagi setelah halaman selesai dimuat.');
-          var wb=window.XLSX.read(ev.target.result,{type:'array'});
+          var wb=window.XLSX.read(ev.target.result,{type:'array',cellStyles:true,cellNF:true});
           var monthly=null;
           try{monthly=window.BSMITProducts.parseMonthlyWorkbook(wb,window.XLSX,{fileName:file.name});}catch(_){monthly=null;}
 
@@ -4514,7 +4527,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(!file)return;var reader=new FileReader();
         reader.onload=function(ev){try{
           if(!window.XLSX)throw new Error("Parser Excel belum termuat.");
-          var wb=window.XLSX.read(ev.target.result,{type:"array"}),result=window.BSMCrewReports.parseWorkbook(wb,{period:bulkPeriodLabel(),maxCrewRows:18,maxDriverRows:18}),slides=result.slides||[];
+          var wb=window.XLSX.read(ev.target.result,{type:"array",cellStyles:true,cellNF:true}),result=window.BSMCrewReports.parseWorkbook(wb,{period:bulkPeriodLabel(),maxCrewRows:18,maxDriverRows:18}),slides=result.slides||[];
           if(!slides.length)throw new Error("Tidak ada data Koordinator Crew yang terbaca.");
           state.activeType="koordinator-crew";var section=state.sections["koordinator-crew"];section.slides=slides.map(function(s){applyBulkPeriod(s);s.liveEditId=uid();return s;});
           ensureMasterReports();bindActiveSection(0);state.coverTarget="koordinator-crew";state.activeView=window.BSMReportMaster.findPageIndex(state,"report:koordinator-crew:0");
@@ -4528,7 +4541,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         reader.onload=function(ev){try{
           if(!window.XLSX)throw new Error("Parser Excel belum termuat.");
           if(!window.BSMBulkRouter||typeof window.BSMBulkRouter.parseCameraWorkbook!=="function")throw new Error("Parser workbook Gudang Kamera belum termuat. Refresh halaman.");
-          var wb=window.XLSX.read(ev.target.result,{type:"array"});
+          var wb=window.XLSX.read(ev.target.result,{type:"array",cellStyles:true,cellNF:true});
           var result=window.BSMBulkRouter.parseCameraWorkbook(wb,window.XLSX,{maxVendorRows:20,maxComplaintRows:16,maxServiceUnits:17,period:bulkPeriodLabel(),servicePeriod:bulkPeriodLabel()});
           var slides=result.slides||[];if(!slides.length)throw new Error("Tidak ada data Gudang Kamera yang terbaca.");
           state.activeType="gudang-kamera";var section=state.sections["gudang-kamera"];section.slides=slides.map(function(s){applyBulkPeriod(s);s.liveEditId=uid();return s;});
@@ -4544,7 +4557,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         reader.onload=function(ev){
           try{
             if(!window.XLSX) throw new Error("Parser Excel belum termuat.");
-            var workbook=window.XLSX.read(ev.target.result,{type:"array"});
+            var workbook=window.XLSX.read(ev.target.result,{type:"array",cellStyles:true,cellNF:true});
             var parsed=window.BSMAudioReports.parseWorkbook(workbook);
             var slides=window.BSMAudioReports.createSlides(parsed,{maxVendorRows:14,maxComplaintRows:14,maxServiceRows:12,period:bulkPeriodLabel(),servicePeriod:bulkPeriodLabel()});
             if(!slides.length) throw new Error("Tidak ada data Gudang Audio yang terbaca.");
@@ -4571,7 +4584,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       function importCinemaWorkbook(file){
         if(!file)return;var reader=new FileReader();
         reader.onload=function(ev){try{
-          var wb=window.XLSX.read(ev.target.result,{type:"array"}),parsed=window.BSMCinemaReports.parseWorkbook(wb);
+          var wb=window.XLSX.read(ev.target.result,{type:"array",cellStyles:true,cellNF:true}),parsed=window.BSMCinemaReports.parseWorkbook(wb);
           var slides=window.BSMCinemaReports.createSlides(parsed,{maxVendorRows:20,maxComplaintRows:15,maxServiceRows:10,period:bulkPeriodLabel(),servicePeriod:bulkPeriodLabel()});
           if(!slides.length)throw new Error("Tidak ada data Gudang Cinema yang terbaca.");
           state.activeType="gudang-cinema";var section=state.sections["gudang-cinema"];section.slides=slides.map(function(s){applyBulkPeriod(s);s.liveEditId=uid();return s;});
@@ -4583,7 +4596,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       function importLightingWorkbook(file){
         if(!file)return;var reader=new FileReader();
         reader.onload=function(ev){try{
-          var wb=window.XLSX.read(ev.target.result,{type:"array"}),parsed=window.BSMLightingReports.parseWorkbook(wb);
+          var wb=window.XLSX.read(ev.target.result,{type:"array",cellStyles:true,cellNF:true}),parsed=window.BSMLightingReports.parseWorkbook(wb);
           var slides=window.BSMLightingReports.createSlides(parsed,{maxVendorRows:20,maxComplaintRows:9,maxServiceRows:18,period:bulkPeriodLabel(),servicePeriod:bulkPeriodLabel()});
           if(!slides.length)throw new Error("Tidak ada data Gudang Lighting yang terbaca.");
           state.activeType="gudang-lighting";var section=state.sections["gudang-lighting"];section.slides=slides.map(function(s){applyBulkPeriod(s);s.liveEditId=uid();return s;});
@@ -5010,7 +5023,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       activateCachedSession();
       if("serviceWorker" in navigator){
         window.addEventListener("load",function(){
-          navigator.serviceWorker.register("/report-gudang-sw.js?v=70",{updateViaCache:"none"}).then(function(reg){return reg.update();}).catch(function(){});
+          navigator.serviceWorker.register("/report-gudang-sw.js?v=71",{updateViaCache:"none"}).then(function(reg){return reg.update();}).catch(function(){});
         });
       }
       document.addEventListener("visibilitychange",function(){
@@ -5027,5 +5040,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <!-- auth-scope-v2 -->
 </body>
 <!-- status-sort-tristate-cache-v24 -->
-<!-- report-gudang-build-v70-cloud-hydration-guard-cache70 -->
+<!-- report-gudang-build-v71-excel-color-fidelity-cache71 -->
 </html>

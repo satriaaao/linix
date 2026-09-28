@@ -169,6 +169,7 @@
         if(isWarehouse(typeId)&&s.columns.some(function(c){return c[0]==='namaAlat';}))return migrateWarehouseRow(r,s);
         var row={};
         s.columns.forEach(function(col){row[col[0]]=String(r&&r[col[0]]!=null?r[col[0]]:'');});
+        if(r&&r.__excelStyles&&typeof r.__excelStyles==='object')row.__excelStyles=clone(r.__excelStyles);
         return row;
       });
       var target=Math.max(1,Number(minRows||6));
@@ -247,6 +248,7 @@
     }
     var out={};
     def.columns.forEach(function(c){out[c[0]]=String(source[c[0]]!=null?source[c[0]]:'');});
+    if(source.__excelStyles&&typeof source.__excelStyles==='object')out.__excelStyles=clone(source.__excelStyles);
     return out;
   }
   function groupedWarehouseEntries(typeId,def,sheetRows,includeEmpty){
@@ -335,7 +337,7 @@
     if(custom)custom.columns=clone(sheet.columns);
     return true;
   }
-  function replaceSheetSchema(book,typeId,sheetId,labels,matrixRows,periodKey){
+  function replaceSheetSchema(book,typeId,sheetId,labels,matrixRows,periodKey,styleRows){
     if(!book||!book.sheets)throw new Error('Workbook manual belum siap');
     var def=sheetDef(typeId,sheetId,book),sheet=book.sheets[sheetId];
     if(!sheet)throw new Error('Sheet tidak ditemukan');
@@ -352,13 +354,33 @@
     var key=normalizePeriodKey(periodKey||book.activePeriod);
     book.activePeriod=key;
     if(!sheet.periodRows||typeof sheet.periodRows!=='object')sheet.periodRows={};
-    sheet.periodRows[key]=(matrixRows||[]).map(function(values){
-      var row={};columns.forEach(function(col,i){row[col[0]]=String(values&&values[i]!=null?values[i]:'').trim();});return row;
+    sheet.periodRows[key]=(matrixRows||[]).map(function(values,ri){
+      var row={},styles=Array.isArray(styleRows&&styleRows[ri])?styleRows[ri]:[];
+      columns.forEach(function(col,i){
+        row[col[0]]=String(values&&values[i]!=null?values[i]:'').trim();
+        if(styles[i]){
+          if(!row.__excelStyles)row.__excelStyles={};
+          row.__excelStyles[col[0]]=clone(styles[i]);
+        }
+      });
+      return row;
     });
     while(sheet.periodRows[key].length<6)sheet.periodRows[key].push(emptyRow({columns:columns}));
     sheet.rows=sheet.periodRows[key];
     return columns;
   }
+  function excelCellCss(style){
+    style=style&&typeof style==='object'?style:{};var parts=[];
+    function safeColor(v){v=String(v||'').toUpperCase();return /^#[0-9A-F]{6}$/.test(v)?v:'';}
+    var bg=safeColor(style.backgroundColor),fg=safeColor(style.color);
+    if(bg)parts.push('background-color:'+bg);if(fg)parts.push('color:'+fg);
+    if(style.fontWeight==='700'||style.fontWeight==='bold')parts.push('font-weight:700');
+    if(style.fontStyle==='italic')parts.push('font-style:italic');
+    if(style.textDecoration==='underline')parts.push('text-decoration:underline');
+    if(/^(left|center|right|justify)$/.test(String(style.textAlign||'')))parts.push('text-align:'+style.textAlign);
+    return parts.join(';');
+  }
+  function excelCellAttr(style){var css=excelCellCss(style);return css?' style="'+css+'"':'';}
   function colLetter(index){
     var n=Number(index)+1,s='';
     while(n>0){n--;s=String.fromCharCode(65+(n%26))+s;n=Math.floor(n/26);}
@@ -385,7 +407,8 @@
         return '<tr class="manual-auto-total-row"><th class="manual-row-index">Σ</th>'+totalCells+'<td class="manual-row-actions"><span class="manual-total-badge">AUTO</span></td></tr>';
       }
       var cells=active.columns.map(function(c,ci){
-        return '<td><input class="manual-cell" type="text" autocomplete="off" data-manual-row="'+r+'" data-manual-col="'+ci+'" data-manual-key="'+esc(c[0])+'" value="'+esc(row[c[0]])+'" placeholder="—"></td>';
+        var excelStyle=row&&row.__excelStyles&&row.__excelStyles[c[0]];
+        return '<td'+excelCellAttr(excelStyle)+'><input class="manual-cell" type="text" autocomplete="off" data-manual-row="'+r+'" data-manual-col="'+ci+'" data-manual-key="'+esc(c[0])+'" value="'+esc(row[c[0]])+'" placeholder="—"'+excelCellAttr(excelStyle)+'></td>';
       }).join('');
       return '<tr><th class="manual-row-index">'+(r+1)+'</th>'+cells+'<td class="manual-row-actions"><button type="button" title="Duplikat baris" data-manual-duplicate="'+r+'">⧉</button><button type="button" class="danger" title="Hapus baris" data-manual-delete="'+r+'">×</button></td></tr>';
     }).join('');
@@ -506,7 +529,8 @@
         if(!total&&compareKey&&c[0]===compareKey&&String(raw).trim()){
           content='<button type="button" class="manual-compare-link" data-manual-compare-key="'+e(compareKey)+'" data-manual-compare-value="'+e(raw)+'" title="Bandingkan dengan bulan sebelumnya">'+e(raw)+'</button>';
         }
-        return '<td class="manual-col-'+kinds[i]+'">'+content+'</td>';
+        var excelStyle=row&&row.__excelStyles&&row.__excelStyles[c[0]];
+        return '<td class="manual-col-'+kinds[i]+'"'+excelCellAttr(excelStyle)+'>'+content+'</td>';
       }).join('')+'</tr>';
     }).join('');
     var pageTotal=Number(report.pageTotal||1),pageNo=Number(report.pageNo||1);
