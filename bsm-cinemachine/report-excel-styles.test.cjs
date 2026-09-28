@@ -6,6 +6,7 @@ global.BSMExcelStyles=styles;
 const lighting=require('./report-lighting-reports');
 
 assert.equal(styles.color({rgb:'FFFFC000'}),'#FFC000');
+assert.equal(styles.color({theme:1}),'#000000');
 assert.equal(styles.color({theme:4,tint:.39997558519241921}),'#73A0B4');
 assert(styles.css({backgroundColor:'#FFC000',color:'#000000',fontWeight:'700'}).includes('background-color:#FFC000'));
 
