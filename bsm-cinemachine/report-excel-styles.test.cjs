@@ -30,6 +30,6 @@ assert(rendered.includes('background-color:#FFC000'));
 
 const html=fs.readFileSync(__dirname+'/report-gudang.html','utf8');
 assert(html.includes('cellStyles:true'));
-assert(html.includes('/report-excel-styles.js?v=71'));
-assert(html.includes('report-gudang-build-v71-excel-color-fidelity-cache71'));
+assert(html.includes('/report-excel-styles.js?v=72'));
+assert(html.includes('report-gudang-build-v72-all-excel-color-fidelity-cache72'));
 console.log('Excel values/styles fidelity regression passed');
