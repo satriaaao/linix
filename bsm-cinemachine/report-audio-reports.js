@@ -30,14 +30,16 @@
     }
     return -1;
   }
-  function parseServiceRows(rows){
+  function styleAt(styles,r,c){return styles&&styles[r]&&styles[r][c]?clone(styles[r][c]):null;}
+  function parseServiceRows(rows,styleRows){
     rows=rows||[];
     var centers=[];
     for(var i=0;i<rows.length-1;i++){
       var first=clean((rows[i]||[])[0]),next=rows[i+1]||[];
       if(!first||upper(next[0])!=='NO'||!isHeader(next,['NAMA BARANG','QTY','SERIAL NUMBER'])) continue;
       if(/^(MBR|ALAT-ALAT YANG DI SERVICE)$/i.test(first)) continue;
-      var center={name:first,rows:[]},j=i+2;
+      var center={name:first,rows:[],headerStyles:[],centerStyle:styleAt(styleRows,i,0)},j=i+2;
+      center.headerStyles=(next||[]).map(function(_,ci){return styleAt(styleRows,i+1,ci);});
       while(j<rows.length){
         var r=rows[j]||[];
         var candidate=clean(r[0]),nxt=rows[j+1]||[];
@@ -45,7 +47,8 @@
         if(/^\d+$/.test(clean(r[0]))){
           center.rows.push({
             no:num(r[0]),date:excelDate(r[1]),item:clean(r[2]),damage:clean(r[3]),qty:qtyText(r[4]),
-            sn:clean(r[5]),caseId:clean(r[6]),takenDate:excelDate(r[7]),note:clean(r[8]),receipt:clean(r[9])
+            sn:clean(r[5]),caseId:clean(r[6]),takenDate:excelDate(r[7]),note:clean(r[8]),receipt:clean(r[9]),
+            excelStyles:{no:styleAt(styleRows,j,0),date:styleAt(styleRows,j,1),item:styleAt(styleRows,j,2),damage:styleAt(styleRows,j,3),qty:styleAt(styleRows,j,4),sn:styleAt(styleRows,j,5),caseId:styleAt(styleRows,j,6),takenDate:styleAt(styleRows,j,7),note:styleAt(styleRows,j,8),receipt:styleAt(styleRows,j,9)}
           });
         }
         j++;
@@ -55,57 +58,58 @@
     }
     return centers;
   }
-  function parseVendorRows(rows){
+  function parseVendorRows(rows,styleRows){
     rows=rows||[];
     var title=findRow(rows,/Report Barang Kurang\s*\/\s*Ambil Vendor/i,0);
     if(title<0) return [];
     var hi=-1;
     for(var i=title+1;i<rows.length;i++){if(isHeader(rows[i],['TGL','Nama Alat','QTY'])){hi=i;break;}}
     if(hi<0) return [];
-    var groups=[],buf=[];
-    function finish(total){
+    var groups=[],buf=[],totalStyles=null;
+    function finish(total,styles){
       if(!buf.length) return;
-      groups.push({name:clean(buf[0].item),rows:buf,total:qtyText(total)||String(buf.reduce(function(s,r){return s+num(r.qty);},0))+' unit'});
-      buf=[];
+      groups.push({name:clean(buf[0].item),rows:buf,total:qtyText(total)||String(buf.reduce(function(s,r){return s+num(r.qty);},0))+' unit',totalStyles:styles||totalStyles});
+      buf=[];totalStyles=null;
     }
     for(var j=hi+1;j<rows.length;j++){
       var r=rows[j]||[];
       if(/Report Barang Bermasalah\s*\/\s*Komplain/i.test(clean(r[0]))) break;
       var name=clean(r[3]);
       if(!name) continue;
-      if(/^total$/i.test(name)){finish(r[4]);continue;}
-      buf.push({date:excelDate(r[1]),duration:clean(r[2]),item:name,qty:qtyText(r[4]),upgrade:clean(r[5]),vendor:clean(r[6]),price:clean(r[7])});
+      if(/^total$/i.test(name)){totalStyles={date:styleAt(styleRows,j,1),duration:styleAt(styleRows,j,2),item:styleAt(styleRows,j,3),qty:styleAt(styleRows,j,4),upgrade:styleAt(styleRows,j,5),vendor:styleAt(styleRows,j,6),price:styleAt(styleRows,j,7)};finish(r[4],totalStyles);continue;}
+      buf.push({date:excelDate(r[1]),duration:clean(r[2]),item:name,qty:qtyText(r[4]),upgrade:clean(r[5]),vendor:clean(r[6]),price:clean(r[7]),excelStyles:{date:styleAt(styleRows,j,1),duration:styleAt(styleRows,j,2),item:styleAt(styleRows,j,3),qty:styleAt(styleRows,j,4),upgrade:styleAt(styleRows,j,5),vendor:styleAt(styleRows,j,6),price:styleAt(styleRows,j,7)}});
     }
-    finish('');
+    finish('',null);
     return groups;
   }
-  function parseComplaintRows(rows){
+  function parseComplaintRows(rows,styleRows){
     rows=rows||[];
     var title=findRow(rows,/Report Barang Bermasalah\s*\/\s*Komplain/i,0);
     if(title<0) return [];
     var hi=-1;
     for(var i=title+1;i<rows.length;i++){if(isHeader(rows[i],['Indikasi','Nama Alat','QTY','Kronologis'])){hi=i;break;}}
     if(hi<0) return [];
-    var groups=[],buf=[];
-    function finish(total){
+    var groups=[],buf=[],totalStyles=null;
+    function finish(total,styles){
       if(!buf.length) return;
-      groups.push({name:clean(buf[0].item),rows:buf,total:qtyText(total)||String(buf.reduce(function(s,r){return s+num(r.qty);},0))+' unit'});
-      buf=[];
+      groups.push({name:clean(buf[0].item),rows:buf,total:qtyText(total)||String(buf.reduce(function(s,r){return s+num(r.qty);},0))+' unit',totalStyles:styles||totalStyles});
+      buf=[];totalStyles=null;
     }
     for(var j=hi+1;j<rows.length;j++){
       var r=rows[j]||[],name=clean(r[3]);
       if(!name) continue;
-      if(/^total$/i.test(name)){finish(r[4]);continue;}
+      if(/^total$/i.test(name)){totalStyles={date:styleAt(styleRows,j,1),indication:styleAt(styleRows,j,2),item:styleAt(styleRows,j,3),qty:styleAt(styleRows,j,4),chronology:styleAt(styleRows,j,5),action:styleAt(styleRows,j,6),pic:styleAt(styleRows,j,7),client:styleAt(styleRows,j,8)};finish(r[4],totalStyles);continue;}
       buf.push({
         date:excelDate(r[1]),indication:clean(r[2]),item:name,qty:qtyText(r[4]),chronology:clean(r[5]),
-        action:clean(r[6]),pic:clean(r[7]),client:clean(r[8])
+        action:clean(r[6]),pic:clean(r[7]),client:clean(r[8]),
+        excelStyles:{date:styleAt(styleRows,j,1),indication:styleAt(styleRows,j,2),item:styleAt(styleRows,j,3),qty:styleAt(styleRows,j,4),chronology:styleAt(styleRows,j,5),action:styleAt(styleRows,j,6),pic:styleAt(styleRows,j,7),client:styleAt(styleRows,j,8)}
       });
     }
-    finish('');
+    finish('',null);
     return groups;
   }
-  function parseWorkbookRows(serviceRows,sheet2Rows){
-    return {serviceCenters:parseServiceRows(serviceRows||[]),vendorGroups:parseVendorRows(sheet2Rows||[]),complaintGroups:parseComplaintRows(sheet2Rows||[])};
+  function parseWorkbookRows(serviceRows,sheet2Rows,serviceStyles,otherStyles){
+    return {serviceCenters:parseServiceRows(serviceRows||[],serviceStyles||[]),vendorGroups:parseVendorRows(sheet2Rows||[],otherStyles||[]),complaintGroups:parseComplaintRows(sheet2Rows||[],otherStyles||[])};
   }
   function parseWorkbook(workbook){
     if(!workbook||!workbook.SheetNames||!workbook.Sheets||!root.XLSX) throw new Error('Workbook Audio belum bisa dibaca.');
@@ -114,7 +118,10 @@
     var other=sheets.find(function(s){return s!==service&&s.rows.some(function(r){return /Report Barang Kurang|Report Barang Bermasalah/i.test(clean(r[0]));});});
     if(!service) service=sheets[0];
     if(!other) other=sheets[1]||sheets[0];
-    return parseWorkbookRows(service?service.rows:[],other?other.rows:[]);
+    var styler=root.BSMExcelStyles&&typeof root.BSMExcelStyles.sheetStyleMatrix==='function'?root.BSMExcelStyles:null;
+    var ss=styler&&service?styler.sheetStyleMatrix(workbook,workbook.Sheets[service.name],root.XLSX,service.rows.length,10):[];
+    var os=styler&&other?styler.sheetStyleMatrix(workbook,workbook.Sheets[other.name],root.XLSX,other.rows.length,10):[];
+    return parseWorkbookRows(service?service.rows:[],other?other.rows:[],ss,os);
   }
   function paginateGroups(groups,maxRows){
     maxRows=Math.max(4,Number(maxRows||16));
@@ -146,7 +153,7 @@
     (parsed.serviceCenters||[]).forEach(function(center){
       var rows=center.rows||[],max=Math.max(5,Number(opts.maxServiceRows||12)),total=Math.max(1,Math.ceil(rows.length/max));
       for(var i=0;i<rows.length;i+=max){
-        slides.push({template:'audio-service',reportType:'gudang-audio',department:'AUDIO',groups:[],serviceCenter:center.name,audioServiceRows:rows.slice(i,i+max),pageNo:Math.floor(i/max)+1,pageTotal:total,period:opts.servicePeriod||'2026'});
+        slides.push({template:'audio-service',reportType:'gudang-audio',department:'AUDIO',groups:[],serviceCenter:center.name,serviceCenterStyle:center.centerStyle,audioHeaderStyles:clone(center.headerStyles||[]),audioServiceRows:rows.slice(i,i+max),pageNo:Math.floor(i/max)+1,pageTotal:total,period:opts.servicePeriod||'2026'});
       }
     });
     return slides;
@@ -159,6 +166,7 @@
     });
     return html;
   }
+  function styleAttr(s){return root&&root.BSMExcelStyles&&typeof root.BSMExcelStyles.attr==='function'?root.BSMExcelStyles.attr(s):'';}
   function footer(period){
     return '<div class="audio-report-footer"><div><strong>MBR PT BLUE STAR MEDIA</strong><small>AKURAT, TERKONTROL, SIAP MENDUKUNG SETIAP PRODUKSI.</small></div><i></i><b>// '+period+'</b></div>';
   }
@@ -168,9 +176,9 @@
       var out='';
       (g.rows||[]).forEach(function(r,i){
         out+='<tr>'+(i===0?'<td class="audio-no" rowspan="'+((g.rows||[]).length+(g.showTotal===false?0:1))+'"><b>'+no+'</b></td>':'')
-          +'<td>'+esc(r.date)+'</td><td>'+esc(r.duration)+'</td><td>'+esc(r.item)+'</td><td class="audio-qty">'+esc(r.qty)+'</td><td>'+esc(r.upgrade||'-')+'</td><td>'+esc(r.vendor||'-')+'</td><td class="audio-price">'+esc(r.price||'-')+'</td></tr>';
+          +(function(){var x=r.excelStyles||{};return '<td'+styleAttr(x.date)+'>'+esc(r.date)+'</td><td'+styleAttr(x.duration)+'>'+esc(r.duration)+'</td><td'+styleAttr(x.item)+'>'+esc(r.item)+'</td><td class="audio-qty"'+styleAttr(x.qty)+'>'+esc(r.qty)+'</td><td'+styleAttr(x.upgrade)+'>'+esc(r.upgrade||'-')+'</td><td'+styleAttr(x.vendor)+'>'+esc(r.vendor||'-')+'</td><td class="audio-price"'+styleAttr(x.price)+'>'+esc(r.price||'-')+'</td>';})()+'</tr>';
       });
-      if(g.showTotal!==false) out+='<tr class="audio-total-row"><td colspan="3">Total '+esc(g.name)+'</td><td>'+esc(g.total)+'</td><td colspan="3"></td></tr>';
+      if(g.showTotal!==false){var t=g.totalStyles||{};out+='<tr class="audio-total-row"><td colspan="3"'+styleAttr(t.item||t.date)+'>Total '+esc(g.name)+'</td><td'+styleAttr(t.qty)+'>'+esc(g.total)+'</td><td colspan="3"'+styleAttr(t.upgrade||t.vendor||t.price)+'></td></tr>';} 
       return out;
     });
     var suffix=slide.pageTotal>1?' ('+slide.pageNo+'/'+slide.pageTotal+')':'';
@@ -186,9 +194,9 @@
       var out='';
       (g.rows||[]).forEach(function(r,i){
         out+='<tr>'+(i===0?'<td class="audio-no" rowspan="'+((g.rows||[]).length+(g.showTotal===false?0:1))+'"><b>'+no+'</b></td>':'')
-          +'<td>'+esc(r.date)+'</td><td class="audio-indication '+indicationClass(r.indication)+'">'+esc(r.indication||'-')+'</td><td>'+esc(r.item)+'</td><td class="audio-qty">'+esc(r.qty)+'</td><td>'+esc(r.chronology||'-')+'</td><td>'+esc(r.action||'-')+'</td><td>'+esc(r.pic||'-')+'</td><td>'+esc(r.client||'-')+'</td></tr>';
+          +(function(){var x=r.excelStyles||{};return '<td'+styleAttr(x.date)+'>'+esc(r.date)+'</td><td class="audio-indication '+indicationClass(r.indication)+'"'+styleAttr(x.indication)+'>'+esc(r.indication||'-')+'</td><td'+styleAttr(x.item)+'>'+esc(r.item)+'</td><td class="audio-qty"'+styleAttr(x.qty)+'>'+esc(r.qty)+'</td><td'+styleAttr(x.chronology)+'>'+esc(r.chronology||'-')+'</td><td'+styleAttr(x.action)+'>'+esc(r.action||'-')+'</td><td'+styleAttr(x.pic)+'>'+esc(r.pic||'-')+'</td><td'+styleAttr(x.client)+'>'+esc(r.client||'-')+'</td>';})()+'</tr>';
       });
-      if(g.showTotal!==false) out+='<tr class="audio-total-row"><td colspan="3">Total '+esc(g.name)+'</td><td>'+esc(g.total)+'</td><td colspan="4"></td></tr>';
+      if(g.showTotal!==false){var t=g.totalStyles||{};out+='<tr class="audio-total-row"><td colspan="3"'+styleAttr(t.item||t.date)+'>Total '+esc(g.name)+'</td><td'+styleAttr(t.qty)+'>'+esc(g.total)+'</td><td colspan="4"'+styleAttr(t.chronology||t.action)+'></td></tr>';}
       return out;
     });
     var suffix=slide.pageTotal>1?' ('+slide.pageNo+'/'+slide.pageTotal+')':'';
@@ -198,11 +206,11 @@
   function renderServiceSlide(slide,esc){
     esc=esc||escDefault;slide=slide||{};
     var rows=(slide.audioServiceRows||[]).map(function(r,i){
-      return '<tr><td class="audio-no">'+esc(r.no||i+1)+'</td><td>'+esc(r.date)+'</td><td>'+esc(r.item)+'</td><td>'+esc(r.damage||'-')+'</td><td class="audio-qty">'+esc(r.qty)+'</td><td>'+esc(r.sn||'-')+'</td><td>'+esc(r.caseId||'-')+'</td><td>'+esc(r.takenDate||'-')+'</td><td>'+esc(r.note||r.receipt||'-')+'</td></tr>';
+      var x=r.excelStyles||{};return '<tr><td class="audio-no"'+styleAttr(x.no)+'>'+esc(r.no||i+1)+'</td><td'+styleAttr(x.date)+'>'+esc(r.date)+'</td><td'+styleAttr(x.item)+'>'+esc(r.item)+'</td><td'+styleAttr(x.damage)+'>'+esc(r.damage||'-')+'</td><td class="audio-qty"'+styleAttr(x.qty)+'>'+esc(r.qty)+'</td><td'+styleAttr(x.sn)+'>'+esc(r.sn||'-')+'</td><td'+styleAttr(x.caseId)+'>'+esc(r.caseId||'-')+'</td><td'+styleAttr(x.takenDate)+'>'+esc(r.takenDate||'-')+'</td><td'+styleAttr(x.note||x.receipt)+'>'+esc(r.note||r.receipt||'-')+'</td></tr>';
     }).join('');
     var suffix=slide.pageTotal>1?' ('+slide.pageNo+'/'+slide.pageTotal+')':'';
-    return '<section class="audio-service-slide"><div class="audio-report-grid"></div><div class="audio-report-kicker"><div>// LAPORAN GUDANG</div><div class="accent">// REPORT AUDIO</div></div><h1>ALAT-ALAT YANG DI <span>SERVICE</span></h1><h2>'+esc(slide.serviceCenter||'SERVICE CENTER')+suffix+'</h2>'
-      +'<div class="audio-table-wrap"><table class="audio-service-table"><colgroup><col class="as-no"><col class="as-date"><col class="as-item"><col class="as-damage"><col class="as-qty"><col class="as-sn"><col class="as-case"><col class="as-taken"><col class="as-note"></colgroup><thead><tr><th>NO</th><th>TANGGAL</th><th>NAMA BARANG</th><th>KERUSAKAN</th><th>QTY</th><th>SERIAL NUMBER / SN</th><th>CASE ID</th><th>SUDAH DIAMBIL / TGL</th><th>KETERANGAN</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+footer(slide.period||'2026')+'</section>';
+    return '<section class="audio-service-slide"><div class="audio-report-grid"></div><div class="audio-report-kicker"><div>// LAPORAN GUDANG</div><div class="accent">// REPORT AUDIO</div></div><h1>ALAT-ALAT YANG DI <span>SERVICE</span></h1><h2'+styleAttr(slide.serviceCenterStyle)+'>'+esc(slide.serviceCenter||'SERVICE CENTER')+suffix+'</h2>'
+      +'<div class="audio-table-wrap"><table class="audio-service-table"><colgroup><col class="as-no"><col class="as-date"><col class="as-item"><col class="as-damage"><col class="as-qty"><col class="as-sn"><col class="as-case"><col class="as-taken"><col class="as-note"></colgroup><thead><tr>'+['NO','TANGGAL','NAMA BARANG','KERUSAKAN','QTY','SERIAL NUMBER / SN','CASE ID','SUDAH DIAMBIL / TGL','KETERANGAN'].map(function(h,i){return '<th'+styleAttr((slide.audioHeaderStyles||[])[i])+'>'+h+'</th>';}).join('')+'</tr></thead><tbody>'+rows+'</tbody></table></div>'+footer(slide.period||'2026')+'</section>';
   }
   return {parseServiceRows:parseServiceRows,parseVendorRows:parseVendorRows,parseComplaintRows:parseComplaintRows,parseWorkbookRows:parseWorkbookRows,parseWorkbook:parseWorkbook,createSlides:createSlides,renderVendorSlide:renderVendorSlide,renderComplaintSlide:renderComplaintSlide,renderServiceSlide:renderServiceSlide};
 });

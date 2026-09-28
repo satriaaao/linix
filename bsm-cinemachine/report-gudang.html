@@ -1611,23 +1611,23 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
 
   <script src="/report-gudang-parser.js"></script>
   <script src="/report-gudang-editor.js"></script>
-  <script src="/report-cover-building-1.js?v=71"></script>
-  <script src="/report-cover-building-2.js?v=71"></script>
-  <script src="/report-cover-building-loader.js?v=71"></script>
-  <script src="/report-gudang-cover.js?v=71"></script>
-  <script src="/report-gudang-master.js?v=71"></script>
+  <script src="/report-cover-building-1.js?v=72"></script>
+  <script src="/report-cover-building-2.js?v=72"></script>
+  <script src="/report-cover-building-loader.js?v=72"></script>
+  <script src="/report-gudang-cover.js?v=72"></script>
+  <script src="/report-gudang-master.js?v=72"></script>
   <script src="/report-admin-matrix.js"></script>
   <script src="/report-it-omset.js"></script>
-  <script src="/report-it-products.js?v=71"></script>
+  <script src="/report-it-products.js?v=72"></script>
   <script src="/report-it-products-data.js"></script>
   <script src="/report-camera-vendor.js"></script>
   <script src="/report-camera-reports.js"></script>
   <script src="/report-audio-reports.js"></script>
   <script src="/report-cinema-reports.js"></script>
-  <script src="/report-excel-styles.js?v=71"></script>
-  <script src="/report-lighting-reports.js?v=71"></script>
+  <script src="/report-excel-styles.js?v=72"></script>
+  <script src="/report-lighting-reports.js?v=72"></script>
   <script src="/report-crew-reports.js"></script>
-  <script src="/report-manual-sheets.js?v=71"></script>
+  <script src="/report-manual-sheets.js?v=72"></script>
   <script src="/report-bulk-router.js"></script>
   <script src="/report-live-edit.js"></script>
   <script src="/report-slide-fit.js"></script>
@@ -1637,8 +1637,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-export.js"></script>
   <script src="/report-gudang-ui.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
-  <script src="/report-gudang-realtime.js?v=71"></script>
-  <script src="/report-gudang-cloud.js?v=71"></script>
+  <script src="/report-gudang-realtime.js?v=72"></script>
+  <script src="/report-gudang-cloud.js?v=72"></script>
   <script>
     (function(){
       var STORAGE_KEY = "bsm-report-gudang-v2";
@@ -3268,6 +3268,43 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         });
         input.click();
       }
+
+      function cssRgbToHex(value){
+        value=String(value||"").trim();
+        var m=value.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+        if(!m)return /^#[0-9a-f]{6}$/i.test(value)?value.toUpperCase():"";
+        return "#"+[m[1],m[2],m[3]].map(function(x){return Math.max(0,Math.min(255,Number(x))).toString(16).padStart(2,"0");}).join("").toUpperCase();
+      }
+      function computedExcelStyle(el){
+        if(!el)return null;var cs=getComputedStyle(el),out={},bg=cssRgbToHex(cs.backgroundColor),fg=cssRgbToHex(cs.color);
+        if(bg&&bg!=="#FFFFFF"&&String(cs.backgroundColor).indexOf("0)")<0)out.backgroundColor=bg;
+        if(fg&&fg!=="#000000")out.color=fg;
+        if(Number(cs.fontWeight)>=600)out.fontWeight="700";
+        if(cs.fontStyle==="italic")out.fontStyle="italic";
+        if(String(cs.textDecorationLine||"").indexOf("underline")>=0)out.textDecoration="underline";
+        if(/^(left|center|right|justify)$/.test(cs.textAlign))out.textAlign=cs.textAlign;
+        return Object.keys(out).length?out:null;
+      }
+      function excelClipboardBundle(clipboardData){
+        if(!clipboardData)return null;
+        var html=clipboardData.getData("text/html"),text=clipboardData.getData("text/plain")||clipboardData.getData("text")||"";
+        if(!html||html.toLowerCase().indexOf("<table")<0)return null;
+        var holder=document.createElement("div");holder.style.cssText="position:fixed;left:-100000px;top:-100000px;visibility:hidden;pointer-events:none";holder.innerHTML=html;document.body.appendChild(holder);
+        try{
+          var table=holder.querySelector("table");if(!table)return null;
+          var matrix=[],styles=[];
+          Array.prototype.forEach.call(table.querySelectorAll("tr"),function(tr){
+            var vals=[],ss=[];Array.prototype.forEach.call(tr.children,function(cell){
+              if(!/^(TD|TH)$/.test(cell.tagName))return;
+              var span=Math.max(1,Number(cell.getAttribute("colspan")||1)),value=(cell.innerText||cell.textContent||"").replace(/\u00a0/g," ").trim(),st=computedExcelStyle(cell);
+              for(var k=0;k<span;k++){vals.push(k===0?value:"");ss.push(st?clone(st):null);}
+            });
+            if(vals.length){matrix.push(vals);styles.push(ss);}
+          });
+          return matrix.length?{matrix:matrix,styles:styles,text:text}:null;
+        }finally{holder.remove();}
+      }
+
       function openManualBulkModal(){
         var book=currentManualBook(),def=window.BSMManualSheets.sheetDef(state.activeType,book.activeSheet,book);
         modalHost.innerHTML='<div class="rg-modal-backdrop" data-manual-bulk-backdrop><div class="rg-modal-card manual-bulk-modal" role="dialog" aria-modal="true" aria-label="Input Banyak Manual"><div class="rg-modal-head"><strong>Input Banyak • '+esc(def.label)+'</strong><button class="rg-modal-close" type="button" data-manual-bulk-close>×</button></div><div class="rg-modal-body"><p class="manual-bulk-note"><strong>Otomatis mengikuti Excel.</strong> Jika header/kolom berbeda, tabel dan Preview akan menyesuaikan. Jika nama sheet Excel tidak cocok dengan tabel yang ada, sistem otomatis membuat tabel baru.</p><div class="manual-bulk-drop"><textarea data-manual-bulk-text placeholder="Paste dari Excel di sini. Baris pertama = nama kolom.&#10;&#10;Contoh:&#10;Nama Alat&#9;SN Lampu&#9;Tempat Service&#9;Tanggal Service&#9;Indikasi Rusak"></textarea><div class="manual-bulk-file"><label>Atau upload Excel (.xlsx / .xls)<input type="file" accept=".xlsx,.xls,.xlsm" data-manual-bulk-file></label><span class="tiny">Semua sheet Excel yang berisi tabel akan dibaca.</span></div></div><div class="manual-bulk-actions"><button class="btn" type="button" data-manual-bulk-cancel>Batal</button><button class="btn primary" type="button" data-manual-bulk-import>Masukkan ke Tabel & Preview</button></div></div></div></div>';
@@ -3275,12 +3312,18 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         modalHost.querySelector("[data-manual-bulk-close]").addEventListener("click",close);
         modalHost.querySelector("[data-manual-bulk-cancel]").addEventListener("click",close);
         modalHost.querySelector("[data-manual-bulk-backdrop]").addEventListener("click",function(e){if(e.target===this)close();});
-        var fileInput=modalHost.querySelector("[data-manual-bulk-file]");
+        var fileInput=modalHost.querySelector("[data-manual-bulk-file]"),bulkTextArea=modalHost.querySelector("[data-manual-bulk-text]");
         fileInput.addEventListener("change",function(){var file=this.files&&this.files[0];if(file)importManualWorkbookFile(file);});
+        bulkTextArea.addEventListener("paste",function(e){
+          var bundle=excelClipboardBundle(e.clipboardData);if(!bundle)return;
+          e.preventDefault();this.value=bundle.text||bundle.matrix.map(function(r){return r.join("\t");}).join("\n");this.__excelPasteBundle=bundle;
+          toast("Paste Excel terbaca • warna cell ikut disimpan");
+        });
+        bulkTextArea.addEventListener("input",function(){if(this.__excelPasteBundle&&this.value!==(this.__excelPasteBundle.text||"").trim())this.__excelPasteBundle=null;});
         modalHost.querySelector("[data-manual-bulk-import]").addEventListener("click",function(){
           try{
-            var raw=modalHost.querySelector("[data-manual-bulk-text]").value.trim();if(!raw){toast("Paste data atau pilih file Excel");return;}
-            var matrix=splitBulkRows(raw),count=importMatrixToManualSheet(book,state.activeType,book.activeSheet,matrix);
+            var ta=modalHost.querySelector("[data-manual-bulk-text]"),raw=ta.value.trim();if(!raw){toast("Paste data atau pilih file Excel");return;}
+            var bundle=ta.__excelPasteBundle,matrix=bundle&&bundle.matrix?bundle.matrix:splitBulkRows(raw),count=importMatrixToManualSheet(book,state.activeType,book.activeSheet,matrix,bundle&&bundle.styles);
             renderManualWorkbook();markManualDirty();saveState(false);applyManualPreview();updateBulkContext();closeModal();
             toast(count+" baris masuk • tabel & preview sudah menyesuaikan");
           }catch(err){toast(err&&err.message?err.message:"Data tidak dapat dibaca");}
@@ -3372,21 +3415,20 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             sheet.rows[r][key]=this.value;markManualDirty();autoSave();
           });
           input.addEventListener("paste",function(e){
-            var text=e.clipboardData&&e.clipboardData.getData("text");
-            if(!text||(!/[\t\n\r]/.test(text)))return;
+            var bundle=excelClipboardBundle(e.clipboardData),text=e.clipboardData&&e.clipboardData.getData("text");
+            if(!bundle&&(!text||(!/[\t\n\r]/.test(text))))return;
             e.preventDefault();
             var startRow=Number(this.dataset.manualRow),startCol=Number(this.dataset.manualCol);
             var def=window.BSMManualSheets.sheetDef(state.activeType,book.activeSheet,book),sheet=book.sheets[book.activeSheet];
-            var matrix=String(text).replace(/\r/g,"").split("\n");
-            if(matrix.length&&matrix[matrix.length-1]==="")matrix.pop();
-            matrix.forEach(function(line,ri){
-              var values=line.split("\t"),targetRow=startRow+ri;
-              while(sheet.rows.length<=targetRow)sheet.rows.push(window.BSMManualSheets.emptyRow(def));
+            var matrix=bundle&&bundle.matrix?bundle.matrix:String(text).replace(/\r/g,"").split("\n").filter(function(x,i,a){return !(i===a.length-1&&x==="");}).map(function(line){return line.split("\t");});
+            matrix.forEach(function(values,ri){
+              var targetRow=startRow+ri;while(sheet.rows.length<=targetRow)sheet.rows.push(window.BSMManualSheets.emptyRow(def));
               values.forEach(function(value,ci){
-                var col=def.columns[startCol+ci];if(col)sheet.rows[targetRow][col[0]]=value;
+                var col=def.columns[startCol+ci];if(!col)return;sheet.rows[targetRow][col[0]]=value;
+                var st=bundle&&bundle.styles&&bundle.styles[ri]&&bundle.styles[ri][ci];if(st){if(!sheet.rows[targetRow].__excelStyles)sheet.rows[targetRow].__excelStyles={};sheet.rows[targetRow].__excelStyles[col[0]]=clone(st);}
               });
             });
-            renderManualWorkbook();markManualDirty();autoSave();toast("Data dari Excel ditempel");
+            renderManualWorkbook();markManualDirty();autoSave();toast(bundle?"Data & warna dari Excel ditempel":"Data dari Excel ditempel");
             setTimeout(function(){
               var next=manualTableMount.querySelector('.manual-cell[data-manual-row="'+startRow+'"][data-manual-col="'+startCol+'"]');
               if(next)next.focus();
@@ -5029,7 +5071,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       activateCachedSession();
       if("serviceWorker" in navigator){
         window.addEventListener("load",function(){
-          navigator.serviceWorker.register("/report-gudang-sw.js?v=71",{updateViaCache:"none"}).then(function(reg){return reg.update();}).catch(function(){});
+          navigator.serviceWorker.register("/report-gudang-sw.js?v=72",{updateViaCache:"none"}).then(function(reg){return reg.update();}).catch(function(){});
         });
       }
       document.addEventListener("visibilitychange",function(){
@@ -5046,5 +5088,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <!-- auth-scope-v2 -->
 </body>
 <!-- status-sort-tristate-cache-v24 -->
-<!-- report-gudang-build-v71-excel-color-fidelity-cache71 -->
+<!-- report-gudang-build-v72-all-excel-color-fidelity-cache72 -->
 </html>

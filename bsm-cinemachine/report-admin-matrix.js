@@ -1,8 +1,8 @@
 (function(root,factory){
-  var api=factory();
+  var api=factory(root);
   if(typeof module==='object'&&module.exports) module.exports=api;
   if(root) root.BSMAdminMatrix=api;
-})(typeof globalThis!=='undefined'?globalThis:this,function(){
+})(typeof globalThis!=='undefined'?globalThis:this,function(root){
   function d(s){
     var a=String(s||'').split(',');
     while(a.length<30) a.push('');
@@ -47,10 +47,12 @@
   function escDefault(v){
     return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
   }
-  function dayCells(days,esc){
-    return days.map(function(v){
+  function styleAttr(style){return root&&root.BSMExcelStyles&&typeof root.BSMExcelStyles.attr==='function'?root.BSMExcelStyles.attr(style):'';}
+  function dayCells(days,esc,styles){
+    styles=Array.isArray(styles)?styles:[];
+    return days.map(function(v,i){
       var value=String(v==null?'':v);
-      return '<td class="admin-day '+(value?'has-value':'')+'">'+(value?esc(value):'')+'</td>';
+      return '<td class="admin-day '+(value?'has-value':'')+'"'+styleAttr(styles[i])+'>'+(value?esc(value):'')+'</td>';
     }).join('');
   }
   function renderSlide(input,esc){
@@ -62,7 +64,7 @@
       Array.isArray(data.jemputanTotal)?data.jemputanTotal.length:0,
       Array.isArray(data.suratJalan)?data.suratJalan.length:0
     );
-    var days=Array.from({length:dayCount},function(_,i){return '<th class="admin-day-head">'+(i+1)+'</th>';}).join('');
+    var days=Array.from({length:dayCount},function(_,i){return '<th class="admin-day-head"'+styleAttr(data.headerStyles&&data.headerStyles.days&&data.headerStyles.days[i])+'>'+(i+1)+'</th>';}).join('');
     var dayCols=Array.from({length:dayCount},function(){return '<col class="admin-col-day">';}).join('');
     var colgroup='<colgroup><col class="admin-col-group"><col class="admin-col-shift"><col class="admin-col-time">'+dayCols+'<col class="admin-col-total"><col class="admin-col-ket"></colgroup>';
     function shiftSpan(rows,index){
@@ -80,23 +82,25 @@
       body+='<tr class="admin-detail-row">';
       if(i===0) body+='<td class="admin-group" rowspan="'+(data.delivery.length+1)+'"><b>1</b><strong>DELIVERY</strong></td>';
       var span=shiftSpan(data.delivery,i);
-      if(span)body+='<td class="admin-shift" rowspan="'+span+'">'+esc(row.shift||'')+'</td>';
-      body+='<td class="admin-time">'+esc(row.time||'')+'</td>'+dayCells(row.days,esc)+'<td class="admin-total-cell"></td><td></td></tr>';
+      var xs=row.excelStyles||{};
+      if(span)body+='<td class="admin-shift" rowspan="'+span+'"'+styleAttr(xs.shift)+'>'+esc(row.shift||'')+'</td>';
+      body+='<td class="admin-time"'+styleAttr(xs.time)+'>'+esc(row.time||'')+'</td>'+dayCells(row.days,esc,xs.days)+'<td class="admin-total-cell"'+styleAttr(xs.total)+'></td><td'+styleAttr(xs.ket)+'></td></tr>';
     });
-    body+='<tr class="admin-total-row"><td colspan="2">DELIVERY TOTAL</td>'+dayCells(data.deliveryTotal,esc)+'<td class="admin-grand-total">'+esc(data.totals.delivery)+'</td><td></td></tr>';
+    body+='<tr class="admin-total-row"><td colspan="2"'+styleAttr(data.deliveryTotalLabelStyle)+'>DELIVERY TOTAL</td>'+dayCells(data.deliveryTotal,esc,data.deliveryTotalStyles)+'<td class="admin-grand-total"'+styleAttr(data.deliveryGrandStyle)+'>'+esc(data.totals.delivery)+'</td><td></td></tr>';
     data.jemputan.forEach(function(row,i){
       body+='<tr class="admin-detail-row">';
       if(i===0) body+='<td class="admin-group" rowspan="3"><b>2</b><strong>JEMPUTAN</strong></td>';
-      body+='<td class="admin-shift">'+esc(row.shift)+'</td><td class="admin-time"></td>'+dayCells(row.days,esc)+'<td class="admin-total-cell"></td><td></td></tr>';
+      var xs=row.excelStyles||{};
+      body+='<td class="admin-shift"'+styleAttr(xs.shift)+'>'+esc(row.shift)+'</td><td class="admin-time"'+styleAttr(xs.time)+'></td>'+dayCells(row.days,esc,xs.days)+'<td class="admin-total-cell"'+styleAttr(xs.total)+'></td><td'+styleAttr(xs.ket)+'></td></tr>';
     });
-    body+='<tr class="admin-total-row"><td colspan="2">JEMPUTAN TOTAL</td>'+dayCells(data.jemputanTotal,esc)+'<td class="admin-grand-total">'+esc(data.totals.jemputan)+'</td><td></td></tr>';
-    body+='<tr class="admin-total-row admin-surat-row"><td class="admin-group"><b>3</b></td><td colspan="2">SURAT JALAN</td>'+dayCells(data.suratJalan,esc)+'<td class="admin-grand-total">'+esc(data.totals.suratJalan)+'</td><td></td></tr>';
+    body+='<tr class="admin-total-row"><td colspan="2"'+styleAttr(data.jemputanTotalLabelStyle)+'>JEMPUTAN TOTAL</td>'+dayCells(data.jemputanTotal,esc,data.jemputanTotalStyles)+'<td class="admin-grand-total"'+styleAttr(data.jemputanGrandStyle)+'>'+esc(data.totals.jemputan)+'</td><td></td></tr>';
+    body+='<tr class="admin-total-row admin-surat-row"><td class="admin-group"><b>3</b></td><td colspan="2"'+styleAttr(data.suratJalanLabelStyle)+'>SURAT JALAN</td>'+dayCells(data.suratJalan,esc,data.suratJalanStyles)+'<td class="admin-grand-total"'+styleAttr(data.suratJalanGrandStyle)+'>'+esc(data.totals.suratJalan)+'</td><td></td></tr>';
     var notes=data.notes.map(function(n,i){return '<div class="admin-note"><b>'+(i+1)+'.</b><span>'+esc(n)+'</span></div>';}).join('');
     return '<section class="admin-matrix-slide">'
       +'<div class="admin-matrix-grid"></div>'
       +'<div class="admin-matrix-kicker"><div>// LAPORAN ADMIN</div><div class="accent">// DATA MBR</div></div>'
       +'<h1>'+esc(data.title)+' <span>'+esc(data.period)+'</span></h1>'
-      +'<div class="admin-matrix-table-wrap"><table class="admin-matrix-table">'+colgroup+'<thead><tr><th>Grup</th><th>Shift</th><th>JAM/TANGGAL</th>'+days+'<th>TOTAL</th><th>KET</th></tr></thead><tbody>'+body+'</tbody></table></div>'
+      +'<div class="admin-matrix-table-wrap"><table class="admin-matrix-table">'+colgroup+'<thead><tr><th'+styleAttr(data.headerStyles&&data.headerStyles.group)+'>Grup</th><th'+styleAttr(data.headerStyles&&data.headerStyles.shift)+'>Shift</th><th'+styleAttr(data.headerStyles&&data.headerStyles.time)+'>JAM/TANGGAL</th>'+days+'<th'+styleAttr(data.headerStyles&&data.headerStyles.total)+'>TOTAL</th><th'+styleAttr(data.headerStyles&&data.headerStyles.ket)+'>KET</th></tr></thead><tbody>'+body+'</tbody></table></div>'
       +'<div class="admin-matrix-bottom"><div class="admin-box"><h3>KET</h3><div class="admin-summary-row"><span>DRIVER</span><b>-</b></div><div class="admin-summary-row"><span>DELIVERY</span><b>'+esc(data.totals.delivery)+'</b></div><div class="admin-summary-row"><span>JEMPUTAN</span><b>'+esc(data.totals.jemputan)+'</b></div><div class="admin-summary-row strong"><span>TOTAL ANTARAN DAN JEMPUTAN</span><b>'+esc(data.totals.combined)+'</b></div><div class="admin-summary-row strong"><span>TOTAL SELURUH SURAT JALAN</span><b>'+esc(data.totals.suratJalan)+'</b></div></div>'
       +'<div class="admin-box admin-notes"><h3>CATATAN</h3>'+notes+'</div></div>'
       +'<div class="admin-matrix-footer"><span>LAPORAN ADMIN DATA MBR &nbsp; | &nbsp; AKURAT, TERKONTROL, SIAP MENDUKUNG SETIAP PRODUKSI.</span><i></i><strong>// '+esc(data.period||'JUNI 2026')+'</strong></div>'
