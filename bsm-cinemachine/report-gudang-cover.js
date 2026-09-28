@@ -8,6 +8,9 @@
     return {
       logoMain:'BSM',
       logoSub:'RENTAL',
+      brandLine1:'',
+      brandLine2:'',
+      brandLine3:'',
       titleTop1:'// LAPORAN GUDANG',
       titleTop2:'// REPORT LIGHTING',
       mainTitle1:'MBR',
@@ -42,6 +45,7 @@
       +'<div><input id="coverImageInput" type="file" accept="image/*" class="cover-file-input"><div class="tiny">Upload foto gedung JPG/PNG. Foto dipotong proporsional dan hanya berlaku untuk Slide 1.</div></div></div></div>'
       +'<div class="cover-editor-block"><div class="section-title"><strong>Logo & Judul</strong></div><div class="field-grid">'
       +field(esc,'Logo','logoMain',model.logoMain,false)+field(esc,'Sub Logo','logoSub',model.logoSub,false)
+      +field(esc,'Brand 1','brandLine1',model.brandLine1,false)+field(esc,'Brand 2','brandLine2',model.brandLine2,false)+field(esc,'Brand 3','brandLine3',model.brandLine3,false)
       +field(esc,'Label Kanan 1','titleTop1',model.titleTop1,true)+field(esc,'Label Kanan 2','titleTop2',model.titleTop2,true)
       +field(esc,'Judul Kecil','mainTitle1',model.mainTitle1,false)+field(esc,'Judul Utama','mainTitle2',model.mainTitle2,true)
       +'</div></div>'
@@ -62,6 +66,7 @@
     return '<section class="cover-slide">'
       +'<div class="cover-grid"></div><div class="cover-hero" style="background-image:url(&quot;'+esc(model.image)+'&quot;)"></div><div class="cover-diagonal"></div>'
       +'<div class="cover-logo"><div class="cover-logo-boxes">'+logo+'</div><div class="cover-logo-sub">'+esc(model.logoSub)+'</div></div>'
+      +((model.brandLine1||model.brandLine2||model.brandLine3)?'<div class="cover-brand-stack"><span>'+esc(model.brandLine1)+'</span><span>'+esc(model.brandLine2)+'</span><span>'+esc(model.brandLine3)+'</span></div>':'')
       +'<div class="cover-top-right"><div>'+esc(model.titleTop1)+'</div><div class="accent">'+esc(model.titleTop2)+'</div></div>'
       +'<div class="cover-main"><div class="cover-bar"></div><div class="cover-title-one">'+esc(model.mainTitle1)+'</div><div class="cover-title-two">'+esc(model.mainTitle2)+'</div>'
       +'<div class="cover-period"><span>'+esc(model.periodPrefix)+'</span> <strong>'+esc(model.period)+'</strong></div>'

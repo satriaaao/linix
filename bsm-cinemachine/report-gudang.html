@@ -367,7 +367,7 @@
     }
     .cover-hero{
       position:absolute;z-index:1;right:0;top:0;width:69%;height:100%;
-      background-size:cover;background-position:center center;
+      background-size:cover;background-position:72% center;
       filter:saturate(.88) contrast(1.04) brightness(1.05);
       clip-path:polygon(35% 0,100% 0,100% 100%,0 100%);
     }
@@ -387,31 +387,40 @@
       clip-path:polygon(72% 0,100% 0,30% 100%,0 100%);
       border-right:1px solid rgba(255,255,255,.62);
     }
-    .cover-logo{position:absolute;z-index:5;left:54px;top:42px}
+    .cover-logo{position:absolute;z-index:7;left:54px;top:42px}
     .cover-logo-boxes{display:flex;gap:6px}
     .cover-logo-boxes span{
-      width:66px;height:58px;display:grid;place-items:center;background:#05070b;color:#fff;
+      width:64px;height:58px;display:grid;place-items:center;background:#05070b;color:#fff;
       font-size:42px;font-weight:950;line-height:1;letter-spacing:-.05em;
     }
-    .cover-logo-sub{margin-top:6px;text-align:center;letter-spacing:.42em;font-size:18px;font-weight:850}
+    .cover-logo-sub{margin-top:6px;text-align:center;letter-spacing:.44em;font-size:18px;font-weight:850}
+    .cover-brand-stack{
+      position:absolute;z-index:7;left:286px;top:42px;min-height:66px;
+      border-left:2px solid #111827;padding-left:18px;
+      font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+      font-size:14px;line-height:1.48;letter-spacing:.12em;
+      text-transform:uppercase;color:#7c8796;font-weight:650;
+    }
+    .cover-brand-stack span{display:block;white-space:nowrap}
+
     .cover-top-right{
-      position:absolute;z-index:6;right:58px;top:34px;text-align:left;
+      position:absolute;z-index:7;right:58px;top:34px;text-align:left;
       font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:17px;font-weight:850;letter-spacing:.12em;line-height:1.9;text-shadow:0 1px 10px rgba(255,255,255,.98);
     }
     .cover-top-right .accent{color:var(--teal)}
-    .cover-main{position:absolute;z-index:6;left:54px;top:176px;width:990px}
+    .cover-main{position:absolute;z-index:6;left:54px;top:184px;width:1020px}
     .cover-bar{
       width:118px;height:11px;margin-bottom:17px;
       background:linear-gradient(90deg,#0aa4b2 0%,#087b91 100%);
     }
-    .cover-title-one{font-size:118px;line-height:.84;font-weight:950;letter-spacing:-.055em;color:#05070b}
+    .cover-title-one{font-size:116px;line-height:.84;font-weight:950;letter-spacing:-.055em;color:#05070b}
     .cover-title-two{
-      margin-top:10px;font-size:88px;line-height:.92;font-weight:950;letter-spacing:-.045em;
+      margin-top:9px;font-size:90px;line-height:.92;font-weight:950;letter-spacing:-.045em;
       text-transform:uppercase;white-space:nowrap;
       background:linear-gradient(90deg,#0795a6 0%,#087f93 54%,#08637b 100%);
       -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
     }
-    .cover-period{margin-top:10px;font-size:48px;line-height:1;font-weight:350;letter-spacing:-.035em}
+    .cover-period{margin-top:9px;font-size:47px;line-height:1;font-weight:350;letter-spacing:-.035em}
     .cover-period strong{
       color:#087b88;font-weight:950;
       background:linear-gradient(90deg,#0ca0aa,#08798b 72%,#075d72);
@@ -422,9 +431,9 @@
       font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:18px;letter-spacing:.13em;font-weight:800;text-transform:uppercase;
     }
     .cover-data-line b{font-size:23px;color:#0f172a}
-    .cover-items{display:flex;align-items:stretch;gap:0;margin-top:28px;width:650px}
+    .cover-items{display:flex;align-items:stretch;gap:0;margin-top:27px;width:620px}
     .cover-item{
-      width:205px;min-height:115px;padding:0 20px;border-right:2px solid rgba(8,125,134,.45);
+      width:196px;min-height:112px;padding:0 18px;border-right:2px solid rgba(8,125,134,.45);
       display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
       font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:15px;font-weight:850;text-align:center;letter-spacing:.05em;text-transform:uppercase;
     }
@@ -1597,14 +1606,14 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
 
   <script src="/report-gudang-parser.js"></script>
   <script src="/report-gudang-editor.js"></script>
-  <script src="/report-cover-building-1.js?v=67"></script>
-  <script src="/report-cover-building-2.js?v=67"></script>
-  <script src="/report-cover-building-loader.js?v=67"></script>
-  <script src="/report-gudang-cover.js?v=67"></script>
-  <script src="/report-gudang-master.js?v=67"></script>
+  <script src="/report-cover-building-1.js?v=68"></script>
+  <script src="/report-cover-building-2.js?v=68"></script>
+  <script src="/report-cover-building-loader.js?v=68"></script>
+  <script src="/report-gudang-cover.js?v=68"></script>
+  <script src="/report-gudang-master.js?v=68"></script>
   <script src="/report-admin-matrix.js"></script>
   <script src="/report-it-omset.js"></script>
-  <script src="/report-it-products.js?v=67"></script>
+  <script src="/report-it-products.js?v=68"></script>
   <script src="/report-it-products-data.js"></script>
   <script src="/report-camera-vendor.js"></script>
   <script src="/report-camera-reports.js"></script>
@@ -1612,7 +1621,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-cinema-reports.js"></script>
   <script src="/report-lighting-reports.js"></script>
   <script src="/report-crew-reports.js"></script>
-  <script src="/report-manual-sheets.js?v=67"></script>
+  <script src="/report-manual-sheets.js?v=68"></script>
   <script src="/report-bulk-router.js"></script>
   <script src="/report-live-edit.js"></script>
   <script src="/report-slide-fit.js"></script>
@@ -1622,8 +1631,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-export.js"></script>
   <script src="/report-gudang-ui.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
-  <script src="/report-gudang-realtime.js?v=67"></script>
-  <script src="/report-gudang-cloud.js?v=67"></script>
+  <script src="/report-gudang-realtime.js?v=68"></script>
+  <script src="/report-gudang-cloud.js?v=68"></script>
   <script>
     (function(){
       var STORAGE_KEY = "bsm-report-gudang-v2";
@@ -4998,7 +5007,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       activateCachedSession();
       if("serviceWorker" in navigator){
         window.addEventListener("load",function(){
-          navigator.serviceWorker.register("/report-gudang-sw.js?v=67",{updateViaCache:"none"}).then(function(reg){return reg.update();}).catch(function(){});
+          navigator.serviceWorker.register("/report-gudang-sw.js?v=68",{updateViaCache:"none"}).then(function(reg){return reg.update();}).catch(function(){});
         });
       }
       document.addEventListener("visibilitychange",function(){
@@ -5015,5 +5024,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <!-- auth-scope-v2 -->
 </body>
 <!-- status-sort-tristate-cache-v24 -->
-<!-- report-gudang-build-v67-reference-lighting-cover-cache67 -->
+<!-- report-gudang-build-v68-closer-reference-lighting-cover-cache68 -->
 </html>

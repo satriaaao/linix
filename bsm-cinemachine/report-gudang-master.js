@@ -32,6 +32,9 @@
     cover.footerLeft=cover.footerLeft||'PT BLUE STAR MEDIA  |  BSM RENTAL';
     cover.footerRight='// '+String(type.label||'REPORT').toUpperCase();
     if(type.id==='gudang-lighting'){
+      cover.brandLine1='RENTAL';
+      cover.brandLine2='MULTIMEDIA';
+      cover.brandLine3='EVENT SOLUTION';
       cover.titleTop1='// LAPORAN GUDANG';
       cover.titleTop2='// REPORT LIGHTING';
       cover.dataPrefix='DATA :';
@@ -60,6 +63,9 @@
       defaults[type.id].cover=Object.assign(makeSectionCover(type,baseCover),clone(src.cover||{}));
       if(type.id==='gudang-lighting'){
         var lightingCover=defaults[type.id].cover;
+        if(!lightingCover.brandLine1)lightingCover.brandLine1='RENTAL';
+        if(!lightingCover.brandLine2)lightingCover.brandLine2='MULTIMEDIA';
+        if(!lightingCover.brandLine3)lightingCover.brandLine3='EVENT SOLUTION';
         if(lightingCover.titleTop1==='// PT BLUE STAR MEDIA')lightingCover.titleTop1='// LAPORAN GUDANG';
         if(lightingCover.titleTop2==='// GUDANG LIGHTING')lightingCover.titleTop2='// REPORT LIGHTING';
         if(lightingCover.dataPrefix==='REPORT :')lightingCover.dataPrefix='DATA :';

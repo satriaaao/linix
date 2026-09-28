@@ -20,8 +20,8 @@ vm.runInContext(fs.readFileSync(__dirname+'/report-cover-building-loader.js','ut
 assert(ctx.window.BSM_BUILDING_COVER_DATA.startsWith('data:image/webp;base64,UklG'));
 
 const html=fs.readFileSync(__dirname+'/report-gudang.html','utf8');
-assert(html.includes('/report-cover-building-loader.js?v=67'));
-assert(html.includes('report-gudang-build-v67-reference-lighting-cover-cache67'));
+assert(html.includes('/report-cover-building-loader.js?v=68'));
+assert(html.includes('report-gudang-build-v68-closer-reference-lighting-cover-cache68'));
 assert(html.includes('id="previewPeriodSearchB"'));
 assert(html.includes('id="presentationPeriodSearchB"'));
 

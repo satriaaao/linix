@@ -1,0 +1,17 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const cover=require('./report-gudang-cover');
+const master=require('./report-gudang-master');
+const lighting=master.normalizeSections({},cover.defaultCover())['gudang-lighting'].cover;
+const rendered=cover.renderCoverSlide(lighting,s=>String(s));
+assert(rendered.includes('cover-brand-stack'));
+assert(rendered.includes('RENTAL'));
+assert(rendered.includes('MULTIMEDIA'));
+assert(rendered.includes('EVENT SOLUTION'));
+assert(rendered.includes('// LAPORAN GUDANG'));
+assert(rendered.includes('// REPORT LIGHTING'));
+const html=fs.readFileSync(__dirname+'/report-gudang.html','utf8');
+assert(html.includes('report-gudang-build-v68-closer-reference-lighting-cover-cache68'));
+assert(html.includes('.cover-brand-stack{'));
+assert(html.includes('background-position:72% center'));
+console.log('Lighting cover header now matches reference structure');
