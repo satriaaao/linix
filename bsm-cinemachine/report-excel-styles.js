@@ -1,3 +1,4 @@
+// Excel style fidelity v71
 (function(root,factory){
   var api=factory();
   if(typeof module==='object'&&module.exports)module.exports=api;
