@@ -11,7 +11,7 @@ function expectText(source, value, label) {
 expectText(sw, "const CACHE='bsm-report-gudang-v74';", 'service worker cache version');
 expectText(sw, "url.searchParams.get('__appv')==='74'", 'service worker app version check');
 expectText(sw, "url.searchParams.set('__appv','74')", 'service worker app version navigation');
-expectText(html, '/report-gudang-sw.js?v=73', 'service worker registration version');
+expectText(html, '/report-gudang-sw.js?v=74', 'service worker registration version');
 expectText(html, 'report-gudang-build-v74-local-first-cache74', 'HTML build/cache marker');
 
 if (html.includes('?v=35')) throw new Error('HTML still contains stale ?v=35 asset query');
