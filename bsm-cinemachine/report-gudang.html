@@ -1637,8 +1637,8 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-gudang-export.js"></script>
   <script src="/report-gudang-ui.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
-  <script src="/report-gudang-realtime.js?v=73"></script>
-  <script src="/report-gudang-cloud.js?v=73"></script>
+  <script src="/report-gudang-realtime.js?v=74"></script>
+  <script src="/report-gudang-cloud.js?v=74"></script>
   <script>
     (function(){
       var STORAGE_KEY = "bsm-report-gudang-v2";
@@ -1708,6 +1708,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             localStorage.removeItem(OLD_STORAGE_KEY);
             localStorage.setItem(FORCE_RESET_KEY,"done");
             try{
+              localStorage.removeItem("bsm-report-cloud-version-v1");
               sessionStorage.removeItem("bsm-report-cloud-version");
             }catch(_){}
             return {draft:emptyReport(),slides:[],activeSlide:-1,manualSheets:{}};
@@ -1888,7 +1889,12 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       var currentUser=null;
       var LOCAL_USERS_KEY="bsm-report-local-users-v1";
       var LOCAL_SESSION_KEY="bsm-report-local-session-v1";
-      var remoteVersion=0;
+      var REMOTE_VERSION_KEY="bsm-report-cloud-version-v1";
+      var remoteVersion=(function(){
+        try{
+          return Math.max(0,Number(localStorage.getItem(REMOTE_VERSION_KEY)||sessionStorage.getItem("bsm-report-cloud-version")||0)||0);
+        }catch(_){return 0;}
+      })();
       var remoteSaveTimer=null;
       var remoteSaveInFlight=false;
       var remoteSaveQueued=false;
@@ -1943,6 +1949,20 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       }
       function clearCachedCloudUser(){
         try{localStorage.removeItem(AUTH_USER_CACHE_KEY);}catch(_){}
+      }
+      function cacheRemoteVersion(version){
+        remoteVersion=Math.max(0,Number(version||0)||0);
+        try{
+          localStorage.setItem(REMOTE_VERSION_KEY,String(remoteVersion));
+          sessionStorage.setItem("bsm-report-cloud-version",String(remoteVersion));
+        }catch(_){}
+      }
+      function clearCachedRemoteVersion(){
+        remoteVersion=0;
+        try{
+          localStorage.removeItem(REMOTE_VERSION_KEY);
+          sessionStorage.removeItem("bsm-report-cloud-version");
+        }catch(_){}
       }
       function notifyPasswordChangeOnce(){
         if(!(currentUser&&currentUser.mustChangePassword))return;
@@ -2570,7 +2590,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           remoteSaveFailures=0;
           remoteDirty=remoteSaveQueued;
           remoteVersion=Number(result.version||remoteVersion||0);
-          try{sessionStorage.setItem("bsm-report-cloud-version",String(remoteVersion));}catch(_){}
+          cacheRemoteVersion(remoteVersion);
           var now=new Date();
           document.getElementById("lastSavedText").textContent="SQL "+now.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"});
           setDbConnectedStatus();
@@ -2595,7 +2615,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(!cloudReady||!cloudHydrated)return;
         clearTimeout(remoteSaveTimer);
         if(showMessage){persistRemoteState(true,false);return;}
-        remoteSaveTimer=setTimeout(function(){persistRemoteState(false,false);},80);
+        remoteSaveTimer=setTimeout(function(){persistRemoteState(false,false);},800);
       }
       function saveState(showMessage){
         remoteDirty=cloudHydrated&&hasPermission("data.write");
@@ -4008,7 +4028,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(logout)logout.addEventListener("click",async function(){
           try{if(localMode)localLogout();else await cloud.logout();clearCachedCloudUser();}catch(_){}
           currentUser=null;cloudReady=false;stopRealtimeSync();
-          try{localStorage.removeItem(STORAGE_KEY);sessionStorage.removeItem("bsm-report-cloud-version");}catch(_){}
+          try{localStorage.removeItem(STORAGE_KEY);clearCachedRemoteVersion();}catch(_){}
           closeModal();updateAccountUi();showAuthGate("Silakan login kembali.","login");
         });
         if(change)change.addEventListener("click",async function(){
@@ -4236,7 +4256,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
             renderAll();showPage(activeMenu);
             localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
             remoteVersion=version;
-            try{sessionStorage.setItem("bsm-report-cloud-version",String(version));}catch(_){}
+            cacheRemoteVersion(version);
           }else if(!remote.exists&&hasPermission("data.write")){
             cloudHydrated=true;
             persistRemoteState(false,false);
@@ -5073,7 +5093,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
       activateCachedSession();
       if("serviceWorker" in navigator){
         window.addEventListener("load",function(){
-          navigator.serviceWorker.register("/report-gudang-sw.js?v=73",{updateViaCache:"none"}).then(function(reg){return reg.update();}).catch(function(){});
+          navigator.serviceWorker.register("/report-gudang-sw.js?v=74",{updateViaCache:"none"}).then(function(reg){return reg.update();}).catch(function(){});
         });
       }
       document.addEventListener("visibilitychange",function(){
@@ -5090,5 +5110,5 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <!-- auth-scope-v2 -->
 </body>
 <!-- status-sort-tristate-cache-v24 -->
-<!-- report-gudang-build-v73-excel-accuracy-cache73 -->
+<!-- report-gudang-build-v74-local-first-cache74 -->
 </html>
