@@ -18,5 +18,5 @@ assert(audio.renderServiceSlide(ar).includes('background-color:#FFFF00'));
 const html=fs.readFileSync(__dirname+'/report-gudang.html','utf8');
 assert(html.includes('function excelClipboardBundle'));
 assert(html.includes('Paste Excel terbaca • warna cell ikut disimpan'));
-assert(html.includes('report-gudang-build-v73-excel-accuracy-cache73'));
+assert(html.includes('report-gudang-build-v74-local-first-cache74'));
 console.log('Admin, Crew, Audio and clipboard Excel color fidelity passed');
