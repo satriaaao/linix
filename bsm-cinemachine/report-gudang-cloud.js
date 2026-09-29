@@ -27,10 +27,17 @@
   async function request(op,options){
     options=options||{};
     var controller=new AbortController();
-    var timeout=setTimeout(function(){controller.abort();},20000);
+    var method=String(options.method||'GET').toUpperCase();
+    var timeoutMs=Number(options.timeoutMs||0);
+    if(!timeoutMs){
+      if(op==='state'&&method==='GET')timeoutMs=5000;
+      else if(op==='me'||op==='health')timeoutMs=6000;
+      else timeoutMs=15000;
+    }
+    var timeout=setTimeout(function(){controller.abort();},timeoutMs);
     var res;
     try{res=await fetch(API_PATH+'?op='+encodeURIComponent(op),{
-      method:options.method||'GET',
+      method:method,
       headers:headers(options.headers),
       body:options.body==null?undefined:JSON.stringify(options.body),
       cache:'no-store',
@@ -38,7 +45,7 @@
       signal:controller.signal
     });
     }catch(error){
-      if(error&&error.name==='AbortError')throw new Error('Koneksi database terlalu lama. Perubahan tetap tersimpan di perangkat; coba lagi.');
+      if(error&&error.name==='AbortError')throw new Error('Sinkron database terlalu lama. Data tetap tersimpan di perangkat dan akan dicoba lagi.');
       throw error;
     }finally{clearTimeout(timeout);}
     var data={};
