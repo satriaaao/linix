@@ -1626,7 +1626,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-cinema-reports.js"></script>
   <script src="/report-excel-styles.js?v=73"></script>
   <script src="/report-lighting-reports.js?v=73"></script>
-  <script src="/report-crew-reports.js?v=74"></script>
+  <script src="/report-crew-reports.js?v=75"></script>
   <script src="/report-manual-sheets.js?v=73"></script>
   <script src="/report-bulk-router.js?v=73"></script>
   <script src="/report-live-edit.js"></script>
@@ -4577,8 +4577,10 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
           if(!window.XLSX)throw new Error("Parser Excel belum termuat.");
           var wb=window.XLSX.read(ev.target.result,{type:"array",cellStyles:true,cellNF:true}),result=window.BSMCrewReports.parseWorkbook(wb,{period:bulkPeriodLabel(),maxCrewRows:18,maxDriverRows:18}),slides=result.slides||[];
           if(!slides.length)throw new Error("Tidak ada data Koordinator Crew yang terbaca.");
-          state.activeType="koordinator-crew";var section=state.sections["koordinator-crew"];section.slides=slides.map(function(s){applyBulkPeriod(s);s.liveEditId=uid();return s;});
-          ensureMasterReports();bindActiveSection(0);state.coverTarget="koordinator-crew";state.activeView=window.BSMReportMaster.findPageIndex(state,"report:koordinator-crew:0");
+          state.activeType="koordinator-crew";var section=state.sections["koordinator-crew"],periodKey=bulkPeriodKey();
+          var incoming=slides.map(function(s){applyBulkPeriod(s);s.liveEditId=uid();return s;});
+          section.slides=(section.slides||[]).filter(function(s){return pagePeriodKey({kind:"report",report:s})!==periodKey;}).concat(incoming);
+          ensureMasterReports();bindActiveSection(Math.max(0,section.slides.length-incoming.length));state.coverTarget="koordinator-crew";state.activeView=window.BSMReportMaster.findPageIndex(state,"report:koordinator-crew:"+state.activeSlide);
           renderAll();saveState(false);showPage("preview");toast(slides.length+" slide Koordinator Crew berhasil dibuat");
         }catch(err){console.error(err);toast(err&&err.message?err.message:"Workbook Koordinator Crew gagal dibaca");}finally{crewExcelInput.value="";}};
         reader.onerror=function(){toast("File Excel Koordinator Crew gagal dibaca");};reader.readAsArrayBuffer(file);
