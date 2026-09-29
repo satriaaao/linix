@@ -1681,6 +1681,11 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         base.lightingServiceGroups=src.lightingServiceGroups?clone(src.lightingServiceGroups):null;
         base.lightingHeaderStyles=src.lightingHeaderStyles?clone(src.lightingHeaderStyles):null;
         base.period=src.period||"";
+        base.matrixType=src.matrixType||"";
+        base.block=src.block?clone(src.block):null;
+        base.target=Array.isArray(src.target)?clone(src.target):[];
+        base.contracts=Array.isArray(src.contracts)?clone(src.contracts):[];
+        base.inactive=Array.isArray(src.inactive)?clone(src.inactive):[];
         base.manualSheetId=src.manualSheetId||"";
         base.manualTitle=src.manualTitle||"";
         base.manualColumns=src.manualColumns?clone(src.manualColumns):null;
