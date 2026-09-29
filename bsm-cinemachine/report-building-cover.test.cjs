@@ -21,7 +21,7 @@ assert(ctx.window.BSM_BUILDING_COVER_DATA.startsWith('data:image/webp;base64,Ukl
 
 const html=fs.readFileSync(__dirname+'/report-gudang.html','utf8');
 assert(html.includes('/report-cover-building-loader.js?v=73'));
-assert(html.includes('report-gudang-build-v73-excel-accuracy-cache73'));
+assert(html.includes('report-gudang-build-v74-local-first-cache74'));
 assert(html.includes('id="previewPeriodSearchB"'));
 assert(html.includes('id="presentationPeriodSearchB"'));
 
