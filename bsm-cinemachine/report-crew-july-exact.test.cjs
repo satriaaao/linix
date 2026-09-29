@@ -63,13 +63,41 @@ const actual={
   contracts:parsed.contracts.map(x=>({no:x.no,name:x.name})),
   inactive:parsed.inactive.map(x=>({no:x.no,name:x.name}))
 };
-function stable(x){
-  if(Array.isArray(x)) return '['+x.map(stable).join(',')+']';
-  if(x&&typeof x==='object') return '{'+Object.keys(x).sort().map(k=>JSON.stringify(k)+':'+stable(x[k])).join(',')+'}';
-  return JSON.stringify(x);
+
+const clean=v=>String(v==null?'':v).replace(/\u00a0/g,' ').trim();
+const rows=source.replace(/\r/g,'').split('\n').map(line=>line.split('\t').map(clean));
+const crewHeader=rows.findIndex(r=>r[0]==='NAMA CREW BSM');
+const driverHeader=rows.findIndex(r=>r[0]==='NAMA DRIVER LOGISTIC');
+const targetHeader=rows.findIndex(r=>r.some(c=>c.includes('CREW CAPAI TARGET')));
+
+function expectedBlock(headerIndex,endIndex){
+  const header=rows[headerIndex];
+  const totalStart=header.findIndex((value,index)=>index>0&&/^Total/i.test(value));
+  return {
+    days:header.slice(1,totalStart),
+    totals:header.slice(totalStart,totalStart+3),
+    rows:rows.slice(headerIndex+1,endIndex).filter(r=>r[0]).map(r=>({
+      name:r[0],
+      days:r.slice(1,totalStart),
+      totals:r.slice(totalStart,totalStart+3)
+    }))
+  };
 }
-const sig=crypto.createHash('sha256').update(stable(actual)).digest('hex');
-assert.equal(sig,'c24b139e3859ec98878bf951ad3dac7f92876830a792c802251ef6dcf31281ca');
+
+const expected={
+  crew:expectedBlock(crewHeader,driverHeader),
+  driver:expectedBlock(driverHeader,targetHeader),
+  target:[],
+  contracts:[],
+  inactive:[]
+};
+for(const row of rows.slice(targetHeader+2)){
+  if(/^\d+$/.test(row[1])&&row[2])expected.target.push({no:row[1],name:row[2],value:row[6]});
+  if(/^\d+$/.test(row[10])&&row[11])expected.contracts.push({no:row[10],name:row[11]});
+  if(/^\d+$/.test(row[18])&&row[19])expected.inactive.push({no:row[18],name:row[19]});
+}
+
+assert.deepEqual(actual,expected);
 assert.equal(parsed.crew.rows.length,34);
 assert.equal(parsed.driver.rows.length,8);
 assert.deepEqual(parsed.crew.rows.find(r=>r.name==='ADNIN').totals,['5','','5']);
