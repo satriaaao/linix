@@ -1626,7 +1626,7 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
   <script src="/report-cinema-reports.js"></script>
   <script src="/report-excel-styles.js?v=73"></script>
   <script src="/report-lighting-reports.js?v=73"></script>
-  <script src="/report-crew-reports.js?v=75"></script>
+  <script src="/report-crew-reports.js?v=76"></script>
   <script src="/report-manual-sheets.js?v=73"></script>
   <script src="/report-bulk-router.js?v=73"></script>
   <script src="/report-live-edit.js"></script>
@@ -4502,9 +4502,10 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         var key=bulkPeriodKey();
         return window.BSMManualSheets&&window.BSMManualSheets.periodLabel?window.BSMManualSheets.periodLabel(key):key;
       }
-      function applyBulkPeriod(report){
+      function applyBulkPeriod(report,overrideKey){
         if(!report)return report;
-        var key=bulkPeriodKey(),parts=key.split("-"),label=bulkPeriodLabel();
+        var key=/^\d{4}-\d{2}$/.test(String(overrideKey||""))?String(overrideKey):bulkPeriodKey(),parts=key.split("-");
+        var label=window.BSMManualSheets&&window.BSMManualSheets.periodLabel?window.BSMManualSheets.periodLabel(key):key;
         report.month=Number(parts[1]);report.year=Number(parts[0]);report.period=label;
         if(report.cameraVendor&&typeof report.cameraVendor==="object")report.cameraVendor.period=label;
         if(report.matrix&&typeof report.matrix==="object")report.matrix.period=label;
@@ -4595,13 +4596,21 @@ No    TGL Penyewaan    Nama Alat    QTY    Action    Harga Sewa
         if(!file)return;var reader=new FileReader();
         reader.onload=function(ev){try{
           if(!window.XLSX)throw new Error("Parser Excel belum termuat.");
-          var wb=window.XLSX.read(ev.target.result,{type:"array",cellStyles:true,cellNF:true}),result=window.BSMCrewReports.parseWorkbook(wb,{period:bulkPeriodLabel(),maxCrewRows:18,maxDriverRows:18}),slides=result.slides||[];
+          var fallbackYear=bulkYearInput?Number(bulkYearInput.value||new Date().getFullYear()):new Date().getFullYear();
+          var detectedKey=window.BSMCrewReports&&typeof window.BSMCrewReports.periodKeyFromFileName==="function"?window.BSMCrewReports.periodKeyFromFileName(file.name,fallbackYear):"";
+          var periodKey=detectedKey||bulkPeriodKey(),periodParts=periodKey.split("-");
+          if(detectedKey){
+            if(bulkMonthSelect)bulkMonthSelect.value=String(Number(periodParts[1]));
+            if(bulkYearInput)bulkYearInput.value=String(Number(periodParts[0]));
+          }
+          var periodLabel=window.BSMManualSheets&&window.BSMManualSheets.periodLabel?window.BSMManualSheets.periodLabel(periodKey):periodKey;
+          var wb=window.XLSX.read(ev.target.result,{type:"array",cellStyles:true,cellNF:true}),result=window.BSMCrewReports.parseWorkbook(wb,{period:periodLabel,maxCrewRows:18,maxDriverRows:18}),slides=result.slides||[];
           if(!slides.length)throw new Error("Tidak ada data Koordinator Crew yang terbaca.");
-          state.activeType="koordinator-crew";var section=state.sections["koordinator-crew"],periodKey=bulkPeriodKey();
-          var incoming=slides.map(function(s){applyBulkPeriod(s);s.liveEditId=uid();return s;});
+          state.activeType="koordinator-crew";var section=state.sections["koordinator-crew"];
+          var incoming=slides.map(function(s){applyBulkPeriod(s,periodKey);s.liveEditId=uid();return s;});
           section.slides=(section.slides||[]).filter(function(s){return pagePeriodKey({kind:"report",report:s})!==periodKey;}).concat(incoming);
           ensureMasterReports();bindActiveSection(Math.max(0,section.slides.length-incoming.length));state.coverTarget="koordinator-crew";state.activeView=window.BSMReportMaster.findPageIndex(state,"report:koordinator-crew:"+state.activeSlide);
-          renderAll();saveState(false);showPage("preview");toast(slides.length+" slide Koordinator Crew berhasil dibuat");
+          renderAll();saveState(false);showPage("preview");toast(slides.length+" slide Koordinator Crew "+periodLabel+" berhasil dibuat");
         }catch(err){console.error(err);toast(err&&err.message?err.message:"Workbook Koordinator Crew gagal dibaca");}finally{crewExcelInput.value="";}};
         reader.onerror=function(){toast("File Excel Koordinator Crew gagal dibaca");};reader.readAsArrayBuffer(file);
       }
