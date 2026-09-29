@@ -37,3 +37,5 @@ assert.deepEqual(july.driver.rows[0].totals,['24','','23']);
 assert.equal(july.inactive[0].name,'ALDI');
 
 console.log('Koordinator Crew filename period + Excel fidelity regression passed');
+
+// deploy-trigger-crew-parser-20260929
