@@ -59,9 +59,9 @@ const parsed=crew.parseText(source,{period:'Juli 2026'}).data;
 const actual={
   crew:{days:parsed.crew.days,totals:parsed.crew.totals,rows:parsed.crew.rows.map(r=>({name:r.name,days:r.days,totals:r.totals}))},
   driver:{days:parsed.driver.days,totals:parsed.driver.totals,rows:parsed.driver.rows.map(r=>({name:r.name,days:r.days,totals:r.totals}))},
-  target:parsed.target,
-  contracts:parsed.contracts,
-  inactive:parsed.inactive
+  target:parsed.target.map(x=>({no:x.no,name:x.name,value:x.value})),
+  contracts:parsed.contracts.map(x=>({no:x.no,name:x.name})),
+  inactive:parsed.inactive.map(x=>({no:x.no,name:x.name}))
 };
 function stable(x){
   if(Array.isArray(x)) return '['+x.map(stable).join(',')+']';
