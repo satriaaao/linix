@@ -55,6 +55,7 @@ function patchPublicHtml(html,seo){
 }
 
 async function handler(req,res){
+  if(req.query?.kind==='seo')return require('../search-endpoint-20260930')(req,res);
   if(req.method!=='GET'&&req.method!=='HEAD'){
     res.statusCode=405;res.setHeader('content-type','text/plain; charset=utf-8');return res.end('Method not allowed');
   }

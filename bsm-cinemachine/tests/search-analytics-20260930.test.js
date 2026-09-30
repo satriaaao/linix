@@ -17,7 +17,7 @@ assert.match(html,/src="\/cms-public-runtime-v8-20260912.js"/);assert.match(html
 async function verify(){
  let calls=[];const client=analytics.createClient({RentcamCmsAdmin:{session:()=>({token:'fixture-only'}),request:async(url)=>{calls.push(url);return {ok:true,text:async()=>JSON.stringify(url.includes('presence')?[{session_id:'s1'}]:[{event_type:'page_view',session_id:'s1'}])}}}});const loaded=await client.load(analytics.last30());assert.equal(loaded.events.length,1);assert.equal(loaded.presence.length,1);assert.equal(calls.length,2);
  await assert.rejects(analytics.createClient({RentcamCmsAdmin:{session:()=>null}}).load(analytics.last30()),/Sesi admin/);
- const handler=require('../api/analytics-presence');const old=global.fetch;let record;global.fetch=async(url,opt)=>{record=JSON.parse(opt.body);return {ok:true}};
+ const handler=require('../analytics-presence-20260930');const old=global.fetch;let record;global.fetch=async(url,opt)=>{record=JSON.parse(opt.body);return {ok:true}};
  const res={setHeader(){},end(text){this.body=text}};try{await handler({method:'POST',body:{session_id:'fixture',path:'/',last_seen:'1900-01-01'}},res);assert.equal(res.statusCode,200);assert.notEqual(record.last_seen,'1900-01-01');await handler({method:'POST',body:{session_id:'',path:'/'}},res);assert.equal(res.statusCode,400)}finally{global.fetch=old}
  console.log('Search and Analytics: published content, accurate schema, SSR, legacy sessions, authenticated queries and presence validated.');
 }verify().catch(e=>{console.error(e);process.exitCode=1});

@@ -36,6 +36,7 @@ function geoFromHeaders(req){
 }
 
 async function handler(req,res){
+  if(req.query?.kind==='presence')return require('../analytics-presence-20260930')(req,res);
   if(req.method!=='POST')return json(res,405,{ok:false,error:'Method not allowed'});
   const b=bodyObject(req);
   const eventType=String(b.event_type||'');

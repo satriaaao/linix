@@ -1,5 +1,5 @@
-const {loadContent}=require('../search-content-20260930');
-const {buildSeo,routeForPath}=require('../search-seo-20260930');
+const {loadContent}=require('./search-content-20260930');
+const {buildSeo,routeForPath}=require('./search-seo-20260930');
 module.exports=async(req,res)=>{
  res.setHeader('content-type','application/json; charset=utf-8');res.setHeader('cache-control','no-store');
  if(!['GET','HEAD'].includes(req.method)){res.statusCode=405;return res.end('{}')}

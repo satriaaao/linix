@@ -99,6 +99,14 @@
   ],
   "rewrites": [
     {
+      "source": "/api/seo",
+      "destination": "/api/site?kind=seo"
+    },
+    {
+      "source": "/api/analytics-presence",
+      "destination": "/api/analytics-event?kind=presence"
+    },
+    {
       "source": "/display",
       "destination": "/signage-display.html"
     },
