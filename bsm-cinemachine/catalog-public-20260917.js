@@ -5,21 +5,23 @@ function normalize(record){
   const p=record?.product&&typeof record.product==='object'?record.product:{};
   const id=String(record?.id||p.id||'').trim();
   const name=String(p.name||id.replace(/[-_]+/g,' ')).trim();
-  const price=Number(p.price);
-  const stock=Number(p.stock);
+  const price=p.price==null||p.price===''?NaN:Number(p.price);
+  const stock=p.stock==null||p.stock===''?NaN:Number(p.stock);
   return {
+    ...p,included:p.included||p.inc,
     id,
     name,
-    brand:String(p.brand||'Rentcam').trim(),
+    active:p.active,deleted:p.deleted,seoTitle:p.seoTitle,seoDescription:p.seoDescription,aeoQuestion:p.aeoQuestion,aeoAnswer:p.aeoAnswer,geoSummary:p.geoSummary,discountPercent:p.discountPercent,discountStart:p.discountStart,discountEnd:p.discountEnd,
+    brand:String(p.brand||'').trim(),
     category:String(p.cat||p.category||'Rental Equipment').trim(),
     price:Number.isFinite(price)&&price>=0?price:null,
     stock:Number.isFinite(stock)?stock:null,
-    image:String(p.img||'').trim(),
-    description:String(p.desc||p.description||`Sewa ${name} untuk kebutuhan produksi profesional di Jakarta.`).trim()
+    image:String(p.images?.[0]||p.image||p.img||'').trim(),
+    description:String(p.desc||p.description||'').trim()
   };
 }
 async function request(path){
-  const r=await fetch(SB+path,{headers:{apikey:KEY,Accept:'application/json'},cache:'no-store'});
+  const r=await fetch(SB+path,{headers:{apikey:KEY,Accept:'application/json'},cache:'no-store',signal:AbortSignal.timeout(8000)});
   if(!r.ok)throw new Error('catalog '+r.status);
   return r.json();
 }

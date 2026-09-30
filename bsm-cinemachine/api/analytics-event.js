@@ -22,7 +22,7 @@ function maskIp(value){
 }
 function visitorHash(req,sessionId){
   const ip=rawIp(req);
-  const salt=process.env.RENTCAM_ANALYTICS_SALT||process.env.VERCEL_URL||'rentcam-analytics-v1';
+  const salt=process.env.RENTCAM_ANALYTICS_SALT||'rentcam-analytics-v1';
   return crypto.createHash('sha256').update(`${ip}|${sessionId}|${salt}`).digest('hex').slice(0,16);
 }
 function geoFromHeaders(req){
@@ -52,7 +52,7 @@ async function handler(req,res){
     meta:{ua,geo:geoFromHeaders(req),visitor_hash:visitorHash(req,sessionId),ip_masked:maskIp(rawIp(req))}
   };
   try{
-    const r=await fetch(SB+'/rest/v1/rentcam_events',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(event)});
+    const r=await fetch(SB+'/rest/v1/rentcam_events',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(event),signal:AbortSignal.timeout(10000)});
     if(!r.ok){await r.text().catch(()=>null);return json(res,502,{ok:false,error:'Analytics storage unavailable'})}
     return json(res,200,{ok:true});
   }catch(_){return json(res,502,{ok:false,error:'Analytics storage unavailable'})}

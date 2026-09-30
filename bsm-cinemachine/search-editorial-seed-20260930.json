@@ -1,0 +1,70 @@
+{
+  "articles": [
+    {
+      "id": "alexa-venice",
+      "title": "ARRI ALEXA 35 vs Sony VENICE 2: Pilih Mana?",
+      "cat": "Camera Guide",
+      "date": "11 Sep 2026",
+      "img": "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1400&q=88",
+      "excerpt": "Perbandingan sensor, latitude, workflow dan tipe produksi."
+    },
+    {
+      "id": "lens-guide",
+      "title": "Cara Memilih Cinema Lens untuk Film & Commercial",
+      "cat": "Lens Guide",
+      "date": "8 Sep 2026",
+      "img": "https://images.unsplash.com/photo-1617005082133-548c4dd27f35?auto=format&fit=crop&w=1400&q=88",
+      "excerpt": "Cooke, ARRI Signature, ZEISS, atau anamorphic?"
+    },
+    {
+      "id": "lighting-guide",
+      "title": "Setup Cinema Lighting untuk Set Besar",
+      "cat": "Lighting Guide",
+      "date": "5 Sep 2026",
+      "img": "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1400&q=88",
+      "excerpt": "SkyPanel, Orbiter, Electro Storm dan control system untuk set profesional."
+    }
+  ],
+  "portfolio": [
+    {
+      "id": "drama",
+      "title": "Drama Series — Night Exterior",
+      "cat": "TV Series",
+      "year": "2026",
+      "camera": "ARRI ALEXA 35",
+      "lenses": "Cooke S8/i",
+      "img": "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1200&q=88",
+      "desc": "High-end drama production with cinema lighting and wireless monitoring."
+    },
+    {
+      "id": "auto",
+      "title": "Automotive Commercial",
+      "cat": "Commercial",
+      "year": "2026",
+      "camera": "Sony VENICE 2",
+      "lenses": "ARRI Signature Prime",
+      "img": "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=88",
+      "desc": "Large-format commercial package for premium image quality."
+    },
+    {
+      "id": "music",
+      "title": "Music Video — Stage Production",
+      "cat": "Music Video",
+      "year": "2026",
+      "camera": "RED V-RAPTOR [X]",
+      "lenses": "Atlas Mercury",
+      "img": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1200&q=88",
+      "desc": "Anamorphic package with high-output LED and wireless video."
+    },
+    {
+      "id": "doc",
+      "title": "Documentary Field Unit",
+      "cat": "Documentary",
+      "year": "2026",
+      "camera": "Sony BURANO",
+      "lenses": "Cinema Zoom",
+      "img": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=88",
+      "desc": "Compact cinema setup for fast-moving documentary production."
+    }
+  ]
+}
