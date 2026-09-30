@@ -1,4 +1,6 @@
-const SOURCE='https://raw.githubusercontent.com/satriaaao/linix/41f889cf6e2372123f9873abb2c4b47508292454/bsm-cinemachine/cms-admin-all-tables-adapter-20260918.js';
+const fs=require('node:fs');
+const path=require('node:path');
+const SOURCE=path.join(__dirname,'../cms-admin-all-tables-adapter-20260918.js');
 
 async function handler(req,res){
   if(req.method!=='GET'&&req.method!=='HEAD'){
@@ -7,9 +9,7 @@ async function handler(req,res){
     return res.end('Method not allowed');
   }
   try{
-    const r=await fetch(SOURCE,{cache:'no-store'});
-    if(!r.ok)throw new Error('cms ui source '+r.status);
-    const js=await r.text();
+    const js=fs.readFileSync(path.join(__dirname,'../website-design-lib-20260930.js'),'utf8')+'\n'+fs.readFileSync(SOURCE,'utf8');
     if(!js.includes('Rentcam CMS v5 — advanced catalog'))throw new Error('unexpected cms ui payload');
     res.statusCode=200;
     res.setHeader('content-type','application/javascript; charset=utf-8');

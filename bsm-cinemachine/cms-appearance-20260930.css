@@ -1,0 +1,38 @@
+/* CMS appearance workspace and grouped sidebar. */
+html body .v5 .v5-side{display:flex!important;flex-direction:column!important;overflow-y:auto!important;overscroll-behavior:contain;padding-bottom:max(24px,env(safe-area-inset-bottom))!important}
+html body .v5 .v5-logo{flex-shrink:0}
+html body .v5 .v5-nav{display:flex!important;flex-direction:column!important;gap:4px!important}
+html body .v5 .v5-nav-label{font-size:10px!important;color:#93a0b6!important;letter-spacing:.1em!important;padding-top:16px!important}
+html body .v5 .v5-nav button{flex-shrink:0;text-align:left}
+html body .v5 .v5-design-menu{margin:12px 0;border:1px solid #354052;border-radius:14px;background:#ffffff04;flex-shrink:0}
+html body .v5 .v5-design-menu summary{display:flex;align-items:center;gap:10px;padding:15px 12px;color:#fff;font-size:13px;font-weight:750;cursor:pointer;list-style:none;min-height:48px}
+html body .v5 .v5-design-menu summary::-webkit-details-marker{display:none}
+html body .v5 .v5-design-menu summary::after{content:'⌄';margin-left:auto;color:#f49b6a}
+html body .v5 .v5-design-menu[open] summary::after{transform:rotate(180deg)}
+html body .v5 .v5-design-links{padding:0 6px 8px;display:grid;gap:3px}
+html body .v5 .v5-nav .v5-design-links button{font-size:12px!important;padding-left:12px!important;height:44px!important;min-height:44px!important;border-radius:9px!important}
+html body .v5 .v5-design-links .v5-menu-icon{width:16px;height:16px;flex-basis:16px}
+html body .v5 .v5-design-intro{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:24px}
+html body .v5 .v5-design-intro h2{font-size:28px;margin:0 0 8px;letter-spacing:-.04em}
+html body .v5 .v5-design-intro p{margin:0;color:#64748b;font-size:14px;line-height:1.6;max-width:620px}
+html body .v5 .v5-design-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+html body .v5 .v5-design-tile{display:flex;flex-direction:column;align-items:flex-start;gap:12px;border:1px solid #e2e7ef;border-radius:18px;padding:22px;background:#fff;text-align:left;color:#172033;cursor:pointer;min-height:176px}
+html body .v5 .v5-design-tile:hover{border-color:#f26a21;box-shadow:0 8px 24px #17203308}
+html body .v5 .v5-design-tile svg{width:26px;height:26px;color:#e76520}
+html body .v5 .v5-design-tile b{font-size:16px}
+html body .v5 .v5-design-tile span{font-size:13px;color:#64748b;line-height:1.55}
+html body .v5 .v5-design-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+html body .v5 .v5-design-field{display:grid;gap:8px;min-width:0;font-size:13px;font-weight:650;color:#475569}
+html body .v5 .v5-design-field input,html body .v5 .v5-design-field select,html body .v5 .v5-design-field textarea{width:100%;min-width:0;min-height:46px;border:1px solid #d8dee8;border-radius:10px;padding:11px 12px;font:inherit;font-weight:400;background:#fff;color:#172033}
+html body .v5 .v5-design-field textarea{min-height:96px;resize:vertical;line-height:1.55}
+html body .v5 .v5-design-field input[type=color]{height:46px;padding:5px}
+html body .v5 .v5-design-field input[type=checkbox]{width:20px;min-height:20px;height:20px;accent-color:#f26a21}
+html body .v5 .v5-design-check{display:flex;align-items:center;justify-content:space-between;padding:14px;background:#f8fafc;border:1px solid #e2e7ef;border-radius:10px}
+html body .v5 .v5-design-note{font-size:13px;color:#64748b;line-height:1.6;padding:14px 16px;border:1px solid #dbe6f3;border-radius:12px;background:#f4f8fc;margin:0 0 20px}
+html body .v5 .v5-design-preview{padding:24px;margin-top:20px;border:1px solid #e2e7ef;border-radius:16px;display:grid;gap:14px}
+html body .v5 .v5-design-preview button{padding:12px 18px;border:0;width:fit-content;font:inherit}
+html body .v5 .v5-design-row{border:1px solid #e2e7ef;padding:18px;border-radius:14px;margin:14px 0}
+html body .v5 .v5-design-row h3{font-size:16px;margin:0 0 16px}
+html body .v5 .v5-top :is(button,a):focus-visible,html body .v5 .v5-nav :is(button,summary):focus-visible,html body .v5 .v5-content :is(input,textarea,select,button):focus-visible{outline:3px solid #f26a21;outline-offset:3px}
+@media(max-width:1100px){html body .v5 .v5-design-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){html body .v5 .v5-design-grid,html body .v5 .v5-design-fields{grid-template-columns:minmax(0,1fr)}html body .v5 .v5-design-intro{flex-direction:column}html body .v5 .v5-design-intro h2{font-size:24px}html body .v5 .v5-design-field :is(input,textarea,select){font-size:16px}html body .v5 .v5-top h1{font-size:16px!important}html body .v5 .v5-design-tile{min-height:140px}html body .v5 .v5-top{padding:8px 12px!important;height:auto!important;min-height:76px!important;flex-wrap:wrap;gap:8px}html body .v5 .v5-actions{margin-left:auto}html body .v5 .v5-actions .v5-btn{padding:0 10px!important}}

@@ -30,7 +30,7 @@
     {id:'serial-dispatch',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@26aedf2dffb5f4ab0f3c7db14605760087054de1/bsm-cinemachine/cms-serial-dispatch-adapter-20260918.js',after:['cms-ui','inventory']},
     {id:'logo',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@b64ae20a31d2e6ddb08a3aade3f6d5f8c5f401d4/bsm-cinemachine/cms-logo-20260918.js',after:['admin-client','config-store']},
     {id:'logo-ui',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@39342bb6b56fe05e3bf8bf61e086dd6b019c2a1c/bsm-cinemachine/cms-logo-adapter-20260918.js',after:['cms-ui','logo']},
-    {id:'template-settings',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@3d7613c90fb618ca29466ccb98da4e32bf2460e8/bsm-cinemachine/cms-template-publishing-adapter-20260918.js',after:['config-store','publishing','cms-ui']}
+    {id:'template-settings',src:'/cms-template-publishing-adapter-20260918.js',after:['config-store','publishing','cms-ui']}
   ];
 
   function validateManifest(manifest=MANIFEST){

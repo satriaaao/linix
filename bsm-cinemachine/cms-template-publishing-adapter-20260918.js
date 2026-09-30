@@ -153,7 +153,7 @@
     style();
     const nav=document.querySelector('.v5-nav');
     if(nav&&!nav.querySelector('[data-tpl-nav]')){
-      nav.insertAdjacentHTML('beforeend','<button data-tpl-nav><svg class="v5-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 4h16v5H4zM4 13h7v7H4zM15 13h5v7h-5z"/></svg><span>Template & Popup</span></button>');
+      (nav.querySelector('.v5-design-links')||nav).insertAdjacentHTML('beforeend','<button data-tpl-nav><svg class="v5-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 4h16v5H4zM4 13h7v7H4zM15 13h5v7h-5z"/></svg><span>Template Sistem</span></button>');
     }
   }
   document.addEventListener('click',async e=>{

@@ -1,0 +1,27 @@
+const assert=require('node:assert/strict');
+const design=require('../website-design-lib-20260930');
+const cmsUi=require('../api/cms-ui');
+const site=require('../api/site');
+const cms=require('../api/cms');
+assert.equal(design.link('javascript:alert(1)'),'/produk');
+assert.equal(design.link('//untrusted.example'),'/produk');
+assert.equal(design.link('/produk?cat=lens'),'/produk?cat=lens');
+assert.equal(design.image('data:text/html,bad'),'');
+assert.equal(design.color('red;display:none','#ffffff'),'#ffffff');
+const config={theme:{cardRadius:0,buttonRadius:200,contentWidth:3000,accent:'#1266cc',font:'unexpected'},appearance:{heroSlides:[{title:'Custom title',primaryPath:'javascript:alert(1)'}]}};
+const original=JSON.stringify(config);
+assert.deepEqual(design.getTheme(config),{accent:'#1266cc',background:'#ffffff',text:'#111111',cardRadius:0,buttonRadius:24,headerSticky:true,font:'system',contentWidth:1440});
+assert.equal(design.getSlides(config)[0].title,'Custom title');
+assert.equal(design.getSlides(config)[0].primaryPath,'/produk');
+assert.equal(design.getSlides(config)[1].title,design.slides[1].title);
+assert.equal(JSON.stringify(config),original,'Reading design settings must not overwrite existing configuration');
+const html=cms._injectCmsPwa('<html><head></head><body></body></html>');
+assert.ok(html.includes('/cms-appearance-20260930.css'));
+const publicHtml=site._patchPublicHtml('<html><head></head><body></body></html>',{title:'Test',description:'Test',canonical:'https://rentalcamera.aiorbitlab.me/',schema:[],robots:'index,follow'});
+assert.ok(publicHtml.includes('/website-design-runtime-20260930.js'));
+(async()=>{
+ let body='',status=0;
+ await cmsUi({method:'GET'},{set statusCode(value){status=value},setHeader(){},end(value){body=value}});
+ assert.equal(status,200);assert.ok(body.includes('RentcamWebsiteDesign'));assert.ok(body.includes('Tampilan Website'));assert.ok(body.includes('data-design-add'));
+ console.log('Website design validation and deployed CMS/public assets passed');
+})().catch(error=>{console.error(error);process.exitCode=1});

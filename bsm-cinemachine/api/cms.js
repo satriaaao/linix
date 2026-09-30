@@ -16,6 +16,7 @@ function sanitizeCmsHtml(html){
 function injectCmsPwa(html){
   let out=String(html||'');
   const head=[
+    '<link rel="stylesheet" href="/cms-appearance-20260930.css">',
     '<link rel="manifest" href="/api/cms?asset=manifest">',
     '<meta name="theme-color" content="#111318">',
     '<meta name="apple-mobile-web-app-capable" content="yes">',

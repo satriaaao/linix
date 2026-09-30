@@ -46,8 +46,9 @@ function patchPublicHtml(html,seo){
   const catalogGrid='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@2c7cd0759b2a92d31e41dcff1e1c44a543988829/bsm-cinemachine/catalog-grid-polish-20260922.js"><\/script>';
   const brandEquipment='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@7b2464804c61340cfeaec24199dea256b07360a6/bsm-cinemachine/home-brand-equipment-20260922.js"><\/script>';
   const branchAvailability='<script src="https://cdn.jsdelivr.net/gh/satriaaao/linix@f729e7c9514f7b7cb9f34002269b93ff9812dd67/bsm-cinemachine/product-branch-availability-20260922.js"><\/script>';
+  const websiteDesign=out.includes('/website-design-runtime-20260930.js')?'':'<script src="/website-design-lib-20260930.js"><\/script><script src="/website-design-runtime-20260930.js"><\/script>';
   const browserHardening='<script src="/browser-hardening-20260922.js" defer><\/script>';
-  out=out.replace('</body>',cartHardening+checkoutWizard+includedDropdown+productWatermark+brandLogoPng+orderTracking+homeHero+catalogGrid+brandEquipment+branchAvailability+browserHardening+'</body>');
+  out=out.replace('</body>',cartHardening+checkoutWizard+includedDropdown+productWatermark+brandLogoPng+orderTracking+homeHero+catalogGrid+brandEquipment+branchAvailability+browserHardening+websiteDesign+'</body>');
   const ssr=`<main id="app"><section data-seo-ssr="1" style="max-width:1180px;margin:0 auto;padding:28px 20px;font-family:Arial,sans-serif"><h1>${esc(seo.h1)}</h1><p>${esc(seo.summary)}</p></section></main>`;
   out=out.replace(/<main\s+id=["']app["']\s*><\/main>/i,ssr);
   out=out.replace(/src="\/product-search-20260912\.js(?:\?[^\"]*)?"/,'src="/product-search-20260912.js?v=geo4"');
