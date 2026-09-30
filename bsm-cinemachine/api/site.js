@@ -27,7 +27,8 @@ function patchPublicHtml(html,seo){
   else out=out.replace('</head>',`<meta name="description" content="${esc(seo.description)}"></head>`);
   const schema=(seo.schema||[]).map(x=>`<script type="application/ld+json">${safeJson({'@context':'https://schema.org',...x})}</script>`).join('');
   const meta=`\n<link rel="canonical" href="${esc(seo.canonical)}">\n<link rel="alternate" hreflang="id-ID" href="${esc(seo.canonical)}">\n<link rel="alternate" hreflang="x-default" href="${esc(seo.canonical)}">\n<meta name="robots" content="${esc(seo.robots)}">\n<meta property="og:locale" content="id_ID">\n<meta property="og:type" content="website">\n<meta property="og:site_name" content="Rentcam">\n<meta property="og:title" content="${esc(seo.title)}">\n<meta property="og:description" content="${esc(seo.description)}">\n<meta property="og:url" content="${esc(seo.canonical)}">\n<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:title" content="${esc(seo.title)}">\n<meta name="twitter:description" content="${esc(seo.description)}">\n${schema}`;
-  out=out.replace('</head>',meta+'</head>');
+  const responsiveCss='<link rel="stylesheet" href="/public-responsive-20260930.css">';
+  out=out.replace('</head>',meta+(out.includes('/public-responsive-20260930.css')?'':responsiveCss)+'</head>');
   out=out.replace(/<script\s+src=["']\/cart-click-fix-20260914\.js(?:\?[^"']*)?["']><\/script>/i,'');
   const cartHardening=`
 <style id="rc-cart-direct-fix">

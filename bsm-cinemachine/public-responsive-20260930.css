@@ -1,0 +1,107 @@
+/* Public storefront layout. Keep CMS and operational screens outside this scope. */
+html body:has(#app) { background: #f8f9fa; }
+html body #app { color: #172033; }
+html body #app *, html body .header * { box-sizing: border-box; }
+html body #app .container { max-width: 1200px; }
+html body #app .catalog-group header,
+html body #app .home-product-head { gap: 16px; align-items: center; }
+html body #app .catalog-group header h2 { line-height: 1.2; letter-spacing: -.035em; }
+html body #app .products-grid { border: 0 !important; background: transparent !important; }
+html body #app .products-grid .pcard,
+html body #app .home-category-card { box-shadow: 0 3px 12px rgb(23 32 51 / 3%); }
+html body #app .products-grid .pcard .price {
+  flex-wrap: wrap !important;
+  gap: 4px 8px !important;
+  line-height: 1.4 !important;
+  margin-bottom: 14px !important;
+}
+html body #app .products-grid .pcard .price strong { font-size: inherit !important; }
+html body #app .products-grid .pcard .price del { flex-basis: 100%; font-size: 11px !important; color: #747b87 !important; }
+html body #app .products-grid .pcard .price small { display: inline !important; font-size: 11px !important; color: #747b87 !important; }
+html body #app .product-card-cart-btn,
+html body #app .home-add-cart,
+html body #app .home-open-cart,
+html body #app .related-card-cart { min-height: 44px !important; }
+html body #app .products-grid .pcard .product-card-cart-btn { height: 44px !important; min-height: 44px !important; }
+html body #app .home-category-actions { grid-template-columns: minmax(0, 1fr) 44px !important; }
+html body #app .detail-top { gap: clamp(24px, 4vw, 56px) !important; }
+html body #app .detail-info { min-width: 0; }
+html body #app .detail-info h1 { line-height: 1.15 !important; overflow-wrap: anywhere; }
+html body #app .spec-row { gap: 16px; }
+html body #app .spec-row b { min-width: 0; overflow-wrap: anywhere; }
+html body #app input[type="radio"], html body #app input[type="checkbox"] {
+  width: 18px !important; min-width: 18px !important; height: 18px !important;
+  padding: 0 !important; flex: 0 0 18px; accent-color: #e76520;
+}
+html body #app :is(button, a, input, select, summary):focus-visible,
+html body .header :is(button, a):focus-visible {
+  outline: 3px solid #e76520 !important;
+  outline-offset: 3px;
+}
+html body #app .rc-camera-search:focus-within { border-color: #e76520; box-shadow: 0 0 0 3px rgb(231 101 32 / 12%); }
+
+@media (min-width: 761px) and (max-width: 1050px) {
+  html body .header .headin { gap: 16px !important; }
+  html body .header .nav { gap: 16px !important; }
+  html body .header .nav [data-track-desktop] { padding: 10px !important; font-size: 11px !important; }
+}
+
+@media (max-width: 760px) {
+  html body #app .container { padding-left: 16px !important; padding-right: 16px !important; }
+  html body .header .headin { padding-left: 16px !important; padding-right: 16px !important; }
+  html body .header .icon { min-width: 44px !important; min-height: 44px !important; }
+  html body #app .rc-home-carousel { height: 430px !important; min-height: 430px !important; }
+  html body #app .rc-home-slide-inner { padding: 24px 20px 112px !important; }
+  html body #app .rc-home-slide-copy { max-width: 100% !important; }
+  html body #app .rc-home-slide h1 { font-size: clamp(30px, 8.3vw, 44px) !important; line-height: 1.08 !important; }
+  html body #app .rc-home-slide p { font-size: 13px !important; line-height: 1.55 !important; max-width: 100% !important; }
+  html body #app .rc-home-actions button { min-height: 44px !important; font-size: 12px !important; padding: 0 14px !important; }
+  html body #app .rc-home-trust { bottom: 66px !important; gap: 6px !important; display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); width: calc(100% - 40px) !important; }
+  html body #app .rc-home-trust span { font-size: 9px !important; padding: 6px 8px !important; }
+  html body #app .rc-home-dot { height: 44px !important; background: transparent !important; position: relative; }
+  html body #app .rc-home-dot::after { content: ''; position: absolute; left: 0; right: 0; top: 20px; height: 4px; border-radius: 4px; background: rgb(255 255 255 / 40%); }
+  html body #app .rc-home-dot.is-active::after { background: #ff6a21; }
+  html body #app .rc-camera-tool { font-size: 11px !important; gap: 6px !important; padding: 0 6px !important; }
+  html body #app .rc-camera-tool .toolIcon { width: 24px !important; height: 28px !important; flex-shrink: 0; }
+  html body #app .rc-camera-search input,
+  html body #app .product-search-box input { font-size: 16px !important; }
+  html body #app .product-search-wrap { gap: 8px !important; }
+  html body #app .product-search-box { min-width: 0; flex: 1; }
+  html body #app .product-search-btn { min-width: 64px; min-height: 44px; }
+  html body #app .catalog-cascade-option { min-height: 44px; font-size: 14px; }
+  html body #app .catalog-cascade-panel { max-height: 60dvh; overflow-y: auto; overscroll-behavior: contain; }
+  html body #app .catalog-group header h2 { font-size: 24px !important; }
+  html body #app .products-grid .pcard .pname { font-size: 14px !important; line-height: 1.35 !important; min-height: 38px !important; }
+  html body #app .products-grid .pcard .price { font-size: 15px !important; min-height: 44px !important; }
+  html body #app .home-category-name { font-size: 14px !important; line-height: 1.35 !important; min-height: 38px !important; }
+  html body #app .home-add-cart { font-size: 12px !important; padding: 0 6px !important; }
+  html body #app .product-card-cart-btn { font-size: 12px !important; }
+  html body #app .home-product-view { min-height: 44px; font-size: 12px !important; }
+  html body #app .detail-top { grid-template-columns: minmax(0, 1fr) !important; }
+  html body #app .detail-info h1 { font-size: clamp(26px, 7vw, 34px) !important; }
+  html body #app .detail-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; }
+  html body #app .detail-price del { flex-basis: 100%; }
+  html body #app .detail-section p { font-size: 14px !important; line-height: 1.65 !important; }
+  /* Promo remains available below the page, without covering filters or products. */
+  html body:has(#app) .rc-promo-widget {
+    position: relative !important; top: auto !important; right: auto !important;
+    transform: none !important; width: fit-content; max-width: calc(100% - 32px);
+    margin: 24px auto; z-index: 1 !important;
+  }
+  html body:has(#app) .rc-promo-widget.is-hidden { visibility: hidden; }
+  html body:has(#app) .rc-promo-float { width: auto !important; min-height: 44px !important; display: flex !important; gap: 10px; padding: 12px 18px !important; border-radius: 12px !important; touch-action: pan-y !important; }
+  html body:has(#app) .rc-promo-float span { writing-mode: horizontal-tb !important; font-size: 11px !important; letter-spacing: .04em !important; }
+  html body:has(#app) .rc-promo-float b { position: static !important; }
+  html body:has(#app) .rc-promo-hide { width: 44px !important; height: 44px !important; left: auto !important; right: -12px; top: -28px !important; }
+}
+
+@media (max-width: 360px) {
+  html body #app .rc-camera-tool { flex-direction: column; gap: 2px !important; height: 60px !important; }
+  html body #app .rc-home-trust span { font-size: 8px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body #app *, html body #app *::before, html body #app *::after {
+    animation: none !important; transition: none !important; scroll-behavior: auto !important;
+  }
+}
