@@ -18,6 +18,7 @@ async function handler(req,res){
     if(req.method==='HEAD')return res.end();
     return res.end(js);
   }catch(e){
+    console.error('CMS UI asset load failed:',e.message);
     res.statusCode=502;
     res.setHeader('content-type','application/javascript; charset=utf-8');
     res.setHeader('cache-control','no-store, max-age=0');
