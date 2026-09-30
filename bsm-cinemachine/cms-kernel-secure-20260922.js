@@ -9,7 +9,7 @@
     const MANIFEST=[
     {id:'app',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@8d9f04d1b7649dec4f515338bbe01e9ed48947d8/bsm-cinemachine/app.js'},
     {id:'live-base',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@003200da1b76e901196fd1a56eacebadfab3a89c/bsm-cinemachine/rentcam-live-v2.js',after:['app']},
-    {id:'admin-client',src:'/cms-admin-client-secure-20260922.js',after:['live-base']},
+    {id:'admin-client',src:'/cms-admin-client-secure-20260922.js?v=analytics2',after:['live-base']},
     {id:'config-store',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@d2236e85fc9009396e4e98b1f7280c1ba826f042/bsm-cinemachine/cms-config-store-20260918.js',after:['admin-client']},
     {id:'media',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@5594ada689dba66ac285d271f4bfd383c58dd4e8/bsm-cinemachine/cms-media-20260918.js',after:['admin-client','config-store']},
     {id:'data-tables',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@cf75d3e38eda2ca803f7ee55e2617a019f29db1c/bsm-cinemachine/cms-data-tables-20260918.js',after:['admin-client']},
@@ -25,7 +25,7 @@
     {id:'rental-insights',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@46bde66fd10ce06d2ba9f0c1af67689bb43c5ba0/bsm-cinemachine/rental-insights-20260913.js',after:['rental-professional']},
     {id:'integrity-lib',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@636f895753b457a401c8357dc24e485795d28454/bsm-cinemachine/rental-integrity-lib-20260916.js',after:['rental-professional']},
     {id:'integrity-fix',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@636f895753b457a401c8357dc24e485795d28454/bsm-cinemachine/cms-integrity-fix-20260916.js',after:['integrity-lib','rental-professional']},
-    {id:'analytics',src:'/cms-analytics-20260918.js',after:['cms-ui','config-store','admin-client']},
+    {id:'analytics',src:'/cms-analytics-20260918.js?v=analytics2',after:['cms-ui','config-store','admin-client']},
     {id:'inventory',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@bdad3ed3f5a7985c252a87d49bb23669d0cd9f20/bsm-cinemachine/cms-inventory-20260918.js',after:['admin-client','config-store']},
     {id:'serial-dispatch',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@26aedf2dffb5f4ab0f3c7db14605760087054de1/bsm-cinemachine/cms-serial-dispatch-adapter-20260918.js',after:['cms-ui','inventory']},
     {id:'logo',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@b64ae20a31d2e6ddb08a3aade3f6d5f8c5f401d4/bsm-cinemachine/cms-logo-20260918.js',after:['admin-client','config-store']},

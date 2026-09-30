@@ -16,7 +16,7 @@ test('analytics endpoint rejects unknown event types',async()=>{
   assert.equal(res.statusCode,400);
 });
 
-test('analytics endpoint stores rounded geo and hash but never raw IP',async()=>{
+test('analytics endpoint stores validated public IP for admin analytics without exposing it in the response',async()=>{
   let insert=null;
   const oldFetch=global.fetch;
   global.fetch=async(url,opt)=>{insert=JSON.parse(opt.body);return {ok:true,status:201,text:async()=>''}};
@@ -37,7 +37,7 @@ test('analytics endpoint stores rounded geo and hash but never raw IP',async()=>
     assert.equal(insert.meta.geo.latitude,-6.21);
     assert.equal(insert.meta.geo.longitude,106.85);
     assert.match(insert.meta.visitor_hash,/^[a-f0-9]{16}$/);
-    assert.equal(JSON.stringify(insert).includes('203.0.113.44'),false);
+    assert.equal(insert.meta.ip_address,'203.0.113.44');assert.equal(res.body.includes('203.0.113.44'),false);
   }finally{global.fetch=oldFetch}
 });
 

@@ -9,6 +9,7 @@
   const SB='https://xleceiffuopioeguniwj.supabase.co';
   const KEY='sb_publishable_POksYryhG_mkFbs7N0fjKQ_4dUim7Ex';
   const PAGE_SIZE=1000,MAX_EVENTS=20000;
+  function authError(){const error=new Error('Sesi CMS kedaluwarsa atau belum valid. Masuk kembali untuk membaca klik produk, lokasi, dan IP.');error.code='ANALYTICS_AUTH_EXPIRED';return error}
   const pad=n=>String(n).padStart(2,'0');
   const ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
   function last30(now=new Date()){
@@ -59,7 +60,7 @@
         row.count++;productMap.set(id,row);
       }
       const g=normalizeGeo(meta.geo||{});
-      if(g.city==='Tidak diketahui'&&g.latitude===null&&g.longitude===null)continue;
+      if(g.city==='Tidak diketahui'&&!g.region&&!g.country&&g.latitude===null&&g.longitude===null)continue;
       const key=[g.city,g.region,g.country,g.latitude??'',g.longitude??''].join('|');
       const row=locationMap.get(key)||{...g,label:locationLabel(g),events:0,clicks:0,views:0};
       row.events++;
@@ -87,19 +88,21 @@
   function createClient(root){
     const request=async(path,init={})=>{
       const url=SB+path;
-      if(root.RentcamCmsAdmin?.session && !root.RentcamCmsAdmin.session())throw new Error('Sesi admin berakhir. Masuk kembali untuk membaca Analytics.');
+      if(root.RentcamCmsAdmin?.session && !root.RentcamCmsAdmin.session())throw authError();
       const r=root.RentcamCmsAdmin?.request
         ?await root.RentcamCmsAdmin.request(url,{...init,headers:{apikey:KEY,'Content-Type':'application/json',...(init.headers||{})},cache:'no-store',signal:AbortSignal.timeout(15000)})
         :await root.fetch(url,{...init,headers:{apikey:KEY,'Content-Type':'application/json',...(init.headers||{})},cache:'no-store',signal:AbortSignal.timeout(15000)});
       const text=await r.text();let data=null;try{data=text?JSON.parse(text):null}catch(_){data=text}
+      if(r.status===401||r.status===403)throw authError();
       if(!r.ok)throw new Error(data?.message||data||('Analytics '+r.status));
       return data;
     };
     async function load(range,onlineMinutes=2){
+      if(root.RentcamCmsAdmin){const valid=await request('/rest/v1/rpc/rentcam_is_admin',{method:'POST',body:'{}'});if(valid!==true)throw authError()}
       let events=[],offset=0,truncated=false;
       while(offset<MAX_EVENTS){
         const page=await request(eventPath(range,PAGE_SIZE,offset));
-        if(!Array.isArray(page))break;
+        if(!Array.isArray(page))throw new Error('Format data Analytics tidak valid. Coba lagi.');
         events.push(...page);
         if(page.length<PAGE_SIZE)break;
         offset+=PAGE_SIZE;
@@ -116,7 +119,7 @@
     let range=last30(),map=null,leafletPromise=null,busyHost=null;
     const client=createClient(root);
     const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    const products=()=>{try{return Array.isArray(root.P)?root.P:[]}catch(_){return []}};
+    const products=()=>{try{return typeof P!=='undefined'&&Array.isArray(P)?P:Array.isArray(root.P)?root.P:[]}catch(_){return []}};
     const config=()=>root.RentcamCmsConfig?.get?.()||root.RENTCAM_CMS_CONFIG||{};
     function setRange(start,end,mode='custom'){
       if(!start||!end||start>end)throw new Error('Pilih rentang tanggal yang benar.');
@@ -152,10 +155,10 @@
       if(root.L)return root.L;if(leafletPromise)return leafletPromise;
       leafletPromise=new Promise((resolve,reject)=>{
         root.setTimeout(()=>reject(new Error('Peta melewati batas waktu')),10000);
-        if(!root.document.querySelector('link[data-rc-leaflet]')){const l=root.document.createElement('link');l.rel='stylesheet';l.href='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css';l.dataset.rcLeaflet='1';root.document.head.appendChild(l)}
+        if(!root.document.querySelector('link[data-rc-leaflet]')){const l=root.document.createElement('link');l.rel='stylesheet';l.href='/vendor/leaflet/leaflet.css';l.dataset.rcLeaflet='1';root.document.head.appendChild(l)}
         const old=root.document.querySelector('script[data-rc-leaflet]');
         if(old){if(root.L)return resolve(root.L);old.addEventListener('load',()=>resolve(root.L),{once:true});old.addEventListener('error',reject,{once:true});return}
-        const s=root.document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js';s.dataset.rcLeaflet='1';s.onload=()=>resolve(root.L);s.onerror=reject;root.document.head.appendChild(s);
+        const s=root.document.createElement('script');s.src='/vendor/leaflet/leaflet.js';s.dataset.rcLeaflet='1';s.onload=()=>resolve(root.L);s.onerror=reject;root.document.head.appendChild(s);
       });return leafletPromise;
     }
     async function renderMap(locations){
@@ -164,13 +167,14 @@
         const L=await ensureLeaflet();if(root.document.getElementById('rcAnalyticsMap')!==host)return;
         if(map){map.remove();map=null}
         map=L.map(host,{scrollWheelZoom:false}).setView([-2.5,118],4);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+        const tiles=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'&copy; OpenStreetMap contributors &copy; CARTO'}).addTo(map);
+        let tileErrors=0,alternative=false;tiles.on('tileerror',()=>{tileErrors++;if(tileErrors>=3&&!alternative){alternative=true;tiles.setUrl('https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png')}else if(alternative&&tileErrors>=6&&!host.querySelector('.rca-map-network'))host.insertAdjacentHTML('beforeend','<div class="rca-map-empty rca-map-network">Peta dasar belum dapat dimuat. Titik lokasi tetap tersedia.</div>')});tiles.on('tileload',()=>host.querySelector('.rca-map-network')?.remove());
         const bounds=[];
         locations.filter(x=>Number.isFinite(x.latitude)&&Number.isFinite(x.longitude)).forEach(x=>{
           const p=[x.latitude,x.longitude];bounds.push(p);
-          L.marker(p).addTo(map).bindPopup(`<b>${esc(x.label)}</b><br>${x.events} event · ${x.clicks} klik · ${x.views} views`);
+          L.circleMarker(p,{radius:9,color:'#ea580c',fillColor:'#fb923c',fillOpacity:.75,weight:2}).addTo(map).bindPopup(`<b>${esc(x.label)}</b><br>${x.events} event · ${x.clicks} klik · ${x.views} views`);
         });
-        if(bounds.length)map.fitBounds(bounds,{padding:[24,24],maxZoom:10});
+        if(bounds.length)map.fitBounds(bounds,{padding:[24,24],maxZoom:10});else host.insertAdjacentHTML('beforeend','<div class="rca-map-empty">Peta aktif. Titik lokasi muncul setelah kunjungan dengan koordinat tersedia.</div>');
         setTimeout(()=>map?.invalidateSize(),80);
       }catch(_){host.innerHTML='<div style="padding:18px">Peta tidak dapat dimuat. Data lokasi tetap tersedia.</div>'}
     }
@@ -189,7 +193,7 @@
         const sum=summarize(events,ps,cfg),views=events.filter(x=>x.event_type==='page_view').length,clicks=events.filter(x=>x.event_type==='product_click').length;
         const recent=events.slice(0,40),custom=range.mode==='custom';
         host.innerHTML=`<div data-cms-analytics="1">
-          <h2>Analytics Website</h2><p class="rca-muted">Kunjungan dan minat produk dari aktivitas website. Diperbarui setiap 60 detik saat halaman ini dibuka.</p>${presenceError?'<p role="status">Status online belum tersedia; data kunjungan tetap ditampilkan.</p>':''}<div class="rca-toolbar"><span class="rca-muted">Data ${esc(rangeTitle(range))}</span><button class="rca-refresh" type="button" id="rcAnalyticsRefresh">Refresh</button>
+          <h2>Analytics Website</h2><p class="rca-muted">Kunjungan dan minat produk dari aktivitas website. Diperbarui setiap 15 detik saat halaman ini dibuka.</p>${presenceError?'<p role="status">Status online belum tersedia; data kunjungan tetap ditampilkan.</p>':''}<div class="rca-toolbar"><span class="rca-muted">Data ${esc(rangeTitle(range))} · diperbarui ${new Date().toLocaleTimeString('id-ID')}</span><button class="rca-refresh" type="button" id="rcAnalyticsRefresh">Refresh</button>
             <div class="rca-range-wrap"><div class="rca-range-label">Periode: ${esc(rangeTitle(range))}${truncated?' · maksimal '+MAX_EVENTS.toLocaleString('id-ID')+' event':''}</div>
               <div class="rca-range-field"><label>Dari</label><input class="rca-date" type="date" id="rcaDateStart" value="${esc(range.start)}"></div>
               <div class="rca-range-field"><label>Sampai</label><input class="rca-date" type="date" id="rcaDateEnd" value="${esc(range.end)}"></div>
@@ -208,20 +212,21 @@
             <div class="rca-card"><h3>Top Produk — Klik Periode</h3><div class="rca-scroll"><table class="rca-table"><thead><tr><th>Nama Produk</th><th>ID</th><th>Klik</th></tr></thead><tbody>${sum.topProducts.slice(0,20).map(x=>`<tr><td><b>${esc(x.name)}</b></td><td>${esc(x.id)}</td><td><b>${x.count}</b></td></tr>`).join('')||'<tr><td colspan="3">Belum ada klik produk.</td></tr>'}</tbody></table></div></div>
             <div class="rca-card"><h3>Top Lokasi</h3><div class="rca-scroll"><table class="rca-table"><thead><tr><th>Lokasi</th><th>Event</th><th>Klik</th><th>Views</th></tr></thead><tbody>${sum.locations.slice(0,20).map(x=>`<tr><td><b>${esc(x.label)}</b><span class="rca-muted">${x.latitude??'-'}, ${x.longitude??'-'}</span></td><td>${x.events}</td><td>${x.clicks}</td><td>${x.views}</td></tr>`).join('')||'<tr><td colspan="4">Belum ada data lokasi.</td></tr>'}</tbody></table></div></div>
           </div>
-          <div class="rca-card" style="margin-bottom:14px"><h3>Peta Lokasi Pengunjung</h3><div id="rcAnalyticsMap"></div><p class="rca-muted">Lokasi jaringan bersifat perkiraan. IP hanya ditampilkan dalam bentuk disamarkan.</p></div>
-          <div class="rca-card"><h3>Aktivitas Terbaru</h3><div class="rca-scroll"><table class="rca-table"><thead><tr><th>Event</th><th>Nama Produk / Halaman</th><th>Lokasi</th><th>IP</th><th>Visitor ID</th><th>Waktu</th></tr></thead><tbody>${recent.map(e=>`<tr><td>${esc(e.event_type)}</td><td><b>${esc(productLabel(e,ps,cfg))}</b>${e.product_id?`<span class="rca-muted">${esc(e.product_id)}</span>`:''}</td><td>${esc(locationLabel(e?.meta?.geo||{}))}</td><td>${esc(e?.meta?.ip_masked||'-')}</td><td>${esc(e?.meta?.visitor_hash?String(e.meta.visitor_hash).slice(0,12):'-')}</td><td>${new Date(e.created_at).toLocaleString('id-ID')}</td></tr>`).join('')||'<tr><td colspan="6">Belum ada aktivitas.</td></tr>'}</tbody></table></div></div>
+          <div class="rca-card" style="margin-bottom:14px"><h3>Peta Lokasi Pengunjung</h3><div id="rcAnalyticsMap"></div><p class="rca-muted">Lokasi adalah perkiraan jaringan internet. IP publik hanya tersedia bagi admin. Data lama tanpa lokasi/IP tidak dapat dipulihkan.</p></div>
+          <div class="rca-card rca-recent"><h3>Aktivitas Terbaru</h3><div class="rca-scroll"><table class="rca-table"><thead><tr><th>Event</th><th>Nama Produk / Halaman</th><th>Lokasi</th><th>IP publik</th><th>Sesi</th><th>Waktu</th></tr></thead><tbody>${recent.map(e=>`<tr><td data-label="Aktivitas">${esc(e.event_type==='product_click'?'Produk dibuka':e.event_type==='page_view'?'Halaman dibuka':e.event_type)}</td><td data-label="Produk / halaman"><b>${esc(productLabel(e,ps,cfg))}</b>${e.product_id?`<span class="rca-muted">${esc(e.product_id)}</span>`:''}</td><td data-label="Lokasi">${esc(locationLabel(e?.meta?.geo||{}))}</td><td data-label="IP publik">${esc(e?.meta?.ip_address||e?.meta?.ip_masked||'Tidak tersimpan pada data lama')}</td><td data-label="Sesi">${esc(e?.meta?.visitor_hash?String(e.meta.visitor_hash).slice(0,12):String(e.session_id||'-').slice(0,12))}</td><td data-label="Waktu">${new Date(e.created_at).toLocaleString('id-ID')}</td></tr>`).join('')||'<tr><td colspan="6">Belum ada aktivitas.</td></tr>'}</tbody></table></div></div>
         </div>`;
         root.document.getElementById('rcAnalyticsRefresh')?.addEventListener('click',render);
         root.document.getElementById('rcaApplyRange')?.addEventListener('click',()=>{try{setRange(root.document.getElementById('rcaDateStart')?.value,root.document.getElementById('rcaDateEnd')?.value,'custom');render()}catch(e){root.alert(e.message)}});
         root.document.getElementById('rcaMonthNow')?.addEventListener('click',()=>{range=thisMonth();render()});
         root.document.getElementById('rcaLast30')?.addEventListener('click',()=>{range=last30();render()});
-        if(sum.locations.some(x=>Number.isFinite(x.latitude)&&Number.isFinite(x.longitude)))void renderMap(sum.locations);else {root.document.getElementById('rcAnalyticsMap').style.height='auto';root.document.getElementById('rcAnalyticsMap').innerHTML='<p style="padding:20px">Belum ada koordinat lokasi pada periode ini.</p>'}
-      }catch(e){if(host.isConnected){host.innerHTML='<div data-cms-analytics="1" role="alert"><h2>Analytics belum dapat dimuat</h2><p>'+esc(e.message)+'</p><button class="rca-refresh" id="rcAnalyticsRetry">Coba lagi</button></div>';root.document.getElementById('rcAnalyticsRetry')?.addEventListener('click',render)}}
+        void renderMap(sum.locations);
+      }catch(e){if(host.isConnected){host.innerHTML='<div data-cms-analytics="1" role="alert"><h2>Analytics belum dapat dimuat</h2><p>'+esc(e.message)+'</p><button class="rca-refresh" id="rcAnalyticsRetry">Coba lagi</button>'+(e.code==='ANALYTICS_AUTH_EXPIRED'?'<button class="rca-refresh" id="rcAnalyticsLogin">Masuk kembali</button>':'')+'</div>';root.document.getElementById('rcAnalyticsRetry')?.addEventListener('click',render);root.document.getElementById('rcAnalyticsLogin')?.addEventListener('click',()=>{root.sessionStorage.setItem('rentcam_cms_reauth_reason','expired');root.RentcamCmsAdmin?.logout?.();root.location.assign('/cms')})}}
       finally{if(busyHost===host)busyHost=null;const next=root.document.getElementById('v5report');if(next&&next!==host)void render()}
     }
-    root.setInterval(()=>{if(!root.document.hidden&&root.document.getElementById('v5report'))void render()},60000);
+    root.setInterval(()=>{if(!root.document.hidden&&root.document.getElementById('v5report')&&!root.document.querySelector('#rcaDateStart:focus,#rcaDateEnd:focus'))void render()},15000);
+    root.document.addEventListener('visibilitychange',()=>{if(!root.document.hidden&&root.document.getElementById('v5report')){if(range.mode==='month')range=last30();if(range.mode==='thisMonth')range=thisMonth();void render()}});
     if(root.document.getElementById('v5report'))void render();
     return Object.freeze({render,getRange:()=>({...range}),setRange,last30:()=>last30(),thisMonth:()=>thisMonth()});
   }
-  return {SB,KEY,PAGE_SIZE,MAX_EVENTS,ymd,last30,thisMonth,isoBounds,roundCoord,normalizeGeo,locationLabel,productName,summarize,rangeTitle,eventPath,createClient,install};
+  return {authError,SB,KEY,PAGE_SIZE,MAX_EVENTS,ymd,last30,thisMonth,isoBounds,roundCoord,normalizeGeo,locationLabel,productName,summarize,rangeTitle,eventPath,createClient,install};
 });

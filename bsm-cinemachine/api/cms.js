@@ -8,7 +8,7 @@ const {Readable}=require('node:stream');
 
 function sanitizeCmsHtml(html){
   return String(html||'')
-    .replace(/https:\/\/cdn\.jsdelivr\.net\/gh\/satriaaao\/linix@85b0a21372bfcc3bf1276c19ffb6de8a96ff1200\/bsm-cinemachine\/cms-kernel-20260918\.js/g,'/cms-kernel-secure-20260922.js')
+    .replace(/https:\/\/cdn\.jsdelivr\.net\/gh\/satriaaao\/linix@85b0a21372bfcc3bf1276c19ffb6de8a96ff1200\/bsm-cinemachine\/cms-kernel-20260918\.js/g,'/cms-kernel-secure-20260922.js?v=analytics2')
     .replace(/<link\b[^>]*href=["'][^"']*cart-mobile-layout-fix-20260919\.css[^"']*["'][^>]*>/gi,'')
     .replace(/<link\b[^>]*href=["'][^"']*cart[^"']*\.css[^"']*["'][^>]*data-public-only[^>]*>/gi,'');
 }

@@ -86,6 +86,7 @@
       if(!await verifyPassword(pass))throw new Error('Password admin salah');
       sessionStore.removeItem(cfg.passKey);
       const s=await issueSession(pass);
+      sessionStore.removeItem('rentcam_cms_reauth_reason');
       local.setItem(cfg.authKey,JSON.stringify({access_token:'rentcam-cms-custom',token_type:'bearer',expires_in:43200,user:{email:cfg.adminEmail}}));
       return s;
     }
@@ -94,7 +95,7 @@
       if(s)return s;
       sessionStore.removeItem(cfg.passKey);
       const auth=(()=>{try{return JSON.parse(local.getItem(cfg.authKey)||'null')}catch(_){return null}})();
-      if(auth?.access_token==='rentcam-cms-custom')remove(local,cfg.authKey);
+      if(auth?.access_token){sessionStore.setItem('rentcam_cms_reauth_reason','expired');remove(local,cfg.authKey)}
       return null;
     }
     async function request(input,init={}){

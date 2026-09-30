@@ -40,12 +40,12 @@
   async function analytics(path,opt){const response=await fetch(path,{...opt,headers:{'Content-Type':'application/json'},keepalive:true,credentials:'same-origin'});if(!response.ok)throw new Error('Analytics '+response.status);return response}
   async function track(type,path=location.pathname,productId=null){try{await analytics('/api/analytics-event',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({event_type:type,path,product_id:productId,session_id:sid,meta:{ua:navigator.userAgent.slice(0,160)}})})}catch(e){}}
   async function ping(){try{await analytics('/api/analytics-presence',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({session_id:sid,path:location.pathname,last_seen:new Date().toISOString()})})}catch(e){}}
-  function routeChanged(){const p=location.pathname;track('page_view',p);const m=p.match(/^\/produk\/([^/?#]+)/);if(m)track('product_click',p,decodeURIComponent(m[1]));setTimeout(()=>{applyAll();document.dispatchEvent(new CustomEvent('rentcam-route-change',{detail:{path:p}}))},40);setTimeout(applyAll,250)}
+  function routeChanged(){const p=location.pathname;if(window.RentcamAnalytics)window.RentcamAnalytics.observe();else{track('page_view',p);const m=p.match(/^\/produk\/([^/?#]+)/);if(m)track('product_click',p,decodeURIComponent(m[1]))}setTimeout(()=>{applyAll();document.dispatchEvent(new CustomEvent('rentcam-route-change',{detail:{path:p}}))},40);setTimeout(applyAll,250)}
   const nativePush=history.pushState.bind(history);history.pushState=function(a,b,u){const r=nativePush(a,b,u);routeChanged();return r};addEventListener('popstate',routeChanged);
 
   addEventListener('storage',e=>{if(e.key===VERSION_KEY)loadConfig()});
   try{const bc=new BroadcastChannel('rentcam-cms');bc.onmessage=e=>{if(e.data?.type==='config-updated')loadConfig()}}catch(e){}
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadConfig()});
 
-  routeChanged();ping();setInterval(()=>{if(!document.hidden)ping()},30000);setInterval(loadConfig,30000);loadConfig();
+  routeChanged();if(!window.RentcamAnalytics){ping();setInterval(()=>{if(!document.hidden)ping()},30000)};setInterval(loadConfig,30000);loadConfig();
 })();

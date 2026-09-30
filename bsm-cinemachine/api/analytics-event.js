@@ -1,4 +1,5 @@
 const crypto=require('node:crypto');
+const {isIP}=require('node:net');
 
 const SB=process.env.RENTCAM_SUPABASE_URL||'https://xleceiffuopioeguniwj.supabase.co';
 const KEY=process.env.RENTCAM_SUPABASE_ANON_KEY||'sb_publishable_POksYryhG_mkFbs7N0fjKQ_4dUim7Ex';
@@ -12,7 +13,7 @@ function decoded(value){try{return decodeURIComponent(String(value||''))}catch(_
 function roundCoord(value){if(value===null||value===undefined||String(value).trim()==='')return null;const n=Number(value);return Number.isFinite(n)?Math.round(n*100)/100:null}
 function json(res,status,payload){res.statusCode=status;res.setHeader?.('content-type','application/json; charset=utf-8');res.setHeader?.('cache-control','no-store');res.end(JSON.stringify(payload))}
 function bodyObject(req){if(req?.body&&typeof req.body==='object')return req.body;try{return JSON.parse(req?.body||'{}')}catch(_){return {}}}
-function rawIp(req){return String(header(req,'x-forwarded-for')||'').split(',')[0].trim()}
+function rawIp(req){const value=String(header(req,'x-forwarded-for')||header(req,'x-real-ip')||'').split(',')[0].trim();return isIP(value)?value:''}
 function maskIp(value){
   const ip=String(value||'').trim();
   if(!ip)return '';
@@ -50,7 +51,7 @@ async function handler(req,res){
     path,
     product_id:productId,
     session_id:sessionId,
-    meta:{ua,geo:geoFromHeaders(req),visitor_hash:visitorHash(req,sessionId),ip_masked:maskIp(rawIp(req))}
+    meta:{ua,geo:geoFromHeaders(req),visitor_hash:visitorHash(req,sessionId),ip_masked:maskIp(rawIp(req)),ip_address:rawIp(req)}
   };
   try{
     const r=await fetch(SB+'/rest/v1/rentcam_events',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(event),signal:AbortSignal.timeout(10000)});

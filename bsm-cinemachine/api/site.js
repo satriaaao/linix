@@ -43,6 +43,7 @@ function patchPublicHtml(html,seo){
   const websiteDesign=out.includes('/website-design-runtime-20260930.js')?'':'<script src="/website-design-lib-20260930.js"><\/script><script src="/website-design-runtime-20260930.js"><\/script>';
   const browserHardening='<script src="/browser-hardening-20260922.js" defer><\/script>';
   for(const module of ['cms-public-runtime-v8-20260912.js','product-advanced-runtime-v8-20260912.js','cms-content-render-20260912.js'])out=out.replace(new RegExp('https://cdn\\.jsdelivr\\.net/gh/satriaaao/linix@[^\"]+/bsm-cinemachine/'+module.replace(/\./g,'\\.'),'g'),'/'+module);
+  out=out.replace(/<script src="\/cms-public-runtime-v8-20260912\.js"><\/script>/,'<script src="/analytics-tracker-20261001.js?v=1"></script><script src="/cms-public-runtime-v8-20260912.js?v=analytics2"></script>');
   out=out.replace('</body>',(out.includes('/seo-runtime-20260930.js')?'':'<script src="/seo-runtime-20260930.js" defer></script>')+cartHardening+checkoutWizard+includedDropdown+productWatermark+brandLogoPng+orderTracking+homeHero+catalogGrid+brandEquipment+branchAvailability+browserHardening+websiteDesign+'</body>');
   const ssr=`<main id="app"><section data-seo-ssr="1" style="max-width:1180px;margin:0 auto;padding:28px 20px;font-family:Arial,sans-serif"><h1>${esc(seo.h1)}</h1><p>${esc(seo.summary)}</p>${seo.body||''}</section></main>`;
   out=out.replace(/<main\s+id=["']app["']\s*><\/main>/i,ssr);
