@@ -5,7 +5,7 @@
     {eyebrow:'ARRI CAMERA SYSTEMS',title:'Build a cinema package that is ready for set.',text:'ALEXA 35, ALEXA Mini LF, cinema lenses, wireless video dan monitoring dalam satu workflow.',image:'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=2000&q=90',primary:'Rental Kamera',primaryPath:'/produk?cat=Camera',secondary:'Produk Promo',secondaryPath:'/produk?label=PROMO%2CNEW%2CDISKON'},
     {eyebrow:'CINEMA LIGHTING',title:'Lighting packages built for film sets.',text:'Lighting profesional untuk studio, commercial, film, series dan exterior production.',image:'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=2000&q=90',primary:'Lihat Lighting',primaryPath:'/produk?cat=Lighting',secondary:'Semua Produk',secondaryPath:'/produk'}
   ];
-  const theme={accent:'#f26a21',background:'#ffffff',text:'#111111',cardRadius:16,buttonRadius:12,headerSticky:true,font:'system',contentWidth:1200};
+  const theme={accent:'#111111',background:'#ffffff',text:'#111111',cardRadius:16,buttonRadius:12,headerSticky:true,font:'system',contentWidth:1200};
   const fonts={system:'Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',sans:'Arial,Helvetica,sans-serif',serif:'Georgia,"Times New Roman",serif'};
   const color=(value,fallback)=>/^#[0-9a-f]{6}$/i.test(String(value||''))?value:fallback;
   const number=(value,min,max,fallback)=>Number.isFinite(Number(value))&&value!==''&&value!=null?Math.min(max,Math.max(min,Number(value))):fallback;

@@ -1,0 +1,54 @@
+/* Monochrome storefront, independent of operational CMS screens. */
+html body:has(#app){--orange:#111!important;--accent:#111!important;background:#fafafa!important;color:#111!important;-webkit-font-smoothing:antialiased}
+html body #app{color:#111!important}
+html body:has(#app) :is(.header,#app,#drawer,.rc-promo-widget) svg,
+html body #app :is(.toolIcon,.drawer-link-icon),html body #drawer :is(.drawer-link-icon,.drawer-arrow),
+html body .rc-product-watermark{display:none!important}
+html body:has(#app) .header{background:rgba(255,255,255,.97)!important;border-bottom:1px solid #ededed!important;box-shadow:none!important}
+html body:has(#app) .header :is(.icon,.rc-header-icon,.rc-cart-button){width:auto!important;min-width:44px;min-height:44px;padding:0 12px!important;border:1px solid #e8e8e8!important;border-radius:12px!important;color:#111!important;font-size:11px!important;gap:6px!important;display:inline-flex!important;align-items:center;justify-content:center}
+html body:has(#app) :is(.badge,.count,.rc-cart-count,.rc-drawer-logo,.newBadge,.rc-label.sale){background:#111!important;color:#fff!important}
+html body #app :is(.home-add-cart,.product-card-cart-btn,.product-search-btn,.rc-home-actions .primary,.wide,.btn:not(.light)){background:#111!important;color:#fff!important;border-color:#111!important}
+html body #app :is(.sale-price,.price strong,.home-category-price){color:#111!important}
+html body #app :is(.home-category-card,.products-grid .pcard,.related-card){background:#fff!important;border:1px solid #e9e9e9!important;border-radius:18px!important;box-shadow:0 4px 18px #00000004!important;overflow:hidden}
+html body #app .home-category-actions{grid-template-columns:1fr!important}
+html body #app .home-open-cart{display:none!important}
+html body #app :is(.home-add-cart,.product-card-cart-btn){font-weight:650!important;letter-spacing:.01em!important;border-radius:11px!important}
+html body #app :is(.home-category-name,.pname){font-weight:650!important;letter-spacing:-.015em}
+html body #app :is(.home-category-brand,.pbrand){color:#737373!important;letter-spacing:.1em!important}
+html body #app :is(input,select,textarea){border-color:#dedede!important;border-radius:12px!important}
+html body #app :is(input[type=radio],input[type=checkbox]){accent-color:#111!important}
+html body:has(#app) :is(a,button,input,select,summary):focus-visible{outline:2px solid #111!important;outline-offset:3px}
+html body #app .rc-camera-search:focus-within{border-color:#111!important;box-shadow:0 0 0 3px #1111110a!important}
+html body #app .rc-home-dot.is-active::after{background:#fff!important}
+html body #drawer .drawer-link{grid-template-columns:1fr!important}
+html body #drawer .rc-close{width:auto!important;padding:0 14px!important;border-radius:12px!important;font-size:13px}
+html body .header .nav [data-track-desktop]:hover{background:#333!important}
+.rc-app-nav{display:none}
+@media(max-width:760px){
+ html body:has(#app){padding-bottom:calc(78px + env(safe-area-inset-bottom))!important}
+ html body:has(#app) .header{position:sticky!important;top:0!important;z-index:150!important;backdrop-filter:blur(16px)}
+ html body:has(#app) .header .headin{min-height:68px!important;gap:10px!important}
+ html body:has(#app) .header .brand{max-width:110px!important}
+ html body:has(#app) .header .brand img{max-width:100%;object-fit:contain}
+ html body #app .container{padding-left:14px!important;padding-right:14px!important}
+ html body #app :is(.products-grid,.home-product-grid){gap:10px!important}
+ html body #app .home-category-body{padding:12px 11px!important}
+ html body #app .home-category-name,html body #app .products-grid .pcard .pname{font-size:13px!important;line-height:1.4!important;min-height:37px!important}
+ html body #app :is(.home-category-price,.price){font-size:14px!important}
+ html body #app .rc-camera-tool{border-radius:12px!important;background:#f6f6f6!important;padding:0 10px!important}
+ html body #app .rc-home-carousel{margin:12px 14px 0!important;border-radius:22px!important;overflow:hidden;height:400px!important;min-height:400px!important}
+ html body #app .rc-home-slide-inner{padding:24px 20px 108px!important}
+ html body #app .home-product-head{margin-bottom:16px!important}
+ html body #app .home-product-head h2{font-size:23px!important;letter-spacing:-.04em!important}
+ .rc-app-nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));position:fixed;bottom:0;left:0;right:0;z-index:160;padding:9px 12px calc(9px + env(safe-area-inset-bottom));gap:5px;background:rgba(255,255,255,.97);backdrop-filter:blur(20px);border-top:1px solid #e8e8e8;box-shadow:0 -4px 24px #00000004}
+ .rc-app-nav a{display:flex;align-items:center;justify-content:center;min-height:46px;border-radius:12px;text-decoration:none;color:#737373;font:600 11px/1.2 system-ui;text-align:center}
+ .rc-app-nav a[aria-current=page]{background:#111;color:#fff}
+ html body:has(#app) :is(.pwa-install-dock,.rc-pwa-dock){position:static!important}
+}
+@media(prefers-reduced-motion:reduce){.rc-app-nav *{transition:none!important}}
+
+html body #app .rc-home-nav button{width:auto!important;min-width:60px!important;padding:0 10px!important;font-size:10px!important}
+html body #app .rc-home-dot{background:transparent!important;border:0!important;box-shadow:none!important}
+html body #app .rc-home-dot.is-active::after{background:#fff!important}
+html body #app :is(.home-category-new,.home-category-badge-new,[class*=new-badge]){background:#111!important;color:#fff!important}
+@media(max-width:760px){html body #app .rc-home-carousel{width:calc(100% - 28px)!important}html body #app .rc-home-dot{height:44px!important;position:relative!important}html body #app .rc-home-dot::after{content:'';position:absolute;left:0;right:0;top:20px;height:3px;border-radius:3px;background:#ffffff55}}
