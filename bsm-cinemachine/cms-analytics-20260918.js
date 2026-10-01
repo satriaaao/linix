@@ -117,7 +117,7 @@
     return {load,request};
   }
   function install(root){
-    let range=last30(),map=null,leafletPromise=null,busyHost=null;
+    let range=last30(),map=null,leafletPromise=null,busyHost=null,mapFocus='indonesia',mapView=null;
     const client=createClient(root);
     const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const products=()=>{try{return typeof P!=='undefined'&&Array.isArray(P)?P:Array.isArray(root.P)?root.P:[]}catch(_){return []}};
@@ -173,15 +173,24 @@
       try{
         const L=await ensureLeaflet();if(root.document.getElementById('rcAnalyticsMap')!==host)return;
         if(map){map.remove();map=null}
-        map=L.map(host,{scrollWheelZoom:false}).setView([-2.5,118],4);
+        map=L.map(host,{scrollWheelZoom:false,zoomAnimation:false,fadeAnimation:false,markerZoomAnimation:false}).setView([-2.5,118],4);
         const tiles=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'&copy; OpenStreetMap contributors &copy; CARTO'}).addTo(map);
         let tileErrors=0,alternative=false;tiles.on('tileerror',()=>{tileErrors++;if(tileErrors>=3&&!alternative){alternative=true;tiles.setUrl('https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png')}else if(alternative&&tileErrors>=6&&!host.querySelector('.rca-map-network'))host.insertAdjacentHTML('beforeend','<div class="rca-map-empty rca-map-network">Peta dasar belum dapat dimuat. Titik lokasi tetap tersedia.</div>')});tiles.on('tileload',()=>host.querySelector('.rca-map-network')?.remove());
-        const bounds=[];
+        const bounds=[];const localBounds=[];
         locations.filter(x=>Number.isFinite(x.latitude)&&Number.isFinite(x.longitude)).forEach(x=>{
-          const p=[x.latitude,x.longitude];bounds.push(p);
-          L.circleMarker(p,{radius:9,color:'#111111',fillColor:'#333333',fillOpacity:.75,weight:2}).addTo(map).bindPopup(`<b>${esc(x.label)}</b><br>Perkiraan jaringan IP · bukan GPS<br>${x.latitude}, ${x.longitude}<br>${x.events} event · ${x.clicks} klik · ${x.views} views`);
+          const p=[x.latitude,x.longitude];bounds.push(p);if(x.country==='ID')localBounds.push(p);
+          L.circleMarker(p,{radius:6,color:'#111111',fillColor:'#333333',fillOpacity:.75,weight:2}).addTo(map).bindPopup(`<b>${esc(x.label)}</b><br>Perkiraan jaringan IP · bukan GPS<br>${x.latitude}, ${x.longitude}<br>${x.events} event · ${x.clicks} klik · ${x.views} views`);
         });
-        if(bounds.length)map.fitBounds(bounds,{padding:[24,24],maxZoom:10});else host.insertAdjacentHTML('beforeend','<div class="rca-map-empty">Peta aktif. Titik lokasi muncul setelah kunjungan dengan koordinat tersedia.</div>');
+        function focus(value){
+          mapFocus=value;mapView=null;
+          if(value==='all'&&bounds.length)map.fitBounds(bounds,{animate:false,padding:[30,30],maxZoom:11});
+          else if(value==='indonesia'){if(localBounds.length)map.fitBounds(localBounds,{animate:false,padding:[30,30],maxZoom:10});else map.setView([-2.5,118],5);}
+          else{const x=locations[Number(value)];if(x&&Number.isFinite(x.latitude)&&Number.isFinite(x.longitude))map.setView([x.latitude,x.longitude],11);}
+        }
+        if(mapView)map.setView(mapView.center,mapView.zoom);else focus(mapFocus);
+        map.on('moveend zoomend',()=>{mapView={center:map.getCenter(),zoom:map.getZoom()};});
+        root.document.getElementById('rcAnalyticsMapFocus')?.addEventListener('change',event=>focus(event.target.value));
+        if(!bounds.length)host.insertAdjacentHTML('beforeend','<div class="rca-map-empty">Peta aktif. Titik lokasi muncul setelah kunjungan dengan koordinat tersedia.</div>');
         setTimeout(()=>map?.invalidateSize(),80);
       }catch(_){host.innerHTML='<div style="padding:18px">Peta tidak dapat dimuat. Data lokasi tetap tersedia.</div>'}
     }
@@ -192,6 +201,7 @@
     }
     async function render(){
       const host=root.document.getElementById('v5report');if(!host||busyHost===host)return;
+      if(map){map.stop();mapView={center:map.getCenter(),zoom:map.getZoom()};map.remove();map=null;}
       busyHost=host;style();host.innerHTML='<p>Memuat analytics…</p>';
       try{
         const cfg=config(),ps=products(),minutes=Number(cfg.report?.onlineWindowMinutes)||2;
@@ -219,7 +229,7 @@
             <div class="rca-card"><h3>Top Produk — Klik Periode</h3><div class="rca-scroll"><table class="rca-table"><thead><tr><th>Nama Produk</th><th>ID</th><th>Klik</th></tr></thead><tbody>${sum.topProducts.slice(0,20).map(x=>`<tr><td><b>${esc(x.name)}</b></td><td>${esc(x.id)}</td><td><b>${x.count}</b></td></tr>`).join('')||'<tr><td colspan="3">Belum ada klik produk.</td></tr>'}</tbody></table></div></div>
             <div class="rca-card"><h3>Perkiraan Lokasi IP</h3><div class="rca-scroll"><table class="rca-table"><thead><tr><th>Lokasi</th><th>Event</th><th>Klik</th><th>Views</th></tr></thead><tbody>${sum.locations.slice(0,20).map(x=>`<tr><td><b>${esc(x.label)}</b><span class="rca-muted">${x.latitude??'-'}, ${x.longitude??'-'}</span></td><td>${x.events}</td><td>${x.clicks}</td><td>${x.views}</td></tr>`).join('')||'<tr><td colspan="4">Belum ada data lokasi.</td></tr>'}</tbody></table></div></div>
           </div>
-          <div class="rca-card" style="margin-bottom:14px"><h3>Peta Perkiraan Lokasi IP</h3><div id="rcAnalyticsMap"></div><p class="rca-muted">Titik menunjukkan perkiraan lokasi jaringan IP, bukan GPS atau alamat pengunjung. Data seluler, VPN, dan iCloud Private Relay bisa menunjukkan kota atau negara lain. Aktivitas di lokasi yang sama digabung dalam satu titik. IP publik hanya tersedia bagi admin.</p></div>
+          <div class="rca-card" style="margin-bottom:14px"><h3>Peta Perkiraan Lokasi IP</h3><label class="rca-range-field" style="margin-bottom:12px"><span>Fokus peta</span><select class="rca-date" id="rcAnalyticsMapFocus"><option value="indonesia" ${mapFocus==='indonesia'?'selected':''}>Indonesia</option><option value="all" ${mapFocus==='all'?'selected':''}>Semua lokasi</option>${sum.locations.map((x,i)=>Number.isFinite(x.latitude)&&Number.isFinite(x.longitude)?`<option value="${i}" ${mapFocus===String(i)?'selected':''}>${esc(x.label)} · ${x.events} aktivitas</option>`:'').join('')}</select></label><div id="rcAnalyticsMap"></div><p class="rca-muted">Titik menunjukkan perkiraan lokasi jaringan IP, bukan GPS atau alamat pengunjung. Data seluler, VPN, dan iCloud Private Relay bisa menunjukkan kota atau negara lain. Aktivitas di lokasi yang sama digabung dalam satu titik. IP publik hanya tersedia bagi admin.</p></div>
           <div class="rca-card rca-recent"><h3>Aktivitas Terbaru</h3><div class="rca-scroll"><table class="rca-table"><thead><tr><th>Event</th><th>Nama Produk / Halaman</th><th>Lokasi</th><th>IP publik</th><th>Sesi</th><th>Waktu</th></tr></thead><tbody>${recent.map(e=>`<tr><td data-label="Aktivitas">${esc(e.event_type==='product_click'?'Produk dibuka':e.event_type==='page_view'?'Halaman dibuka':e.event_type)}</td><td data-label="Produk / halaman"><b>${esc(productLabel(e,ps,cfg))}</b>${e.product_id?`<span class="rca-muted">${esc(e.product_id)}</span>`:''}</td><td data-label="Lokasi">${esc(locationLabel(e?.meta?.geo||{}))}</td><td data-label="IP publik">${esc(e?.meta?.ip_address||e?.meta?.ip_masked||'Tidak tersimpan pada data lama')}</td><td data-label="Sesi">${esc(e?.meta?.visitor_hash?String(e.meta.visitor_hash).slice(0,12):String(e.session_id||'-').slice(0,12))}</td><td data-label="Waktu">${new Date(e.created_at).toLocaleString('id-ID')}</td></tr>`).join('')||'<tr><td colspan="6">Belum ada aktivitas.</td></tr>'}</tbody></table></div></div>
         </div>`;
         root.document.getElementById('rcAnalyticsRefresh')?.addEventListener('click',render);
@@ -250,7 +260,7 @@
     root.setInterval(()=>{if(!root.document.hidden&&root.document.getElementById('v5report')&&!root.document.getElementById('rcAnalyticsAuth')&&!root.document.querySelector('#rcaDateStart:focus,#rcaDateEnd:focus'))void render()},15000);
     root.document.addEventListener('visibilitychange',()=>{if(!root.document.hidden&&root.document.getElementById('v5report')&&!root.document.getElementById('rcAnalyticsAuth')){if(range.mode==='month')range=last30();if(range.mode==='thisMonth')range=thisMonth();void render()}});
     if(root.document.getElementById('v5report'))void render();
-    return Object.freeze({render,getRange:()=>({...range}),setRange,last30:()=>last30(),thisMonth:()=>thisMonth()});
+    return Object.freeze({render,getMapView:()=>map?{center:map.getCenter(),zoom:map.getZoom()}:null,getRange:()=>({...range}),setRange,last30:()=>last30(),thisMonth:()=>thisMonth()});
   }
   return {authError,SB,KEY,PAGE_SIZE,MAX_EVENTS,ymd,last30,thisMonth,isoBounds,roundCoord,normalizeGeo,locationLabel,productName,summarize,rangeTitle,eventPath,createClient,install};
 });
