@@ -128,6 +128,12 @@
     function style(){
       if(root.document.getElementById('rc-cms-analytics-style'))return;
       const s=root.document.createElement('style');s.id='rc-cms-analytics-style';s.textContent=`
+        #v5report .rca-login{display:grid;gap:14px;max-width:420px;margin-top:20px}
+        #v5report .rca-login label{display:grid;gap:7px;font-size:12px;font-weight:650}
+        #v5report .rca-login input{width:100%;min-height:46px;border:1px solid #dfe3e8;border-radius:10px;padding:0 12px;box-sizing:border-box;font:inherit;font-size:16px}
+        #v5report .rca-login button{min-height:46px;background:#111;color:#fff;border:0;border-radius:10px;font-weight:700;cursor:pointer}
+        #v5report .rca-login button:disabled{opacity:.6}
+        #v5report .rca-login [role=status]{font-size:13px;color:#b42318;line-height:1.5;margin:0}
         #v5report .rca-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
         #v5report .rca-refresh,#v5report .rca-range-btn{height:44px;border:1px solid #dfe3e8;background:#fff;border-radius:10px;padding:0 12px;font-size:12px;font-weight:800;cursor:pointer}
         #v5report .rca-range-btn.primary{background:#111;color:#fff;border-color:#111}
@@ -172,7 +178,7 @@
         const bounds=[];
         locations.filter(x=>Number.isFinite(x.latitude)&&Number.isFinite(x.longitude)).forEach(x=>{
           const p=[x.latitude,x.longitude];bounds.push(p);
-          L.circleMarker(p,{radius:9,color:'#ea580c',fillColor:'#fb923c',fillOpacity:.75,weight:2}).addTo(map).bindPopup(`<b>${esc(x.label)}</b><br>${x.events} event · ${x.clicks} klik · ${x.views} views`);
+          L.circleMarker(p,{radius:9,color:'#111111',fillColor:'#333333',fillOpacity:.75,weight:2}).addTo(map).bindPopup(`<b>${esc(x.label)}</b><br>${x.events} event · ${x.clicks} klik · ${x.views} views`);
         });
         if(bounds.length)map.fitBounds(bounds,{padding:[24,24],maxZoom:10});else host.insertAdjacentHTML('beforeend','<div class="rca-map-empty">Peta aktif. Titik lokasi muncul setelah kunjungan dengan koordinat tersedia.</div>');
         setTimeout(()=>map?.invalidateSize(),80);
@@ -220,11 +226,28 @@
         root.document.getElementById('rcaMonthNow')?.addEventListener('click',()=>{range=thisMonth();render()});
         root.document.getElementById('rcaLast30')?.addEventListener('click',()=>{range=last30();render()});
         void renderMap(sum.locations);
-      }catch(e){if(host.isConnected){host.innerHTML='<div data-cms-analytics="1" role="alert"><h2>Analytics belum dapat dimuat</h2><p>'+esc(e.message)+'</p><button class="rca-refresh" id="rcAnalyticsRetry">Coba lagi</button>'+(e.code==='ANALYTICS_AUTH_EXPIRED'?'<button class="rca-refresh" id="rcAnalyticsLogin">Masuk kembali</button>':'')+'</div>';root.document.getElementById('rcAnalyticsRetry')?.addEventListener('click',render);root.document.getElementById('rcAnalyticsLogin')?.addEventListener('click',()=>{root.sessionStorage.setItem('rentcam_cms_reauth_reason','expired');root.RentcamCmsAdmin?.logout?.();root.location.assign('/cms')})}}
+      }catch(e){if(host.isConnected){
+        const expired=e.code==='ANALYTICS_AUTH_EXPIRED';
+        host.innerHTML='<div data-cms-analytics="1"><h2>'+ (expired?'Masuk untuk melihat Analytics':'Analytics belum dapat dimuat')+'</h2><p>'+esc(e.message)+'</p>'+(expired?`<form id="rcAnalyticsAuth" class="rca-login"><label>Email admin<input type="email" name="email" autocomplete="username" value="${esc(root.RentcamCmsAdmin?.config?.adminEmail||'admin@aiorbitlab.me')}" required></label><label>Password<input type="password" name="password" autocomplete="current-password" required></label><button type="submit" id="rcAnalyticsLogin">Masuk & tampilkan Analytics</button><p id="rcAnalyticsAuthMessage" role="status" aria-live="polite"></p></form>`:'<button class="rca-refresh" id="rcAnalyticsRetry">Coba lagi</button>')+'</div>';
+        root.document.getElementById('rcAnalyticsRetry')?.addEventListener('click',render);
+        root.document.getElementById('rcAnalyticsAuth')?.addEventListener('submit',async event=>{
+          event.preventDefault();
+          const form=event.currentTarget,button=form.querySelector('button'),message=form.querySelector('[role="status"]');
+          if(button.disabled)return;
+          button.disabled=true;button.textContent='Memeriksa sesi…';message.textContent='';
+          try{
+            if(!root.RentcamCmsAdmin?.login)throw new Error('Modul login belum siap. Refresh halaman lalu coba lagi.');
+            await root.RentcamCmsAdmin.login(form.elements.email.value,form.elements.password.value);
+            form.elements.password.value='';
+            await render();
+          }catch(error){message.textContent=error.message||'Login gagal. Coba lagi.';}
+          finally{if(form.isConnected){button.disabled=false;button.textContent='Masuk & tampilkan Analytics';}}
+        });
+      }}
       finally{if(busyHost===host)busyHost=null;const next=root.document.getElementById('v5report');if(next&&next!==host)void render()}
     }
-    root.setInterval(()=>{if(!root.document.hidden&&root.document.getElementById('v5report')&&!root.document.querySelector('#rcaDateStart:focus,#rcaDateEnd:focus'))void render()},15000);
-    root.document.addEventListener('visibilitychange',()=>{if(!root.document.hidden&&root.document.getElementById('v5report')){if(range.mode==='month')range=last30();if(range.mode==='thisMonth')range=thisMonth();void render()}});
+    root.setInterval(()=>{if(!root.document.hidden&&root.document.getElementById('v5report')&&!root.document.getElementById('rcAnalyticsAuth')&&!root.document.querySelector('#rcaDateStart:focus,#rcaDateEnd:focus'))void render()},15000);
+    root.document.addEventListener('visibilitychange',()=>{if(!root.document.hidden&&root.document.getElementById('v5report')&&!root.document.getElementById('rcAnalyticsAuth')){if(range.mode==='month')range=last30();if(range.mode==='thisMonth')range=thisMonth();void render()}});
     if(root.document.getElementById('v5report'))void render();
     return Object.freeze({render,getRange:()=>({...range}),setRange,last30:()=>last30(),thisMonth:()=>thisMonth()});
   }
