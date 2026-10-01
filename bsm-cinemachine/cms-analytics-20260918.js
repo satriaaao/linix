@@ -201,16 +201,20 @@
     }
     async function render(){
       const host=root.document.getElementById('v5report');if(!host||busyHost===host)return;
-      if(map){map.stop();mapView={center:map.getCenter(),zoom:map.getZoom()};map.remove();map=null;}
-      busyHost=host;style();host.innerHTML='<p>Memuat analytics…</p>';
+      busyHost=host;style();
+      const refreshButton=host.querySelector('#rcAnalyticsRefresh');
+      if(refreshButton){refreshButton.disabled=true;refreshButton.textContent='Memuat…';}
+      else if(!host.querySelector('[data-cms-analytics]'))host.innerHTML='<p>Memuat analytics…</p>';
       try{
         const cfg=config(),ps=products(),minutes=Number(cfg.report?.onlineWindowMinutes)||2;
         const {events,presence,truncated,presenceError}=await client.load(range,minutes);
         if(!host.isConnected)return;
         const sum=summarize(events,ps,cfg),views=events.filter(x=>x.event_type==='page_view').length,clicks=events.filter(x=>x.event_type==='product_click').length;
         const recent=events.slice(0,40),custom=range.mode==='custom';
+        const scrollPosition={x:root.scrollX||0,y:root.scrollY||0};
+        if(map){map.stop();mapView={center:map.getCenter(),zoom:map.getZoom()};map.remove();map=null;}
         host.innerHTML=`<div data-cms-analytics="1">
-          <h2>Analytics Website</h2><p class="rca-muted">Kunjungan dan minat produk dari aktivitas website. Diperbarui setiap 15 detik saat halaman ini dibuka.</p>${presenceError?'<p role="status">Status online belum tersedia; data kunjungan tetap ditampilkan.</p>':''}<div class="rca-toolbar"><span class="rca-muted">Data ${esc(rangeTitle(range))} · diperbarui ${new Date().toLocaleTimeString('id-ID')}</span><button class="rca-refresh" type="button" id="rcAnalyticsRefresh">Refresh</button>
+          <h2>Analytics Website</h2><p class="rca-muted">Kunjungan dan minat produk dari aktivitas website. Klik Perbarui data untuk mengambil aktivitas terbaru. Tampilan tidak diperbarui otomatis.</p>${presenceError?'<p role="status">Status online belum tersedia; data kunjungan tetap ditampilkan.</p>':''}<div class="rca-toolbar"><span class="rca-muted">Data ${esc(rangeTitle(range))} · diperbarui ${new Date().toLocaleTimeString('id-ID')}</span><button class="rca-refresh" type="button" id="rcAnalyticsRefresh">Perbarui data</button>
             <div class="rca-range-wrap"><div class="rca-range-label">Periode: ${esc(rangeTitle(range))}${truncated?' · maksimal '+MAX_EVENTS.toLocaleString('id-ID')+' event':''}</div>
               <div class="rca-range-field"><label>Dari</label><input class="rca-date" type="date" id="rcaDateStart" value="${esc(range.start)}"></div>
               <div class="rca-range-field"><label>Sampai</label><input class="rca-date" type="date" id="rcaDateEnd" value="${esc(range.end)}"></div>
@@ -237,8 +241,15 @@
         root.document.getElementById('rcaMonthNow')?.addEventListener('click',()=>{range=thisMonth();render()});
         root.document.getElementById('rcaLast30')?.addEventListener('click',()=>{range=last30();render()});
         void renderMap(sum.locations);
+        if(refreshButton)root.requestAnimationFrame(()=>{if(host.isConnected)root.scrollTo(scrollPosition.x,scrollPosition.y);});
       }catch(e){if(host.isConnected){
         const expired=e.code==='ANALYTICS_AUTH_EXPIRED';
+        if(!expired&&refreshButton){
+          let warning=host.querySelector('[data-refresh-error]');
+          if(!warning){warning=root.document.createElement('p');warning.dataset.refreshError='1';warning.setAttribute('role','status');host.prepend(warning);}
+          warning.textContent='Data belum berhasil diperbarui. Laporan terakhir tetap ditampilkan. '+e.message;
+          return;
+        }
         host.innerHTML='<div data-cms-analytics="1"><h2>'+ (expired?'Masuk untuk melihat Analytics':'Analytics belum dapat dimuat')+'</h2><p>'+esc(e.message)+'</p>'+(expired?`<form id="rcAnalyticsAuth" class="rca-login"><label>Email admin<input type="email" name="email" autocomplete="username" value="${esc(root.RentcamCmsAdmin?.config?.adminEmail||'admin@aiorbitlab.me')}" required></label><label>Password<input type="password" name="password" autocomplete="current-password" required></label><button type="submit" id="rcAnalyticsLogin">Masuk & tampilkan Analytics</button><p id="rcAnalyticsAuthMessage" role="status" aria-live="polite"></p></form>`:'<button class="rca-refresh" id="rcAnalyticsRetry">Coba lagi</button>')+'</div>';
         root.document.getElementById('rcAnalyticsRetry')?.addEventListener('click',render);
         root.document.getElementById('rcAnalyticsAuth')?.addEventListener('submit',async event=>{
@@ -255,10 +266,8 @@
           finally{if(form.isConnected){button.disabled=false;button.textContent='Masuk & tampilkan Analytics';}}
         });
       }}
-      finally{if(busyHost===host)busyHost=null;const next=root.document.getElementById('v5report');if(next&&next!==host)void render()}
+      finally{if(refreshButton?.isConnected){refreshButton.disabled=false;refreshButton.textContent='Perbarui data';}if(busyHost===host)busyHost=null;const next=root.document.getElementById('v5report');if(next&&next!==host)void render()}
     }
-    root.setInterval(()=>{if(!root.document.hidden&&root.document.getElementById('v5report')&&!root.document.getElementById('rcAnalyticsAuth')&&!root.document.querySelector('#rcaDateStart:focus,#rcaDateEnd:focus'))void render()},15000);
-    root.document.addEventListener('visibilitychange',()=>{if(!root.document.hidden&&root.document.getElementById('v5report')&&!root.document.getElementById('rcAnalyticsAuth')){if(range.mode==='month')range=last30();if(range.mode==='thisMonth')range=thisMonth();void render()}});
     if(root.document.getElementById('v5report'))void render();
     return Object.freeze({render,getMapView:()=>map?{center:map.getCenter(),zoom:map.getZoom()}:null,getRange:()=>({...range}),setRange,last30:()=>last30(),thisMonth:()=>thisMonth()});
   }

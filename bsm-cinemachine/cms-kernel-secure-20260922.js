@@ -25,7 +25,7 @@
     {id:'rental-insights',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@46bde66fd10ce06d2ba9f0c1af67689bb43c5ba0/bsm-cinemachine/rental-insights-20260913.js',after:['rental-professional']},
     {id:'integrity-lib',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@636f895753b457a401c8357dc24e485795d28454/bsm-cinemachine/rental-integrity-lib-20260916.js',after:['rental-professional']},
     {id:'integrity-fix',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@636f895753b457a401c8357dc24e485795d28454/bsm-cinemachine/cms-integrity-fix-20260916.js',after:['integrity-lib','rental-professional']},
-    {id:'analytics',src:'/cms-analytics-20260918.js?v=analytics5',after:['cms-ui','config-store','admin-client']},
+    {id:'analytics',src:'/cms-analytics-20260918.js?v=analytics6',after:['cms-ui','config-store','admin-client']},
     {id:'inventory',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@bdad3ed3f5a7985c252a87d49bb23669d0cd9f20/bsm-cinemachine/cms-inventory-20260918.js',after:['admin-client','config-store']},
     {id:'serial-dispatch',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@26aedf2dffb5f4ab0f3c7db14605760087054de1/bsm-cinemachine/cms-serial-dispatch-adapter-20260918.js',after:['cms-ui','inventory']},
     {id:'logo',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@b64ae20a31d2e6ddb08a3aade3f6d5f8c5f401d4/bsm-cinemachine/cms-logo-20260918.js',after:['admin-client','config-store']},
