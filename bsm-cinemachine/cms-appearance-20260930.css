@@ -62,3 +62,11 @@ html body .v5-modal :is(.v5-modalhead,.v5-modalfoot){position:relative!important
 
 html body .v5-photos .v5-photo img{background:#fff!important;background-image:none!important;object-fit:contain!important;padding:10px}
 .v5-photo-repair{display:block;width:calc(100% - 12px);margin:0 6px 7px;min-height:38px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#111;font-size:11px;font-weight:600}
+/* Website settings are the first dropdown, with operations below. */
+html body .v5 .v5-nav>.v5-design-menu{margin:0 0 8px;border-color:#3d4655;background:#ffffff05}
+html body .v5 .v5-design-menu summary{min-height:50px}
+html body .v5 .v5-design-menu summary::after{color:#c3cbd8}
+html body .v5 .v5-settings-help{font-size:13px;line-height:1.7;color:#626c7a;margin:18px 0 0;max-width:720px}
+html body .v5 .v5-design-check{min-height:58px;border:1px solid #e2e7ef;border-radius:12px;padding:14px;background:#f8f9fb;display:flex;align-items:center;justify-content:space-between;gap:16px}
+html body .v5 .v5-design-check input{flex-shrink:0;width:22px;height:22px;accent-color:#151820;cursor:pointer}
+html body .v5 .v5-design-check span{font-size:14px;font-weight:600;color:#202632}

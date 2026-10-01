@@ -15,7 +15,7 @@
     {id:'media',src:'/cms-media-20260918.js?v=photo2',after:['admin-client','config-store','product-photo']},
     {id:'data-tables',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@cf75d3e38eda2ca803f7ee55e2617a019f29db1c/bsm-cinemachine/cms-data-tables-20260918.js',after:['admin-client']},
     {id:'publishing',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@0a88133a8e4fe4852a54cf4a9edfa9c6e57c29c4/bsm-cinemachine/cms-publishing-20260918.js',after:['config-store']},
-    {id:'cms-ui',src:'/api/cms-ui',after:['config-store','media','data-tables']},
+    {id:'cms-ui',src:'/api/cms-ui?v=settings2',after:['config-store','media','data-tables']},
     {id:'promo-schedule',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@509c90dfb8cfaa3c0f6564cafdd27555dad2388e/bsm-cinemachine/cms-promo-publishing-adapter-20260918.js',after:['cms-ui','publishing']},
     {id:'global-status',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@2d79b380805c155f0bf7b6f8a63480729c0e4e0c/bsm-cinemachine/cms-global-status-publishing-adapter-20260918.js',after:['cms-ui','publishing']},
     {id:'product-sync',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@9e74e816c0c8887553503244ec7e87c04fcfa347/bsm-cinemachine/cms-product-publishing-adapter-20260918.js',after:['cms-ui','publishing']},
@@ -31,7 +31,7 @@
     {id:'serial-dispatch',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@26aedf2dffb5f4ab0f3c7db14605760087054de1/bsm-cinemachine/cms-serial-dispatch-adapter-20260918.js',after:['cms-ui','inventory']},
     {id:'logo',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@b64ae20a31d2e6ddb08a3aade3f6d5f8c5f401d4/bsm-cinemachine/cms-logo-20260918.js',after:['admin-client','config-store']},
     {id:'logo-ui',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@39342bb6b56fe05e3bf8bf61e086dd6b019c2a1c/bsm-cinemachine/cms-logo-adapter-20260918.js',after:['cms-ui','logo']},
-    {id:'template-settings',src:'/cms-template-publishing-adapter-20260918.js',after:['config-store','publishing','cms-ui']}
+    {id:'template-settings',src:'/cms-template-publishing-adapter-20260918.js?v=settings2',after:['config-store','publishing','cms-ui']}
   ];
 
   function validateManifest(manifest=MANIFEST){

@@ -8,7 +8,7 @@ const {Readable}=require('node:stream');
 
 function sanitizeCmsHtml(html){
   return String(html||'')
-    .replace(/https:\/\/cdn\.jsdelivr\.net\/gh\/satriaaao\/linix@85b0a21372bfcc3bf1276c19ffb6de8a96ff1200\/bsm-cinemachine\/cms-kernel-20260918\.js/g,'/cms-kernel-secure-20260922.js?v=photo2')
+    .replace(/https:\/\/cdn\.jsdelivr\.net\/gh\/satriaaao\/linix@85b0a21372bfcc3bf1276c19ffb6de8a96ff1200\/bsm-cinemachine\/cms-kernel-20260918\.js/g,'/cms-kernel-secure-20260922.js?v=settings2')
     .replace(/<link\b[^>]*href=["'][^"']*cart-mobile-layout-fix-20260919\.css[^"']*["'][^>]*>/gi,'')
     .replace(/<link\b[^>]*href=["'][^"']*cart[^"']*\.css[^"']*["'][^>]*data-public-only[^>]*>/gi,'');
 }
@@ -16,7 +16,7 @@ function sanitizeCmsHtml(html){
 function injectCmsPwa(html){
   let out=String(html||'');
   const head=[
-    '<link rel="stylesheet" href="/cms-appearance-20260930.css?v=photo2">',
+    '<link rel="stylesheet" href="/cms-appearance-20260930.css?v=settings2">',
     '<link rel="manifest" href="/api/cms?asset=manifest">',
     '<meta name="theme-color" content="#111318">',
     '<meta name="apple-mobile-web-app-capable" content="yes">',
