@@ -191,3 +191,6 @@ html[data-store-theme=black] body #app :is(.info .btn,.summary .wide,.track-sear
 html[data-store-theme=black] body #app .products-grid .pcard .pimg,html[data-store-theme=black] body #app .home-category-card .home-category-image,html[data-store-theme=black] body #app .cms-gallery .cms-gallery-main,html[data-store-theme=black] body #app .cms-gallery .cms-gallery-thumb{background:#202126!important;border-color:#2b2c31!important}
 html[data-store-theme=black] body #app .products-grid .pcard .pimg img,html[data-store-theme=black] body #app .home-category-card .home-category-image img,html[data-store-theme=black] body #app .cms-gallery .cms-gallery-main img{background:transparent!important}
 html body .rc-theme-toggle .rc-control-label{display:none!important}
+html[data-store-theme=black] body #app .related-card :is(.related-card-name,.related-card-price){color:#f4f4f5!important}
+html[data-store-theme=black] body #app .related-card :is(.related-card-image,.related-card-img,.related-card-photo){background:#202126!important;border-color:#2b2c31!important}
+html[data-store-theme=black] body #app .related-card img{background:transparent!important}
