@@ -118,3 +118,13 @@ html body #app :is(.home-category-new,.home-category-badge-new,[class*=new-badge
  html body #app .rc-camera-tool .newBadge{display:none!important}
  html body #app .rc-camera-heading p{font-size:11px!important;line-height:1.5!important;margin-top:5px!important}
 }
+
+/* Icon-only navigation retains accessible names and generous touch targets. */
+@media(max-width:760px){
+ .rc-app-nav{padding-top:5px;padding-bottom:calc(5px + env(safe-area-inset-bottom))}
+ .rc-app-nav a{min-height:52px;border-radius:14px;margin:0 7px;color:#969696;transition:color .15s ease,background .15s ease}
+ .rc-app-nav a svg{display:block;width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+ .rc-app-nav a[aria-current=page]{background:#f1f1f1;color:#111}
+ .rc-app-nav a[aria-current=page]::before{display:none}
+ .rc-app-count:not([hidden]){position:absolute;top:5px;left:calc(50% + 5px);margin:0;min-width:16px;height:16px;border-radius:8px;box-shadow:0 0 0 2px #fff;font-size:9px;pointer-events:none}
+}

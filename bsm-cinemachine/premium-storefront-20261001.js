@@ -1,10 +1,17 @@
-/* Text controls preserve existing actions and product tracking. */
+/* Accessible mobile navigation preserves existing actions and product tracking. */
 (() => {
   if (!document.getElementById('app')) return;
   const nav=document.createElement('nav');
   nav.className='rc-app-nav';nav.setAttribute('aria-label','Navigasi utama');
+  const icons={
+    '/':'<path d="m3 10 9-7 9 7M5 9v11h5v-6h4v6h5V9"/>',
+    '/produk':'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+    '/cart':'<path d="M3 3h2l3 12h10l3-9H6M9 20h.01M18 20h.01"/>',
+    '/cek-order':'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3h6v3H9zM9 11h6M9 15h6"/>'
+  };
   [['/','Beranda'],['/produk','Katalog'],['/cart','Keranjang'],['/cek-order','Pesanan']].forEach(([path,label])=>{
-    const a=document.createElement('a');a.href=path;a.dataset.appPath=path;a.textContent=label;nav.append(a);
+    const a=document.createElement('a');a.href=path;a.dataset.appPath=path;a.setAttribute('aria-label',label);a.title=label;
+    a.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+icons[path]+'</svg>';nav.append(a);
   });
   document.body.append(nav);
   let scheduled=false;
