@@ -25,3 +25,7 @@ assert.match(path,/created_at=lt\./);
 assert.match(path,/limit=1000/);
 
 console.log('cms-analytics tests: PASS');
+
+assert.equal(lib.normalizeGeo({latitude:-6.21462,longitude:106.84513}).latitude,-6.21462);
+assert.equal(lib.normalizeGeo({latitude:91,longitude:181}).latitude,null);
+assert.equal(lib.normalizeGeo({latitude:91,longitude:181}).longitude,null);

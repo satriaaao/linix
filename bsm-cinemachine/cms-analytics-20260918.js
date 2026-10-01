@@ -32,11 +32,12 @@
   const clean=v=>String(v??'').trim();
   function roundCoord(v){
     if(v===null||v===undefined||clean(v)==='')return null;
-    const n=Number(v);return Number.isFinite(n)?Math.round(n*100)/100:null;
+    const n=Number(v);return Number.isFinite(n)?Math.round(n*100000)/100000:null;
   }
   function normalizeGeo(input={}){
     const g=input?.geo||input||{};
-    return {city:clean(g.city)||'Tidak diketahui',region:clean(g.region),country:clean(g.country),latitude:roundCoord(g.latitude),longitude:roundCoord(g.longitude)};
+    const lat=roundCoord(g.latitude),lon=roundCoord(g.longitude);
+    return {city:clean(g.city)||'Tidak diketahui',region:clean(g.region),country:clean(g.country),latitude:lat!==null&&Math.abs(lat)<=90?lat:null,longitude:lon!==null&&Math.abs(lon)<=180?lon:null};
   }
   function locationLabel(input={}){
     const g=normalizeGeo(input);
@@ -178,7 +179,7 @@
         const bounds=[];
         locations.filter(x=>Number.isFinite(x.latitude)&&Number.isFinite(x.longitude)).forEach(x=>{
           const p=[x.latitude,x.longitude];bounds.push(p);
-          L.circleMarker(p,{radius:9,color:'#111111',fillColor:'#333333',fillOpacity:.75,weight:2}).addTo(map).bindPopup(`<b>${esc(x.label)}</b><br>${x.events} event · ${x.clicks} klik · ${x.views} views`);
+          L.circleMarker(p,{radius:9,color:'#111111',fillColor:'#333333',fillOpacity:.75,weight:2}).addTo(map).bindPopup(`<b>${esc(x.label)}</b><br>Perkiraan jaringan IP · bukan GPS<br>${x.latitude}, ${x.longitude}<br>${x.events} event · ${x.clicks} klik · ${x.views} views`);
         });
         if(bounds.length)map.fitBounds(bounds,{padding:[24,24],maxZoom:10});else host.insertAdjacentHTML('beforeend','<div class="rca-map-empty">Peta aktif. Titik lokasi muncul setelah kunjungan dengan koordinat tersedia.</div>');
         setTimeout(()=>map?.invalidateSize(),80);
@@ -216,9 +217,9 @@
           </div>
           <div class="rca-grid">
             <div class="rca-card"><h3>Top Produk — Klik Periode</h3><div class="rca-scroll"><table class="rca-table"><thead><tr><th>Nama Produk</th><th>ID</th><th>Klik</th></tr></thead><tbody>${sum.topProducts.slice(0,20).map(x=>`<tr><td><b>${esc(x.name)}</b></td><td>${esc(x.id)}</td><td><b>${x.count}</b></td></tr>`).join('')||'<tr><td colspan="3">Belum ada klik produk.</td></tr>'}</tbody></table></div></div>
-            <div class="rca-card"><h3>Top Lokasi</h3><div class="rca-scroll"><table class="rca-table"><thead><tr><th>Lokasi</th><th>Event</th><th>Klik</th><th>Views</th></tr></thead><tbody>${sum.locations.slice(0,20).map(x=>`<tr><td><b>${esc(x.label)}</b><span class="rca-muted">${x.latitude??'-'}, ${x.longitude??'-'}</span></td><td>${x.events}</td><td>${x.clicks}</td><td>${x.views}</td></tr>`).join('')||'<tr><td colspan="4">Belum ada data lokasi.</td></tr>'}</tbody></table></div></div>
+            <div class="rca-card"><h3>Perkiraan Lokasi IP</h3><div class="rca-scroll"><table class="rca-table"><thead><tr><th>Lokasi</th><th>Event</th><th>Klik</th><th>Views</th></tr></thead><tbody>${sum.locations.slice(0,20).map(x=>`<tr><td><b>${esc(x.label)}</b><span class="rca-muted">${x.latitude??'-'}, ${x.longitude??'-'}</span></td><td>${x.events}</td><td>${x.clicks}</td><td>${x.views}</td></tr>`).join('')||'<tr><td colspan="4">Belum ada data lokasi.</td></tr>'}</tbody></table></div></div>
           </div>
-          <div class="rca-card" style="margin-bottom:14px"><h3>Peta Lokasi Pengunjung</h3><div id="rcAnalyticsMap"></div><p class="rca-muted">Lokasi adalah perkiraan jaringan internet. IP publik hanya tersedia bagi admin. Data lama tanpa lokasi/IP tidak dapat dipulihkan.</p></div>
+          <div class="rca-card" style="margin-bottom:14px"><h3>Peta Perkiraan Lokasi IP</h3><div id="rcAnalyticsMap"></div><p class="rca-muted">Titik menunjukkan perkiraan lokasi jaringan IP, bukan GPS atau alamat pengunjung. Data seluler, VPN, dan iCloud Private Relay bisa menunjukkan kota atau negara lain. Aktivitas di lokasi yang sama digabung dalam satu titik. IP publik hanya tersedia bagi admin.</p></div>
           <div class="rca-card rca-recent"><h3>Aktivitas Terbaru</h3><div class="rca-scroll"><table class="rca-table"><thead><tr><th>Event</th><th>Nama Produk / Halaman</th><th>Lokasi</th><th>IP publik</th><th>Sesi</th><th>Waktu</th></tr></thead><tbody>${recent.map(e=>`<tr><td data-label="Aktivitas">${esc(e.event_type==='product_click'?'Produk dibuka':e.event_type==='page_view'?'Halaman dibuka':e.event_type)}</td><td data-label="Produk / halaman"><b>${esc(productLabel(e,ps,cfg))}</b>${e.product_id?`<span class="rca-muted">${esc(e.product_id)}</span>`:''}</td><td data-label="Lokasi">${esc(locationLabel(e?.meta?.geo||{}))}</td><td data-label="IP publik">${esc(e?.meta?.ip_address||e?.meta?.ip_masked||'Tidak tersimpan pada data lama')}</td><td data-label="Sesi">${esc(e?.meta?.visitor_hash?String(e.meta.visitor_hash).slice(0,12):String(e.session_id||'-').slice(0,12))}</td><td data-label="Waktu">${new Date(e.created_at).toLocaleString('id-ID')}</td></tr>`).join('')||'<tr><td colspan="6">Belum ada aktivitas.</td></tr>'}</tbody></table></div></div>
         </div>`;
         root.document.getElementById('rcAnalyticsRefresh')?.addEventListener('click',render);

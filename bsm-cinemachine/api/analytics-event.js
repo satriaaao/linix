@@ -10,7 +10,8 @@ function header(req,name){
   return h[name]??h[name.toLowerCase()]??h[name.toUpperCase()]??'';
 }
 function decoded(value){try{return decodeURIComponent(String(value||''))}catch(_){return String(value||'')}}
-function roundCoord(value){if(value===null||value===undefined||String(value).trim()==='')return null;const n=Number(value);return Number.isFinite(n)?Math.round(n*100)/100:null}
+function roundCoord(value){if(value===null||value===undefined||String(value).trim()==='')return null;const n=Number(value);return Number.isFinite(n)?Math.round(n*100000)/100000:null}
+function coordinate(value,limit){const n=roundCoord(value);return n!==null&&Math.abs(n)<=limit?n:null}
 function json(res,status,payload){res.statusCode=status;res.setHeader?.('content-type','application/json; charset=utf-8');res.setHeader?.('cache-control','no-store');res.end(JSON.stringify(payload))}
 function bodyObject(req){if(req?.body&&typeof req.body==='object')return req.body;try{return JSON.parse(req?.body||'{}')}catch(_){return {}}}
 function rawIp(req){const value=String(header(req,'x-forwarded-for')||header(req,'x-real-ip')||'').split(',')[0].trim();return isIP(value)?value:''}
@@ -31,8 +32,9 @@ function geoFromHeaders(req){
     city:decoded(header(req,'x-vercel-ip-city')).slice(0,120),
     region:decoded(header(req,'x-vercel-ip-country-region')).slice(0,16),
     country:String(header(req,'x-vercel-ip-country')||'').slice(0,8),
-    latitude:roundCoord(header(req,'x-vercel-ip-latitude')),
-    longitude:roundCoord(header(req,'x-vercel-ip-longitude'))
+    source:'ip',
+    latitude:coordinate(header(req,'x-vercel-ip-latitude'),90),
+    longitude:coordinate(header(req,'x-vercel-ip-longitude'),180)
   };
 }
 

@@ -34,8 +34,8 @@ test('analytics endpoint stores validated public IP for admin analytics without 
     await handler(req,res);
     assert.equal(res.statusCode,200);
     assert.equal(insert.meta.geo.city,'Jakarta');
-    assert.equal(insert.meta.geo.latitude,-6.21);
-    assert.equal(insert.meta.geo.longitude,106.85);
+    assert.equal(insert.meta.geo.latitude,-6.21462);
+    assert.equal(insert.meta.geo.longitude,106.84513);
     assert.match(insert.meta.visitor_hash,/^[a-f0-9]{16}$/);
     assert.equal(insert.meta.ip_address,'203.0.113.44');assert.equal(res.body.includes('203.0.113.44'),false);
   }finally{global.fetch=oldFetch}
@@ -51,4 +51,11 @@ test('analytics endpoint keeps missing coordinates null instead of zero',async()
     assert.equal(insert.meta.geo.latitude,null);
     assert.equal(insert.meta.geo.longitude,null);
   }finally{global.fetch=oldFetch}
+});
+
+test('IP coordinates retain source precision and reject invalid latitude/longitude',()=>{
+ const valid=handler._geoFromHeaders({headers:{'x-vercel-ip-latitude':'-6.214625','x-vercel-ip-longitude':'106.845134'}});
+ assert.equal(valid.latitude,-6.21462);assert.equal(valid.longitude,106.84513);assert.equal(valid.source,'ip');
+ const invalid=handler._geoFromHeaders({headers:{'x-vercel-ip-latitude':'91','x-vercel-ip-longitude':'-181'}});
+ assert.equal(invalid.latitude,null);assert.equal(invalid.longitude,null);
 });
