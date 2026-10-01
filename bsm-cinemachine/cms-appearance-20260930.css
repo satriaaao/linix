@@ -46,3 +46,15 @@ html body .v5 .v5-top :is(button,a):focus-visible,html body .v5 .v5-nav :is(butt
 .v5-photo-option input{width:18px;height:18px;accent-color:#111}
 .v5-photo-hint,[data-photo-progress]{font-size:12px;line-height:1.5;color:#737373}
 .v5-photos .v5-photo img{object-fit:contain!important;padding:8px;background-color:#fff;background-image:linear-gradient(45deg,#efefef 25%,transparent 25%),linear-gradient(-45deg,#efefef 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#efefef 75%),linear-gradient(-45deg,transparent 75%,#efefef 75%);background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0}
+/* Product/editor actions must stay above mobile chrome and installation prompts. */
+body:has(.v5-modal) #cmsPwaDock{display:none!important}
+body:has(.v5-modal){overflow:hidden}
+html body .v5-modal .v5-panel{display:flex!important;flex-direction:column!important;max-height:94dvh!important;overflow:hidden!important}
+html body .v5-modal .v5-modalbody{flex:1 1 auto;min-height:0;overflow-y:auto!important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+html body .v5-modal :is(.v5-modalhead,.v5-modalfoot){position:relative!important;flex:0 0 auto;z-index:3;background:#fff}
+@media(max-width:600px){
+ html body .v5-modal{padding:10px!important;padding-bottom:max(10px,env(safe-area-inset-bottom))!important}
+ html body .v5-modal .v5-panel{width:100%!important;max-height:calc(100dvh - 20px - env(safe-area-inset-bottom))!important}
+ html body .v5-modal .v5-modalfoot{padding:12px 14px!important;gap:10px;box-shadow:0 -4px 16px #00000005}
+ html body .v5-modal .v5-modalfoot .v5-btn{min-height:46px;flex:1;font-size:13px!important}
+}
