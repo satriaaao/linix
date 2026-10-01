@@ -17,12 +17,14 @@
   const themeButton=document.createElement('button');themeButton.type='button';themeButton.className='rc-theme-toggle';
   let preference=null;try{const saved=localStorage.getItem('rentcam_store_theme');if(['black','white'].includes(saved))preference=saved;}catch(_){}
   function applyTheme(){
-    const config=window.RENTCAM_CMS_CONFIG||{},mode=preference||(config.theme?.mode==='black'?'black':'white');
+    const config=window.RENTCAM_CMS_CONFIG||{},mode=config.theme?.switchEnabled===false?'white':preference||(config.theme?.mode==='black'?'black':'white');
     if(document.documentElement.dataset.storeTheme!==mode)document.documentElement.dataset.storeTheme=mode;
     const label=mode==='black'?'Tema putih':'Tema hitam';
     const icon=mode==='black'?'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>':'<path d="M20.9 13.2A9 9 0 0 1 10.8 3.1 9 9 0 1 0 20.9 13.2Z"/>';
     if(themeButton.dataset.mode!==mode){themeButton.dataset.mode=mode;themeButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true">'+icon+'</svg>';}
     themeButton.title='Beralih ke '+label.toLowerCase();
+    themeButton.hidden=config.theme?.switchEnabled===false;
+    document.documentElement.dataset.themeSwitch=config.theme?.switchEnabled===false?'off':'on';
     themeButton.setAttribute('aria-label','Beralih ke '+label.toLowerCase());
     const actions=document.querySelector('.header .actions');if(actions&&!actions.contains(themeButton))actions.prepend(themeButton);
   }

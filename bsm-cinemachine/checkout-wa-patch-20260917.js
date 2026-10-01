@@ -76,6 +76,7 @@ function patchWebsiteOrders(source){
   if(!checkMemberRe.test(out)) throw new Error('check member seam not found');
   out=out.replace(checkMemberRe,newCheckMember);
 
+  out=out.replace("window.RENTCAM_CMS_CONFIG?.general?.whatsapp||''", "window.RENTCAM_CMS_CONFIG?.general?.marketingWhatsapp||window.RENTCAM_CMS_CONFIG?.general?.whatsapp||''");
   return out;
 }
 module.exports={patchWebsiteOrders};
