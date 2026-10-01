@@ -8,8 +8,18 @@
   });
   document.body.append(nav);
   let scheduled=false;
+  const placeholders=new WeakMap();
+  const cartCount=document.createElement('span');cartCount.className='rc-app-count';cartCount.hidden=true;nav.querySelector('[href="/cart"]').append(cartCount);
   function apply(){
     scheduled=false;
+    const count=document.getElementById('count')?.textContent.trim()||'0';
+    if(cartCount.textContent!==count)cartCount.textContent=count;
+    cartCount.hidden=!(Number(count)>0);
+    document.querySelectorAll('#app .rc-camera-search input').forEach(input=>{
+      if(!placeholders.has(input))placeholders.set(input,input.placeholder);
+      const placeholder=innerWidth<=760?'Cari kamera, lensa, peralatan…':placeholders.get(input);
+      if(input.placeholder!==placeholder)input.placeholder=placeholder;
+    });
     document.querySelectorAll('.header [data-menu],.header .rc-cart-button,#drawer .rc-close,#app .home-open-cart').forEach(el=>{
       const label=el.matches('[data-menu]')?'Menu':el.matches('.rc-close')?'Tutup':'Keranjang';
       if(!el.querySelector('.rc-control-label')){const span=document.createElement('span');span.className='rc-control-label';span.textContent=label;el.append(span);}
@@ -29,7 +39,7 @@
   }
   function schedule(){if(!scheduled){scheduled=true;requestAnimationFrame(apply);}}
   new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true});
-  addEventListener('popstate',schedule);document.addEventListener('rentcam-route-change',schedule);
+  addEventListener('resize',schedule);addEventListener('popstate',schedule);document.addEventListener('rentcam-route-change',schedule);
   nav.addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;if(typeof go==='function'){e.preventDefault();e.stopPropagation();go(a.dataset.appPath);document.getElementById('drawer')?.classList.remove('open');schedule();}});
   apply();
 })();
