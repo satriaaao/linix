@@ -24,6 +24,8 @@
     const request=(url,init)=>admin?.request?admin.request(url,init):root.fetch(url,init);
     const list=()=>{const c=store.get();c.media=Array.isArray(c.media)?c.media:[];return c.media};
     async function upload(file,folder='media'){
+      if(folder==='product'&&!root.RentcamProductPhoto)throw new Error('Modul foto belum siap. Refresh CMS lalu coba lagi.');
+      if(folder==='product')file=await root.RentcamProductPhoto.prepare(file,{removeBackground:root.document?.querySelector('[data-photo-remove-background]')?.checked!==false,onProgress:message=>{const status=root.document?.querySelector('[data-photo-progress]');if(status)status.textContent=message;}});
       const info=validate(file);
       const tr=await request(SB+'/rest/v1/rpc/rentcam_issue_upload_token',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:'{}'});
       const raw=await decode(tr,'Tidak bisa membuat akses upload. Silakan login ulang.');

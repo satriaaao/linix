@@ -33,6 +33,7 @@ jobs:
           node tests/cart-navigation-20260919.test.js
           node tests/promo-asset-routing-20260919.test.js
           node tests/cms-runtime-guard-20260919.test.js
+          node tests/cms-media-20260918.test.js
           node tests/cms-analytics-20260918.test.js
           node tests/analytics-live-20261001.test.js
           node --test tests/analytics-endpoint-20260916.test.js
