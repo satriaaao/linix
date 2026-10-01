@@ -47,8 +47,8 @@ function patchPublicHtml(html,seo){
   out=out.replace('</body>',(out.includes('/seo-runtime-20260930.js')?'':'<script src="/seo-runtime-20260930.js" defer></script>')+cartHardening+checkoutWizard+includedDropdown+brandLogoPng+orderTracking+homeHero+catalogGrid+brandEquipment+branchAvailability+browserHardening+websiteDesign+'<link rel="stylesheet" href="/premium-storefront-20261001.css?v=theme2"><script src="/premium-storefront-20261001.js?v=theme2"></script></body>');
   const ssr=`<main id="app"><section data-seo-ssr="1" style="max-width:1180px;margin:0 auto;padding:28px 20px;font-family:Arial,sans-serif"><h1>${esc(seo.h1)}</h1><p>${esc(seo.summary)}</p>${seo.body||''}</section></main>`;
   out=out.replace(/<main\s+id=["']app["']\s*><\/main>/i,ssr);
-  out=out.replace(/src="\/product-search-20260912\.js(?:\?[^\"]*)?"/,'src="/product-search-20260912.js?v=geo4"');
-  out=out.replace(/src="\/general-products-20260913\.js(?:\?[^\"]*)?"/,'src="/general-products-20260913.js?v=pcfix1"');
+  out=out.replace(/src="\/product-search-20260912\.js(?:\?[^\"]*)?"/,'src="/product-search-20260912.js?v=cleanup1"');
+  out=out.replace(/src="\/general-products-20260913\.js(?:\?[^\"]*)?"/,'src="/general-products-20260913.js?v=cleanup1"');
   // Promo tab: hard navigation to promo/new list, including on mobile Safari.
   out=out.replace(/src=["']\/public-template-popup-20260913\.js(?:\?[^"']*)?["']/i,'src="https://cdn.jsdelivr.net/gh/satriaaao/linix@43cd238cb9eaafd8f4d0f9a330ff5e4c7a1b4811/bsm-cinemachine/public-template-popup-20260913.js"');
   out=out.replace(/src="\/cart-click-fix-20260914\.js(?:\?[^\"]*)?"/,'src="/cart-click-fix-20260914.js?v=pcfix1"');

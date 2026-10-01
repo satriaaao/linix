@@ -22,13 +22,6 @@
     {id:'wireless',name:'Monitor & Wireless',sort:60,active:true},
     {id:'grip',name:'Grip & Support',sort:70,active:true},
     {id:'accessories',name:'Aksesori',sort:80,active:true},
-    {id:'camping',name:'Alat Camping',sort:90,active:true},
-    {id:'car',name:'Rental Mobil',sort:100,active:true},
-    {id:'motorbike',name:'Rental Motor',sort:110,active:true},
-    {id:'playstation',name:'Rental PS',sort:120,active:true},
-    {id:'tent',name:'Tenda',sort:130,active:true},
-    {id:'iphone',name:'Rental iPhone',sort:140,active:true},
-    {id:'food',name:'Makanan UMKM',sort:150,active:true}
   ];
   const CATEGORY_ALIASES={
     camera:'camera',kamera:'camera','kamera cinema':'camera','cinema camera':'camera',
@@ -62,7 +55,7 @@
     watermark:{enabled:true,logoUrl:'',opacity:18,size:18,position:'center'},
     tax:{enabled:false,rate:11,label:'PPN'},
     mainCategories:clone(SYSTEM_CATEGORIES),
-    subCategories:[{id:'cinema-camera',name:'Cinema Camera',mainCategory:'camera',sort:10,active:true},{id:'cinema-lens',name:'Cinema Lens',mainCategory:'lens',sort:10,active:true},{id:'led-lighting',name:'LED Lighting',mainCategory:'lighting',sort:10,active:true},{id:'production-audio',name:'Production Audio',mainCategory:'audio',sort:10,active:true},{id:'camping-utama',name:'Alat Camping Utama',mainCategory:'camping',sort:10,active:true},{id:'car-utama',name:'Rental Mobil Utama',mainCategory:'car',sort:10,active:true},{id:'motorbike-utama',name:'Rental Motor Utama',mainCategory:'motorbike',sort:10,active:true},{id:'playstation-utama',name:'Rental PS Utama',mainCategory:'playstation',sort:10,active:true},{id:'tent-utama',name:'Tenda Utama',mainCategory:'tent',sort:10,active:true},{id:'iphone-utama',name:'Rental iPhone Utama',mainCategory:'iphone',sort:10,active:true},{id:'food-utama',name:'Makanan UMKM Utama',mainCategory:'food',sort:10,active:true}],
+    subCategories:[{id:'cinema-camera',name:'Cinema Camera',mainCategory:'camera',sort:10,active:true},{id:'cinema-lens',name:'Cinema Lens',mainCategory:'lens',sort:10,active:true},{id:'led-lighting',name:'LED Lighting',mainCategory:'lighting',sort:10,active:true},{id:'production-audio',name:'Production Audio',mainCategory:'audio',sort:10,active:true}],
     brands:[{id:'arri',name:'ARRI',logo:'',sort:10,active:true},{id:'sony',name:'Sony',logo:'',sort:20,active:true},{id:'red',name:'RED',logo:'',sort:30,active:true},{id:'aputure',name:'Aputure',logo:'',sort:40,active:true},{id:'sennheiser',name:'Sennheiser',logo:'',sort:50,active:true}],
     productLabels:clone(DEFAULT_LABELS),popup:{enabled:true,title:'Promo & Produk Baru',text:'Klik untuk lihat daftar produk promo dan barang baru.',buttonLabel:'Lihat produk',floatLabel:'PROMO',labels:['PROMO','NEW','DISKON'],items:[],version:'default-promo-20260913'},
     productOverrides:{},customProducts:[],banners:[],portfolio:[],articles:[],services:[],media:[],footer:{description:'',copyright:'© 2026 Rentcam',columns:[]},report:{onlineWindowMinutes:2}

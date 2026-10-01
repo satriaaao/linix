@@ -17,15 +17,7 @@
   function item(id,name,brand,cat,price,image,sort,description){
     return {id,name,brand,cat:labels[cat]||cat,category:labels[cat]||cat,mainCategory:cat,subCategory:'',price,priceAud:price,img:image,image,images:[image],stock:1,sku:id,placement:'catalog',sortOrder:sort,active:true,description,spec:[['Kategori',labels[cat]||cat],['Tipe','Rental harian'],['Status','Data dummy siap diedit']],inc:['Unit sesuai pesanan','Pengecekan kondisi sebelum serah terima','Konfirmasi stok oleh admin'],included:['Unit sesuai pesanan','Pengecekan kondisi sebelum serah terima','Konfirmasi stok oleh admin'],accessories:['Opsi antar jemput sesuai area','Bisa ditambahkan catatan kebutuhan saat checkout'],_generalRental:true};
   }
-  const products=[
-    item('camping-set-family','Paket Camping Family Set','Rentcam Outdoor','camping',350000,img.camping,700,'Paket camping untuk keluarga kecil, cocok untuk liburan singkat dan acara outdoor.'),
-    item('rental-mobil-avanza','Rental Mobil Avanza Harian','Rentcam Transport','car',450000,img.car,710,'Rental mobil harian untuk operasional produksi, perjalanan tim, atau kebutuhan acara.'),
-    item('rental-motor-vario','Rental Motor Vario Harian','Rentcam Transport','motorbike',125000,img.motorbike,720,'Motor harian untuk kebutuhan mobilitas cepat, kurir produksi, atau transport lokal.'),
-    item('rental-ps5-set','Rental PlayStation 5 Set','Rentcam Game','playstation',250000,img.playstation,730,'Paket rental PS untuk event, gathering, waiting room, atau hiburan harian.'),
-    item('tenda-camping-4p','Tenda Camping 4 Orang','Rentcam Outdoor','tent',150000,img.tent,740,'Tenda kapasitas empat orang dengan setup praktis untuk camping dan acara outdoor.'),
-    item('rental-iphone-15-pro','Rental iPhone 15 Pro','Rentcam Gadget','iphone',300000,img.iphone,750,'Rental iPhone untuk kebutuhan konten, dokumentasi, livestream, atau testing aplikasi.'),
-    item('paket-makanan-umkm','Paket Makanan UMKM Event','Rentcam UMKM','food',50000,img.food,760,'Paket makanan UMKM untuk produksi, acara komunitas, meeting, atau kebutuhan crew.')
-  ];
+  const products=[];
   const aliases={camping:['camping','alat camping','camp'],car:['car','mobil','rental mobil'],motorbike:['motorbike','motor','rental motor'],playstation:['playstation','ps','rental ps','rental playstation'],tent:['tent','tenda'],iphone:['iphone','rental iphone'],food:['food','makanan','umkm','makanan umkm']};
   window.RENTCAM_GENERAL_PRODUCTS=products;
   let liveRows=[];

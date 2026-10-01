@@ -12,41 +12,8 @@
     {key:'wireless',title:'Monitor & Wireless',aliases:['wireless','monitor']},
     {key:'grip',title:'Grip & Support',aliases:['grip','camera support','camera-support']},
     {key:'accessories',title:'Aksesori',aliases:['accessories','aksesori','electronic control','electronic-control','matte box','matte-box','follow focus','follow-focus','filters']},
-    {key:'camping',title:'Alat Camping',aliases:['alat camping','camping','camp']},
-    {key:'car',title:'Rental Mobil',aliases:['rental mobil','mobil','car']},
-    {key:'motorbike',title:'Rental Motor',aliases:['rental motor','motor','motorbike']},
-    {key:'playstation',title:'Rental PS',aliases:['rental ps','ps','playstation','rental playstation']},
-    {key:'tent',title:'Tenda',aliases:['tenda','tent']},
-    {key:'iphone',title:'Rental iPhone',aliases:['rental iphone','iphone']},
-    {key:'food',title:'Makanan UMKM',aliases:['makanan umkm','umkm','makanan','food']}
   ];
-  const GENERAL_IMG={
-    camping:'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=1000&q=82',
-    car:'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1000&q=82',
-    motorbike:'https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=1000&q=82',
-    playstation:'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?auto=format&fit=crop&w=1000&q=82',
-    tent:'https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?auto=format&fit=crop&w=1000&q=82',
-    iphone:'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=1000&q=82',
-    food:'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1000&q=82'
-  };
-  function generalProduct(id,name,brand,cat,price,img,sort,extra=''){
-    return {
-      id,name,brand,cat,category:cat,mainCategory:cat,subCategory:'',price,priceAud:price,img,image:img,images:[img],stock:1,sku:id,placement:'catalog',sortOrder:sort,active:true,
-      description:extra||`${name} tersedia untuk kebutuhan rental harian. Harga masih data dummy dan bisa diedit dari CMS.`,
-      spec:[['Kategori',cat],['Tipe','Rental harian'],['Status','Data dummy siap diedit']],
-      inc:['Unit sesuai pesanan','Pengecekan kondisi sebelum serah terima','Konfirmasi stok oleh admin'],
-      accessories:['Opsi antar jemput sesuai area','Bisa ditambahkan catatan kebutuhan saat checkout']
-    };
-  }
-  const GENERAL_PRODUCTS=[
-    generalProduct('camping-set-family','Paket Camping Family Set','Rentcam Outdoor','camping',350000,GENERAL_IMG.camping,700,'Paket camping untuk keluarga kecil, cocok untuk liburan singkat dan acara outdoor.'),
-    generalProduct('rental-mobil-avanza','Rental Mobil Avanza Harian','Rentcam Transport','car',450000,GENERAL_IMG.car,710,'Rental mobil harian untuk operasional produksi, perjalanan tim, atau kebutuhan acara.'),
-    generalProduct('rental-motor-vario','Rental Motor Vario Harian','Rentcam Transport','motorbike',125000,GENERAL_IMG.motorbike,720,'Motor harian untuk kebutuhan mobilitas cepat, kurir produksi, atau transport lokal.'),
-    generalProduct('rental-ps5-set','Rental PlayStation 5 Set','Rentcam Game','playstation',250000,GENERAL_IMG.playstation,730,'Paket rental PS untuk event, gathering, waiting room, atau hiburan harian.'),
-    generalProduct('tenda-camping-4p','Tenda Camping 4 Orang','Rentcam Outdoor','tent',150000,GENERAL_IMG.tent,740,'Tenda kapasitas empat orang dengan setup praktis untuk camping dan acara outdoor.'),
-    generalProduct('rental-iphone-15-pro','Rental iPhone 15 Pro','Rentcam Gadget','iphone',300000,GENERAL_IMG.iphone,750,'Rental iPhone untuk kebutuhan konten, dokumentasi, livestream, atau testing aplikasi.'),
-    generalProduct('paket-makanan-umkm','Paket Makanan UMKM Event','Rentcam UMKM','food',50000,GENERAL_IMG.food,760,'Paket makanan UMKM untuk produksi, acara komunitas, meeting, atau kebutuhan crew.')
-  ];
+  const GENERAL_PRODUCTS=[];
   function catalogList(){
     const seen=new Set(),out=[];
     const add=g=>{
@@ -387,7 +354,7 @@
       const baseTitle=selected?(allGroups.find(g=>g.key===selected)?.title||selected):'';
       const pageTitle=labels.length?'Produk '+labelTitle(labels):promoOnly?'Produk Promo':newOnly?'Produk Baru':baseTitle;
       const countText=labels.length?'Produk sesuai label':promoOnly?'Produk promo dan diskon':newOnly?'Produk baru':'Pilih kategori sesuai kebutuhan Anda';
-      return `<section class="page"><div class="container"><div class="product-meta"><h1>${pageTitle?esc(pageTitle):'Semua Produk'}</h1><p id="catalogResultCount">${a.length} produk · ${countText}</p></div>${promoMarkup()}<div class="product-search-wrap"><div class="product-search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg><input id="productSearchInput" value="${esc(q)}" placeholder="Cari produk..." oninput="rentcamLiveSearch(event)" oncompositionend="rentcamLiveSearch(event)" onkeydown="if(event.key==='Enter'){event.preventDefault();rentcamSearch()}"></div><button class="product-search-btn" onclick="rentcamSearch()">Cari</button></div><div class="catalog-filter-row"><div class="catalog-filter-field catalog-cascade" id="catalogCascade"><span>Kategori &amp; brand</span><button type="button" class="catalog-cascade-trigger" id="catalogCategory" aria-expanded="false" aria-controls="catalogCascadePanel" onclick="rentcamToggleCategories()"><span>${selected?esc(baseTitle)+(brand?' · '+esc(brand):''):labels.length?'Label '+esc(labelTitle(labels)):promoOnly?'Produk Promo':newOnly?'Produk Baru':'Semua produk'}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></button><div class="catalog-cascade-panel" id="catalogCascadePanel" hidden><button type="button" class="catalog-cascade-option" onclick="rentcamSelectFilter('[]')">Semua produk</button><button type="button" class="catalog-cascade-option" onclick="go('/produk?promo=1')">Produk promo</button><button type="button" class="catalog-cascade-option" onclick="go('/produk?new=1')">Produk baru</button>${(window.RENTCAM_CMS_CONFIG?.productLabels||[]).filter(l=>l.active!==false).map(l=>`<button type="button" class="catalog-cascade-option" onclick="go('/produk?label=${encodeURIComponent(l.name||l.id)}')">Label ${esc(l.name||l.id)}</button>`).join('')}${groups.map(g=>{const choices=[...new Set(active.filter(p=>rentcamCatalogGroup(p)===g.key).map(p=>p.brand).filter(Boolean))].sort((a,b)=>a.localeCompare(b));return `<div class="catalog-cascade-group"><button type="button" class="catalog-cascade-option catalog-cascade-parent" aria-expanded="false" aria-controls="catalogBrands-${g.key}" onclick="rentcamExpandBrands(this)"><span>${esc(g.title)}</span><span aria-hidden="true">⌄</span></button><div class="catalog-cascade-brands" id="catalogBrands-${g.key}" hidden><button type="button" class="catalog-cascade-option" data-category="${esc(g.key)}" onclick="rentcamChooseBrand(this)">Semua brand</button>${choices.map(b=>`<button type="button" class="catalog-cascade-option" data-category="${esc(g.key)}" data-brand="${esc(b)}" onclick="rentcamChooseBrand(this)">${esc(b)}</button>`).join('')}</div></div>`}).join('')}</div></div></div><div id="catalogResults" aria-live="polite">${resultsMarkup(a,selected)}</div></div></section>`;
+      return `<section class="page"><div class="container"><div class="product-meta"><h1>${pageTitle?esc(pageTitle):'Semua Produk'}</h1><p id="catalogResultCount">${a.length} produk · ${countText}</p></div>${promoMarkup()}<div class="product-search-wrap"><div class="product-search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg><input id="productSearchInput" value="${esc(q)}" placeholder="Cari produk..." oninput="rentcamLiveSearch(event)" oncompositionend="rentcamLiveSearch(event)" onkeydown="if(event.key==='Enter'){event.preventDefault();rentcamSearch()}"></div><button class="product-search-btn" onclick="rentcamSearch()">Cari</button></div><div class="catalog-filter-row"><div class="catalog-filter-field catalog-cascade" id="catalogCascade"><span>Kategori &amp; brand</span><button type="button" class="catalog-cascade-trigger" id="catalogCategory" aria-expanded="false" aria-controls="catalogCascadePanel" onclick="rentcamToggleCategories()"><span>${selected?esc(baseTitle)+(brand?' · '+esc(brand):''):labels.length?'Label '+esc(labelTitle(labels)):promoOnly?'Produk Promo':newOnly?'Produk Baru':'Semua produk'}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></button><div class="catalog-cascade-panel" id="catalogCascadePanel" hidden><button type="button" class="catalog-cascade-option" onclick="rentcamSelectFilter('[]')">Semua produk</button>${groups.map(g=>{const choices=[...new Set(active.filter(p=>rentcamCatalogGroup(p)===g.key).map(p=>p.brand).filter(Boolean))].sort((a,b)=>a.localeCompare(b));return `<div class="catalog-cascade-group"><button type="button" class="catalog-cascade-option catalog-cascade-parent" aria-expanded="false" aria-controls="catalogBrands-${g.key}" onclick="rentcamExpandBrands(this)"><span>${esc(g.title)}</span><span aria-hidden="true">⌄</span></button><div class="catalog-cascade-brands" id="catalogBrands-${g.key}" hidden><button type="button" class="catalog-cascade-option" data-category="${esc(g.key)}" onclick="rentcamChooseBrand(this)">Semua brand</button>${choices.map(b=>`<button type="button" class="catalog-cascade-option" data-category="${esc(g.key)}" data-brand="${esc(b)}" onclick="rentcamChooseBrand(this)">${esc(b)}</button>`).join('')}</div></div>`}).join('')}</div></div></div><div id="catalogResults" aria-live="polite">${resultsMarkup(a,selected)}</div></div></section>`;
     };
 
     const app=document.getElementById('app');
