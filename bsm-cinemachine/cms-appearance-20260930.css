@@ -58,3 +58,7 @@ html body .v5-modal :is(.v5-modalhead,.v5-modalfoot){position:relative!important
  html body .v5-modal .v5-modalfoot{padding:12px 14px!important;gap:10px;box-shadow:0 -4px 16px #00000005}
  html body .v5-modal .v5-modalfoot .v5-btn{min-height:46px;flex:1;font-size:13px!important}
 }
+.v5-photo-option select,[data-photo-output]{width:100%;min-height:46px;border:1px solid #cbd5e1;border-radius:10px;padding:10px 12px;font-size:16px;background:#fff;color:#111}
+
+html body .v5-photos .v5-photo img{background:#fff!important;background-image:none!important;object-fit:contain!important;padding:10px}
+.v5-photo-repair{display:block;width:calc(100% - 12px);margin:0 6px 7px;min-height:38px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#111;font-size:11px;font-weight:600}

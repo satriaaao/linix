@@ -10,7 +10,8 @@
   const id=++sequence;pending={id,resolve,reject,timeout:setTimeout(()=>{pending=null;worker?.terminate();worker=null;reject(new Error('Pemrosesan melewati batas waktu. Coba foto yang lebih kecil atau gunakan foto asli.'));},120000)};
   worker.postMessage({id,input},[input.buffer]);
  });}
- async function prepare(file,{removeBackground=true,onProgress=()=>{}}={}){
+ function solidAlpha(value){const t=Math.max(0,Math.min(1,(value-.04)/.16));return Math.round(255*t*t*(3-2*t));}
+ async function prepare(file,{removeBackground=true,solidifyAlpha=false,onProgress=()=>{}}={}){
   if(!file||!['image/jpeg','image/png','image/webp','image/gif'].includes(file.type))throw new Error('Pilih JPG, PNG, WEBP atau GIF.');
   if(file.size>10*1024*1024)throw new Error('Maksimal 10 MB per foto.');
   if(!removeBackground)return file;
@@ -22,12 +23,13 @@
    const small=canvas(320,320),sc=small.getContext('2d',{willReadFrequently:true});sc.drawImage(source,0,0,320,320);const rgb=sc.getImageData(0,0,320,320).data,input=new Float32Array(3*320*320),mean=[.485,.456,.406],std=[.229,.224,.225];
    for(let i=0;i<320*320;i++)for(let channel=0;channel<3;channel++)input[channel*320*320+i]=(rgb[i*4+channel]/255-mean[channel])/std[channel];
    const mask=await infer(input);let min=Infinity,max=-Infinity;for(const value of mask){min=Math.min(min,value);max=Math.max(max,value);}if(max-min<.001)throw new Error('Objek produk belum dapat dikenali. Coba foto yang lebih jelas atau gunakan foto asli.');
-   const matte=sc.createImageData(320,320);for(let i=0;i<mask.length;i++){matte.data[i*4]=matte.data[i*4+1]=matte.data[i*4+2]=255;matte.data[i*4+3]=Math.round(255*(mask[i]-min)/(max-min));}sc.putImageData(matte,0,0);
+   const matte=sc.createImageData(320,320);for(let i=0;i<mask.length;i++){matte.data[i*4]=matte.data[i*4+1]=matte.data[i*4+2]=255;matte.data[i*4+3]=solidAlpha((mask[i]-min)/(max-min));}sc.putImageData(matte,0,0);
    const alpha=canvas(width,height),ac=alpha.getContext('2d',{willReadFrequently:true});ac.drawImage(small,0,0,width,height);const values=ac.getImageData(0,0,width,height).data;for(let i=3;i<pixels.data.length;i+=4)pixels.data[i]=values[i];ctx.putImageData(pixels,0,0);
   }
+  if(transparent&&solidifyAlpha){for(let i=3;i<pixels.data.length;i+=4)pixels.data[i]=solidAlpha(pixels.data[i]/255);ctx.putImageData(pixels,0,0);}
   const crop=bounds(pixels.data,width,height);if(!crop||crop.width*crop.height<16)throw new Error('Hasil potongan kosong. Gunakan foto lain atau foto asli.');
   onProgress('Merapikan PNG…');const output=canvas(1200,1200),out=output.getContext('2d'),fit=Math.min(1020/crop.width,1020/crop.height),w=crop.width*fit,h=crop.height*fit;out.drawImage(source,crop.left,crop.top,crop.width,crop.height,(1200-w)/2,(1200-h)/2,w,h);
   const blob=await png(output);return new File([blob],String(file.name||'produk').replace(/\.[^.]*$/,'')+'-transparan.png',{type:'image/png',lastModified:Date.now()});
  }
- return {prepare,bounds};
+ return {prepare,bounds,solidAlpha};
 });

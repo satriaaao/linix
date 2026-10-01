@@ -23,6 +23,7 @@ const root={fetch(){throw new Error('native fetch')},crypto:{randomUUID:()=> 'u1
   await media.upload({type:'image/jpeg',size:100,name:'banner.jpg'},'website-banner');assert.equal(processing.length,1,'only product photos are processed');
   root.document={querySelector:selector=>selector==='[data-photo-remove-background]'?{checked:false}:null};
   await media.upload({type:'image/jpeg',size:100,name:'original.jpg'},'product');assert.equal(processing[1].removeBackground,false);
+  root.document={querySelector:selector=>selector==='[data-photo-output]'?{value:'original'}:null};await media.upload({type:'image/jpeg',size:100,name:'original-selection.jpg'},'product');assert.equal(processing[2].removeBackground,false);
   root.RentcamProductPhoto.prepare=async()=>{throw Error('Model unavailable')};const before=calls.length;
   await assert.rejects(media.upload({type:'image/jpeg',size:100,name:'fail.jpg'},'product'),/Model unavailable/);assert.equal(calls.length,before,'failed processing must not upload an untreated photo');
   console.log('cms-media tests: PASS');

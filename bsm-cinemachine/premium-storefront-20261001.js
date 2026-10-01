@@ -14,11 +14,23 @@
     a.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+icons[path]+'</svg>';nav.append(a);
   });
   document.body.append(nav);
+  const themeButton=document.createElement('button');themeButton.type='button';themeButton.className='rc-theme-toggle';
+  let preference=null;try{const saved=localStorage.getItem('rentcam_store_theme');if(['black','white'].includes(saved))preference=saved;}catch(_){}
+  function applyTheme(){
+    const config=window.RENTCAM_CMS_CONFIG||{},mode=preference||(config.theme?.mode==='black'?'black':'white');
+    if(document.documentElement.dataset.storeTheme!==mode)document.documentElement.dataset.storeTheme=mode;
+    const label=mode==='black'?'Tema putih':'Tema hitam';if(themeButton.textContent!==label)themeButton.textContent=label;
+    themeButton.setAttribute('aria-label','Beralih ke '+label.toLowerCase());
+    const actions=document.querySelector('.header .actions');if(actions&&!actions.contains(themeButton))actions.prepend(themeButton);
+  }
+  themeButton.addEventListener('click',()=>{preference=document.documentElement.dataset.storeTheme==='black'?'white':'black';try{localStorage.setItem('rentcam_store_theme',preference);}catch(_){}applyTheme();});
+  document.addEventListener('rentcam-cms-updated',applyTheme);
+
   let scheduled=false;
   const placeholders=new WeakMap();
   const cartCount=document.createElement('span');cartCount.className='rc-app-count';cartCount.hidden=true;nav.querySelector('[href="/cart"]').append(cartCount);
   function apply(){
-    scheduled=false;
+    scheduled=false;applyTheme();
     const count=document.getElementById('count')?.textContent.trim()||'0';
     if(cartCount.textContent!==count)cartCount.textContent=count;
     cartCount.hidden=!(Number(count)>0);

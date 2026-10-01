@@ -128,3 +128,33 @@ html body #app :is(.home-category-new,.home-category-badge-new,[class*=new-badge
  .rc-app-nav a[aria-current=page]::before{display:none}
  .rc-app-count:not([hidden]){position:absolute;top:5px;left:calc(50% + 5px);margin:0;min-width:16px;height:16px;border-radius:8px;box-shadow:0 0 0 2px #fff;font-size:9px;pointer-events:none}
 }
+.rc-theme-toggle{position:fixed;right:18px;bottom:20px;z-index:90;min-height:42px;padding:0 14px;border:1px solid #ddd;border-radius:12px;background:#fff;color:#111;font:600 12px system-ui;cursor:pointer;box-shadow:0 4px 20px #00000008}
+@media(max-width:760px){.rc-theme-toggle{position:static;min-height:42px;padding:0 10px;font-size:11px;box-shadow:none}html body:has(#app) .header .actions{gap:7px!important;display:flex;align-items:center}}
+/* Dark theme uses neutral layers, clear text, and white image wells for equipment. */
+html[data-store-theme=black] body:has(#app){background:#0e0e0f!important;color:#f5f5f5!important;color-scheme:dark}
+html[data-store-theme=black] body #app{color:#f5f5f5!important}
+html[data-store-theme=black] body:has(#app) .header,html[data-store-theme=black] body:has(#app) #drawer,html[data-store-theme=black] body .rc-app-nav{background:#151516!important;border-color:#303033!important;color:#f5f5f5!important}
+html[data-store-theme=black] body:has(#app) .header .brand img{background:#fff;border-radius:6px;padding:5px}
+html[data-store-theme=black] body:has(#app) .header :is(.icon,.rc-header-icon,.rc-cart-button),html[data-store-theme=black] body .rc-theme-toggle{background:#232325!important;color:#f5f5f5!important;border-color:#373739!important}
+html[data-store-theme=black] body .header .nav a{color:#f5f5f5!important}
+html[data-store-theme=black] body #drawer :is(.drawer-link,.rc-close){background:#222224!important;color:#f5f5f5!important;border-color:#373739!important}
+html[data-store-theme=black] body #app :is(.home-product-sections,.page,.catalog-group){background:#0e0e0f!important}
+html[data-store-theme=black] body #app :is(.home-category-card,.products-grid .pcard,.related-card,.summary,.cartItem,.detail-section,.track-search,.track-empty,.service,.newsletter){background:#1b1b1d!important;color:#f5f5f5!important;border-color:#333336!important}
+html[data-store-theme=black] body #app :is(h1,h2,h3,h4,.home-product-title-link,.home-category-name,.pname,.home-category-price,.detail-price,.price,.price strong,.home-product-view){color:#f5f5f5!important}
+html[data-store-theme=black] body #app .home-category-body .home-category-name,html[data-store-theme=black] body #app .products-grid .pcard :is(.pname,.price){color:#f5f5f5!important}
+html[data-store-theme=black] body #app :is(.home-category-brand,.pbrand,.rc-camera-heading p,.cms-heading-subtitle,.product-meta,.home-product-head p){color:#aaaab0!important}
+html[data-store-theme=black] body #app :is(.home-add-cart,.product-card-cart-btn,.product-search-btn,.wide){background:#f5f5f5!important;color:#111!important;border-color:#f5f5f5!important}
+html[data-store-theme=black] body #app .products-grid .pcard .product-card-cart-btn,html[data-store-theme=black] body #app .home-category-actions .home-add-cart{background:#f5f5f5!important;color:#111!important;border-color:#f5f5f5!important}
+html[data-store-theme=black] body #app :is(input,select,textarea,.rc-camera-search,.rc-camera-tool,.product-search-box,.catalog-cascade-option){background:#222224!important;color:#f5f5f5!important;border-color:#373739!important;box-shadow:none!important}
+html[data-store-theme=black] body #app input::placeholder{color:#a0a0a7!important}
+html[data-store-theme=black] body #app :is(.home-category-image,.pimg,.cms-gallery-main,.cms-gallery-thumb){background:#fff!important;border-color:#fff!important}
+html[data-store-theme=black] body #app :is(.home-product-section+.home-product-section,.spec-row){border-color:#333336!important}
+html[data-store-theme=black] body .rc-app-nav a{color:#88888f}
+html[data-store-theme=black] body .rc-app-nav a[aria-current=page]{background:#2d2d30;color:#fff}
+html[data-store-theme=black] body .rc-app-count:not([hidden]){background:#fff;color:#111;box-shadow:0 0 0 2px #151516}
+html[data-store-theme=black] body #app .rc-home-actions .primary{background:#fff!important;color:#111!important;border-color:#fff!important;box-shadow:none!important}
+html[data-store-theme=black] body .header .nav [data-track-desktop]{background:#f5f5f5!important;color:#111!important}
+html[data-store-theme=black] body:has(#app) :is(a,button,input,select,summary):focus-visible{outline-color:#ddd!important}
+html[data-store-theme=black] body #app .catalog-group-title{color:#f5f5f5!important;background:transparent!important}
+html[data-store-theme=black] body #app :is(.catalog-cascade-trigger,.catalog-cascade-category,.catalog-cascade-panel,.catalog-cascade-brands,.catalog-cascade-option,.pill){background:#222224!important;color:#f5f5f5!important;border-color:#373739!important}
+html[data-store-theme=black] body #app :is(.detail-info p,.detail-section p,.cartItem b,.spec-row b,.spec-row span,.title p,.track-head p,.track-hint){color:#d0d0d5!important}
