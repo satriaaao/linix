@@ -33,8 +33,14 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
+      - name: Audit application dependencies
+        run: |
+          npm ci --ignore-scripts --no-fund
+          npm audit --omit=dev --audit-level=high
+
       - name: Run regression tests
         run: |
+          node --test tests/security-hardening-20261002.test.cjs
           node tests/cart-navigation-20260919.test.js
           node tests/promo-asset-routing-20260919.test.js
           node signage-lib.test.cjs
@@ -57,6 +63,11 @@ jobs:
 
       - name: Build
         run: vercel build --prod --token="${{ secrets.VERCEL_TOKEN }}"
+
+      - name: Exclude private build metadata from static hosting
+        run: |
+          rm -rf .vercel/output/static/security .vercel/output/static/tests
+          rm -f .vercel/output/static/package.json .vercel/output/static/package-lock.json
 
       - name: Deploy production
         run: vercel deploy --prebuilt --prod --token="${{ secrets.VERCEL_TOKEN }}"

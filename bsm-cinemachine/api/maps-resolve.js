@@ -38,6 +38,21 @@ function placeQueryFromUrl(raw=''){
   return '';
 }
 
+function safeMapUrl(raw){
+ const u=new URL(raw);
+ if(u.protocol!=='https:'||!ALLOWED.has(u.hostname.toLowerCase())||u.username||u.password||(u.port&&u.port!=='443'))throw Error('Unsupported Maps URL');
+ return u;
+}
+async function fetchMap(raw,signal){
+ let url=safeMapUrl(raw);
+ for(let i=0;i<6;i++){
+  const r=await fetch(url.href,{redirect:'manual',signal,headers:{'user-agent':'Mozilla/5.0 RentcamMapsResolver/1.0','accept':'text/html'}});
+  if([301,302,303,307,308].includes(r.status)){const target=r.headers.get('location');if(!target)throw Error('Missing redirect');await r.body?.cancel();url=safeMapUrl(new URL(target,url).href);continue;}
+  return {response:r,url:url.href};
+ }
+ throw Error('Too many redirects');
+}
+
 async function geocodePlace(query){
   const q=String(query||'').trim();if(!q)return null;
   const controller=new AbortController();
@@ -80,20 +95,15 @@ module.exports=async function handler(req,res){
   }
 
   try{
-    const controller=new AbortController();
-    const timer=setTimeout(()=>controller.abort(),8000);
-    const r=await fetch(raw,{
-      method:'GET',
-      redirect:'follow',
-      signal:controller.signal,
-      headers:{'user-agent':'Mozilla/5.0 RentcamMapsResolver/1.0','accept':'text/html,*/*'}
-    });
-    clearTimeout(timer);
-    const finalUrl=r.url||raw;
+    const result=await fetchMap(raw,AbortSignal.timeout(8000));
+    const r=result.response,finalUrl=result.url;
     let coords=coordsFromText(finalUrl);
     let html='',geocoded=null,place_query='';
     if(!coords){
-      html=await r.text();
+      if(Number(r.headers.get('content-length')||0)>2*1024*1024)throw Error('Response too large');
+      const reader=r.body.getReader();let bytes=0,chunks=[];
+      while(true){const {done,value}=await reader.read();if(done)break;bytes+=value.byteLength;if(bytes>2*1024*1024){await reader.cancel();throw Error('Response too large')}chunks.push(Buffer.from(value));}
+      html=Buffer.concat(chunks).toString('utf8');
       coords=coordsFromText(html);
       if(!coords){
         const m=html.match(/https:\/\/www\.google\.com\/maps[^"'<> ]+/);
@@ -116,6 +126,8 @@ module.exports=async function handler(req,res){
     }));
   }catch(e){
     res.statusCode=502;res.setHeader('content-type','application/json');
-    return res.end(JSON.stringify({ok:false,message:'Link Google Maps tidak bisa di-resolve',detail:String(e?.message||e)}));
+    return res.end(JSON.stringify({ok:false,message:'Link Google Maps tidak bisa di-resolve'}));
   }
 };
+module.exports._safeMapUrl=safeMapUrl;
+module.exports._fetchMap=fetchMap;

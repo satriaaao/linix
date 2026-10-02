@@ -26,7 +26,15 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "frame-ancestors 'self'; object-src 'none'; base-uri 'self'"
+          "value": "default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com https://www.gstatic.com https://www.google.com https://maps.googleapis.com; style-src 'self' 'unsafe-inline' https:; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://wa.me https://api.whatsapp.com https://web.whatsapp.com; upgrade-insecure-requests"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
         }
       ]
     },
@@ -125,6 +133,34 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/security/:path*",
+      "destination": "/api/site?kind=notFound"
+    },
+    {
+      "source": "/tests/:path*",
+      "destination": "/api/site?kind=notFound"
+    },
+    {
+      "source": "/package.json",
+      "destination": "/api/site?kind=notFound"
+    },
+    {
+      "source": "/package-lock.json",
+      "destination": "/api/site?kind=notFound"
+    },
+    {
+      "source": "/.env",
+      "destination": "/api/site?kind=notFound"
+    },
+    {
+      "source": "/.env.local",
+      "destination": "/api/site?kind=notFound"
+    },
+    {
+      "source": "/.git/:path*",
+      "destination": "/api/site?kind=notFound"
+    },
     {
       "source": "/api/seo",
       "destination": "/api/site?kind=seo"

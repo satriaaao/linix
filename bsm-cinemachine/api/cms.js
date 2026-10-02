@@ -46,10 +46,13 @@ function methodNotAllowed(res){
 }
 function sameOrigin(req){
   const origin=String(req.headers?.origin||'').trim();
+  if(req.headers?.['sec-fetch-site']==='cross-site')return false;
   if(!origin)return true;
   try{return new URL(origin).host===String(req.headers?.host||'')}catch(_){return false}
 }
 async function readJsonBody(req){
+  if(Number(req.headers?.['content-length']||0)>1024*1024)throw Error('Payload terlalu besar');
+  if(req.body&&Buffer.byteLength(JSON.stringify(req.body))>1024*1024)throw Error('Payload terlalu besar');
   if(req.body&&typeof req.body==='object'&&!Buffer.isBuffer(req.body))return req.body;
   if(typeof req.body==='string'){
     try{return JSON.parse(req.body||'{}')}catch(_){return {}}
@@ -114,6 +117,7 @@ async function signageLogin(req,res){
 }
 async function signageLogout(req,res){
   if(req.method!=='POST')return methodNotAllowed(res);
+  if(!sameOrigin(req))return sendJson(res,403,{ok:false,message:'Origin tidak valid'});
   try{await SignageStore.logout(sessionToken(req))}catch(_){}
   clearSession(res);
   return sendJson(res,200,{ok:true});
@@ -195,7 +199,7 @@ async function listDriveFolder(req,res){
     const videos=files.filter(x=>x.isVideo!==false).map((x,i)=>({id:x.id,title:x.name||('Video '+(i+1)),driveUrl:'https://drive.google.com/file/d/'+x.id+'/view',src:'https://drive.usercontent.google.com/download?id='+encodeURIComponent(x.id)+'&export=download&confirm=t',fit:'cover',enabled:true}));
     return sendJson(res,200,{ok:true,folderId,source,totalFiles:files.length,totalVideos:videos.length,videos});
   }catch(e){
-    return sendJson(res,502,{ok:false,code:'folder_read_failed',message:'Folder Google Drive tidak bisa dibaca. Pastikan akses folder: Siapa saja yang memiliki link.',detail:String(e?.message||e),videos:[]});
+    return sendJson(res,502,{ok:false,code:'folder_read_failed',message:'Folder Google Drive tidak bisa dibaca. Pastikan akses folder: Siapa saja yang memiliki link.',videos:[]});
   }
 }
 
@@ -239,11 +243,12 @@ async function streamDriveVideo(req,res){
     if(req.method==='HEAD'||!upstream.body)return res.end();
     Readable.fromWeb(upstream.body).pipe(res);
   }catch(e){
-    return sendJson(res,502,{ok:false,message:'Stream video Google Drive gagal',detail:String(e?.message||e)});
+    return sendJson(res,502,{ok:false,message:'Stream video Google Drive gagal'});
   }
 }
 
 async function handler(req,res){
+  if(Number(req.headers?.['content-length']||0)>1024*1024)return sendJson(res,413,{ok:false,message:'Payload terlalu besar'});
   const asset=Array.isArray(req.query?.asset)?req.query.asset[0]:req.query?.asset;
 
   if(asset==='signage-db-status')return signageDbStatus(req,res);
