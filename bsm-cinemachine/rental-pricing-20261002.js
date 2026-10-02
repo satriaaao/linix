@@ -1,0 +1,7 @@
+(function(root){
+ const day=86400000;
+ function dates(start,end){const a=Date.parse(start+'T00:00:00Z'),b=Date.parse(end+'T00:00:00Z');if(!Number.isFinite(a)||!Number.isFinite(b)||b<a||b-a>day*365)return [];return Array.from({length:Math.round((b-a)/day)+1},(_,i)=>new Date(a+i*day).toISOString().slice(0,10));}
+ function quote(items,selected,tax={}){const ds=[...new Set(selected)].sort(),valid=ds.every(x=>/^\d{4}-\d{2}-\d{2}$/.test(x)&&Number.isFinite(Date.parse(x+'T00:00:00Z'))&&new Date(x+'T00:00:00Z').toISOString().slice(0,10)===x),consecutive=valid&&ds.every((x,i)=>!i||Date.parse(x)-Date.parse(ds[i-1])===day),days=valid?ds.length:0,freeDays=consecutive&&days>=3?1:0;
+ const rows=items.map(i=>{const daily=Number(i.p.price||0)*i.q;return {name:i.p.name,quantity:i.q,price:Number(i.p.price||0),gross:daily*days,discount:daily*freeDays,total:daily*(days-freeDays)}}),gross=rows.reduce((s,r)=>s+r.gross,0),discount=rows.reduce((s,r)=>s+r.discount,0),subtotal=gross-discount,amount=tax.enabled===true?Math.round(subtotal*Math.max(0,Number(tax.rate)||0)/100):0;return {dates:ds,days,consecutive,freeDays,paidDays:days-freeDays,rows,gross,discount,subtotal,tax:amount,total:subtotal+amount};}
+ const api={dates,quote};root.RentcamRentalPricing=api;if(typeof module==='object')module.exports=api;
+})(typeof window==='object'?window:globalThis);

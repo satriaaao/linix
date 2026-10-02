@@ -3,6 +3,7 @@ const base=require('path').resolve(__dirname,'..');
 const luminance=s=>s.match(/\d+/g).slice(0,3).map(Number).map(v=>v/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4).reduce((a,v,i)=>a+v*[.2126,.7152,.0722][i],0);
 const contrast=(a,b)=>{a=luminance(a);b=luminance(b);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05)};
 const fixture={general:{siteName:'Fixture Camera'},customProducts:[{id:'keep-product',name:'Camera Fixture',price:250000,stock:2,images:['https://example.com/one.jpg','https://example.com/two.jpg']}],appearance:{},footer:{description:'Original description',copyright:'Original copyright',columns:[]}};
+let reviewRows=[{id:'test-review',name:'Pelanggan Uji',kind:'review',rating:4,message:'Layanan rental sangat baik.',published:false,created_at:'2026-10-02T00:00:00Z'},{id:'test-feedback',name:'Masukan Uji',kind:'feedback',message:'Tambahkan pilihan peralatan.',published:false,created_at:'2026-10-02T00:00:00Z'}];
 let saved=structuredClone(fixture),writes=0,failSave=false;
 const server=http.createServer((req,res)=>{
  if(req.url.startsWith('/produk/')){res.setHeader('Content-Type','text/html');return res.end(`<html><head><link rel="stylesheet" href="/product-knowledge-20261002.css"></head><body><main id="app"></main><script>window.P=[];window.RENTCAM_CMS_CONFIG={};function render(){document.getElementById('app').innerHTML='<h1>'+String(P[0]?.name||'Product')+'</h1>'}</script><script src="/product-knowledge-20261002.js"></script><script src="/seo-runtime-20260930.js"></script><script src="/product-preview-20261002.js"></script></body></html>`);}
@@ -15,13 +16,14 @@ const server=http.createServer((req,res)=>{
  const browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium',args:['--no-sandbox']});
  const context=await browser.newContext();
  await context.route('https://xleceiffuopioeguniwj.supabase.co/**',async route=>{
-  const req=route.request();if(req.url().includes('/rest/v1/rentcam_order_catalog'))return route.fulfill({contentType:'application/json',body:'[]'});if(!req.url().includes('/rest/v1/rentcam_cms_config'))throw Error('Unexpected network request: '+req.url());
+  const req=route.request();if(req.url().includes('/rest/v1/rentcam_reviews')){if(req.method()==='PATCH'){reviewRows[0].published=JSON.parse(req.postData()).published;return route.fulfill({status:204})}return route.fulfill({contentType:'application/json',body:JSON.stringify(reviewRows)})}if(req.url().includes('/rest/v1/rentcam_order_catalog'))return route.fulfill({contentType:'application/json',body:'[]'});if(!req.url().includes('/rest/v1/rentcam_cms_config'))throw Error('Unexpected network request: '+req.url());
   if(req.method()==='PATCH'){if(failSave)return route.fulfill({status:500,contentType:'application/json',body:JSON.stringify({message:'Fixture save error'})});saved=JSON.parse(req.postData()).config;writes++;return route.fulfill({status:204});}
   return route.fulfill({contentType:'application/json',body:JSON.stringify([{config:saved}])});
  });
  const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(url);await page.locator('[data-field="theme.switchEnabled"]').waitFor();assert.equal(await page.locator('.v5-nav').evaluate(e=>e.firstElementChild.className),'v5-design-menu');assert.equal(await page.locator('.v5-design-menu summary').textContent(),'Pengaturan Web');
  assert.equal(await page.locator('.v5-design-menu').count(),1);assert.equal(await page.locator('.v5-design-menu [data-tpl-nav]').count(),1);
+ await page.locator('[data-nav=reviews]').click();await page.locator('[data-review-publish]').waitFor();assert.equal(await page.locator('[data-review-publish]').count(),1);await page.locator('[data-review-publish]').click();await page.getByRole('button',{name:'Sembunyikan',exact:true}).waitFor();assert.equal(reviewRows[0].published,true);await page.getByRole('button',{name:'Sembunyikan',exact:true}).click();await page.getByRole('button',{name:'Tampilkan di Website',exact:true}).waitFor();assert.equal(reviewRows[0].published,false);await page.locator('[data-nav=design-features]').click();
  for(const width of [1440,390,320]){
   await page.setViewportSize({width,height:900});await page.screenshot({path:require('path').join(require('os').tmpdir(),'cms-workspace-'+width+'.png')});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),width);
