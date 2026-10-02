@@ -62,7 +62,16 @@ function patchPublicHtml(html,seo){
   return out;
 }
 
+function notFound(req,res){
+  res.statusCode=404;
+  res.setHeader('content-type','text/html; charset=utf-8');
+  res.setHeader('cache-control','no-store, max-age=0');
+  res.setHeader('x-robots-tag','noindex, follow');
+  return res.end(req.method==='HEAD'?'':fs.readFileSync(path.join(__dirname,'../404.html'),'utf8'));
+}
+
 async function handler(req,res){
+  if(req.query?.kind==='notFound')return notFound(req,res);
   if(req.query?.kind==='seo')return require('../search-endpoint-20260930')(req,res);
   if(req.method!=='GET'&&req.method!=='HEAD'){
     res.statusCode=405;res.setHeader('content-type','text/plain; charset=utf-8');return res.end('Method not allowed');
@@ -70,7 +79,7 @@ async function handler(req,res){
   const route=routeFromReq(req),base='https://rentalcamera.aiorbitlab.me';
   let seo;
   try{seo=buildSeo(route,await loadContent())}catch(_){seo={...seoForRoute(route,base),robots:'noindex,follow',schema:[],status:503}}
-  if(seo.status===404)return require('./not-found')(req,res);
+  if(seo.status===404)return notFound(req,res);
   try{
     const html=patchPublicHtml(fs.readFileSync(SOURCE,'utf8'),seo);
     res.statusCode=seo.status||200;

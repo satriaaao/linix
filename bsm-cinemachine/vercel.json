@@ -255,7 +255,7 @@
     },
     {
       "source": "/:path*",
-      "destination": "/api/not-found"
+      "destination": "/api/site?kind=notFound"
     }
   ],
   "redirects": [
@@ -276,9 +276,6 @@
     },
     "api/site.js": {
       "includeFiles": "{index.html,404.html}"
-    },
-    "api/not-found.js": {
-      "includeFiles": "404.html"
     }
   }
 }
