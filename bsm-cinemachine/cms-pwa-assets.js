@@ -220,7 +220,8 @@ function ensureDock(){
     document.body.appendChild(dock);
   }
   dock.innerHTML=(needInstall?'<button id="cmsPwaInstall">Pasang App iPhone</button>':'')+
-    '<button id="cmsPwaNotify" class="'+(notifySupport()&&window.Notification.permission==='granted'?'on':'')+'">'+esc(notifyButtonLabel())+'</button>';
+    (notifySupport()?'<button id="cmsPwaNotify" class="'+(window.Notification.permission==='granted'?'on':'')+'">'+esc(notifyButtonLabel())+'</button>':'');
+  dock.hidden=!needInstall&&!notifySupport();
   var install=dock.querySelector('#cmsPwaInstall');
   if(install)install.onclick=function(){
     if(isIOS())modal('Pasang Rentcam CMS','Jadikan CMS seperti aplikasi iPhone tanpa App Store.','1. Buka halaman ini di <b>Safari</b><br>2. Tekan tombol <b>Bagikan</b><br>3. Pilih <b>Tambahkan ke Layar Utama</b><br>4. Tekan <b>Tambah</b>');
