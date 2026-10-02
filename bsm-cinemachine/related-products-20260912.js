@@ -1,7 +1,7 @@
 /* Rentcam — related products on product detail */
 (function(){
   const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  const aud=n=>new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD',minimumFractionDigits:Number(n)%1?2:0,maximumFractionDigits:2}).format(Number(n)||0);
+  const aud=n=>'Rp'+new Intl.NumberFormat('id-ID',{maximumFractionDigits:0}).format(Number(n)||0);
 
   function installStyle(){
     if(document.getElementById('rentcam-related-style')) return;
@@ -70,7 +70,7 @@
     section.id='rentcam-related-products';
     section.className='related-products-section';
     section.dataset.currentId=id;
-    section.innerHTML=`<div class="related-products-head"><div><h2>Produk Sejenis</h2><p>Produk lain dalam kategori ${esc(current.cat)}</p></div></div><div class="related-products-grid">${related.map(p=>`<article class="related-card" data-product-id="${esc(p.id)}" role="link" tabindex="0" aria-label="Buka detail ${esc(p.name)}"><div class="related-card-image"><span class="related-card-badge">ARRI</span><img src="${p.img}" alt="${esc(p.name)}"></div><div class="related-card-body"><div class="related-card-cat">ARRI · ${esc(p.cat)}</div><div class="related-card-name">${esc(p.name)}</div><div class="related-card-price">${aud(p.priceAud??p.price)}</div><button type="button" class="related-card-cart" data-cart-id="${esc(p.id)}">Tambah ke Keranjang</button></div></article>`).join('')}</div>`;
+    section.innerHTML=`<div class="related-products-head"><div><h2>Produk Sejenis</h2><p>Produk lain dalam kategori ${esc(current.cat)}</p></div></div><div class="related-products-grid">${related.map(p=>`<article class="related-card" data-product-id="${esc(p.id)}" role="link" tabindex="0" aria-label="Buka detail ${esc(p.name)}"><div class="related-card-image"><span class="related-card-badge">${esc(p.brand||'Rental')}</span><img src="${p.img}" alt="${esc(p.name)}"></div><div class="related-card-body"><div class="related-card-cat">${esc(p.brand||'')} · ${esc(p.cat)}</div><div class="related-card-name">${esc(p.name)}</div><div class="related-card-price">${aud(p.price)}</div><button type="button" class="related-card-cart" data-cart-id="${esc(p.id)}">Tambah ke Keranjang</button></div></article>`).join('')}</div>`;
     host.appendChild(section);
   }
 
