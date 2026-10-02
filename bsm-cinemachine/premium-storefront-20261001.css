@@ -235,3 +235,16 @@ html[data-store-theme=white] body #app .rc-branch-head p,html[data-store-theme=w
 html[data-store-theme=black] body #app :is(.cms-detail-block,.cms-included-block,.rc-included-dropdown-wrap){background:#191a1e!important;border-color:#363840!important;color:#f4f4f5!important}
 html[data-store-theme=black] body #app :is(.cms-included-item,.cms-included-toggle,.cms-included-count){background:#25262d!important;border-color:#3b3d46!important;color:#ececf2!important}
 html[data-store-theme=black] body #app .cms-included-kicker{color:#bfc2ce!important}
+/* Stable homepage controls live outside product renderers. */
+html body #app .rc-home-shop-tools{max-width:1180px;margin:28px auto 0!important;padding:0 24px!important}
+html body #app .rc-home-shop-tools .rc-camera-toolbar{margin:0!important;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+html body #app .rc-home-shop-tools .rc-camera-search{grid-column:1/-1;max-width:none;width:100%;min-width:0}
+html body #app .rc-home-shop-tools .rc-camera-tool{justify-content:center;font-size:12px!important;min-height:44px;box-shadow:none!important}
+html body #app .rc-home-shop-tools :is(.toolIcon,.toolArrow){display:none!important}
+html body #app .rc-home-shop-tools .rc-camera-search button{display:flex;align-items:center;justify-content:center;width:auto!important;min-width:64px;padding:0 16px;font-size:12px;font-weight:600;background:#111!important;color:#fff!important}
+html[data-store-theme=black] body #app .rc-home-shop-tools .rc-camera-search button{background:#f4f4f5!important;color:#17181d!important}
+html body #app .rc-home-camera-section .home-product-head{display:block!important}
+html body #app .rc-home-camera-section .home-product-view{display:none!important}
+html body #app .rc-home-camera-section .rc-camera-heading{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+html body #app .rc-home-camera-section .home-product-title-link{font-size:30px!important;line-height:1.2!important;letter-spacing:-.04em!important}
+@media(max-width:760px){html body #app .rc-home-shop-tools{margin:24px auto 0!important;padding:0 16px!important}html body #app .rc-home-shop-tools .rc-camera-search{height:48px!important}html body #app .rc-home-camera-section .rc-camera-heading p{font-size:12px!important;margin:0!important}}

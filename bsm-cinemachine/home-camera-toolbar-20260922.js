@@ -1,5 +1,6 @@
 (()=>{
 'use strict';
+if(window.__rentcamHomeToolbar)return;window.__rentcamHomeToolbar=true;
 const STYLE_ID='rc-home-camera-toolbar-style';
 function go(path){
   if(typeof window.go==='function') window.go(path);
@@ -76,28 +77,23 @@ function toolbar(){
     '<button type="button" class="rc-camera-tool new" data-rc-camera-new><span class="newBadge">NEW</span><span class="toolIcon">'+svg('new')+'</span><span>Produk Baru</span><span class="toolArrow">'+svg('arrow')+'</span></button>'+
     '<button type="button" class="rc-camera-tool promo" data-rc-camera-promo><span class="toolIcon">'+svg('promo')+'</span><span>Promo</span><span class="toolArrow">'+svg('arrow')+'</span></button>'+
     '<button type="button" class="rc-camera-tool catalog" data-rc-camera-catalog><span class="toolIcon">'+svg('catalog')+'</span><span>Katalog</span><span class="toolArrow">'+svg('arrow')+'</span></button>'+
-    '<form class="rc-camera-search" data-rc-camera-search><span class="searchIcon">'+svg('search')+'</span><input type="search" placeholder="Cari produk, brand, atau kategori..." autocomplete="off"><button type="submit" aria-label="Cari">'+svg('search')+'</button></form>'+
+    '<form class="rc-camera-search" data-rc-camera-search><span class="searchIcon">'+svg('search')+'</span><input type="search" placeholder="Cari produk, brand, atau kategori..." autocomplete="off"><button type="submit" aria-label="Cari produk">Cari</button></form>'+
   '</div>';
 }
 function mount(){
   if(location.pathname!=='/'){document.body.classList.remove('rc-home-toolbar-ready');return}
   const app=document.getElementById('app');if(!app)return;
-  const sections=[...app.querySelectorAll('.home-featured')];
-  const camera=sections.find(s=>/kamera/i.test(s.querySelector('.home-product-title-link')?.textContent||s.querySelector('h2')?.textContent||''))||sections[0];
+  const sections=[...app.querySelectorAll('.home-product-section,.home-featured,.home-camera')].filter(s=>s.querySelector('.home-product-grid'));
+  const camera=sections.find(s=>s.classList.contains('home-camera')||/kamera|camera/i.test(s.querySelector('.home-product-title-link,h2')?.textContent||''))||sections[0];
   if(!camera)return;
-  styles();hideHeaderSearch();document.body.classList.add('rc-home-toolbar-ready');
-  const head=camera.querySelector('.home-product-head');
-  if(!head)return;
+  styles();hideHeaderSearch();document.body.classList.add('rc-home-toolbar-ready');camera.classList.add('rc-home-camera-section');
+  let host=app.querySelector('#rcHomeCatalogToolbar');
+  if(!host){host=document.createElement('section');host.id='rcHomeCatalogToolbar';host.className='rc-home-shop-tools container';host.setAttribute('aria-label','Jelajahi produk');host.innerHTML=toolbar();const carousel=app.querySelector('.rc-home-carousel');if(carousel)carousel.after(host);else camera.parentElement.insertBefore(host,camera);}
+  const head=camera.querySelector('.home-product-head');if(!head)return;
   const title=head.querySelector('.home-product-title-link,h2');
-  if(title&&!head.querySelector('.rc-camera-heading')){
-    const wrap=document.createElement('div');wrap.className='rc-camera-heading';
-    title.parentNode.insertBefore(wrap,title);wrap.appendChild(title);
-    const p=document.createElement('p');p.textContent='Kamera profesional untuk setiap cerita besar.';wrap.appendChild(p);
-  }
+  if(title&&!head.querySelector('.rc-camera-heading')){const wrap=document.createElement('div');wrap.className='rc-camera-heading';title.parentNode.insertBefore(wrap,title);wrap.appendChild(title);const p=head.querySelector('p')||document.createElement('p');if(!p.textContent.trim())p.textContent=window.RENTCAM_CMS_CONFIG?.homepage?.cameraSubtitle||'Cinema camera profesional.';wrap.appendChild(p);}
   head.querySelector('.home-product-view')?.remove();
-  if(!camera.querySelector('.rc-camera-toolbar')){
-    head.insertAdjacentHTML('beforebegin',toolbar());
-  }
+  camera.querySelectorAll('.rc-camera-toolbar').forEach(el=>el.remove());
 }
 document.addEventListener('click',e=>{
   if(e.target.closest('[data-rc-camera-new]')){go('/produk?new=1');return}

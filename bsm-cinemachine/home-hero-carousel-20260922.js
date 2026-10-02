@@ -1,5 +1,6 @@
 (()=>{
 'use strict';
+if(window.__rentcamHomeHero)return;window.__rentcamHomeHero=true;
 const RC_ID='rc-home-carousel-style';
 const SLIDES=[
   {
@@ -113,7 +114,7 @@ function show(i,user=false){
  root.querySelectorAll('[data-rc-dot]').forEach((el,n)=>el.classList.toggle('is-active',n===index));
  if(user)restart();
 }
-function restart(){clearInterval(timer);if(paused||matchMedia('(prefers-reduced-motion: reduce)').matches)return;timer=setInterval(()=>show(index+1),5200)}
+function restart(){clearInterval(timer);timer=null}
 function bind(){
  if(!root)return;
  root.addEventListener('click',e=>{
@@ -132,7 +133,7 @@ function mount(){
  const app=document.getElementById('app');if(!app)return;
  if(app.querySelector('.rc-home-carousel')){root=app.querySelector('.rc-home-carousel');if(lastPath!==location.pathname)restart();lastPath=location.pathname;return}
  const hero=app.querySelector('.hero');if(!hero)return;
- css();hero.insertAdjacentHTML('beforebegin',markup());hero.remove();root=app.querySelector('.rc-home-carousel');bind();restart();lastPath=location.pathname;
+ index=0;css();hero.insertAdjacentHTML('beforebegin',markup());hero.remove();root=app.querySelector('.rc-home-carousel');bind();restart();lastPath=location.pathname;
 }
 let queued=false;
 function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;mount()})}
