@@ -1,0 +1,14 @@
+const assert=require('node:assert/strict');
+const knowledge=require('../product-knowledge-20261002');
+const {content}=require('../search-content-20260930');
+const {buildSeo}=require('../search-seo-20260930');
+const p={id:'camera',name:'Camera',price:100,aeoQuestion:'Old?',aeoAnswer:'Old answer',aeoFaq:[{question:'Included?',answer:'Body and battery'},{question:'Availability?',answer:'Confirm rental dates'},{question:'Incomplete',answer:''}],geoSummary:'Production camera',geoEntities:'Camera, Cinema'};
+assert.equal(knowledge.faq(p).length,2);
+const seo=buildSeo({kind:'product',slug:p.id},content({customProducts:[p]},[]));
+assert.equal(seo.schema.find(x=>x['@type']==='FAQPage').mainEntity.length,2);
+assert.equal(seo.productInfo.aeoFaq.length,2);assert.match(seo.body,/Availability\?/);assert.doesNotMatch(seo.body,/Old answer/);
+assert.deepEqual(knowledge.faq({...p,aeoFaq:[]}),[]);
+assert.deepEqual(knowledge.faq({aeoQuestion:'Legacy question',aeoAnswer:'Legacy answer'}),[{question:'Legacy question',answer:'Legacy answer'}]);
+assert.doesNotMatch(knowledge.render({geoSummary:'<script>alert(1)</script>',aeoFaq:[{question:'<img onerror=x>',answer:'<b>Answer</b>'}]}),/<script>|<img onerror|<b>Answer/);
+assert.match(knowledge.render(p),/rc-product-faq/);
+console.log('PASS: multiple FAQ schema and website content, empty and legacy data, HTML escaping');
