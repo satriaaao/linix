@@ -51,7 +51,7 @@ function patchPublicHtml(html,seo){
   const ssr=`<main id="app"><section data-seo-ssr="1" style="max-width:1180px;margin:0 auto;padding:28px 20px;font-family:Arial,sans-serif"><h1>${esc(seo.h1)}</h1><p>${esc(seo.summary)}</p>${seo.body||''}</section></main>`;
   out=out.replace(/<main\s+id=["']app["']\s*><\/main>/i,ssr);
   out=out.replace(/https:\/\/cdn\.jsdelivr\.net\/gh\/satriaaao\/linix@[^"\s]+\/bsm-cinemachine\/home-camera-toolbar-20260922\.js/g,'/home-camera-toolbar-20260922.js?v=release20261002r7');
-  out=out.replace(/src="\/product-search-20260912\.js(?:\?[^\"]*)?"/,'src="/product-search-20260912.js?v=progressive15"');
+  out=out.replace(/src="\/product-search-20260912\.js(?:\?[^\"]*)?"/,'src="/product-search-20260912.js?v=cascadedropdown16"');
   out=out.replace(/src="\/general-products-20260913\.js(?:\?[^\"]*)?"/,'src="/general-products-20260913.js?v=progressive15"');
   // Promo tab: hard navigation to promo/new list, including on mobile Safari.
   out=out.replace(/src=["']\/public-template-popup-20260913\.js(?:\?[^"']*)?["']/i,'src="https://cdn.jsdelivr.net/gh/satriaaao/linix@43cd238cb9eaafd8f4d0f9a330ff5e4c7a1b4811/bsm-cinemachine/public-template-popup-20260913.js"');

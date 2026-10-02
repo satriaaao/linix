@@ -25,3 +25,14 @@ html[data-store-theme=black] body #app .rc-product-open-section{background:#191a
 @media(max-width:600px){html body #app .rc-product-open-section{padding:16px!important}html body #app .rc-product-open-section :is(h2,h3){font-size:16px!important}}
 
 html body #app .rc-product-open-section .cms-included-item.is-extra{display:flex!important}html body #app .rc-faq-open>h3{font-size:12px!important;margin:0 0 6px!important}html body #app .rc-faq-open>p{font-size:12px!important;line-height:1.7!important}
+/* Home and catalog prices: teal regular rates, orange discounted rates. */
+html[data-store-theme] body #app#app :is(.pcard,.home-category-card) :is(.price,.rc-price,.home-category-price),
+html[data-store-theme] body #app#app :is(.pcard,.home-category-card) :is(.price,.rc-price,.home-category-price) :is(b,strong,span){color:#087f5b!important}
+html[data-store-theme=black] body #app#app :is(.pcard,.home-category-card) :is(.price,.rc-price,.home-category-price),
+html[data-store-theme=black] body #app#app :is(.pcard,.home-category-card) :is(.price,.rc-price,.home-category-price) :is(b,strong,span){color:#34d399!important}
+html[data-store-theme] body #app#app :is(.pcard,.home-category-card) :is(.price,.rc-price,.home-category-price) :is(.rc-new,.sale-price,.discount-price),
+html[data-store-theme] body #app#app :is(.pcard,.home-category-card) :is(.price,.rc-price,.home-category-price):has(del) :is(b,strong){color:#c2410c!important}
+html[data-store-theme=black] body #app#app :is(.pcard,.home-category-card) :is(.price,.rc-price,.home-category-price) :is(.rc-new,.sale-price,.discount-price),
+html[data-store-theme=black] body #app#app :is(.pcard,.home-category-card) :is(.price,.rc-price,.home-category-price):has(del) :is(b,strong){color:#fb923c!important}
+html[data-store-theme] body #app#app :is(.pcard,.home-category-card) :is(.price,.rc-price,.home-category-price) :is(del,s,small){color:#777!important}
+html[data-store-theme=black] body #app#app :is(.pcard,.home-category-card) :is(.price,.rc-price,.home-category-price) :is(del,s,small){color:#b6b8c3!important}

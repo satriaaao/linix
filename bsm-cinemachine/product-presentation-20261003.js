@@ -1,7 +1,7 @@
 /* Compact product information and CMS-controlled price/detail colors. */
 (()=>{
  if(location.pathname.startsWith('/cms')||window.__rentcamProductPresentation)return;window.__rentcamProductPresentation=true;
- const css=document.createElement('link');css.rel='stylesheet';css.href='/product-presentation-20261003.css';document.head.append(css);
+ const css=document.createElement('link');css.rel='stylesheet';css.href='/product-presentation-20261003.css?v=pricecolors2';document.head.append(css);
  const icons={description:'<path d="M7 3h10l3 3v15H4V3h3ZM8 9h8M8 13h8M8 17h5"/>',spec:'<path d="M4 7h16M4 17h16M8 4v6M16 14v6"/>',included:'<path d="m12 3 9 5v8l-9 5-9-5V8l9-5ZM3 8l9 5 9-5M12 13v8"/>',faq:'<path d="M5 3h14a2 2 0 0 1 2 2v12H9l-6 4V5a2 2 0 0 1 2-2ZM10 8a2 2 0 1 1 3 2c-1 .5-1 1-1 2M12 14h.01"/>'};
  const svg=k=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+icons[k]+'</svg>';
  let pending=false;

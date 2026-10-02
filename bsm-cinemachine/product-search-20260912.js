@@ -256,19 +256,11 @@
     const matchesLabels=(p,labels)=>!labels.length||labels.some(l=>productLabels(p).some(x=>x===l||x.includes(l)||l.includes(x)));
     const labelTitle=labels=>labels.length?labels.map(x=>x.toUpperCase()).join(' + '):'';
     window.rentcamMatchesProduct=matchesProduct;
-    function chosenCategories(u){return [...new Set(String(u.get('cats')||u.get('cat')||'').split(',').map(raw=>catalogList().find(g=>g.key===raw.toLowerCase()||g.title===raw||g.aliases.includes(raw.toLowerCase()))?.key).filter(Boolean))];}
-    window.rentcamCatalogSelectedCategories=()=>chosenCategories(new URLSearchParams(location.search));
-    window.rentcamCatalogCategoryOptions=()=>catalogList().filter(g=>P.some(p=>p.active!==false&&p.deleted!==true&&p._cmsActive!==false&&rentcamCatalogGroup(p)===g.key)).map(g=>({key:g.key,title:g.title}));
-    function categoryChecklist(groups,active){const u=new URLSearchParams(location.search),chosen=chosenCategories(u),brands=[...new Set(active.map(p=>p.brand).filter(Boolean))].sort();return `<div class="rc-checklist-heading">Pilih kategori <small>Bisa pilih lebih dari satu</small></div>${groups.map(g=>`<label class="rc-category-check"><input type="checkbox" data-catalog-check="${esc(g.key)}" ${chosen.includes(g.key)?'checked':''}><span class="rc-category-symbol" aria-hidden="true">${categoryIcon(g.key)}</span><span>${esc(g.title)}</span></label>`).join('')}<label class="rc-checklist-brand">Brand<select data-catalog-brand><option value="">Semua brand</option>${brands.map(b=>`<option value="${esc(b)}" ${u.get('brand')===b?'selected':''}>${esc(b)}</option>`).join('')}</select></label><button type="button" class="rc-clear-categories" data-clear-categories>Reset kategori & brand</button>`;}
-    function categoryIcon(key){const path=key==='catalog'?'<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>':key==='cinema'||key==='camera'?'<rect x="3" y="7" width="13" height="12" rx="3"/><path d="m16 11 5-3v10l-5-3M7 7V4h6"/>':key==='lens'?'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="m12 3 4 5M21 12l-5 4M12 21l-4-5M3 12l5-4"/>':key==='lighting'?'<path d="M9 18h6M10 22h4M8 14a6 6 0 1 1 8 0l-1 3H9l-1-3Z"/>':'<path d="m12 3 9 5v8l-9 5-9-5V8l9-5ZM3 8l9 5 9-5M12 13v8"/>';return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+path+'</svg>';}
-    function updateCategoryChoice(reset=false){const u=new URLSearchParams(location.search),chosen=reset?[]:[...document.querySelectorAll('[data-catalog-check]:checked')].map(x=>x.dataset.catalogCheck),brand=reset?'':document.querySelector('[data-catalog-brand]')?.value||'';u.delete('cat');if(chosen.length)u.set('cats',chosen.join(','));else u.delete('cats');if(brand)u.set('brand',brand);else u.delete('brand');history.replaceState({},'','/produk'+(u.size?'?'+u:''));if(reset){document.querySelectorAll('[data-catalog-check]').forEach(x=>x.checked=false);const select=document.querySelector('[data-catalog-brand]');if(select)select.value='';}const label=document.querySelector('#catalogCategory>.rc-category-trigger-label');if(label)label.textContent=chosen.length===1?catalogList().find(g=>g.key===chosen[0])?.title:chosen.length?chosen.length+' kategori dipilih':'Semua produk';window.rentcamSearch();}
-    document.addEventListener('change',e=>{if(e.target.matches('[data-catalog-check],[data-catalog-brand]'))updateCategoryChoice();});
-    document.addEventListener('click',e=>{if(e.target.closest('[data-clear-categories]'))updateCategoryChoice(true);});
     function resultsMarkup(items,selected){
-      const ordered=catalogList().flatMap(g=>items.filter(p=>rentcamCatalogGroup(p)===g.key).sort((x,y)=>String(x.name).localeCompare(String(y.name))));
+      const ordered=catalogList().filter(g=>!selected||g.key===selected).flatMap(g=>items.filter(p=>rentcamCatalogGroup(p)===g.key).sort((x,y)=>String(x.name).localeCompare(String(y.name))));
       items=window.RentcamCatalogPaging?window.RentcamCatalogPaging.select(ordered):ordered;
       if(!items.length)return '<div class="product-empty rc-price-empty">Produk tidak ditemukan. Coba kata kunci atau brand lain.</div>';
-      return catalogList().map(g=>{
+      return catalogList().filter(g=>!selected||g.key===selected).map(g=>{
         const list=items.filter(p=>rentcamCatalogGroup(p)===g.key).sort((x,y)=>String(x.name).localeCompare(String(y.name)));
         return list.length?`<section class="catalog-group"><header><button class="catalog-group-title" type="button" onclick="go('/produk?cat=${esc(g.key)}')">${esc(g.title)}</button><span>${list.length} produk</span></header><div class="products-grid">${list.map(pc).join('')}</div></section>`:'';
       }).join('')+(window.RentcamCatalogPaging?.footer()||'');
@@ -284,10 +276,9 @@
       const raw=u.get('cat')||'';
       const allGroups=catalogList();
       const selected=allGroups.find(g=>g.key===raw.toLowerCase()||g.title===raw||g.aliases.includes(raw.toLowerCase()))?.key||'';
-      const chosen=chosenCategories(u);
       const brand=u.get('brand')||'';
       const promoOnly=u.get('promo')==='1',newOnly=u.get('new')==='1',labels=queryLabels(u.get('label'));
-      const items=P.filter(p=>p.active!==false&&p.deleted!==true&&p._cmsActive!==false&&(!chosen.length||chosen.includes(rentcamCatalogGroup(p)))&&(!brand||String(p.brand).toLowerCase()===brand.toLowerCase())&&(!promoOnly||isPromoProduct(p))&&(!newOnly||isNewProduct(p))&&matchesLabels(p,labels)&&matchesProduct(p,value));
+      const items=P.filter(p=>p.active!==false&&p.deleted!==true&&p._cmsActive!==false&&(!selected||rentcamCatalogGroup(p)===selected)&&(!brand||String(p.brand).toLowerCase()===brand.toLowerCase())&&(!promoOnly||isPromoProduct(p))&&(!newOnly||isNewProduct(p))&&matchesLabels(p,labels)&&matchesProduct(p,value));
       const results=document.getElementById('catalogResults');
       if(results)results.innerHTML=resultsMarkup(items,selected);
       const count=document.getElementById('catalogResultCount');
@@ -333,7 +324,7 @@
       if(!Array.isArray(selection))return;
       const [category,brand]=selection,params=new URLSearchParams(location.search),input=document.getElementById('productSearchInput');
       if(input){if(input.value.trim())params.set('q',input.value.trim());else params.delete('q')}
-      params.delete('cats');if(category)params.set('cat',category);else params.delete('cat');
+      if(category)params.set('cat',category);else params.delete('cat');
       if(brand)params.set('brand',brand);else params.delete('brand');
       params.delete('promo');params.delete('new');params.delete('label');
       go('/produk'+(params.size?'?'+params.toString():''));
@@ -342,7 +333,7 @@
       clearTimeout(searchDelay);
       const params=new URLSearchParams(location.search),input=document.getElementById('productSearchInput');
       if(input){if(input.value.trim())params.set('q',input.value.trim());else params.delete('q')}
-      params.delete('cats');if(category)params.set('cat',category);else params.delete('cat');
+      if(category)params.set('cat',category);else params.delete('cat');
       params.delete('brand');
       params.delete('promo');params.delete('new');params.delete('label');
       go('/produk'+(params.size?'?'+params.toString():''));
@@ -362,8 +353,7 @@
       const selected=allGroups.find(g=>g.key===raw.toLowerCase()||g.title===raw||g.aliases.includes(raw.toLowerCase()))?.key||'';
       const promoOnly=u.get('promo')==='1',newOnly=u.get('new')==='1',labels=queryLabels(u.get('label'));
       const active=P.filter(p=>p.active!==false&&p.deleted!==true&&p._cmsActive!==false);
-      const chosen=chosenCategories(u);
-      const scoped=active.filter(p=>!chosen.length||chosen.includes(rentcamCatalogGroup(p)));
+      const scoped=active.filter(p=>!selected||rentcamCatalogGroup(p)===selected);
       const brands=[...new Set(scoped.map(p=>p.brand).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
       const brand=u.get('brand')||'';
       const a=scoped.filter(p=>(!brand||String(p.brand).toLowerCase()===brand.toLowerCase())&&(!promoOnly||isPromoProduct(p))&&(!newOnly||isNewProduct(p))&&matchesLabels(p,labels)&&matchesProduct(p,q));
@@ -372,7 +362,7 @@
       const baseTitle=selected?(allGroups.find(g=>g.key===selected)?.title||selected):'';
       const pageTitle=labels.length?'Produk '+labelTitle(labels):promoOnly?'Produk Promo':newOnly?'Produk Baru':baseTitle;
       const countText=labels.length?'Produk sesuai label':promoOnly?'Produk promo dan diskon':newOnly?'Produk baru':'Pilih kategori sesuai kebutuhan Anda';
-      return `<section class="page"><div class="container"><div class="product-meta"><h1>${pageTitle?esc(pageTitle):'Semua Produk'}</h1><p id="catalogResultCount">${a.length} produk · ${countText}</p></div>${promoMarkup()}<div class="product-search-wrap"><div class="product-search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg><input id="productSearchInput" value="${esc(q)}" placeholder="Cari produk..." oninput="rentcamLiveSearch(event)" oncompositionend="rentcamLiveSearch(event)" onkeydown="if(event.key==='Enter'){event.preventDefault();rentcamSearch()}"></div><button class="product-search-btn" onclick="rentcamSearch()">Cari</button></div><div class="catalog-filter-row"><div class="catalog-filter-field catalog-cascade" id="catalogCascade"><span>Kategori &amp; brand</span><button type="button" class="catalog-cascade-trigger" id="catalogCategory" aria-expanded="false" aria-controls="catalogCascadePanel" onclick="rentcamToggleCategories()">${categoryIcon('catalog')}<span class="rc-category-trigger-label">${chosen.length?chosen.length>1?chosen.length+' kategori dipilih':esc(allGroups.find(g=>g.key===chosen[0])?.title||'Kategori'):selected?esc(baseTitle)+(brand?' · '+esc(brand):''):labels.length?'Label '+esc(labelTitle(labels)):promoOnly?'Produk Promo':newOnly?'Produk Baru':'Semua produk'}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></button><div class="catalog-cascade-panel" id="catalogCascadePanel" hidden>${categoryChecklist(groups,active)}</div></div></div><div id="catalogResults" aria-live="polite">${resultsMarkup(a,selected)}</div></div></section>`;
+      return `<section class="page"><div class="container"><div class="product-meta"><h1>${pageTitle?esc(pageTitle):'Semua Produk'}</h1><p id="catalogResultCount">${a.length} produk · ${countText}</p></div>${promoMarkup()}<div class="product-search-wrap"><div class="product-search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg><input id="productSearchInput" value="${esc(q)}" placeholder="Cari produk..." oninput="rentcamLiveSearch(event)" oncompositionend="rentcamLiveSearch(event)" onkeydown="if(event.key==='Enter'){event.preventDefault();rentcamSearch()}"></div><button class="product-search-btn" onclick="rentcamSearch()">Cari</button></div><div class="catalog-filter-row"><div class="catalog-filter-field catalog-cascade" id="catalogCascade"><span>Kategori &amp; brand</span><button type="button" class="catalog-cascade-trigger" id="catalogCategory" aria-expanded="false" aria-controls="catalogCascadePanel" onclick="rentcamToggleCategories()"><span>${selected?esc(baseTitle)+(brand?' · '+esc(brand):''):labels.length?'Label '+esc(labelTitle(labels)):promoOnly?'Produk Promo':newOnly?'Produk Baru':'Semua produk'}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></button><div class="catalog-cascade-panel" id="catalogCascadePanel" hidden><button type="button" class="catalog-cascade-option" onclick="rentcamSelectFilter('[]')">Semua produk</button>${groups.map(g=>{const choices=[...new Set(active.filter(p=>rentcamCatalogGroup(p)===g.key).map(p=>p.brand).filter(Boolean))].sort((a,b)=>a.localeCompare(b));return `<div class="catalog-cascade-group"><button type="button" class="catalog-cascade-option catalog-cascade-parent" aria-expanded="false" aria-controls="catalogBrands-${g.key}" onclick="rentcamExpandBrands(this)"><span>${esc(g.title)}</span><span aria-hidden="true">⌄</span></button><div class="catalog-cascade-brands" id="catalogBrands-${g.key}" hidden><button type="button" class="catalog-cascade-option" data-category="${esc(g.key)}" onclick="rentcamChooseBrand(this)">Semua brand</button>${choices.map(b=>`<button type="button" class="catalog-cascade-option" data-category="${esc(g.key)}" data-brand="${esc(b)}" onclick="rentcamChooseBrand(this)">${esc(b)}</button>`).join('')}</div></div>`}).join('')}</div></div></div><div id="catalogResults" aria-live="polite">${resultsMarkup(a,selected)}</div></div></section>`;
     };
 
     const app=document.getElementById('app');
