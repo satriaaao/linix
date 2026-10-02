@@ -9,10 +9,11 @@
     '/cart':'<path d="M3 3h2l3 12h10l3-9H6M9 20h.01M18 20h.01"/>',
     '/cek-order':'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3h6v3H9zM9 11h6M9 15h6"/>'
   };
-  [['/','Beranda'],['/produk','Katalog'],['/cart','Keranjang'],['/cek-order','Pesanan']].forEach(([path,label])=>{
+  [['/','Home'],['/produk','Katalog'],['/cek-order','Pesanan']].forEach(([path,label])=>{
     const a=document.createElement('a');a.href=path;a.dataset.appPath=path;a.setAttribute('aria-label',label);a.title=label;
-    a.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+icons[path]+'</svg>';nav.append(a);
+    a.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+icons[path]+'</svg><span class="rc-bottom-label">'+label+'</span>';nav.append(a);
   });
+  const menuButton=document.createElement('button');menuButton.type='button';menuButton.dataset.menu='';menuButton.className='rc-bottom-menu';menuButton.setAttribute('aria-label','Menu');menuButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="rc-bottom-label">Menu</span>';nav.append(menuButton);
   document.body.append(nav);
   const themeButton=document.createElement('button');themeButton.type='button';themeButton.className='rc-theme-toggle';
   let preference=null;try{const saved=localStorage.getItem('rentcam_store_theme');if(['black','white'].includes(saved))preference=saved;}catch(_){}
@@ -33,7 +34,7 @@
 
   let scheduled=false;
   const placeholders=new WeakMap();
-  const cartCount=document.createElement('span');cartCount.className='rc-app-count';cartCount.hidden=true;nav.querySelector('[href="/cart"]').append(cartCount);
+  const cartCount=document.createElement('span');cartCount.className='rc-app-count';cartCount.hidden=true;cartCount.hidden=true;
   function apply(){
     scheduled=false;applyTheme();
     const count=document.getElementById('count')?.textContent.trim()||'0';
