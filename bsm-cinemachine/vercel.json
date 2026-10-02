@@ -275,7 +275,7 @@
       "includeFiles": "{cms-admin-all-tables-adapter-20260918.js,website-design-lib-20260930.js}"
     },
     "api/site.js": {
-      "includeFiles": "index.html"
+      "includeFiles": "{index.html,404.html}"
     },
     "api/not-found.js": {
       "includeFiles": "404.html"

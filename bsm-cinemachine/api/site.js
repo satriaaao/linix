@@ -70,6 +70,7 @@ async function handler(req,res){
   const route=routeFromReq(req),base='https://rentalcamera.aiorbitlab.me';
   let seo;
   try{seo=buildSeo(route,await loadContent())}catch(_){seo={...seoForRoute(route,base),robots:'noindex,follow',schema:[],status:503}}
+  if(seo.status===404)return require('./not-found')(req,res);
   try{
     const html=patchPublicHtml(fs.readFileSync(SOURCE,'utf8'),seo);
     res.statusCode=seo.status||200;
