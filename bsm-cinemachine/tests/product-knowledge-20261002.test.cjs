@@ -7,7 +7,7 @@ assert.equal(knowledge.faq(p).length,2);
 const seo=buildSeo({kind:'product',slug:p.id},content({customProducts:[p]},[]));
 assert.equal(seo.schema.find(x=>x['@type']==='FAQPage').mainEntity.length,2);
 assert.equal(seo.productInfo.aeoFaq.length,2);assert.match(seo.body,/Availability\?/);assert.doesNotMatch(seo.body,/Old answer/);
-assert.deepEqual(knowledge.faq({...p,aeoFaq:[]}),[]);
+assert.equal(knowledge.faq({...p,aeoFaq:[]}).length,2);assert.equal(knowledge.faq({name:'New product'}).length,2);
 assert.deepEqual(knowledge.faq({aeoQuestion:'Legacy question',aeoAnswer:'Legacy answer'}),[{question:'Legacy question',answer:'Legacy answer'}]);
 assert.doesNotMatch(knowledge.render({geoSummary:'<script>alert(1)</script>',aeoFaq:[{question:'<img onerror=x>',answer:'<b>Answer</b>'}]}),/<script>|<img onerror|<b>Answer/);
 assert.match(knowledge.render(p),/rc-product-faq/);
