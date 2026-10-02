@@ -44,3 +44,7 @@ BEGIN
  EXECUTE definition;
 END $$;
 ALTER TABLE public.rentcam_reviews ADD CONSTRAINT reviews_input_limits CHECK(length(name) BETWEEN 2 AND 100 AND length(message) BETWEEN 5 AND 2000 AND kind IN ('review','feedback') AND (kind<>'review' OR rating BETWEEN 1 AND 5)) NOT VALID;
+
+-- PostgREST must allow the login check to write failed-attempt counters.
+ALTER FUNCTION public.rentcam_admin_check() VOLATILE;
+NOTIFY pgrst, 'reload schema';
