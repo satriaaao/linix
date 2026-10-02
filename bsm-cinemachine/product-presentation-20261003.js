@@ -11,10 +11,12 @@
  document.querySelectorAll('#app .detail-section,#app .cms-detail-block,#app .rc-product-knowledge').forEach(section=>{
    if(section.dataset.compactProduct)return;const heading=section.querySelector('h2,h3'),label=heading?.textContent.trim();let kind=/Deskripsi/i.test(label||'')?'description':/Specifications|Spesifikasi/i.test(label||'')?'spec':/Included|Isi Paket/i.test(label||'')?'included':/Pertanyaan yang Sering/i.test(label||'')?'faq':null;
    const existing=section.querySelector('.rc-included-details');if(existing)kind='included';if(!kind)return;
-   section.dataset.compactProduct=kind;section.classList.add('rc-compact-product');let details=existing;
-   if(!details){details=document.createElement('details');const summary=document.createElement('summary');summary.innerHTML=svg(kind)+'<strong></strong><span class="rc-section-chevron" aria-hidden="true">⌄</span>';summary.querySelector('strong').textContent=label;details.append(summary);heading.remove();const content=document.createElement('div');content.className='rc-section-content';while(section.firstChild)content.append(section.firstChild);details.append(content);section.append(details);}
-   else{const summary=details.querySelector('summary');if(summary&&!summary.querySelector('[data-section-icon]')){const icon=document.createElement('span');icon.dataset.sectionIcon=kind;icon.innerHTML=svg(kind);summary.prepend(icon);}}
-   details.classList.add('rc-product-accordion');
+   section.dataset.compactProduct=kind;section.classList.add('rc-compact-product','rc-product-open-section');
+   if(kind==='included'){section.dataset.rcIncludedDropdown='1';section.querySelector('.cms-included-toggle')?.remove();}
+   if(existing){const summary=existing.querySelector('summary'),content=existing.querySelector('.rc-inc-body');const title=document.createElement('h2');title.innerHTML=svg(kind)+'<span>Included in Package</span>';const count=summary?.querySelector('small');if(count)title.append(count.cloneNode(true));section.replaceChildren(title);if(content)section.append(content);}
+   else{const icon=document.createElement('span');icon.className='rc-detail-heading-icon';icon.innerHTML=svg(kind);heading.prepend(icon);}
+   if(kind==='faq')section.querySelectorAll('.rc-product-faq details').forEach(d=>{const row=document.createElement('div');row.className='rc-faq-open';const question=document.createElement('h3');question.textContent=d.querySelector('summary')?.textContent||'';row.append(question);for(const answer of d.querySelectorAll('p'))row.append(answer);d.replaceWith(row);});
+
  });
  }
  function schedule(){if(!pending){pending=true;requestAnimationFrame(apply);}}
