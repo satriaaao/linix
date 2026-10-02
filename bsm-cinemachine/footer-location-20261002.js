@@ -1,0 +1,21 @@
+/* Contact and location follow the website CMS footer settings. */
+(()=>{
+ if(location.pathname.startsWith('/cms')||window.__rentcamFooterLocation)return;window.__rentcamFooterLocation=true;
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const safeUrl=s=>{try{const u=new URL(s);return /^https?:$/.test(u.protocol)?u.href:''}catch(_){return ''}};
+ const style=document.createElement('style');style.textContent=`.footer::after{content:none!important;display:none!important}.rc-footer-location{grid-column:1/-1;display:grid;grid-template-columns:minmax(220px,1fr) minmax(0,1.6fr);gap:28px;padding:24px 0 8px;border-top:1px solid #303030}.rc-footer-location h3{font-size:18px;margin:0 0 16px;color:#fff}.rc-footer-location p{font-size:14px;line-height:1.7;color:#aaa;margin:8px 0 16px;white-space:pre-line}.rc-footer-location a{display:inline-flex!important;align-items:center;gap:10px;color:#fff!important;font-size:14px;line-height:1.5;text-decoration:none}.rc-footer-location .rc-footer-phone{font-size:20px;font-weight:650;margin:6px 0 14px}.rc-footer-location svg{width:20px;height:20px;flex-shrink:0}.rc-footer-map{border:1px solid #333;border-radius:16px;overflow:hidden;background:#181818;min-width:0}.rc-footer-map iframe{display:block;width:100%;height:260px;border:0}.rc-footer-map a{padding:12px 16px}.rc-footer-location.rc-contact-only{grid-template-columns:1fr}@media(max-width:640px){.rc-footer-location{grid-template-columns:1fr;gap:20px;padding-top:22px}.rc-footer-map iframe{height:230px}.rc-footer-location .rc-footer-phone{font-size:18px}}`;document.head.append(style);
+ const pin='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>';
+ const phoneIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3h4l2 5-3 2a17 17 0 0 0 6 6l2-3 5 2v4c0 2-2 3-4 2C9 19 5 15 3 7c-1-2 0-4 2-4Z"/></svg>';
+ function apply(){
+  const host=document.querySelector('.footer .footgrid'),cfg=window.RENTCAM_CMS_CONFIG;if(!host||!cfg)return;
+  const f=cfg.footer||{},g=cfg.general||{},b=cfg.business||{};
+  const address=f.address||[b.streetAddress,b.city,b.region,b.postalCode].filter(Boolean).join(', '),query=f.mapQuery||address;
+  const raw=String(f.contactPhone||g.marketingWhatsapp||g.whatsapp||'').trim(),digits=raw.replace(/\D/g,''),tel=digits.startsWith('0')?'+62'+digits.slice(1):digits.startsWith('62')?'+'+digits:digits;
+  const maps=safeUrl(f.mapsUrl)||(query?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(query):'');
+  const sig=JSON.stringify([address,query,raw,maps]);let section=host.querySelector('.rc-footer-location');if(section?.dataset.signature===sig)return;
+  if(!section){section=document.createElement('section');section.className='rc-footer-location';host.insertBefore(section,host.querySelector('.cms-footer-copy'))}section.dataset.signature=sig;section.classList.toggle('rc-contact-only',!query);
+  section.innerHTML=`<div><h3>Lokasi & Kontak</h3>${address?`<p>${esc(address)}</p>`:''}${digits?`<p style="margin-bottom:0">HP / WhatsApp Marketing</p><a class="rc-footer-phone" href="tel:${esc(tel)}">${phoneIcon}${esc(raw)}</a>`:''}${maps?`<div><a href="${esc(maps)}" target="_blank" rel="noopener noreferrer">${pin}Buka petunjuk arah ↗</a></div>`:''}</div>${query?`<div class="rc-footer-map"><iframe title="Peta lokasi rental ${esc(g.siteName||'Rentcam')}" src="https://maps.google.com/maps?q=${encodeURIComponent(query)}&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe><a href="${esc(maps)}" target="_blank" rel="noopener noreferrer">${pin}Lihat lokasi di Google Maps ↗</a></div>`:''}`;
+ }
+ let pending=false;function schedule(){if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;apply()})}
+ document.addEventListener('rentcam-cms-updated',schedule);document.addEventListener('rentcam-route-change',schedule);new MutationObserver(schedule).observe(document.getElementById('app')||document.body,{childList:true,subtree:true});schedule();
+})();
