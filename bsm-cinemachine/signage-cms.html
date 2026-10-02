@@ -16,16 +16,16 @@ input,select,button{font:inherit}input,select{width:100%;background:#0b0f17;bord
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.buttons{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
 button{border:0;border-radius:11px;padding:10px 14px;font-weight:700;cursor:pointer;background:#e2e8f0;color:#0f172a}.primary{background:#38bdf8}.danger{background:#3b1720;color:#fecdd3}.ghost{background:#1c2535;color:#dbeafe}
 .video{display:grid;grid-template-columns:38px 1fr auto;gap:12px;align-items:center;padding:12px 0;border-top:1px solid #263147}.video:first-child{border-top:0}.num{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:#1f2937}.meta{min-width:0}.meta b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.meta small{color:#7f8da4}.actions{display:flex;gap:5px}.actions button{padding:7px 9px}
-.previewWrap{display:grid;place-items:center;background:#05070b;border-radius:15px;padding:16px;min-height:580px}.phone{width:min(100%,320px);aspect-ratio:9/16;border:8px solid #1f2937;border-radius:26px;overflow:hidden;background:#000;box-shadow:0 30px 60px #0009}.phone iframe{width:100%;height:100%;border:0}
+.previewCard{align-self:start;position:sticky;top:82px}.previewHeading{display:flex;align-items:center;justify-content:space-between;gap:12px}.previewHeading h2{margin:0}.previewStatus{font-size:12px;color:#94a3b8}.previewWrap{margin-top:16px;display:grid;place-items:center;background:#05070b;border-radius:15px;padding:16px;min-height:580px}.phone{width:min(100%,320px);aspect-ratio:9/16;border:8px solid #1f2937;border-radius:26px;overflow:hidden;background:#000;box-shadow:0 30px 60px #0009}.phone iframe{width:100%;height:100%;border:0}
 .notice{font-size:12px;line-height:1.5;color:#94a3b8;background:#0b1018;border:1px dashed #2b3a51;padding:11px;border-radius:10px;margin-top:12px}.empty{text-align:center;color:#6b7280;padding:30px 10px}
 .dbrow{display:flex;align-items:center;justify-content:space-between;gap:12px}.dot{width:9px;height:9px;border-radius:50%;display:inline-block;background:#64748b;margin-right:7px}.dot.ok{background:#22c55e}.dot.bad{background:#ef4444}
 #gate{position:fixed;inset:0;z-index:100;background:#05070bf2;display:grid;place-items:center;padding:20px}
 .gatecard{width:min(100%,420px);background:#101520;border:1px solid #283349;border-radius:22px;padding:22px;box-shadow:0 30px 80px #000a}
 .gatecard h2{font-size:22px}.muted{color:#94a3b8;font-size:13px;line-height:1.5}.hidden{display:none!important}
 #changePanel{margin-top:14px;padding-top:14px;border-top:1px solid #263147}
-@media(max-width:900px){main{grid-template-columns:1fr}.previewWrap{min-height:auto}.phone{max-width:280px}.row{grid-template-columns:1fr}}
+@media(max-width:900px){main{grid-template-columns:1fr}.previewWrap{min-height:auto}.phone{max-width:280px}.row{grid-template-columns:1fr}.previewCard{position:static}}
 </style>
-<script src="/signage-lib.js?v=20260926-2115"></script>
+<script src="/signage-lib.js?v=20261002-1"></script>
 </head>
 <body>
 <div id="gate">
@@ -81,7 +81,7 @@ button{border:0;border-radius:11px;padding:10px 14px;font-weight:700;cursor:poin
 <div class="buttons"><button class="primary" id="save">Simpan ke Database</button><button class="ghost" id="copy">Copy Link Monitor</button><button class="ghost" id="open">Buka Fullscreen</button><button class="danger" id="clear">Kosongkan</button></div>
 </div>
 </section>
-<section class="card"><h2>Preview Monitor</h2><div class="previewWrap"><div class="phone" id="frameBox"><iframe id="preview" title="Preview signage"></iframe></div></div></section>
+<section class="card previewCard"><div class="previewHeading"><h2>Preview Monitor</h2><span class="previewStatus" id="previewStatus" role="status">Menghubungkan...</span></div><div class="previewWrap"><div class="phone" id="frameBox"><iframe id="preview" title="Preview signage" allow="autoplay; fullscreen"></iframe></div></div></section>
 </main>
 
 <script>
@@ -91,6 +91,9 @@ let config=S.load();
 let dbStatus=null;
 let autoSaveTimer=null;
 let savePromise=null;
+let saveRequested=false;
+let editRevision=0;
+let previewStarted=false;
 
 function previewUrl(){
   return location.origin+'/display#'+S.encodeConfig({...config,name:$('name').value||config.name,orientation:$('orientation').value});
@@ -101,7 +104,7 @@ function formatDate(v){
   try{return 'Terakhir disimpan: '+new Date(v).toLocaleString('id-ID')}catch(_){return ''}
 }
 async function api(asset,options={}){
-  const r=await fetch('/api/cms?asset='+encodeURIComponent(asset),{cache:'no-store',credentials:'same-origin',...options,headers:{'Content-Type':'application/json',...(options.headers||{})}});
+  const r=await fetch('/api/cms?asset='+encodeURIComponent(asset),{cache:'no-store',credentials:'same-origin',signal:AbortSignal.timeout(15000),...options,headers:{'Content-Type':'application/json',...(options.headers||{})}});
   let data={};
   try{data=await r.json()}catch(_){}
   if(!r.ok||data.ok===false){
@@ -151,9 +154,48 @@ function render(){
     el.querySelector('[data-del]').onclick=()=>{config.videos.splice(i,1);render();queueAutoSave()};
     list.appendChild(el);
   });
-  $('preview').src=previewUrl();
+  if(!previewStarted){
+    previewStarted=true;
+    $('preview').src=previewUrl();
+  }else updatePreview();
   $('frameBox').style.aspectRatio=config.orientation==='landscape'?'16/9':'9/16';
+  $('frameBox').style.width=config.orientation==='landscape'?'100%':'';
+  document.querySelector('.previewWrap').style.minHeight=config.orientation==='landscape'?'320px':'';
 }
+function updatePreview(){
+  if(previewStarted)$('preview').contentWindow.postMessage({type:'signage-config',config},location.origin);
+}
+function setConnectionStatus(online=navigator.onLine){
+  $('previewStatus').textContent=online?'Online • sinkron otomatis':'Offline • menunggu koneksi';
+  if(!online){$('dbDot').className='dot bad';$('dbState').textContent='Koneksi belum tersambung'}
+}
+window.addEventListener('message',e=>{
+  if(e.origin!==location.origin||e.source!==$('preview').contentWindow||$('app').classList.contains('hidden'))return;
+  if(e.data?.type==='signage-ready'){updatePreview();setConnectionStatus();return}
+  if(e.data?.type==='signage-folder-error'&&e.data.folderUrl===config.folderUrl){
+    $('folderStatus').classList.remove('hidden');
+    $('folderStatus').textContent='Folder belum dapat disinkronkan • mencoba ulang otomatis';
+    return;
+  }
+  if(e.data?.type!=='signage-folder'||e.data.folderUrl!==config.folderUrl||!Array.isArray(e.data.videos))return;
+  const existing=new Set(config.videos.map(v=>S.extractDriveFileId(v.driveUrl)||v.driveUrl||v.src||v.id));
+  let added=0;
+  for(const video of e.data.videos){
+    const key=S.extractDriveFileId(video.driveUrl)||video.driveUrl||video.src||video.id;
+    if(!key||existing.has(key))continue;
+    existing.add(key);config.videos.push(S.normalizeConfig({videos:[video]}).videos[0]);added++;
+  }
+  $('folderStatus').classList.remove('hidden');
+  $('folderStatus').textContent='Folder dipantau otomatis setiap 5 detik • '+config.videos.length+' video'+(added?' • '+added+' video baru ditambahkan':'');
+  setConnectionStatus();
+  if(added){render();queueAutoSave()}
+  else if(saveRequested&&!savePromise)saveDb(true);
+});
+window.addEventListener('offline',()=>setConnectionStatus(false));
+window.addEventListener('online',()=>{
+  setConnectionStatus();
+  if(!$('app').classList.contains('hidden')){updatePreview();if(saveRequested)saveDb(true)}
+});
 function move(i,d){
   const j=i+d;if(j<0||j>=config.videos.length)return;
   [config.videos[i],config.videos[j]]=[config.videos[j],config.videos[i]];render();queueAutoSave();
@@ -164,7 +206,7 @@ async function addDriveSource(){
   if(S.isDriveFolderUrl(driveUrl)){
     btn.disabled=true;btn.textContent='Membaca folder...';status.classList.remove('hidden');status.textContent='Sedang membaca folder Google Drive...';
     try{
-      const rr=await fetch('/api/cms?asset=drive-folder&url='+encodeURIComponent(driveUrl),{cache:'no-store',credentials:'same-origin'});const data=await rr.json();if(!rr.ok||!data.ok)throw new Error(data.message||'Folder tidak bisa dibaca');
+      const rr=await fetch('/api/cms?asset=drive-folder&url='+encodeURIComponent(driveUrl),{cache:'no-store',credentials:'same-origin',signal:AbortSignal.timeout(15000)});const data=await rr.json();if(!rr.ok||!data.ok)throw new Error(data.message||'Folder tidak bisa dibaca');
       const existing=new Set(config.videos.map(v=>S.extractDriveFileId(v.driveUrl)||v.id));
       let added=0;
       (data.videos||[]).forEach(v=>{
@@ -184,30 +226,42 @@ async function addDriveSource(){
   $('title').value='';$('drive').value='';render();queueAutoSave();
 }
 function queueAutoSave(delay=350){
+  editRevision++;saveRequested=true;
   clearTimeout(autoSaveTimer);
   $('saved').textContent='Menyimpan otomatis...';
   autoSaveTimer=setTimeout(()=>saveDb(true),delay);
 }
 async function saveDb(silent=false){
+  saveRequested=true;
   if(savePromise)return savePromise;
   const btn=$('save');
   savePromise=(async()=>{
     btn.disabled=true;btn.textContent='Menyimpan...';
     try{
-      const payload=S.normalizeConfig({...config,name:$('name').value,orientation:$('orientation').value});
-      const data=await api('signage-config',{method:'PUT',body:JSON.stringify({config:payload})});
-      config=S.normalizeConfig(data.config||payload);S.save(config);
-      $('saved').textContent='Online • tersimpan otomatis';
-      $('dbUpdated').textContent=formatDate(config.updatedAt);
-      render();
+      while(saveRequested){
+        saveRequested=false;
+        const revision=editRevision;
+        const payload=S.normalizeConfig({...config,name:$('name').value,orientation:$('orientation').value});
+        const data=await api('signage-config',{method:'PUT',body:JSON.stringify({config:payload})});
+        const saved=S.normalizeConfig(data.config||payload);
+        // A completed request must not overwrite edits made while it was saving.
+        if(revision===editRevision){config=saved;S.save(config);updatePreview()}
+        else saveRequested=true;
+        $('saved').textContent=saveRequested?'Menyimpan otomatis...':'Online • tersimpan otomatis';
+        $('dbUpdated').textContent=formatDate(saved.updatedAt);
+        setConnectionStatus();
+        $('dbDot').className='dot ok';$('dbState').textContent='Supabase Terhubung';
+      }
       return true;
     }catch(e){
+      saveRequested=true;
       if(e.status===401){
         if(!silent)alert('Sesi habis. Silakan login ulang.');
-        boot();
+        await boot();
         return false;
       }
-      $('saved').textContent='Gagal menyimpan';
+      $('saved').textContent='Gagal menyimpan • coba lagi';
+      setConnectionStatus(false);
       if(!silent)alert(e.message||'Gagal menyimpan ke database');
       return false;
     }finally{
@@ -253,7 +307,7 @@ $('add').onclick=addDriveSource;
 $('sample').onclick=()=>{$('drive').value='https://drive.google.com/drive/folders/FOLDER_ID'};
 $('save').onclick=saveDb;
 $('copy').onclick=async()=>{const u=monitorUrl();try{await navigator.clipboard.writeText(u);alert('Link monitor berhasil disalin.')}catch(_){prompt('Copy link monitor:',u)}};
-$('open').onclick=async()=>{await saveDb();window.open(monitorUrl(),'_blank')};
+$('open').onclick=async()=>{if(await saveDb())window.open(monitorUrl(),'_blank')};
 $('clear').onclick=()=>{if(confirm('Kosongkan semua video?')){config.videos=[];config.folderUrl='';$('folderStatus').classList.add('hidden');render();queueAutoSave()}};
 $('name').oninput=()=>{render();queueAutoSave()};$('orientation').onchange=()=>{render();queueAutoSave()};
 boot();

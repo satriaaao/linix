@@ -20,8 +20,17 @@ function downloadUrl(id){
 function forwardRange(headers){
   const range=String(headers?.range||headers?.Range||'').trim();
   const out={'accept-encoding':'identity'};
-  if(/^bytes=\d*-\d*(?:,\d*-\d*)*$/i.test(range))out.range=range;
-  return range?{range:out.range,'accept-encoding':'identity'}:{'accept-encoding':'identity'};
+  // Keep each media response small; browsers request subsequent chunks as needed.
+  const match=/^bytes=(\d+)-(\d*)$/i.exec(range);
+  if(match){
+    const start=Number(match[1]);
+    const requestedEnd=match[2]?Number(match[2]):Infinity;
+    if(Number.isSafeInteger(start)&&requestedEnd>=start){
+      const end=Math.min(requestedEnd,start+2*1024*1024-1);
+      if(Number.isSafeInteger(end))out.range='bytes='+start+'-'+end;
+    }
+  }else if(/^bytes=-\d+$/i.test(range))out.range=range;
+  return out;
 }
 function parseConfirmHtml(html,baseUrl){
   const s=String(html||'');

@@ -41,6 +41,7 @@ jobs:
           node drive-folder-lib.test.cjs
           node drive-video-lib.test.cjs
           node signage-display.test.cjs
+          node --test signage-playback-regression.test.cjs
           node signage-auth-db-lib.test.cjs
           node signage-cms-db.test.cjs
           node signage-supabase-store.test.cjs

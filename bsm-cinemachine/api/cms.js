@@ -221,6 +221,10 @@ async function streamDriveVideo(req,res){
       return sendJson(res,upstream.status||502,{ok:false,message:'Video Google Drive tidak dapat dibuka'});
     }
     const upstreamType=upstream.headers.get('content-type')||'';
+    if(/text\/html|application\/json/i.test(upstreamType)){
+      if(upstream.body)await upstream.body.cancel();
+      return sendJson(res,502,{ok:false,message:'Google Drive belum menyediakan file video. Periksa akses file dan coba lagi.'});
+    }
     const mime=V.mimeFor(name,upstreamType);
     res.statusCode=upstream.status===206?206:200;
     res.setHeader('content-type',mime);
