@@ -251,11 +251,13 @@
     const labelTitle=labels=>labels.length?labels.map(x=>x.toUpperCase()).join(' + '):'';
     window.rentcamMatchesProduct=matchesProduct;
     function resultsMarkup(items,selected){
-      if(!items.length)return '<div class="product-empty">Produk tidak ditemukan. Coba kata kunci atau brand lain.</div>';
+      const ordered=catalogList().filter(g=>!selected||g.key===selected).flatMap(g=>items.filter(p=>rentcamCatalogGroup(p)===g.key).sort((x,y)=>String(x.name).localeCompare(String(y.name))));
+      items=window.RentcamCatalogPaging?window.RentcamCatalogPaging.select(ordered):ordered;
+      if(!items.length)return '<div class="product-empty rc-price-empty">Produk tidak ditemukan. Coba kata kunci atau brand lain.</div>';
       return catalogList().filter(g=>!selected||g.key===selected).map(g=>{
         const list=items.filter(p=>rentcamCatalogGroup(p)===g.key).sort((x,y)=>String(x.name).localeCompare(String(y.name)));
         return list.length?`<section class="catalog-group"><header><button class="catalog-group-title" type="button" onclick="go('/produk?cat=${esc(g.key)}')">${esc(g.title)}</button><span>${list.length} produk</span></header><div class="products-grid">${list.map(pc).join('')}</div></section>`:'';
-      }).join('');
+      }).join('')+(window.RentcamCatalogPaging?.footer()||'');
     }
     let searchDelay;
     window.rentcamSearch=function(){

@@ -67,7 +67,7 @@
     if(window.pc?.__rentcamLiveCart)return false;
     window.pc=function(p){
       if(p?._cmsActive===false||p?.active===false||p?.deleted===true)return '';
-      const image=p?.images?.[0]||p?.img||'';
+      const source=p?.images?.[0]||p?.img||'';const image=window.rentcamFastProductImage?.(source)||source;
       return `<article class="pcard" data-product-id="${esc(p.id)}" onclick="go('/produk/${esc(p.id)}')"><div class="pimg" style="position:relative"><span class="arri-source-badge">${esc(p.brand||'RENTCAM')}</span><img src="${esc(image)}" alt="${esc(p.name)}" loading="lazy"><div class="hoverBtns"><button type="button" onclick="event.stopPropagation();go('/produk/${esc(p.id)}')">Quick view</button></div></div><div class="pbrand">${esc(p.brand||'')} · ${esc(p.cat||p.category||'')}</div><div class="pname">${esc(p.name||'')}</div><div class="price"><span class="cms-product-price">${rupiah(p.price)}</span></div><button type="button" class="product-card-cart-btn" onclick="event.preventDefault();event.stopPropagation();rentcamAddToCart('${esc(p.id)}')">${cartIcon}<span class="cart-desktop-label">Tambah ke Keranjang</span><span class="cart-mobile-label">Tambah</span></button></article>`;
     };
     window.pc.__rentcamLiveCart=true;return true;

@@ -113,6 +113,15 @@
           "value": "public, max-age=31536000, immutable"
         }
       ]
+    },
+    {
+      "source": "/assets/product-thumbs-20261002/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
     }
   ],
   "rewrites": [
@@ -165,16 +174,8 @@
       "destination": "https://cdn.jsdelivr.net/gh/satriaaao/linix@46bde66fd10ce06d2ba9f0c1af67689bb43c5ba0/bsm-cinemachine/cms-template-settings-20260913.js"
     },
     {
-      "source": "/product-search-20260912.js",
-      "destination": "https://cdn.jsdelivr.net/gh/satriaaao/linix@e93d10acb30bb43db49eae9e43d998279c2e4c07/bsm-cinemachine/product-search-analytics-loader-20260916.js"
-    },
-    {
       "source": "/home-product-sections-20260912.js",
       "destination": "https://cdn.jsdelivr.net/gh/satriaaao/linix@46bde66fd10ce06d2ba9f0c1af67689bb43c5ba0/bsm-cinemachine/home-product-sections-20260912.js"
-    },
-    {
-      "source": "/product-cms-native-v11-20260912.js",
-      "destination": "https://cdn.jsdelivr.net/gh/satriaaao/linix@f5bd5232a9e02280286309f426dc6e204f6ceaa5/bsm-cinemachine/product-cms-native-v11-20260912.js"
     },
     {
       "source": "/website-orders-20260913.js",

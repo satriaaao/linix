@@ -100,7 +100,7 @@
   function installCardRenderer(){
     window.pc=function(p){
       if(p?._cmsActive===false)return '';
-      const img=p?.images?.[0]||p?.img||'';
+      const source=p?.images?.[0]||p?.img||'';const img=window.rentcamFastProductImage?.(source)||source;
       return `<article class="pcard" data-product-id="${esc(p.id)}" onclick="go('/produk/${esc(p.id)}')"><div class="pimg" style="position:relative"><span class="arri-source-badge">${esc(p.brand||'RENTCAM')}</span><img src="${esc(img)}" alt="${esc(p.name)}" loading="lazy"><div class="hoverBtns"><button onclick="event.stopPropagation();go('/produk/${esc(p.id)}')">Quick view</button></div></div><div class="pbrand">${esc(p.brand||'')} · ${esc(p.cat||'')}</div><div class="pname">${esc(p.name||'')}</div><div class="price"><span class="cms-product-price">${rupiah(p.price)}</span></div></article>`
     };
   }
@@ -116,7 +116,7 @@
     }
     return `<section class="cms-detail-block"><h2>${esc(title)}</h2><ul class="cms-detail-list">${items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></section>`;
   }
-  function gallery(p){const imgs=(p.images?.length?p.images:[p.img]).filter(Boolean);return `<div class="cms-gallery" data-product-gallery="${esc(p.id)}"><div class="cms-gallery-main"><img data-cms-main src="${esc(imgs[0]||'')}" alt="${esc(p.name)}"></div>${imgs.length>1?`<div class="cms-gallery-thumbs">${imgs.map((u,i)=>`<button type="button" class="cms-gallery-thumb ${i===0?'on':''}" data-cms-thumb="${i}" data-src="${esc(u)}"><img src="${esc(u)}" alt="${esc(p.name)} ${i+1}" loading="lazy"></button>`).join('')}</div>`:''}</div>`}
+  function gallery(p){const imgs=(p.images?.length?p.images:[p.img]).filter(Boolean).map(u=>window.rentcamFastProductImage?.(u)||u);return `<div class="cms-gallery" data-product-gallery="${esc(p.id)}"><div class="cms-gallery-main"><img data-cms-main src="${esc(imgs[0]||'')}" alt="${esc(p.name)}"></div>${imgs.length>1?`<div class="cms-gallery-thumbs">${imgs.map((u,i)=>`<button type="button" class="cms-gallery-thumb ${i===0?'on':''}" data-cms-thumb="${i}" data-src="${esc(u)}"><img src="${esc(u)}" alt="${esc(p.name)} ${i+1}" loading="lazy"></button>`).join('')}</div>`:''}</div>`}
 
   function installDetailRenderer(){
     window.detail=function(id){
