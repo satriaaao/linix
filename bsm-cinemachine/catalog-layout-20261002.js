@@ -1,0 +1,2 @@
+/* A continuous catalog keeps the existing product order and fills category gaps. */
+(()=>{if(location.pathname.startsWith('/cms')||window.__rentcamCatalogLayout)return;window.__rentcamCatalogLayout=true;function apply(){const enabled=window.RENTCAM_CMS_CONFIG?.appearance?.catalogCategoryHeadingsEnabled===true;document.documentElement.dataset.catalogLayout=enabled?'grouped':'continuous'}document.addEventListener('rentcam-cms-updated',apply);document.addEventListener('rentcam-route-change',apply);apply()})();
