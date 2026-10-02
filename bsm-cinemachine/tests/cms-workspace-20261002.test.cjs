@@ -1,5 +1,7 @@
 const {chromium}=require('playwright');const fs=require('fs'),http=require('http'),assert=require('assert');
 const base=require('path').resolve(__dirname,'..');
+const luminance=s=>s.match(/\d+/g).slice(0,3).map(Number).map(v=>v/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4).reduce((a,v,i)=>a+v*[.2126,.7152,.0722][i],0);
+const contrast=(a,b)=>{a=luminance(a);b=luminance(b);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05)};
 const fixture={general:{siteName:'Fixture Camera'},customProducts:[{id:'keep-product',name:'Camera Fixture',price:250000,stock:2}],appearance:{},footer:{description:'Original description',copyright:'Original copyright',columns:[]}};
 let saved=structuredClone(fixture),writes=0,failSave=false;
 const server=http.createServer((req,res)=>{
@@ -24,7 +26,7 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),width);
  }
  await page.setViewportSize({width:1440,height:1000});
- for(const mode of ['black','white']){if(await page.evaluate(()=>document.documentElement.dataset.cmsTheme)!==mode)await page.locator('[data-act="cms-theme"]').click();assert.equal(await page.evaluate(()=>document.documentElement.dataset.cmsTheme),mode);const colors=await page.locator('.v5-card').first().evaluate(e=>({bg:getComputedStyle(e).backgroundColor,text:getComputedStyle(e).color}));assert.notEqual(colors.bg,colors.text);}
+ for(const mode of ['black','white']){if(await page.evaluate(()=>document.documentElement.dataset.cmsTheme)!==mode)await page.locator('[data-act="cms-theme"]').click();assert.equal(await page.evaluate(()=>document.documentElement.dataset.cmsTheme),mode);const colors=await page.locator('.v5-card').first().evaluate(e=>({bg:getComputedStyle(e).backgroundColor,text:getComputedStyle(e).color}));assert.ok(contrast(colors.bg,colors.text)>=4.5);const note=await page.locator('.v5-design-note').evaluate(e=>({bg:getComputedStyle(e).backgroundColor,text:getComputedStyle(e).color}));assert.ok(contrast(note.bg,note.text)>=4.5,'Note contrast in '+mode);}
  const required=['products','masters','banners','portfolio','articles','services','home','media','site','footer','analytics','search','data','design-nav','design-theme'];for(const key of required)assert.equal(await page.locator('.v5-design-menu [data-nav="'+key+'"]').count(),1,key);
  assert.equal(await page.locator('.v5-design-menu [data-tpl-nav]').count(),1);
  await page.evaluate(()=>{const b=document.createElement('button');b.dataset.rentalNav='rentals';b.textContent='Rental';document.querySelector('.v5-nav').append(b);});await page.addScriptTag({url:'/rental-professional-adapter-20260918.js'});await page.waitForTimeout(300);assert.equal(await page.locator('.v5-nav').evaluate(n=>n.firstElementChild.className),'v5-design-menu');for(const key of required)assert.equal(await page.locator('.v5-design-menu [data-nav="'+key+'"]').count(),1,key);
