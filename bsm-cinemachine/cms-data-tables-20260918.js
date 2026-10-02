@@ -10,13 +10,14 @@
     ['rentcam_dispatches','Dispatch / Barang Jalan'],['rentcam_documents','Dokumen'],['rentcam_events','Analytics Events'],
     ['rentcam_finance_entries','Keuangan'],['rentcam_journal_entries','Jurnal'],['rentcam_journal_lines','Detail Jurnal'],
     ['rentcam_order_catalog','Katalog Order'],['rentcam_order_events','Riwayat Order'],['rentcam_orders','Order'],
-    ['rentcam_payment_proofs','Bukti Pembayaran'],['rentcam_presence','Presence'],['rentcam_units','Unit / Nomor Seri']
+    ['rentcam_payment_proofs','Bukti Pembayaran'],['rentcam_drivers','Driver'],['rentcam_vehicles','Kendaraan'],['rentcam_driver_assignments','Tugas Antar Jemput'],['rentcam_dispatch_settings','Pengaturan Lokasi'],['rentcam_vehicle_shifts','Aktivitas Kendaraan'],['rentcam_vehicle_fuel_logs','Pengisian BBM'],['rentcam_presence','Presence'],['rentcam_units','Unit / Nomor Seri']
   ].map(([name,label])=>({name,label}));
   const allowed=new Set(TABLES.map(x=>x.name));
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   function mask(v,keep=8){const s=String(v??'');return s.length>keep?s.slice(0,keep)+'…':s}
   function sanitizeCell(key,value){
     if(value===null||value===undefined)return '-';
+    if(key==='password_hash')return 'Disembunyikan';
     if(key==='customer_token'||key==='session_id')return mask(value);
     if(key==='meta'&&value&&typeof value==='object'){
       const x=JSON.parse(JSON.stringify(value));

@@ -13,15 +13,15 @@
     {id:'config-store',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@d2236e85fc9009396e4e98b1f7280c1ba826f042/bsm-cinemachine/cms-config-store-20260918.js',after:['admin-client']},
     {id:'product-photo',src:'/product-photo-20261001.js?v=photo2',after:['admin-client']},
     {id:'media',src:'/cms-media-20260918.js?v=photo2',after:['admin-client','config-store','product-photo']},
-    {id:'data-tables',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@cf75d3e38eda2ca803f7ee55e2617a019f29db1c/bsm-cinemachine/cms-data-tables-20260918.js',after:['admin-client']},
+    {id:'data-tables',src:'/cms-data-tables-20260918.js?v=workspace1',after:['admin-client']},
     {id:'publishing',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@0a88133a8e4fe4852a54cf4a9edfa9c6e57c29c4/bsm-cinemachine/cms-publishing-20260918.js',after:['config-store']},
-    {id:'cms-ui',src:'/api/cms-ui?v=settings2',after:['config-store','media','data-tables']},
+    {id:'cms-ui',src:'/api/cms-ui?v=workspace1',after:['config-store','media','data-tables']},
     {id:'promo-schedule',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@509c90dfb8cfaa3c0f6564cafdd27555dad2388e/bsm-cinemachine/cms-promo-publishing-adapter-20260918.js',after:['cms-ui','publishing']},
     {id:'global-status',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@2d79b380805c155f0bf7b6f8a63480729c0e4e0c/bsm-cinemachine/cms-global-status-publishing-adapter-20260918.js',after:['cms-ui','publishing']},
     {id:'product-sync',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@9e74e816c0c8887553503244ec7e87c04fcfa347/bsm-cinemachine/cms-product-publishing-adapter-20260918.js',after:['cms-ui','publishing']},
     {id:'rental-desk',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@9b65e9329ae2dd033cf3a8ea535133080e812a06/bsm-cinemachine/cms-rental-desk-20260918.js',after:['admin-client','config-store']},
     {id:'rental-management',src:'/rental-management-table-adapter-20260918.js',after:['rental-desk','cms-ui']},
-    {id:'rental-professional',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@3d265f6b649b776965d91adf9698219b2ff85ead/bsm-cinemachine/rental-professional-adapter-20260918.js',after:['rental-management']},
+    {id:'rental-professional',src:'/rental-professional-adapter-20260918.js?v=workspace1',after:['rental-management']},
     {id:'quotation-fix',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@cebdf67bbe40807a403649ecedbac62391609abc/bsm-cinemachine/quotation-product-fix-20260915.js',after:['rental-professional']},
     {id:'rental-insights',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@46bde66fd10ce06d2ba9f0c1af67689bb43c5ba0/bsm-cinemachine/rental-insights-20260913.js',after:['rental-professional']},
     {id:'integrity-lib',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@636f895753b457a401c8357dc24e485795d28454/bsm-cinemachine/rental-integrity-lib-20260916.js',after:['rental-professional']},
@@ -31,7 +31,7 @@
     {id:'serial-dispatch',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@26aedf2dffb5f4ab0f3c7db14605760087054de1/bsm-cinemachine/cms-serial-dispatch-adapter-20260918.js',after:['cms-ui','inventory']},
     {id:'logo',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@b64ae20a31d2e6ddb08a3aade3f6d5f8c5f401d4/bsm-cinemachine/cms-logo-20260918.js',after:['admin-client','config-store']},
     {id:'logo-ui',src:'https://cdn.jsdelivr.net/gh/satriaaao/linix@39342bb6b56fe05e3bf8bf61e086dd6b019c2a1c/bsm-cinemachine/cms-logo-adapter-20260918.js',after:['cms-ui','logo']},
-    {id:'template-settings',src:'/cms-template-publishing-adapter-20260918.js?v=settings2',after:['config-store','publishing','cms-ui']}
+    {id:'template-settings',src:'/cms-template-publishing-adapter-20260918.js?v=workspace1',after:['config-store','publishing','cms-ui']}
   ];
 
   function validateManifest(manifest=MANIFEST){

@@ -4,7 +4,10 @@
   const SB='https://xleceiffuopioeguniwj.supabase.co';
   const KEY='sb_publishable_POksYryhG_mkFbs7N0fjKQ_4dUim7Ex';
   const AUTH='rentcam_cms_auth';
-  let searchProductId='',photoBusy=false;
+  function setCmsTheme(mode){document.documentElement.dataset.cmsTheme=mode==='black'?'black':'white';try{localStorage.setItem('rentcam_cms_theme',mode)}catch(_){}}
+  try{setCmsTheme(localStorage.getItem('rentcam_cms_theme')||'white')}catch(_){setCmsTheme('white')}
+  document.addEventListener('click',e=>{if(e.target.closest('[data-act="cms-theme"]'))setCmsTheme(document.documentElement.dataset.cmsTheme==='black'?'white':'black')});
+  let searchProductId='',photoBusy=false,catalogRows=[];
   let cfg={},page='design-features',modal=null,dirty=false,q='',masterTab='mainCategories',orderSearch='',orderStatusFilter='all',orderCache=[];
   const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   const clone=v=>JSON.parse(JSON.stringify(v));
@@ -65,7 +68,20 @@
   function logged(){try{return !!JSON.parse(localStorage.getItem(AUTH)||'null')?.access_token}catch(e){return false}}
   async function login(email,password){const r=await fetch(SB+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({email,password})});if(!r.ok)throw new Error('Email atau password salah');localStorage.setItem(AUTH,JSON.stringify(await r.json()))}
   function logout(){localStorage.removeItem(AUTH);sessionStorage.removeItem('rentcam_cms_admin_password');location.reload()}
-  async function load(){cfg=await window.RentcamCmsConfig.load(DEF);deriveMasters();window.RentcamCmsConfig.use(cfg)}
+  async function load(){
+    cfg=await window.RentcamCmsConfig.load(DEF);
+    const results=await Promise.allSettled([req('/rest/v1/rentcam_order_catalog?select=id,product&limit=1000'),fetch('/search-editorial-seed-20260930.json').then(r=>{if(!r.ok)throw Error('Konten bawaan belum tersedia');return r.json()})]);
+    if(results[0].status==='fulfilled')catalogRows=results[0].value.map(r=>({...r.product,id:r.id}));
+    if(results[1].status==='fulfilled'){const seed=results[1].value;for(const key of ['articles','portfolio'])if(!cfg[key]?.length)cfg[key]=clone(seed[key]||[]);}
+    if(!cfg.services?.length)cfg.services=[{id:'delivery-support',title:'Delivery Support',desc:'Antar-jemput area tertentu',active:true},{id:'experienced-team',title:'Experienced Team',desc:'Bantu setup package',active:true},{id:'top-notch-support',title:'Top-notch Support',desc:'Support selama rental',active:true},{id:'equipment-checked',title:'Equipment Checked',desc:'Dicek sebelum keluar',active:true}];
+    const media=new Map((cfg.media||[]).map(r=>[r.url,r]));
+    function addMedia(url,name,folder){if(!url||typeof url!=='string'||!/^https?:\/\/|^\//.test(url)||media.has(url))return;media.set(url,{url,name,folder,type:/\.png(?:[?#]|$)/i.test(url)?'image/png':'image/jpeg',source:'website'});}
+    products().filter(p=>p.deleted!==true).forEach(p=>(p.images?.length?p.images:[p.img||p.image]).forEach((url,i)=>addMedia(url,p.name+' · Foto '+(i+1),'product')));
+    addMedia(cfg.general?.logoUrl,'Logo website','brand');
+    for(const key of ['banners','portfolio','articles'])for(const row of cfg[key]||[])addMedia(row.img||row.image,row.title||row.name||key,key);
+    for(const row of cfg.appearance?.heroSlides||cfg.hero?.slides||[])addMedia(row.image||row.img,'Banner utama','website-banner');
+    cfg.media=[...media.values()];deriveMasters();window.RentcamCmsConfig.use(cfg);
+  }
   async function save(){const invalid=[...document.querySelectorAll('.v5-content [data-field]')].find(x=>!x.checkValidity());if(invalid){invalid.reportValidity();return}const btn=document.querySelector('[data-act="save"]');if(btn)btn.disabled=true;try{await window.RentcamCmsConfig.save(cfg);dirty=false;toast('Semua perubahan tersimpan');render()}catch(e){console.error(e);toast('Gagal menyimpan','bad')}finally{if(btn)btn.disabled=false}}
   function mark(){dirty=true;const d=document.querySelector('.v5-dirty');if(d)d.hidden=false}
   function toast(t,type='ok'){const x=document.createElement('div');x.className='v5-toast '+type;x.textContent=t;document.body.appendChild(x);setTimeout(()=>x.classList.add('show'),20);setTimeout(()=>{x.classList.remove('show');setTimeout(()=>x.remove(),200)},1800)}
@@ -74,7 +90,7 @@
     cfg=window.RentcamCmsConfig.get();mark();return row.url;
   }
 
-  function baseProducts(){try{return Array.isArray(P)?P:[]}catch(e){return []}}
+  function baseProducts(){let native=[];try{native=Array.isArray(P)?P:[]}catch(_){}const map=new Map(native.map(p=>[String(p.id),p]));catalogRows.forEach(p=>map.set(String(p.id),{...map.get(String(p.id)),...p}));return [...map.values()];}
   function deriveMasters(){
     cfg.mainCategories=cfg.mainCategories?.length?cfg.mainCategories:clone(DEF.mainCategories);cfg.subCategories=cfg.subCategories||[];cfg.brands=cfg.brands||[];
     cfg.productLabels=cfg.productLabels?.length?cfg.productLabels:clone(DEFAULT_LABELS);
@@ -147,13 +163,22 @@
   function designCollection(path){if(path==='navigation')return cfg.navigation||=[];if(path==='footer.columns')return (cfg.footer||={}).columns||=[];const match=path.match(/^footer\.columns\.(\d+)\.links$/);return match?cfg.footer?.columns?.[+match[1]]?.links||null:null;}
   document.addEventListener('click',e=>{const add=e.target.closest('[data-design-add]'),remove=e.target.closest('[data-design-remove]'),move=e.target.closest('[data-design-move]');const node=add||remove||move;if(!node)return;const path=node.dataset.designAdd||node.dataset.designRemove||node.dataset.designMove;const list=designCollection(path);if(!list)return;if(add)list.push(path==='navigation'?{key:'menu-'+Date.now(),label:'Menu Baru',path:'/produk',enabled:true}:path==='footer.columns'?{title:'Kolom Baru',links:[]}:{label:'Link Baru',path:'/produk',active:true});else if(remove)list.splice(+node.dataset.index,1);else{const i=+node.dataset.index,j=i+Number(node.dataset.direction);if(j>=0&&j<list.length)[list[i],list[j]]=[list[j],list[i]];}mark();render();});
   document.addEventListener('change',async e=>{const path=e.target.dataset.designUpload;if(!path)return;const file=e.target.files?.[0];if(!file)return;try{const url=await uploadImage(file,'website-banner');setDesignField(path,url);toast('Gambar diupload. Klik Simpan untuk menerapkan.');render();}catch(error){toast(error.message,'bad');}});
+  const webMenu=[
+    ['products','Produk'],['masters','Kategori & Brand'],['banners','Banner Promo'],
+    ['portfolio','Portfolio'],['articles','Artikel'],['services','Layanan'],
+    ['home','Bagian Beranda'],['media','Foto & Media'],['site','Identitas & Logo'],
+    ['footer','Footer Website'],['analytics','Analytics'],['search','SEO Produk & AI'],
+    ['data','Semua Data'],['system-template','Template Sistem','site'],['design-nav','Menu Website','menu'],['design-theme','Tema Warna Website','masters'],
+    ['design-features','Fitur & Checkout','masters'],['design-hero','Banner Utama','banners'],
+    ['design-copy','Teks Halaman','articles'],['design-seo','SEO Website','site'],['design-popup','Popup & Promo','banners']
+  ];
   function side(){
-    const button=(key,label,icon=key)=>`<button class="${page===key?'on':''}" data-nav="${key}" ${page===key?'aria-current="page"':''}>${menuIcon(icon)}<span>${label}</span></button>`;
-    const designActive=designEntries.some(x=>x[0]===page);
-    return `<button class="v5-menu-backdrop" data-act="menu" aria-label="Tutup menu"></button><aside class="v5-side"><div class="v5-logo"><div class="v5-mark">R</div><div><b>Rentcam CMS</b><small>Pengelolaan Website</small></div><button class="v5-side-close" data-act="menu" aria-label="Tutup menu">${menuIcon('close')}</button></div><nav class="v5-nav" aria-label="Menu CMS"><details class="v5-design-menu" ${designActive?'open':''}><summary>${menuIcon('site')}<span>Pengaturan Web</span></summary><div class="v5-design-links">${designEntries.map(([key,label,desc,icon])=>button(key,label,icon)).join('')}</div></details><div class="v5-nav-label">RINGKASAN</div>${button('dashboard','Overview')}<div class="v5-nav-label">KATALOG & TRANSAKSI</div>${button('products','Produk')}${button('search','SEO Produk & AI','site')}${button('masters','Kategori & Brand')}${button('orders','Order Masuk')}<div class="v5-nav-label">KONTEN WEBSITE</div>${button('portfolio','Portfolio')}${button('articles','Artikel')}${button('services','Layanan')}${button('media','Foto & Media')}<div class="v5-nav-label">LAPORAN & DATA</div>${button('analytics','Analytics')}${button('data','Semua Data')}</nav></aside>`;
+    const button=(key,label,icon=key)=>`<button class="${page===key?'on':''}" ${key==='system-template'?'data-tpl-nav':'data-nav="'+key+'"'} ${page===key?'aria-current="page"':''}>${menuIcon(icon)}<span>${label}</span></button>`;
+    const webActive=webMenu.some(x=>x[0]===page);
+    return `<button class="v5-menu-backdrop" data-act="menu" aria-label="Tutup menu"></button><aside class="v5-side"><div class="v5-logo"><div class="v5-mark">R</div><div><b>Rentcam CMS</b><small>Pengelolaan Website</small></div><button class="v5-side-close" data-act="menu" aria-label="Tutup menu">${menuIcon('close')}</button></div><nav class="v5-nav" aria-label="Menu CMS"><details class="v5-design-menu" ${webActive?'open':''}><summary>${menuIcon('site')}<span>Pengaturan Web</span></summary><div class="v5-design-links">${webMenu.map(([key,label,icon])=>button(key,label,icon)).join('')}</div></details><div class="v5-nav-label">OPERASIONAL RENTAL</div>${button('dashboard','Dashboard')}${button('orders','Order Masuk')}</nav></aside>`;
   }
 
-  function top(){return `<header class="v5-top"><div style="display:flex;gap:9px;align-items:center"><button class="v5-btn v5-hamb" data-act="menu" aria-label="Buka menu">${menuIcon('menu')}</button><h1>${nav.find(x=>x[0]===page)?.[1]||'CMS'}</h1></div><div class="v5-actions"><span class="v5-dirty" ${dirty?'':'hidden'}>Belum disimpan</span><button class="v5-btn site" data-act="site">${menuIcon('site')}<span>Lihat Website</span></button><button class="v5-btn primary" data-act="save">${menuIcon('save')}<span>Simpan</span></button><button class="v5-btn" data-act="logout">${menuIcon('logout')}<span>Keluar</span></button></div></header>`}
+  function top(){return `<header class="v5-top"><div style="display:flex;gap:9px;align-items:center"><button class="v5-btn v5-hamb" data-act="menu" aria-label="Buka menu">${menuIcon('menu')}</button><h1>${webMenu.find(x=>x[0]===page)?.[1]||nav.find(x=>x[0]===page)?.[1]||'CMS'}</h1></div><div class="v5-actions"><button class="v5-btn" data-act="cms-theme" aria-label="Ganti tema CMS" title="Tema hitam / putih"><svg class="v5-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 14a8 8 0 0 1-10-10 9 9 0 1 0 10 10Z"/></svg></button><span class="v5-dirty" ${dirty?'':'hidden'}>Belum disimpan</span><button class="v5-btn site" data-act="site">${menuIcon('site')}<span>Lihat Website</span></button><button class="v5-btn primary" data-act="save">${menuIcon('save')}<span>Simpan</span></button><button class="v5-btn" data-act="logout">${menuIcon('logout')}<span>Keluar</span></button></div></header>`}
   function tableEmpty(c=6){return `<tr><td colspan="${c}" style="text-align:center;color:#999;padding:30px">Belum ada data.</td></tr>`}
   function dashboard(){return `<div class="v5-grid"><div class="v5-card v5-stat span4"><small>Total Produk</small><strong>${products().length}</strong></div><div class="v5-card v5-stat span4"><small>Main Category</small><strong>${cfg.mainCategories.length}</strong></div><div class="v5-card v5-stat span4"><small>Brand</small><strong>${cfg.brands.length}</strong></div><div class="v5-card span12"><div class="v5-head"><div><h2>Pengelolaan Katalog</h2><p>Produk, kategori, brand, SEO/AEO/GEO, foto dan urutan produk dikelola dari tabel CMS.</p></div><button class="v5-btn orange" data-act="new-product">+ Produk Baru</button></div>${productTable(products().slice(0,8))}</div></div>`}
   function productTable(arr){return `<div class="v5-tablewrap"><table class="v5-table"><thead><tr><th>Produk</th><th>Main / Sub</th><th>Brand</th><th>Harga</th><th>Tampil di</th><th>Urutan</th><th>Status</th><th></th></tr></thead><tbody>${arr.map(p=>`<tr><td><div class="v5-prod"><img src="${esc(p.image||p.img||'')}" onerror="this.style.opacity=.15"><div><b>${esc(p.name)}</b><small>${esc(p.id)}</small></div></div></td><td>${esc(findMainName(p.mainCategory,p.category))}<br><small>${esc(cfg.subCategories.find(s=>s.id===p.subCategory)?.name||'-')}</small></td><td>${esc(p.brand||'-')}</td><td><b>${rp(p.price)}</b></td><td><span class="v5-pill">${esc(p.placement||'catalog')}</span></td><td>${fmt(p.sortOrder||999)}</td><td><span class="v5-pill ${p.active!==false?'on':''}">${p.active!==false?'Aktif':'Hidden'}</span></td><td><button class="v5-btn" data-act="edit-product" data-id="${esc(p.id)}">Edit</button> <button class="v5-btn" data-act="product-search" data-id="${esc(p.id)}">SEO & AI</button></td></tr>`).join('')||tableEmpty(8)}</tbody></table></div>`}
