@@ -29,6 +29,7 @@
       }
 
       body #app .promo-slide{
+        background-image:var(--rc-promo-image)!important;
         position:relative!important;
         height:clamp(320px,29vw,420px)!important;
         min-height:320px!important;
@@ -40,9 +41,9 @@
         isolation:isolate!important;
       }
 
-      body #app .promo-slide:nth-child(1){background-image:url('https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=2000&q=90')!important}
-      body #app .promo-slide:nth-child(2){background-image:url('https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=2000&q=90')!important}
-      body #app .promo-slide:nth-child(3){background-image:url('https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=2000&q=90')!important}
+      body #app .promo-slide:nth-child(1){background-image:var(--rc-promo-image,url('https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=2000&q=90'))!important}
+      body #app .promo-slide:nth-child(2){background-image:var(--rc-promo-image,url('https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=2000&q=90'))!important}
+      body #app .promo-slide:nth-child(3){background-image:var(--rc-promo-image,url('https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=2000&q=90'))!important}
 
       body #app .promo-slide::before{
         content:""!important;position:absolute!important;inset:0!important;
@@ -63,14 +64,16 @@
 
       @media(max-width:1024px){
         body #app .page>.container{padding-top:16px!important}
-        body #app .promo-slide{height:300px!important;min-height:300px!important;padding:34px 44px 40px 44px!important;background-position:center center!important}
+        body #app .promo-slide{
+        background-image:var(--rc-promo-image)!important;height:300px!important;min-height:300px!important;padding:34px 44px 40px 44px!important;background-position:center center!important}
         body #app .promo-copy h2{font-size:40px!important}
         body #app .promo-dots{left:44px!important}
       }
 
       @media(max-width:820px){
         body #app .page>.container{padding-top:14px!important}
-        body #app .promo-slide{height:270px!important;min-height:270px!important;padding:30px 36px 36px 36px!important;background-position:center center!important}
+        body #app .promo-slide{
+        background-image:var(--rc-promo-image)!important;height:270px!important;min-height:270px!important;padding:30px 36px 36px 36px!important;background-position:center center!important}
         body #app .promo-copy h2{font-size:34px!important}
         body #app .promo-copy p{font-size:13px!important}
         body #app .promo-dots{left:36px!important}
@@ -79,7 +82,8 @@
       @media(max-width:620px){
         body #app .page>.container{padding-top:12px!important}
         body #app .promo-slider{border-radius:18px!important;margin-bottom:14px!important}
-        body #app .promo-slide{height:220px!important;min-height:220px!important;padding:24px 20px 32px 20px!important;background-position:center center!important}
+        body #app .promo-slide{
+        background-image:var(--rc-promo-image)!important;height:220px!important;min-height:220px!important;padding:24px 20px 32px 20px!important;background-position:center center!important}
         body #app .promo-copy h2{font-size:27px!important;max-width:280px!important}
         body #app .promo-copy p{font-size:11px!important;max-width:285px!important}
         body #app .promo-dots{left:20px!important;bottom:10px!important}

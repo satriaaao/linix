@@ -42,6 +42,7 @@
   let promoTimer=null;
 
   function promoItems(){
+    if(window.RentcamWebsiteDesign)return window.RentcamWebsiteDesign.getCatalogSlides(window.RENTCAM_CMS_CONFIG||{});
     const pick=(id,fallback=0)=>P.find(x=>x.id===id)||P[fallback]||{};
     return [
       {
@@ -76,14 +77,16 @@
 
   function promoMarkup(){
     const items=promoItems();
+    if(!items.length)return '';
+    promoIndex%=items.length;
     return `<div class="promo-slider" id="promoSlider">
       <div class="promo-track" id="promoTrack" style="transform:translateX(-${promoIndex*100}%);">
-        ${items.map((s,i)=>`<article class="promo-slide ${s.cls}" data-promo-index="${i}">
+        ${items.map((s,i)=>`<article class="promo-slide ${s.cls||'promo-dark'}" data-promo-index="${i}" ${s.image?`style="--rc-promo-image:url(${esc(JSON.stringify(s.image))})"`:''}>
           <div class="promo-copy">
             <span class="promo-ey">${esc(s.ey)}</span>
             <h2>${esc(s.title)}</h2>
             <p>${esc(s.text)}</p>
-            <button onclick="go('${s.href}')">${esc(s.cta)}</button>
+            <button data-go="${esc(s.href)}">${esc(s.cta)}</button>
           </div>
           <div class="promo-visual">
             <div class="promo-glow"></div>
@@ -106,23 +109,26 @@
 
   window.rentcamPromoGo=function(i){
     const count=promoItems().length;
+    if(!count)return;
     promoIndex=((Number(i)||0)%count+count)%count;
     applyPromo();
     restartPromo();
   };
   window.rentcamPromoNext=function(){
+    if(!promoItems().length)return;
     promoIndex=(promoIndex+1)%promoItems().length;
     applyPromo();
     restartPromo();
   };
   window.rentcamPromoPrev=function(){
+    if(!promoItems().length)return;
     promoIndex=(promoIndex-1+promoItems().length)%promoItems().length;
     applyPromo();
     restartPromo();
   };
   function restartPromo(){
     clearInterval(promoTimer);
-    if(!document.getElementById('promoSlider')) return;
+    if(!document.getElementById('promoSlider')||promoItems().length<2) return;
     promoTimer=setInterval(()=>{
       promoIndex=(promoIndex+1)%promoItems().length;
       applyPromo();

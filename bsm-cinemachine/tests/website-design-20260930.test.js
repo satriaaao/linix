@@ -25,3 +25,7 @@ assert.ok(publicHtml.includes('/website-design-runtime-20260930.js'));
  assert.equal(status,200);assert.ok(body.includes('RentcamWebsiteDesign'));assert.ok(body.includes('Tampilan Website'));assert.ok(body.includes('data-design-add'));
  console.log('Website design validation and deployed CMS/public assets passed');
 })().catch(error=>{console.error(error);process.exitCode=1});
+
+assert.equal(design.getCatalogSlides({}).length,3);
+const editedBanners=design.getCatalogSlides({banners:[{title:'Edited promo',image:'https://example.com/new.jpg',cta:'Promo baru',href:'/produk?label=PROMO'},{title:'Hidden promo',active:false}]});
+assert.equal(editedBanners.length,1);assert.equal(editedBanners[0].image,'https://example.com/new.jpg');assert.equal(editedBanners[0].cta,'Promo baru');assert.equal(design.getCatalogSlides({banners:[{image:'javascript:alert(1)',href:'javascript:alert(1)'}]})[0].href,'/produk');

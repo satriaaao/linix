@@ -81,7 +81,10 @@
       host.replaceChildren(...nodes);host.dataset.designNav=signature;
     }
   }
-  function catalog(config){if(location.pathname!=='/produk')return;const input=document.querySelector('#productSearchInput');if(input&&config.copy?.catalogSearchPlaceholder)input.placeholder=config.copy.catalogSearchPlaceholder;text(document.querySelector('.catalog-filter-field>span'),config.copy?.catalogFilterLabel);if(!location.search)text(document.querySelector('.product-meta h1'),config.copy?.catalogTitle);}
+  function catalog(config){if(location.pathname!=='/produk')return;
+    const banners=lib.getCatalogSlides(config);
+    document.querySelectorAll('#promoTrack .promo-slide').forEach((el,i)=>{const b=banners[i];el.hidden=!b;if(!b)return;const background='url('+JSON.stringify(b.image)+')';if(el.style.getPropertyValue('--rc-promo-image')!==background)el.style.setProperty('--rc-promo-image',background);text(el.querySelector('.promo-ey'),b.ey);text(el.querySelector('h2'),b.title);text(el.querySelector('p'),b.text);const button=el.querySelector('.promo-copy button');if(button){text(button,b.cta);button.removeAttribute('onclick');button.dataset.go=b.href;}});
+    const input=document.querySelector('#productSearchInput');if(input&&config.copy?.catalogSearchPlaceholder)input.placeholder=config.copy.catalogSearchPlaceholder;text(document.querySelector('.catalog-filter-field>span'),config.copy?.catalogFilterLabel);if(!location.search)text(document.querySelector('.product-meta h1'),config.copy?.catalogTitle);}
   function footer(config){
     const host=document.querySelector('.footer .footgrid'),f=config.footer,g=config.general||{};if(!host||!f)return;
     const signature=JSON.stringify([f,g.siteName,g.whatsapp]);if(host.dataset.designFooter===signature&&host.querySelector('[data-design-footer]')){host.querySelectorAll('[data-design-footer-label]').forEach(a=>text(a,a.dataset.designFooterLabel));return;}
