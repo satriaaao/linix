@@ -102,3 +102,8 @@ html[data-cms-theme] body .v5-side{border-right:1px solid var(--cms-border)!impo
 html[data-cms-theme] body .v5-toast{pointer-events:none}
 html[data-cms-theme] body :is(.v5-design-note,.v5-search-preview,.v5-settings-help-box,.rca-map-empty){background:var(--cms-soft)!important;color:var(--cms-muted)!important;border-color:var(--cms-border)!important}
 html[data-cms-theme] body .v5-design-field input[type="color"]{background:var(--cms-panel)!important;border-color:var(--cms-border)!important;min-height:48px}
+
+/* Installation actions follow the content and never cover navigation. */
+html body #cmsPwaDock{position:static!important;inset:auto!important;margin:16px;max-width:100%;box-sizing:border-box;justify-content:center;background:var(--cms-panel,#fff);border-color:var(--cms-border,#dfe5ec);box-shadow:none}
+html body #cmsPwaDock[hidden],body:has(.v5.open) #cmsPwaDock{display:none!important}
+html body #cmsPwaDock button{background:var(--cms-button,#17191e);color:var(--cms-button-text,#fff);min-height:44px}
