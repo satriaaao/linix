@@ -41,6 +41,7 @@ jobs:
       - name: Run regression tests
         run: |
           node --test tests/security-hardening-20261002.test.cjs
+          node tests/search-analytics-20260930.test.js
           node tests/cart-navigation-20260919.test.js
           node tests/promo-asset-routing-20260919.test.js
           node signage-lib.test.cjs
