@@ -232,3 +232,6 @@ html[data-store-theme=white] body #app .rc-price :is(b,strong,span,.sale-price){
 html[data-store-theme=white] body #app .rc-price :is(del,s,small){color:#646670!important}
 html[data-store-theme=black] body #app .rc-included-details .rc-inc-chevron{background:#30323b!important;border-color:#3b3d46!important;color:#f4f4f5!important}
 html[data-store-theme=white] body #app .rc-branch-head p,html[data-store-theme=white] body #app .spec-list .spec-row span,html[data-store-theme=white] body #app .rc-included-details :is(.rc-inc-title small,.rc-inc-chevron){color:#5f6572!important}
+html[data-store-theme=black] body #app :is(.cms-detail-block,.cms-included-block,.rc-included-dropdown-wrap){background:#191a1e!important;border-color:#363840!important;color:#f4f4f5!important}
+html[data-store-theme=black] body #app :is(.cms-included-item,.cms-included-toggle,.cms-included-count){background:#25262d!important;border-color:#3b3d46!important;color:#ececf2!important}
+html[data-store-theme=black] body #app .cms-included-kicker{color:#bfc2ce!important}
