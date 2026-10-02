@@ -1,4 +1,6 @@
-const SOURCE='https://cdn.jsdelivr.net/gh/satriaaao/linix@5d986794f449058b8ce61b81c00b09331719a0f9/bsm-cinemachine/index.html';
+const fs=require('node:fs');
+const path=require('node:path');
+const SOURCE=path.join(__dirname,'../index.html');
 const {seoForRoute}=require('../seo-lib-20260917');
 const {loadContent}=require('../search-content-20260930');
 const {buildSeo}=require('../search-seo-20260930');
@@ -45,15 +47,18 @@ function patchPublicHtml(html,seo){
   const browserHardening='<script src="/browser-hardening-20260922.js" defer><\/script>';
   for(const module of ['cms-public-runtime-v8-20260912.js','product-advanced-runtime-v8-20260912.js','cms-content-render-20260912.js'])out=out.replace(new RegExp('https://cdn\\.jsdelivr\\.net/gh/satriaaao/linix@[^\"]+/bsm-cinemachine/'+module.replace(/\./g,'\\.'),'g'),'/'+module);
   out=out.replace(/<script src="\/cms-public-runtime-v8-20260912\.js"><\/script>/,'<script src="/analytics-tracker-20261001.js?v=1"></script><script src="/cms-public-runtime-v8-20260912.js?v=analytics2"></script>');
-  out=out.replace('</body>','<script src="/product-knowledge-20261002.js"></script>'+(out.includes('/seo-runtime-20260930.js')?'':'<script src="/seo-runtime-20260930.js?v=faq2" defer></script>')+cartHardening+checkoutWizard+includedDropdown+brandLogoPng+orderTracking+homeHero+catalogGrid+brandEquipment+branchAvailability+browserHardening+websiteDesign+'<link rel="stylesheet" href="/premium-storefront-20261001.css?v=homeStable1"><script src="/premium-storefront-20261001.js?v=commerce1"></script><script src="/rental-pricing-20261002.js"></script><script src="/customer-reviews-20261002.js" defer></script><script src="/member-registration-20261002.js?v=directwa1" defer></script><script src="/public-commerce-settings-20261001.js?v=1"></script><script src="/product-preview-20261002.js" defer></script><script src="/storefront-navigation-20261002.js" defer></script></body>');
+  out=out.replace('</body>','<script src="/product-knowledge-20261002.js"></script>'+(out.includes('/seo-runtime-20260930.js')?'':'<script src="/seo-runtime-20260930.js?v=faq2" defer></script>')+cartHardening+checkoutWizard+includedDropdown+brandLogoPng+orderTracking+homeHero+catalogGrid+brandEquipment+branchAvailability+browserHardening+websiteDesign+'<link rel="stylesheet" href="/premium-storefront-20261001.css?v=release20261002r7"><script src="/premium-storefront-20261001.js?v=release20261002r7"></script><script src="/rental-pricing-20261002.js"></script><script src="/customer-reviews-20261002.js?v=release20261002r7" defer></script><script src="/member-registration-20261002.js?v=release20261002r7" defer></script><script src="/public-commerce-settings-20261001.js?v=release20261002r7"></script><script src="/product-preview-20261002.js" defer></script><script src="/storefront-navigation-20261002.js" defer></script></body>');
   const ssr=`<main id="app"><section data-seo-ssr="1" style="max-width:1180px;margin:0 auto;padding:28px 20px;font-family:Arial,sans-serif"><h1>${esc(seo.h1)}</h1><p>${esc(seo.summary)}</p>${seo.body||''}</section></main>`;
   out=out.replace(/<main\s+id=["']app["']\s*><\/main>/i,ssr);
-  out=out.replace(/https:\/\/cdn\.jsdelivr\.net\/gh\/satriaaao\/linix@[^"\s]+\/bsm-cinemachine\/home-camera-toolbar-20260922\.js/g,'/home-camera-toolbar-20260922.js?v=stable1');
+  out=out.replace(/https:\/\/cdn\.jsdelivr\.net\/gh\/satriaaao\/linix@[^"\s]+\/bsm-cinemachine\/home-camera-toolbar-20260922\.js/g,'/home-camera-toolbar-20260922.js?v=release20261002r7');
   out=out.replace(/src="\/product-search-20260912\.js(?:\?[^\"]*)?"/,'src="/product-search-20260912.js?v=cleanup1"');
   out=out.replace(/src="\/general-products-20260913\.js(?:\?[^\"]*)?"/,'src="/general-products-20260913.js?v=cleanup1"');
   // Promo tab: hard navigation to promo/new list, including on mobile Safari.
   out=out.replace(/src=["']\/public-template-popup-20260913\.js(?:\?[^"']*)?["']/i,'src="https://cdn.jsdelivr.net/gh/satriaaao/linix@43cd238cb9eaafd8f4d0f9a330ff5e4c7a1b4811/bsm-cinemachine/public-template-popup-20260913.js"');
   out=out.replace(/src="\/cart-click-fix-20260914\.js(?:\?[^\"]*)?"/,'src="/cart-click-fix-20260914.js?v=pcfix1"');
+  const assetSeen=new Set();
+  const tags=[...out.matchAll(/<script\b[^>]*src=["'][^"']+["'][^>]*><\/script>|<link\b[^>]*rel=["']stylesheet["'][^>]*>/gi)];
+  for(const match of tags.reverse()){const url=match[0].match(/(?:src|href)=["']([^"']+)/i)?.[1];if(!url)continue;const key=url.split('?')[0].split('/').pop();if(assetSeen.has(key))out=out.slice(0,match.index)+out.slice(match.index+match[0].length);else assetSeen.add(key)}
   return out;
 }
 
@@ -66,9 +71,7 @@ async function handler(req,res){
   let seo;
   try{seo=buildSeo(route,await loadContent())}catch(_){seo={...seoForRoute(route,base),robots:'noindex,follow',schema:[],status:503}}
   try{
-    const r=await fetch(SOURCE,{cache:'no-store'});
-    if(!r.ok)throw new Error('site source '+r.status);
-    const html=patchPublicHtml(await r.text(),seo);
+    const html=patchPublicHtml(fs.readFileSync(SOURCE,'utf8'),seo);
     res.statusCode=seo.status||200;
     res.setHeader('content-type','text/html; charset=utf-8');
     res.setHeader('cache-control','no-store, max-age=0');

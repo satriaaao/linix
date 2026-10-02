@@ -61,6 +61,8 @@ self.addEventListener('fetch',event=>{
   const url=new URL(req.url);
   if(url.origin!==self.location.origin)return;
   if(url.pathname.startsWith('/api/'))return;
+  // This root-scoped worker must only handle the warehouse report app.
+  if(url.pathname!=='/report-gudang'&&!SHELL.includes(url.pathname))return;
 
   if(req.mode==='navigate'){
     event.respondWith(

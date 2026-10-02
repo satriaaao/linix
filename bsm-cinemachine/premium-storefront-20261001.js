@@ -1,6 +1,6 @@
 /* Accessible mobile navigation preserves existing actions and product tracking. */
 (() => {
-  if (!document.getElementById('app')) return;
+  if (!document.getElementById('app')||document.querySelector('.rc-app-nav')) return;
   const nav=document.createElement('nav');
   nav.className='rc-app-nav';nav.setAttribute('aria-label','Navigasi utama');
   const icons={

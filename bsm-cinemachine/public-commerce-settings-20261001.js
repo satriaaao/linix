@@ -1,6 +1,6 @@
 /* CMS controls for direct WhatsApp requests and search access. */
 (()=>{
- if(!document.getElementById('app'))return;
+ if(!document.getElementById('app')||window.__rentcamCommerceInstalled)return;window.__rentcamCommerceInstalled=true;
  const cfg=()=>window.RENTCAM_CMS_CONFIG||{},esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const phone=v=>{let n=String(v||'').replace(/\D/g,'');return n.startsWith('0')?'62'+n.slice(1):n.startsWith('8')?'62'+n:n};
  let draft={},selectedDates=[];
