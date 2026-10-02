@@ -20,7 +20,9 @@
   dock();
  }
  function cartTable(){
-  const layout=document.querySelector('#app .cartLayout'),list=layout?.firstElementChild;if(!list||list.querySelector('.rc-cart-table'))return;
+  const layout=document.querySelector('#app .cartLayout'),list=layout?.firstElementChild;if(!list)return;
+  for(const child of layout.children){child.style.setProperty('grid-column','1 / -1','important');child.style.setProperty('grid-row','auto','important');child.style.setProperty('max-width','none','important');child.style.setProperty('width','100%','important');child.style.setProperty('box-sizing','border-box','important')}
+  if(list.querySelector('.rc-cart-table'))return;
   layout.style.setProperty('grid-template-columns','minmax(0,1fr)','important');layout.style.setProperty('display','grid','important');
   const cards=[...list.querySelectorAll('.cartItem')];if(!cards.length)return;
   const table=document.createElement('table');table.className='rc-cart-table';table.innerHTML='<caption>Daftar peralatan sewa</caption><thead><tr><th scope="col">Produk</th><th scope="col">Harga / hari</th><th scope="col">Jumlah</th><th scope="col">Subtotal / hari</th></tr></thead><tbody></tbody>';
