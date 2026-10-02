@@ -65,7 +65,7 @@ function hideHeaderSearch(){
   const inputs=[...document.querySelectorAll('header input')].filter(x=>/cari produk|brand|kategori/i.test(x.placeholder||''));
   inputs.forEach(input=>{
     const box=input.closest('.rc-header-product-search,.header-search,.search-wrap')||input.parentElement;
-    if(box)box.style.setProperty('display','none','important');
+    if(box&&!box.classList.contains('rc-header-search'))box.style.setProperty('display','none','important');
   });
 }
 function submitSearch(input){
