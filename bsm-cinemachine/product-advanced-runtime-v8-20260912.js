@@ -18,5 +18,5 @@
   function patchAll(){sync();applySEO();patchDetail();patchHome();patchCatalog()}
   function afterRoute(){setTimeout(patchAll,40);setTimeout(patchAll,220);setTimeout(patchAll,700)}
   document.addEventListener('click',e=>{const b=e.target.closest?.('[data-adv-img]');if(!b)return;const p=productByPath(),u=p?.images?.[+b.dataset.advImg];const m=document.querySelector('#app .mainPhoto');if(u&&m){m.dataset.cmsImg=u;m.style.backgroundImage=`url('${u}')`}});
-  document.addEventListener('rentcam-cms-updated',()=>{sync();if(!renderedConfig){renderedConfig=true;try{if(typeof render==='function')render()}catch(e){} }afterRoute()});document.addEventListener('rentcam-route-change',afterRoute);addEventListener('popstate',afterRoute);afterRoute();
+  document.addEventListener('rentcam-cms-updated',()=>{sync();afterRoute()});document.addEventListener('rentcam-route-change',afterRoute);addEventListener('popstate',afterRoute);afterRoute();
 })();
