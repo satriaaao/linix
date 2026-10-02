@@ -252,6 +252,10 @@
     {
       "source": "/pesanan",
       "destination": "/api/site?kind=order"
+    },
+    {
+      "source": "/:path*",
+      "destination": "/api/not-found"
     }
   ],
   "redirects": [
@@ -272,6 +276,9 @@
     },
     "api/site.js": {
       "includeFiles": "index.html"
+    },
+    "api/not-found.js": {
+      "includeFiles": "404.html"
     }
   }
 }
