@@ -208,3 +208,27 @@ html body #app .product-search-box{border-radius:14px!important;background:#fff!
 html[data-store-theme=black] .rc-quick-order{color:#f4f4f5;border-color:#303137}html[data-store-theme=black] .rc-quick-order :is(p,small,label span){color:#bfc0cb}html[data-store-theme=black] .rc-quick-order .rc-quick-estimate{background:#24252b;color:#eeeef3}html[data-store-theme=black] .rc-search-dock{background:#17181df5;border-color:#303137}html[data-store-theme=black] .rc-search-dock input{color:#f4f4f5}html[data-store-theme=black] .rc-search-dock button{background:#f4f4f5;color:#17181d}html[data-store-theme=black] body #app .product-search-box{background:#222328!important;border-color:#383941!important}
 html[data-checkout-mode=whatsapp] #app .summary>.sum,html[data-checkout-mode=whatsapp] #app .summary>.rc-tax-note{display:none!important}
 .rc-quick-order :is(input,button):focus-visible,.rc-search-dock :is(input,button):focus-visible{outline:2px solid #777985;outline-offset:3px}
+/* Keep nested prices and legacy detail panels readable on charcoal surfaces. */
+html[data-store-theme=black] body #app .home-category-card .home-category-price,html[data-store-theme=black] body #app .home-category-card .home-category-price :is(b,strong,.sale-price,.discount-price),html[data-store-theme=black] body #app .pcard .price :is(b,strong,.sale-price,.discount-price){color:#f4f4f5!important}
+html[data-store-theme=black] body #app .home-category-card .home-category-price :is(del,s,small),html[data-store-theme=black] body #app .pcard .price :is(del,s,small){color:#b6b8c3!important}
+html[data-store-theme=black] body #app :is(.rc-branch-availability,.rc-included-details,.rc-included-details>summary,.spec,.spec>div){background:#191a1e!important;color:#f4f4f5!important;border-color:#363840!important;box-shadow:none!important}
+html[data-store-theme=black] body #app .spec :is(div,li,td,th){background:#222328!important;color:#ececf2!important;border-color:#3b3d46!important}
+html[data-store-theme=black] body #app .spec :is(b,strong){color:#f4f4f5!important}
+html[data-store-theme=black] body #app .spec :is(span,small){color:#c5c7d2!important}
+html[data-store-theme=black] body #app .rc-branch-availability :is(h3,.rc-branch-chip span),html[data-store-theme=black] body #app .rc-included-details :is(b,h2,h3,.rc-inc-body li,.rc-inc-body li>span){color:#f4f4f5!important}
+html[data-store-theme=black] body #app .rc-branch-availability :is(p,.rc-branch-chip small),html[data-store-theme=black] body #app .rc-included-details :is(small,.rc-inc-chevron){color:#bfc2ce!important}
+html[data-store-theme=black] body #app :is(.rc-branch-chip,.rc-branch-chip.available,.rc-branch-chip.unavailable,.rc-inc-body,.rc-inc-body li,.rc-inc-title small){background:#25262d!important;border-color:#3b3d46!important;box-shadow:none!important}
+html[data-store-theme=black] body #app .rc-branch-chip.available small{color:#8bdfb9!important}
+html[data-store-theme=black] body #app .rc-branch-chip.unavailable small{color:#ffabae!important}
+html[data-store-theme=black] body #app .rc-branch-pin{background:#30323b!important;color:#ececf2!important}
+html[data-store-theme=black] body #app .rc-included-details .rc-inc-dot{background:#3b3e49!important;color:#fff!important}
+html[data-store-theme=black] body #app .rc-price,html[data-store-theme=black] body #app .rc-price :is(b,strong,span,.sale-price){color:#f4f4f5!important}
+html[data-store-theme=black] body #app .rc-price :is(del,s,small){color:#b6b8c3!important}
+html[data-store-theme=black] body #app :is(.spec-list,.spec-list>.spec-row,.detail-ref-spec,.detail-ref-spec-row){background:#222328!important;border-color:#3b3d46!important;color:#ececf2!important}
+html[data-store-theme=black] body #app :is(.spec-list,.detail-ref-spec) :is(b,strong){color:#f4f4f5!important}
+html[data-store-theme=black] body #app :is(.spec-list,.detail-ref-spec) :is(span,small){color:#c5c7d2!important}
+html[data-store-theme=black] body #app .brand-logo span{color:#f4f4f5!important}
+html[data-store-theme=white] body #app .rc-price :is(b,strong,span,.sale-price){color:#17181d!important}
+html[data-store-theme=white] body #app .rc-price :is(del,s,small){color:#646670!important}
+html[data-store-theme=black] body #app .rc-included-details .rc-inc-chevron{background:#30323b!important;border-color:#3b3d46!important;color:#f4f4f5!important}
+html[data-store-theme=white] body #app .rc-branch-head p,html[data-store-theme=white] body #app .spec-list .spec-row span,html[data-store-theme=white] body #app .rc-included-details :is(.rc-inc-title small,.rc-inc-chevron){color:#5f6572!important}
