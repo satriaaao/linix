@@ -35,8 +35,34 @@
   let scheduled=false;
   const placeholders=new WeakMap();
   const cartCount=document.createElement('span');cartCount.className='rc-app-count';cartCount.hidden=true;cartCount.hidden=true;
+  const drawerIcons={
+    '/':'<path d="m3 10 9-7 9 7M5 9v11h5v-6h4v6h5V9"/>',
+    '/produk':'<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',
+    '/portfolio':'<rect x="3" y="7" width="18" height="14" rx="3"/><path d="M8 7V4h8v3M3 12c5 4 13 4 18 0M12 12v4"/>',
+    '/artikel':'<rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 7h8M8 11h8M8 15h5"/>',
+    '/cart':'<path d="M3 3h2l3 12h10l3-9H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/>',
+    '/cek-order':'<rect x="5" y="4" width="14" height="17" rx="3"/><path d="M9 3h6v3H9zM9 11h6M9 15h4"/>',
+    review:'<path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-9l-5 3v-3H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/><path d="m12 7 1.2 2.4 2.6.4-1.9 1.8.5 2.6-2.4-1.3-2.4 1.3.5-2.6-1.9-1.8 2.6-.4Z"/>',
+    member:'<circle cx="9" cy="8" r="4"/><path d="M2 21v-2a7 7 0 0 1 14 0v2M19 8v6M16 11h6"/>',
+    page:'<rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 8h8M8 12h8M8 16h4"/>'
+  };
+  function polishDrawer(){
+    const drawer=document.getElementById('drawer');if(!drawer)return;
+    const head=drawer.querySelector('.rc-drawer-head');
+    if(head&&!head.querySelector('.rc-menu-heading')){const title=document.createElement('div');title.className='rc-menu-heading';title.innerHTML='<b>Menu</b><small>Jelajahi RentalAll</small>';head.prepend(title)}
+    drawer.querySelectorAll('.drawer-link').forEach(link=>{
+      let key=link.hasAttribute('data-customer-reviews')?'review':link.hasAttribute('data-register-member')?'member':link.dataset.go||link.getAttribute('href')||'page';
+      try{if(key.startsWith('/'))key=new URL(key,location.origin).pathname}catch(_){}
+      const descriptions={'/':'Halaman utama','/produk':'Katalog peralatan','/portfolio':'Hasil produksi','/artikel':'Tips dan informasi'};
+      const description=link.querySelector('small');if(description?.textContent==='Buka halaman'&&descriptions[key])description.textContent=descriptions[key];
+      if(!drawerIcons[key])key='page';
+      let icon=link.querySelector('.drawer-link-icon');if(!icon){icon=document.createElement('span');icon.className='drawer-link-icon';link.prepend(icon)}
+      if(icon.dataset.menuIcon!==key){icon.dataset.menuIcon=key;icon.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true">'+drawerIcons[key]+'</svg>'}
+      if(!link.querySelector('.drawer-arrow')){const arrow=document.createElementNS('http://www.w3.org/2000/svg','svg');arrow.setAttribute('class','drawer-arrow');arrow.setAttribute('viewBox','0 0 24 24');arrow.setAttribute('aria-hidden','true');arrow.innerHTML='<path d="m9 6 6 6-6 6"/>';link.append(arrow)}
+    });
+  }
   function apply(){
-    scheduled=false;applyTheme();
+    scheduled=false;applyTheme();polishDrawer();
     const count=document.getElementById('count')?.textContent.trim()||'0';
     if(cartCount.textContent!==count)cartCount.textContent=count;
     cartCount.hidden=!(Number(count)>0);
@@ -46,7 +72,7 @@
       if(input.placeholder!==placeholder)input.placeholder=placeholder;
     });
     document.querySelectorAll('.header [data-menu],.header .rc-cart-button,#drawer .rc-close,#app .home-open-cart').forEach(el=>{
-      const label=el.matches('[data-menu]')?'Menu':el.matches('.rc-close')?'Tutup':'Keranjang';
+      const label=el.matches('.rc-close')?'Tutup menu':el.matches('[data-menu]')?'Menu':'Keranjang';
       if(!el.querySelector('.rc-control-label')){const span=document.createElement('span');span.className='rc-control-label';span.textContent=label;el.append(span);}
       el.setAttribute('aria-label',label);
     });
