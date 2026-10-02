@@ -333,3 +333,21 @@ html[data-store-theme=black] body #app .rc-cart-table tbody>tr,html[data-store-t
 html body:has(#app .cartLayout) .rc-promo-widget{display:none!important}
 @media(max-width:760px){html body #app .rc-cart-qty button{min-width:40px!important;min-height:44px!important}}
 html body #app .rc-cart-empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:15px;padding:54px 24px;border:1px solid #e7e7ed;border-radius:22px;background:#fff}html body #app .rc-cart-empty>span{display:grid;place-items:center;width:80px;height:80px;border-radius:24px;background:#f3f3f7;color:#64646f}html body #app .rc-cart-empty>span svg{width:36px!important;height:36px!important;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}html body #app .rc-cart-empty h2{font-size:22px;margin:3px 0 0;letter-spacing:-.5px}html body #app .rc-cart-empty p{font-size:13px;line-height:1.7;color:#777;max-width:360px;margin:0 0 10px}html body #app .rc-cart-empty .btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:12px 22px;border-radius:13px;color:#fff;background:#111;text-decoration:none;font-size:13px;font-weight:600}html[data-store-theme=black] body #app .rc-cart-empty{background:#1d1d22;border-color:#36363e}
+
+/* Compact rental equipment cards on phones; category controls stay unchanged. */
+html body #app [data-item-rate] del{display:block;font-size:10px;font-weight:400;color:#82828c}
+html body #app [data-item-rate] small{display:block;font-size:10px;font-weight:500}
+@media(max-width:760px){
+html body #app .rc-cart-table tbody>tr{padding:14px 12px!important;gap:12px 10px!important;border-radius:16px!important;box-sizing:border-box}
+html body #app .rc-cart-product img{width:52px!important;height:52px!important;padding:4px!important;border-radius:10px!important}
+html body #app .rc-cart-table td:first-child{padding-bottom:10px!important}
+html body #app .rc-cart-qty>div{display:flex!important;align-items:center!important;justify-content:flex-end!important;flex-wrap:wrap!important;gap:6px!important}
+html body #app .rc-cart-qty>div>div{display:flex!important;align-items:center!important;gap:6px!important}
+html body #app .rc-cart-qty :is(button,.pill){width:40px!important;height:44px!important;min-width:40px!important;min-height:44px!important;padding:0!important;box-sizing:border-box!important}
+html body #app .rc-cart-qty a{margin:0!important;padding:4px 0!important}
+html body #app .rc-item-date-button{min-height:44px!important;padding:8px 10px!important;box-sizing:border-box}
+html body #app .rc-cart-table td:last-child{padding-top:10px!important;font-size:14px!important}
+html body #app [data-item-date-summary]{margin-top:4px!important}
+}
+
+@media(max-width:760px){html body #app .rc-cart-qty [data-remove-rental-item]{width:auto!important;min-width:44px!important;min-height:44px!important;margin:0!important;font-size:11px!important}html body #app .rc-cart-qty br{display:none!important}}
