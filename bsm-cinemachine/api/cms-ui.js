@@ -9,7 +9,7 @@ async function handler(req,res){
     return res.end('Method not allowed');
   }
   try{
-    const js=fs.readFileSync(path.join(__dirname,'../website-design-lib-20260930.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'../member-registration-config-20261003.js'),'utf8')+'\n'+fs.readFileSync(SOURCE,'utf8');
+    const js=fs.readFileSync(path.join(__dirname,'../website-design-lib-20260930.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'../member-registration-config-20261003.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'../link-page-config-20261003.js'),'utf8')+'\n'+fs.readFileSync(SOURCE,'utf8');
     if(!js.includes('Rentcam CMS v5 — advanced catalog'))throw new Error('unexpected cms ui payload');
     res.statusCode=200;
     res.setHeader('content-type','application/javascript; charset=utf-8');
