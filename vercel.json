@@ -161,6 +161,10 @@
     {
       "source": "/display",
       "destination": "/display.html"
+    },
+    {
+      "source": "/sw.js",
+      "destination": "/signage-sw.js"
     }
   ],
   "redirects": [
