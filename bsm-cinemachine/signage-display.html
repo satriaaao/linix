@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BSM Display">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="manifest" href="/signage.webmanifest?v=20261002-1">
+<link rel="manifest" href="/signage.webmanifest?v=20261008-1">
 <title>Display</title>
 <style>
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;overscroll-behavior:none}
@@ -20,6 +20,7 @@ video.standby{opacity:0;z-index:1}
 #empty{position:absolute;inset:0;display:none;place-items:center;color:#777;font:14px system-ui;text-align:center;padding:24px;z-index:4;background:#000}
 </style>
 <script src="/signage-lib.js?v=20261002-1"></script>
+<script id="bsm-display-pwa">if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(()=>{})})}</script>
 </head>
 <body>
 <div id="stage">

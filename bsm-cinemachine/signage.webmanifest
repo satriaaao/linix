@@ -1,10 +1,31 @@
 {
-  "name":"BSM Standing Display",
-  "short_name":"Display",
-  "start_url":"/display",
-  "scope":"/",
-  "display":"standalone",
-  "orientation":"portrait",
-  "background_color":"#000000",
-  "theme_color":"#000000"
+  "name": "BSM Standing Display",
+  "short_name": "Display",
+  "id": "/display",
+  "start_url": "/display",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/signage-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/signage-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/signage-icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
 }
