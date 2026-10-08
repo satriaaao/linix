@@ -1,3 +1,4 @@
+// Vercel production build entrypoint.
 const fs = require('fs');
 const path = require('path');
 
