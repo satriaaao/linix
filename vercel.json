@@ -3,73 +3,45 @@
   "outputDirectory": "dist",
   "cleanUrls": true,
   "headers": [
-    {
-      "source": "/",
-      "headers": [
-        {"key": "Cache-Control", "value": "no-store, max-age=0"},
-        {"key": "Content-Type", "value": "text/html; charset=utf-8"}
-      ]
-    },
-    {
-      "source": "/cms",
-      "headers": [
-        {"key": "Cache-Control", "value": "no-store, max-age=0"},
-        {"key": "Content-Type", "value": "text/html; charset=utf-8"}
-      ]
-    },
-    {
-      "source": "/qr-code",
-      "headers": [
-        {"key": "Cache-Control", "value": "no-store, max-age=0"},
-        {"key": "Content-Type", "value": "text/html; charset=utf-8"}
-      ]
-    },
-    {
-      "source": "/produk/:path*",
-      "headers": [{"key": "Cache-Control", "value": "no-store, max-age=0"}]
-    },
-    {
-      "source": "/report-gudang",
-      "headers": [
-        {"key": "Cache-Control", "value": "no-store, max-age=0"},
-        {"key": "Content-Type", "value": "text/html; charset=utf-8"}
-      ]
-    },
-    {
-      "source": "/report-gudang.html",
-      "headers": [
-        {"key": "Cache-Control", "value": "no-store, max-age=0"},
-        {"key": "Content-Type", "value": "text/html; charset=utf-8"}
-      ]
-    },
-    {
-      "source": "/signage",
-      "headers": [
-        {"key": "Cache-Control", "value": "no-store, max-age=0"},
-        {"key": "Content-Type", "value": "text/html; charset=utf-8"}
-      ]
-    },
-    {
-      "source": "/display",
-      "headers": [
-        {"key": "Cache-Control", "value": "no-store, max-age=0"},
-        {"key": "Content-Type", "text/html; charset=utf-8"}
-      ]
-    },
-    {
-      "source": "/sw.js",
-      "headers": [
-        {"key": "Cache-Control", "value": "no-cache, no-store, must-revalidate"},
-        {"key": "Content-Type", "value": "application/javascript; charset=utf-8"}
-      ]
-    },
-    {
-      "source": "/signage.webmanifest",
-      "headers": [
-        {"key": "Cache-Control", "value": "no-cache, no-store, must-revalidate"},
-        {"key": "Content-Type", "value": "application/manifest+json; charset=utf-8"}
-      ]
-    }
+    {"source": "/", "headers": [
+      {"key": "Cache-Control", "value": "no-store, max-age=0"},
+      {"key": "Content-Type", "value": "text/html; charset=utf-8"}
+    ]},
+    {"source": "/cms", "headers": [
+      {"key": "Cache-Control", "value": "no-store, max-age=0"},
+      {"key": "Content-Type", "value": "text/html; charset=utf-8"}
+    ]},
+    {"source": "/qr-code", "headers": [
+      {"key": "Cache-Control", "value": "no-store, max-age=0"},
+      {"key": "Content-Type", "value": "text/html; charset=utf-8"}
+    ]},
+    {"source": "/produk/:path*", "headers": [
+      {"key": "Cache-Control", "value": "no-store, max-age=0"}
+    ]},
+    {"source": "/report-gudang", "headers": [
+      {"key": "Cache-Control", "value": "no-store, max-age=0"},
+      {"key": "Content-Type", "value": "text/html; charset=utf-8"}
+    ]},
+    {"source": "/report-gudang.html", "headers": [
+      {"key": "Cache-Control", "value": "no-store, max-age=0"},
+      {"key": "Content-Type", "value": "text/html; charset=utf-8"}
+    ]},
+    {"source": "/signage", "headers": [
+      {"key": "Cache-Control", "value": "no-store, max-age=0"},
+      {"key": "Content-Type", "value": "text/html; charset=utf-8"}
+    ]},
+    {"source": "/display", "headers": [
+      {"key": "Cache-Control", "value": "no-store, max-age=0"},
+      {"key": "Content-Type", "value": "text/html; charset=utf-8"}
+    ]},
+    {"source": "/sw.js", "headers": [
+      {"key": "Cache-Control", "value": "no-cache, no-store, must-revalidate"},
+      {"key": "Content-Type", "value": "application/javascript; charset=utf-8"}
+    ]},
+    {"source": "/signage.webmanifest", "headers": [
+      {"key": "Cache-Control", "value": "no-cache, no-store, must-revalidate"},
+      {"key": "Content-Type", "value": "application/manifest+json; charset=utf-8"}
+    ]}
   ],
   "rewrites": [
     {"source": "/cms", "destination": "/cms.html"},
